@@ -225,8 +225,10 @@
 
   /* ── Next Date Bubble ── */
   #next-date-card {
-    border-radius: 14px; padding: 12px 14px;
+    border-radius: 14px; padding: 12px 14px; min-height: 70px; box-sizing: border-box;
+    display: flex; align-items: center;
   }
+  #next-date-card > div { width: 100%; }
   .date-card-row1 { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
   .date-card-day { font-size: 17px; font-weight: 700; color: #fff; letter-spacing: -0.01em; }
   .date-card-sub { font-size: 13px; color: rgba(255,255,255,0.6); font-family: sans-serif; }
@@ -3030,6 +3032,19 @@ function _nextDateCommuteHtml(date, cardColor) {
 
   if (!commuteHtml) return null;
 
+  // Determine travel mode and destination for Maps link
+  const dest = idea && idea.address ? idea.address.trim() : (date.venue || '');
+  let travelMode = 'transit'; // default for subway
+  if (!subway && walkdrive) {
+    const walkMatch2 = walkdrive.match(/(\d+)\s*min\s*walk/i);
+    const driveMatch2 = walkdrive.match(/(\d+)\s*min\s*drive/i);
+    travelMode = walkMatch2 ? 'walking' : 'driving';
+  }
+  const mapsOnclick = (homeAddress && dest)
+    ? `event.stopPropagation();window.open('https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(homeAddress)}&destination=${encodeURIComponent(dest)}&travelmode=${travelMode}','_blank')`
+    : '';
+  const mapsCursor = mapsOnclick ? 'cursor:pointer' : '';
+
   // Compute "Leave by" time
   let leaveByHtml = '';
   if (commuteMin && date.time) {
@@ -3050,7 +3065,7 @@ function _nextDateCommuteHtml(date, cardColor) {
     }
   }
 
-  return `<div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap">${commuteHtml}${leaveByHtml ? '<span style="color:rgba(255,255,255,0.3);font-size:11px;margin:0 1px">·</span>' + leaveByHtml : ''}</div>`;
+  return `<div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin-top:4px;${mapsCursor}" ${mapsOnclick ? `onclick="${mapsOnclick}"` : ''}>${commuteHtml}${leaveByHtml ? '<span style="color:rgba(255,255,255,0.3);font-size:11px;margin:0 1px">·</span>' + leaveByHtml : ''}</div>`;
 }
 
 // ── Date bubble nav ───────────────────────────────────
@@ -3201,7 +3216,7 @@ function _buildPickerStrip(prefix) {
   const pagesHtml = weeks.map(week => {
     const daysHtml = week.map(day => {
       const isSelected = day.isSelected;
-      const dotColor = (!isSelected && day.scheduled) ? ROSE : 'transparent';
+      const dotColor = day.scheduled ? ROSE : 'transparent';
       const numColor = isSelected ? '#fff' : day.isToday ? ROSE : '#2a1f1f';
       const numWeight = (isSelected || day.isToday) ? 700 : 400;
       const labelColor = day.isToday ? ROSE : '#b0a090';
@@ -3237,17 +3252,19 @@ function _initPickerStrip(prefix, targetPage) {
   if (!w) return;
   pages.forEach(p => { p.style.width = w + 'px'; });
   const page = targetPage !== undefined ? targetPage : parseInt(scroll.getAttribute('data-init-page') || '0');
-  // Disable snap, jump to position, re-enable snap — avoids iOS half-page glitch
+
+  // Temporarily disable snap, set position, re-enable — prevents iOS half-page glitch
   scroll.style.scrollSnapType = 'none';
   scroll.scrollLeft = page * w;
-  // Re-enable snap after paint
   requestAnimationFrame(() => {
-    scroll.style.scrollSnapType = '';
-    // Remove old scroll listener then add fresh one
-    scroll._pickerScrollHandler && scroll.removeEventListener('scroll', scroll._pickerScrollHandler);
+    scroll.style.scrollSnapType = 'x mandatory';
+  });
+
+  // Attach scroll listener only once
+  if (!scroll._pickerScrollHandler) {
     scroll._pickerScrollHandler = () => _closePickerTooltip(prefix);
     scroll.addEventListener('scroll', scroll._pickerScrollHandler, { passive: true });
-  });
+  }
 }
 
 function _pickerSetDay(prefix, yyyy, mm, dd) {
@@ -3279,6 +3296,7 @@ function pickerClickEmpty(prefix, y, m, d) {
 
 function pickerClickScheduled(prefix, e, y, m, d) {
   e.stopPropagation();
+  e.preventDefault();
 
   const key = `${y}-${m}-${d}`;
   const tt = document.getElementById(prefix + '-picker-tooltip');
@@ -3299,28 +3317,27 @@ function pickerClickScheduled(prefix, e, y, m, d) {
   // Set the date (this re-renders the strip)
   _pickerSetDay(prefix, y, m, d);
 
-  if (!tt) return;
+  if (!tt || !wrapRect || !cellRect) return;
 
   // Find the scheduled date
-  const dt = new Date(y, m, d); dt.setHours(0,0,0,0);
   const u = UPCOMING_DATES.find(u2 => {
     const uMNum = MONTH_NUMS[u2.month];
     const uyr = u2.year || new Date().getFullYear();
     return uMNum === m && u2.day === d && uyr === y;
   });
-  if (!u || !wrapRect || !cellRect) { _closePickerTooltip(prefix); return; }
+  if (!u) { _closePickerTooltip(prefix); return; }
 
   _pickerTooltipKey[prefix] = key;
 
   const iconHtml = activityIcon(u.activity, 14, '#9a8a7a');
-  const timeHtml = u.time ? `<span style="font-size:12px;color:#9a8a7a;font-family:sans-serif;margin-left:4px">${u.time}</span>` : '';
+  const timeHtml = u.time ? `<span style="font-size:12px;color:#9a8a7a;font-family:sans-serif;margin-left:4px">${_shortTime(u.time)}</span>` : '';
   tt.innerHTML = `<div style="display:flex;align-items:center;gap:6px">${iconHtml}<span style="font-size:14px;font-family:sans-serif;color:#2a1f1f">${u.venue}</span>${timeHtml}</div>`;
-  tt.style.display = 'block';
 
-  // Position below cell, caret points up (use pre-captured rects)
+  // Position using pre-captured rects (before DOM rebuild)
   const cellCenterX = cellRect.left - wrapRect.left + cellRect.width / 2;
   const cellBottom = cellRect.bottom - wrapRect.top;
 
+  tt.style.display = 'block';
   const ttW = tt.offsetWidth || 140;
   let left = cellCenterX - ttW / 2;
   if (left < 4) left = 4;
@@ -3329,9 +3346,14 @@ function pickerClickScheduled(prefix, e, y, m, d) {
   tt.style.top = (cellBottom - 9) + 'px';
   tt.style.setProperty('--caret-left', (cellCenterX - left) + 'px');
 
-  setTimeout(() => {
-    document.addEventListener('click', () => _closePickerTooltip(prefix), { once: true });
-  }, 0);
+  // Dismiss on outside click — use a flag to skip the immediate event bubble
+  let skipFirst = true;
+  const dismiss = () => {
+    if (skipFirst) { skipFirst = false; return; }
+    _closePickerTooltip(prefix);
+    document.removeEventListener('click', dismiss);
+  };
+  document.addEventListener('click', dismiss);
 }
 
 function _closePickerTooltip(prefix) {
