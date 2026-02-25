@@ -229,6 +229,34 @@
     display: flex; align-items: center;
   }
   #next-date-card > div { width: 100%; }
+
+  /* Date cards swipe carousel */
+  #date-cards-outer {
+    margin: 22px 20px 0; border-radius: 14px; overflow: hidden;
+    position: relative; min-height: 70px; box-sizing: border-box;
+    box-shadow: 0 4px 20px rgba(139,58,82,0.45);
+  }
+  #date-cards-scroll {
+    overflow-x: scroll; overflow-y: hidden;
+    scrollbar-width: none; -ms-overflow-style: none;
+    scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch;
+  }
+  #date-cards-scroll::-webkit-scrollbar { display: none; }
+  #date-cards-inner { display: flex; width: max-content; }
+  .date-card-slide {
+    flex-shrink: 0; scroll-snap-align: start; scroll-snap-stop: always;
+    box-sizing: border-box; cursor: pointer;
+  }
+  /* Arrow overlay on right side of card */
+  #date-cards-arrows {
+    position: absolute; right: 0; top: 0; bottom: 0;
+    display: flex; align-items: center; gap: 0; pointer-events: none;
+  }
+  #date-cards-arrows button {
+    pointer-events: all; background: none; border: none;
+    padding: 4px 6px; display: flex; align-items: center; cursor: pointer;
+  }
+  #date-btn-next { margin-right: 9px; }
   .date-card-row1 { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
   .date-card-day { font-size: 17px; font-weight: 700; color: #fff; letter-spacing: -0.01em; }
   .date-card-sub { font-size: 13px; color: rgba(255,255,255,0.6); font-family: sans-serif; }
@@ -1598,9 +1626,12 @@ function render() {
   else if (currentView === 'past')     main.innerHTML = renderPastDates();
   else if (currentView === 'archive')  main.innerHTML = renderArchive();
   renderNav();
-  // Initialize week strip scroll position after DOM update
+  // Initialize scroll positions after DOM update
   if (currentView === 'home') {
-    setTimeout(_initWeekStrip, 0);
+    setTimeout(() => { _initDateCardsScroll(); _initWeekStrip(); }, 0);
+  }
+  if (currentView === 'calendar') {
+    setTimeout(_initCalSwipe, 0);
   }
 }
 
@@ -2445,64 +2476,51 @@ function toggleTodoDone(id) {
 }
 
 // ── Home ──────────────────────────────────────────────
-function renderHome() {
-  const date = FUTURE_DATES[dateIdx] || null;
-  const canPrev = dateIdx > 0;
-  const canNext = dateIdx < FUTURE_DATES.length - 1;
-  const savedIdeas = ideas.filter(i => !i.archived).slice(0, 5);
-
-  const isFirst = dateIdx === 0;
-  const cardColor = isFirst ? BURGUNDY : ROSE;
-  const cardShadow = isFirst ? '0 2px 12px rgba(139,58,82,0.3)' : '0 2px 12px rgba(192,122,138,0.3)';
-
-  const dateBubbleHTML = date ? (() => {
-    const [dateMonth, dateDay] = date.dayShort.split(' ');
-    return `
-  <div style="padding:22px 20px 0">
-    <div id="next-date-card" style="background:${cardColor};box-shadow:${cardShadow}">
-      <div style="display:flex;align-items:center;gap:14px;cursor:pointer" onclick="openDateInfo(FUTURE_DATES[dateIdx])">
+function _buildDateCardHtml(fd, idx) {
+  const isFirstCard = idx === 0;
+  const cc = isFirstCard ? BURGUNDY : ROSE;
+  const cs = isFirstCard ? '0 2px 12px rgba(139,58,82,0.3)' : '0 2px 12px rgba(192,122,138,0.3)';
+  const [dm, dd] = fd.dayShort.split(' ');
+  const commute = _nextDateCommuteHtml(fd, cc);
+  const locLabel = _dateLocationLabel(fd) || fd.neighborhood;
+  const timePart = fd.time ? _shortTime(fd.time) : '';
+  const inner = commute
+    ? `<div style="display:flex;align-items:baseline;gap:7px;margin-bottom:2px"><div style="display:flex;align-items:center;gap:5px;min-width:0;flex-shrink:1;overflow:hidden">${activityIcon(fd.activity,14,'#fff')}<span style="font-size:15px;font-weight:700;color:#fff;letter-spacing:-0.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${fd.venue}</span></div>${timePart ? `<span style="font-size:12px;color:rgba(255,255,255,0.65);font-family:sans-serif;white-space:nowrap;flex-shrink:0;position:relative;bottom:2px">${timePart}</span>` : ''}</div>${commute}`
+    : `<div style="display:flex;align-items:center;gap:7px;margin-bottom:2px">${activityIcon(fd.activity,14,'#fff')}<span style="font-size:15px;font-weight:700;color:#fff;letter-spacing:-0.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${fd.venue}</span></div><span style="font-size:12px;color:rgba(255,255,255,0.65);font-family:sans-serif">${timePart}${locLabel ? (timePart ? ' · ' : '') + locLabel : ''}</span>`;
+  return `<div class="date-card-slide" onclick="openDateInfo(FUTURE_DATES[${idx}])">
+    <div style="background:${cc};box-shadow:none;padding:12px 14px;min-height:70px;box-sizing:border-box;display:flex;align-items:center">
+      <div style="display:flex;align-items:center;gap:14px;width:100%">
         <div style="width:40px;flex-shrink:0;display:flex;flex-direction:column;align-items:center">
-          <span style="font-size:10px;font-family:sans-serif;font-weight:600;color:rgba(255,255,255,0.7);letter-spacing:0.06em;text-transform:uppercase">${dateMonth}</span>
-          <span style="font-size:22px;font-weight:700;color:#fff;line-height:1.1">${dateDay}</span>
+          <span style="font-size:10px;font-family:sans-serif;font-weight:600;color:rgba(255,255,255,0.7);letter-spacing:0.06em;text-transform:uppercase">${dm}</span>
+          <span style="font-size:22px;font-weight:700;color:#fff;line-height:1.1">${dd}</span>
         </div>
         <div style="width:1px;height:36px;background:rgba(255,255,255,0.25);flex-shrink:0"></div>
-        <div style="flex:1;min-width:0">
-          ${(() => {
-            const commute = _nextDateCommuteHtml(date, cardColor);
-            const locLabel = _dateLocationLabel(date) || date.neighborhood;
-            const timePart = date.time ? _shortTime(date.time) : '';
-            if (commute) {
-              // Time moves to title line when commute known
-              return `<div style="display:flex;align-items:baseline;gap:7px;margin-bottom:2px">
-                <div style="display:flex;align-items:center;gap:5px;min-width:0;flex-shrink:1;overflow:hidden">
-                  ${activityIcon(date.activity,14,'#fff')}
-                  <span style="font-size:15px;font-weight:700;color:#fff;letter-spacing:-0.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${date.venue}</span>
-                </div>
-                ${timePart ? `<span style="font-size:12px;color:rgba(255,255,255,0.65);font-family:sans-serif;white-space:nowrap;flex-shrink:0;position:relative;bottom:2px">${timePart}</span>` : ''}
-              </div>
-              ${commute}`;
-            }
-            // No commute — original layout: title row, then time · place below
-            return `<div style="display:flex;align-items:center;gap:7px;margin-bottom:2px">
-              ${activityIcon(date.activity,14,'#fff')}
-              <span style="font-size:15px;font-weight:700;color:#fff;letter-spacing:-0.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${date.venue}</span>
-            </div>
-            <span style="font-size:12px;color:rgba(255,255,255,0.65);font-family:sans-serif">${timePart}${locLabel ? (timePart ? ' · ' : '') + locLabel : ''}</span>`;
-          })()}
-        </div>
-        <div style="display:flex;align-items:center;gap:0;flex-shrink:0">
-          <button class="date-nav-btn" onclick="event.stopPropagation();prevDate()" style="opacity:${canPrev?1:0.3}">
-            <svg viewBox="0 0 24 24" width="16" height="16" stroke="#fff" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
-          </button>
-          <button class="date-nav-btn" onclick="event.stopPropagation();nextDate()" style="opacity:${canNext?1:0.3}">
-            <svg viewBox="0 0 24 24" width="16" height="16" stroke="#fff" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
-          </button>
-        </div>
+        <div style="flex:1;min-width:0;padding-right:52px">${inner}</div>
       </div>
     </div>
+  </div>`;
+}
+
+function renderHome() {
+  const savedIdeas = ideas.filter(i => !i.archived).slice(0, 5);
+
+  const dateBubbleHTML = FUTURE_DATES.length > 0 ? `
+  <div id="date-cards-outer">
+    <div id="date-cards-scroll">
+      <div id="date-cards-inner">
+        ${FUTURE_DATES.map((fd, i) => _buildDateCardHtml(fd, i)).join('')}
+      </div>
+    </div>
+    <div id="date-cards-arrows">
+      <button id="date-btn-prev" onclick="event.stopPropagation();prevDate()">
+        <svg viewBox="0 0 24 24" width="16" height="16" stroke="#fff" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+      </button>
+      <button id="date-btn-next" onclick="event.stopPropagation();nextDate()">
+        <svg viewBox="0 0 24 24" width="16" height="16" stroke="#fff" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
+    </div>
   </div>
-  ${renderWeekStrip()}`;
-  })() : `<div style="padding:22px 20px 8px">
+  ${renderWeekStrip()}` : `<div style="padding:22px 20px 8px">
     <div id="next-date-card" style="background:${ROSE};box-shadow:0 2px 12px rgba(192,122,138,0.3)">
       <div style="display:flex;align-items:center;gap:14px;cursor:pointer" onclick="navigate('calendar')">
         <div style="flex:1;min-width:0">
@@ -3069,8 +3087,120 @@ function _nextDateCommuteHtml(date, cardColor) {
 }
 
 // ── Date bubble nav ───────────────────────────────────
-function prevDate() { if(dateIdx>0){dateIdx--;render();} }
-function nextDate() { if(dateIdx<FUTURE_DATES.length-1){dateIdx++;render();} }
+function prevDate() { if(dateIdx>0){dateIdx--;_scrollDateCards(true);} }
+function nextDate() { if(dateIdx<FUTURE_DATES.length-1){dateIdx++;_scrollDateCards(true);} }
+
+function _updateDateCardsUI() {
+  const canPrev = dateIdx > 0;
+  const canNext = dateIdx < FUTURE_DATES.length - 1;
+  const prev = document.getElementById('date-btn-prev');
+  const next = document.getElementById('date-btn-next');
+  if (prev) prev.style.opacity = canPrev ? '1' : '0.3';
+  if (next) next.style.opacity = canNext ? '1' : '0.3';
+}
+
+function _scrollDateCards(animate) {
+  const scroll = document.getElementById('date-cards-scroll');
+  if (!scroll) return;
+  const w = scroll.offsetWidth;
+  if (!w) return;
+  if (animate) {
+    // Smooth animated scroll
+    scroll.style.scrollSnapType = 'none';
+    const start = scroll.scrollLeft;
+    const end = dateIdx * w;
+    const duration = 200; // ms
+    const startTime = performance.now();
+    const ease = t => t < 0.5 ? 2*t*t : -1+(4-2*t)*t;
+    function step(now) {
+      const t = Math.min((now - startTime) / duration, 1);
+      scroll.scrollLeft = start + (end - start) * ease(t);
+      if (t < 1) requestAnimationFrame(step);
+      else {
+        scroll.scrollLeft = end;
+        requestAnimationFrame(() => { scroll.style.scrollSnapType = 'x mandatory'; });
+        // Animate week strip if needed
+        const ws = document.getElementById('week-strip');
+        if (ws) { ws.outerHTML = renderWeekStrip(); setTimeout(_initWeekStrip, 0); }
+      }
+    }
+    requestAnimationFrame(step);
+  } else {
+    scroll.style.scrollSnapType = 'none';
+    scroll.scrollLeft = dateIdx * w;
+    requestAnimationFrame(() => { scroll.style.scrollSnapType = 'x mandatory'; });
+  }
+  _updateDateCardsUI();
+}
+
+function _initDateCardsScroll() {
+  const outer = document.getElementById('date-cards-outer');
+  const scroll = document.getElementById('date-cards-scroll');
+  if (!scroll || !outer) return;
+  const w = outer.offsetWidth;
+  if (!w) return;
+  // Set each slide to outer container width
+  scroll.querySelectorAll('.date-card-slide').forEach(s => { s.style.width = w + 'px'; });
+  // Scroll to current dateIdx without animation
+  scroll.style.scrollSnapType = 'none';
+  scroll.scrollLeft = dateIdx * w;
+  requestAnimationFrame(() => { scroll.style.scrollSnapType = 'x mandatory'; });
+  _updateDateCardsUI();
+  // Listen for swipe to update dateIdx + week strip
+  if (scroll._dateScrollHandler) scroll.removeEventListener('scroll', scroll._dateScrollHandler);
+  let _scrollEndTimer = null;
+  scroll._dateScrollHandler = () => {
+    clearTimeout(_scrollEndTimer);
+    _scrollEndTimer = setTimeout(() => {
+      const newIdx = Math.round(scroll.scrollLeft / w);
+      if (newIdx !== dateIdx && newIdx >= 0 && newIdx < FUTURE_DATES.length) {
+        dateIdx = newIdx;
+        _updateDateCardsUI();
+        // Re-render week strip in place without full page re-render
+        const ws = document.getElementById('week-strip');
+        if (ws) {
+          ws.outerHTML = renderWeekStrip();
+          setTimeout(_initWeekStrip, 0);
+        }
+      }
+    }, 80);
+  };
+  scroll.addEventListener('scroll', scroll._dateScrollHandler, { passive: true });
+}
+
+function _initCalSwipe() {
+  const card = document.getElementById('cal-card');
+  if (!card) return;
+  let startX = 0, startY = 0, dragging = false, fired = false;
+
+  function onStart(x, y) {
+    startX = x; startY = y; dragging = true; fired = false;
+  }
+  function onMove(x) {
+    if (!dragging || fired) return;
+    const dx = x - startX;
+    if (Math.abs(dx) > 30) {
+      fired = true; dragging = false;
+      dx < 0 ? calNext() : calPrev();
+    }
+  }
+  function onEnd() { dragging = false; }
+
+  // Touch
+  card.addEventListener('touchstart', e => {
+    onStart(e.touches[0].clientX, e.touches[0].clientY);
+  }, { passive: true });
+  card.addEventListener('touchmove', e => {
+    onMove(e.touches[0].clientX);
+  }, { passive: true });
+  card.addEventListener('touchend', onEnd, { passive: true });
+
+  // Mouse (desktop drag)
+  card.addEventListener('mousedown', e => { onStart(e.clientX, e.clientY); });
+  card.addEventListener('mousemove', e => { if (dragging) onMove(e.clientX); });
+  card.addEventListener('mouseup', onEnd);
+  card.addEventListener('mouseleave', onEnd);
+}
 
 // ── Week strip interactions ────────────────────────────
 let _weekTooltipDay = 0, _weekTooltipMonth = 0, _weekTooltipYear = 0;
@@ -3098,7 +3228,7 @@ function selectWeekDate(idx) {
   const main = document.getElementById('main-content');
   if (main) {
     main.innerHTML = renderHome();
-    setTimeout(_initWeekStrip, 0);
+    setTimeout(() => { _initDateCardsScroll(); _initWeekStrip(); }, 0);
   }
 }
 
