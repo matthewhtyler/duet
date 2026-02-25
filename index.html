@@ -3007,7 +3007,7 @@ function _nextDateCommuteHtml(date, cardColor) {
     let badgesHtml = '';
     lines.forEach((line, i) => {
       if (i > 0) badgesHtml += `<span style="color:rgba(255,255,255,0.5);font-size:10px">›</span>`;
-      badgesHtml += `<div style="width:14px;height:14px;border-radius:50%;background:rgba(255,255,255,0.7);display:flex;align-items:center;justify-content:center;color:${textColor};font-size:8px;font-weight:700;font-family:sans-serif;flex-shrink:0">${line}</div>`;
+      badgesHtml += `<div style="width:14px;height:14px;border-radius:50%;background:rgba(255,255,255,0.7);position:relative;flex-shrink:0;display:inline-block"><span style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:${textColor};font-size:8px;font-weight:700;font-family:sans-serif;line-height:1;letter-spacing:0;white-space:nowrap">${line}</span></div>`;
     });
     buses.forEach((bus, i) => {
       if (lines.length || i > 0) badgesHtml += `<span style="color:rgba(255,255,255,0.5);font-size:10px">›</span>`;
@@ -3277,16 +3277,33 @@ function _pickerSetDay(prefix, yyyy, mm, dd) {
   if (hidden) hidden.value = hiddenVal;
   if (text) text.value = displayVal;
 
-  // Remember which page is currently visible before rebuilding
+  // Update selected circle visually WITHOUT touching scroll position.
+  // Walk all day cells and update bgColor/numColor based on new selection.
   const scroll = document.getElementById(prefix + '-picker-scroll');
-  const w = scroll ? scroll.offsetWidth : 0;
-  const currentPage = (scroll && w) ? Math.round(scroll.scrollLeft / w) : 0;
+  if (!scroll) return;
+  const selTs = new Date(yyyy, mm, dd).setHours(0,0,0,0);
+  const today = new Date(); today.setHours(0,0,0,0);
+  const todayTs = today.getTime();
 
-  // Re-render strip to update selected circle
-  _buildPickerStrip(prefix);
-
-  // Restore to the same page (not initPage), so clicking wk2/3 doesn't jump back
-  _initPickerStrip(prefix, currentPage);
+  scroll.querySelectorAll('.week-day').forEach(cell => {
+    const onclick = cell.getAttribute('onclick') || '';
+    // Extract y,m,d from onclick="pickerClickScheduled('prefix',event,y,m,d)" or pickerClickEmpty
+    const coordMatch = onclick.match(/,(\d+),(\d+),(\d+)\)$/);
+    if (!coordMatch) return;
+    const cy = parseInt(coordMatch[1]), cm = parseInt(coordMatch[2]), cd = parseInt(coordMatch[3]);
+    const cellTs = new Date(cy, cm, cd).setHours(0,0,0,0);
+    const isSelected = cellTs === selTs;
+    const isToday = cellTs === todayTs;
+    const numWrap = cell.querySelector('.week-day-num-wrap');
+    const numSpan = cell.querySelector('.week-day-num');
+    const labelSpan = cell.querySelector('.week-day-label');
+    if (numWrap) numWrap.style.background = isSelected ? ROSE : isToday ? 'rgba(192,122,138,0.15)' : 'transparent';
+    if (numSpan) {
+      numSpan.style.color = isSelected ? '#fff' : isToday ? ROSE : '#2a1f1f';
+      numSpan.style.fontWeight = (isSelected || isToday) ? '700' : '400';
+    }
+    if (labelSpan) labelSpan.style.fontWeight = (isSelected || isToday) ? '700' : '400';
+  });
 }
 
 function pickerClickEmpty(prefix, y, m, d) {
