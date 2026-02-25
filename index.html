@@ -2056,14 +2056,14 @@ function renderIdeas() {
 // Shared body builder used by both renderIdeas (initial) and _renderIdeasBody (updates)
 function _buildIdeasBody(pool, q, byName, isFavFilter) {
   // ── Small card: same image panel as home page (120px wide)
-  function smallCard(item, accent) {
+  function smallCard(item, accent, navCtx) {
     const sub = itemSubLine(item);
     const subColor = item.type === 'out' ? BURGUNDY : ROSE;
     const urls = getImageUrls(item);
     const imgPanel = urls.length
       ? `<div style="width:120px;flex-shrink:0;margin:-12px -14px -12px 0;border-left:1px solid #ede9e2;border-radius:0 14px 14px 0;overflow:hidden;align-self:stretch;background:#6b2340;position:relative"><img src="${urls[0]}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center;display:block" onerror="this.parentNode.style.background='#6b2340';this.style.display='none'"></div>`
       : '';
-    return `<div class="quick-row" onclick="openDetail(${item.id})" style="cursor:pointer;overflow:hidden">
+    return `<div class="quick-row" onclick="openDetail(${item.id},'${navCtx}')" style="cursor:pointer;overflow:hidden">
       <div style="flex:1;min-width:0">
         <div style="display:flex;align-items:center;gap:7px;margin-bottom:${sub?'4px':'0'}">
           ${ideaIcon(item, 14, accent)}
@@ -2092,7 +2092,7 @@ function _buildIdeasBody(pool, q, byName, isFavFilter) {
         <svg viewBox="0 0 24 24" width="15" height="15" stroke="#b0a090" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
       </button>
     </div>`;
-    return `<div onclick="openDetail(${item.id})" class="quick-row" style="cursor:pointer;flex-direction:column;align-items:stretch;padding:0;flex-shrink:0;width:min(350px,calc(100vw - 40px));scroll-snap-align:start;overflow:hidden">
+    return `<div onclick="openDetail(${item.id},'featured')" class="quick-row" style="cursor:pointer;flex-direction:column;align-items:stretch;padding:0;flex-shrink:0;width:min(350px,calc(100vw - 40px));scroll-snap-align:start;overflow:hidden">
       <div style="height:100px;background:#6b2340;border-radius:13px 13px 0 0;flex-shrink:0;overflow:hidden;position:relative">${urls.length ? `<img src="${urls[0]}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center;display:block" onerror="this.parentNode.style.background='#6b2340';this.style.display='none'">` : ''}</div>
       <div style="display:flex;align-items:center;gap:14px;padding:0 14px 12px">
         <div style="flex:1;min-width:0">
@@ -2117,11 +2117,11 @@ function _buildIdeasBody(pool, q, byName, isFavFilter) {
     const favIn  = pool.filter(i => i.type === 'in').sort(byName);
     const favOutHtml = favOut.length ? `<div style="margin-bottom:20px">
       <div class="section-label" style="margin-bottom:8px">Going Out</div>
-      <div style="display:flex;flex-direction:column;gap:8px">${favOut.map(i => smallCard(i, BURGUNDY)).join('')}</div>
+      <div style="display:flex;flex-direction:column;gap:8px">${favOut.map(i => smallCard(i, BURGUNDY, 'out')).join('')}</div>
     </div>` : '';
     const favInHtml = favIn.length ? `<div>
       <div class="section-label" style="margin-bottom:8px">Staying In</div>
-      <div style="display:flex;flex-direction:column;gap:8px">${favIn.map(i => smallCard(i, ROSE)).join('')}</div>
+      <div style="display:flex;flex-direction:column;gap:8px">${favIn.map(i => smallCard(i, ROSE, 'in')).join('')}</div>
     </div>` : '';
     return `<div style="padding:12px 20px 80px">${favOutHtml}${favInHtml}</div>`;
   }
@@ -2167,11 +2167,11 @@ function _buildIdeasBody(pool, q, byName, isFavFilter) {
   const inIdeas = pool.filter(i => i.type === 'in').sort(byName);
   const outHtml = (out.length && ideasFilter !== 'in') ? `<div style="margin-bottom:20px">
     <div class="section-label" style="margin-bottom:8px">Going Out</div>
-    <div style="display:flex;flex-direction:column;gap:8px">${out.map(i => smallCard(i, BURGUNDY)).join('')}</div>
+    <div style="display:flex;flex-direction:column;gap:8px">${out.map(i => smallCard(i, BURGUNDY, 'out')).join('')}</div>
   </div>` : '';
   const inHtml = (inIdeas.length && ideasFilter !== 'out') ? `<div>
     <div class="section-label" style="margin-bottom:8px">Staying In</div>
-    <div style="display:flex;flex-direction:column;gap:8px">${inIdeas.map(i => smallCard(i, ROSE)).join('')}</div>
+    <div style="display:flex;flex-direction:column;gap:8px">${inIdeas.map(i => smallCard(i, ROSE, 'in')).join('')}</div>
   </div>` : '';
 
   return `<div style="padding:12px 20px 80px">${favsHtml}${outHtml}${inHtml}</div>`;
@@ -2690,7 +2690,7 @@ function renderHome() {
       <span style="font-size:11px;color:#9a8a7a;font-family:sans-serif;letter-spacing:0.05em;line-height:1">›</span>
     </button>
     <div style="display:flex;flex-direction:column;gap:8px">
-      ${savedIdeas.map(item => renderQuickRow(item)).join('')}
+      ${savedIdeas.map(item => renderQuickRow(item, 'latest')).join('')}
     </div>
   </div>
 
@@ -2847,7 +2847,7 @@ function itemSubLine(item) {
   return item.shortdesc ? `${label} • ${item.shortdesc}` : label;
 }
 
-function renderQuickRow(item) {
+function renderQuickRow(item, navCtx) {
   const color = item.type === 'out' ? BURGUNDY : ROSE;
   const bg = item.type === 'out' ? BURGUNDY_BG : ROSE_BG;
   const subColor = item.type === 'out' ? BURGUNDY : ROSE;
@@ -2855,7 +2855,7 @@ function renderQuickRow(item) {
   const urls = getImageUrls(item);
   const imgPanel = urls.length ? `<div style="width:120px;flex-shrink:0;margin:-12px -14px -12px 0;border-left:1px solid #ede9e2;border-radius:0 14px 14px 0;overflow:hidden;align-self:stretch;background:#6b2340;position:relative"><img src="${urls[0]}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center;display:block" onerror="this.parentNode.style.background='#6b2340';this.style.display='none'"></div>` : (item.type==='in' ? `<span class="type-badge" style="background:${bg};color:${color}">In</span>` : '');
   return `
-  <div class="quick-row" onclick="openDetail(${item.id})" style="cursor:pointer;overflow:hidden">
+  <div class="quick-row" onclick="openDetail(${item.id},'${navCtx||'latest'}' )" style="cursor:pointer;overflow:hidden">
     <div style="flex:1;min-width:0">
       <div style="display:flex;align-items:center;gap:7px;margin-bottom:${sub?'4px':'0'}">
         ${ideaIcon(item, 14, color)}
@@ -4636,12 +4636,50 @@ function diImgNav(dir, e) {
   if (el) el.src = urls[_diImgIdx];
 }
 
-function openDetail(id) {
+let _detailNavList = [];   // ordered idea IDs for swiping in Idea Info
+let _diNavList = [];       // ordered date objects for swiping in Date Info
+
+// ── Info popup swipe navigation ──
+function _attachInfoSwipe(elId, onSwipeLeft, onSwipeRight) {
+  const el = document.getElementById(elId);
+  if (!el) return;
+  if (el._swipeStart) {
+    el.removeEventListener('touchstart', el._swipeStart, { passive: true });
+    el.removeEventListener('touchend', el._swipeEnd);
+  }
+  let sx = 0, sy = 0;
+  el._swipeStart = e => { sx = e.touches[0].clientX; sy = e.touches[0].clientY; };
+  el._swipeEnd = e => {
+    const dx = e.changedTouches[0].clientX - sx;
+    const dy = e.changedTouches[0].clientY - sy;
+    if (Math.abs(dx) < 40 || Math.abs(dx) < Math.abs(dy) * 1.2) return;
+    if (dx < 0) onSwipeLeft(); else onSwipeRight();
+  };
+  el.addEventListener('touchstart', el._swipeStart, { passive: true });
+  el.addEventListener('touchend', el._swipeEnd);
+}
+
+function openDetail(id, navContext) {
   const item = ideas.find(i=>i.id===id);
   if (!item) return;
   detailItemId = id;
   _detailImgIdx = 0;
   const isOut = item.type === 'out';
+  // Build nav list based on context
+  if (navContext === 'featured') {
+    const _bn = (a,b) => a.name.localeCompare(b.name);
+    const fo = ideas.filter(i => !i.archived && i.saved && i.type === 'out').sort(_bn);
+    const fi = ideas.filter(i => !i.archived && i.saved && i.type === 'in').sort(_bn);
+    _detailNavList = [...fo, ...fi].map(i => i.id);
+  } else if (navContext === 'latest') {
+    _detailNavList = ideas.filter(i => !i.archived).map(i => i.id);
+  } else if (navContext === 'out') {
+    _detailNavList = ideas.filter(i => !i.archived && i.type === 'out').sort((a,b)=>a.name.localeCompare(b.name)).map(i => i.id);
+  } else if (navContext === 'in') {
+    _detailNavList = ideas.filter(i => !i.archived && i.type === 'in').sort((a,b)=>a.name.localeCompare(b.name)).map(i => i.id);
+  } else if (!navContext && _detailNavList.length === 0) {
+    _detailNavList = ideas.filter(i => !i.archived).map(i => i.id);
+  }
 
   // Title — links to Google Maps search for venue name
   const mapsSearchUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(item.name)}`;
@@ -4744,6 +4782,17 @@ function openDetail(id) {
 
   document.getElementById('detail-body').innerHTML = body;
   document.getElementById('detail-overlay').style.display = 'flex';
+  // Attach swipe navigation to the padded body (not the image banner)
+  _attachInfoSwipe('detail-padded',
+    () => { // swipe left → next idea
+      const idx = _detailNavList.indexOf(detailItemId);
+      if (idx < _detailNavList.length - 1) openDetail(_detailNavList[idx + 1]);
+    },
+    () => { // swipe right → prev idea
+      const idx = _detailNavList.indexOf(detailItemId);
+      if (idx > 0) openDetail(_detailNavList[idx - 1]);
+    }
+  );
 }
 
 function closeDetail() {
@@ -4842,6 +4891,15 @@ function openDateInfo(u, memoryMode) {
     : (matchedIdeaForBanner ? (matchedIdeaForBanner.imageUrls || []).filter(Boolean) : []);
   _diImgIdx = 0;
   _diImgUrlsActive = diImgUrls;
+  // Build chronological nav list for date swiping
+  _diNavList = [...UPCOMING_DATES].sort((a, b) => {
+    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const ya = a.year || 2026, yb = b.year || 2026;
+    if (ya !== yb) return ya - yb;
+    const ma = months.indexOf(a.month), mb = months.indexOf(b.month);
+    if (ma !== mb) return ma - mb;
+    return (a.day || 0) - (b.day || 0);
+  });
   if (diImgUrls.length) {
     const pillStyle = 'background:rgba(0,0,0,0.38);border-radius:20px;display:flex;align-items:center;gap:2px;padding:3px 4px;opacity:0;transition:opacity 0.2s';
     const btn3Style = 'background:none;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:5px 4px;line-height:0';
@@ -5031,6 +5089,19 @@ function openDateInfo(u, memoryMode) {
   }
 
   document.getElementById('date-info-overlay').style.display = 'flex';
+  // Attach swipe navigation to the padded body (not the image banner)
+  _attachInfoSwipe('di-padded',
+    () => { // swipe left → next date (later)
+      const cur = currentDateInfo;
+      const idx = _diNavList.findIndex(d => d.month === cur.month && d.day === cur.day && (d.year||2026) === (cur.year||2026));
+      if (idx >= 0 && idx < _diNavList.length - 1) openDateInfo(_diNavList[idx + 1]);
+    },
+    () => { // swipe right → prev date (earlier)
+      const cur = currentDateInfo;
+      const idx = _diNavList.findIndex(d => d.month === cur.month && d.day === cur.day && (d.year||2026) === (cur.year||2026));
+      if (idx > 0) openDateInfo(_diNavList[idx - 1]);
+    }
+  );
 }
 
 function toggleSavedCurrent() {
