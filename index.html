@@ -187,6 +187,41 @@
     border-bottom: 6px solid #fff;
   }
 
+  /* Picker tooltip (in New/Edit Date popups) */
+  .picker-tooltip {
+    position: absolute;
+    background: #fff;
+    border: 1px solid #ede9e2;
+    border-radius: 10px;
+    padding: 8px 14px;
+    box-shadow: 0 6px 24px rgba(0,0,0,0.32);
+    z-index: 80;
+    white-space: nowrap;
+    display: none;
+    pointer-events: auto;
+    --caret-left: 50%;
+  }
+  .picker-tooltip::before {
+    content: '';
+    position: absolute;
+    bottom: 100%;
+    left: var(--caret-left);
+    transform: translateX(-50%);
+    border-left: 7px solid transparent;
+    border-right: 7px solid transparent;
+    border-bottom: 7px solid #ede9e2;
+  }
+  .picker-tooltip::after {
+    content: '';
+    position: absolute;
+    bottom: calc(100% - 1px);
+    left: var(--caret-left);
+    transform: translateX(-50%);
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-bottom: 6px solid #fff;
+  }
+
   /* ── Next Date Bubble ── */
   #next-date-card {
     border-radius: 14px; padding: 12px 14px;
@@ -223,14 +258,14 @@
   .cal-dow-cell { text-align: center; font-size: 11px; color: #b0a090; font-family: sans-serif; font-weight: 600; padding: 4px 0; }
   #cal-grid { display: grid; grid-template-columns: repeat(7,1fr); gap: 2px; }
   .cal-day {
-    aspect-ratio: 1; border-radius: 10px; border: none;
+    aspect-ratio: 1; border-radius: 8px; border: none;
     background: transparent; color: #2a1f1f;
     font-family: sans-serif; font-size: 14px;
     cursor: pointer; position: relative;
     display: flex; align-items: center; justify-content: center;
   }
-  .cal-day.today { background: #fde8ec; color: #c07a8a; font-weight: 700; }
-  .cal-day.selected { background: #c07a8a !important; color: #fff !important; }
+  .cal-day.today { background: rgba(192,122,138,0.15); color: #c07a8a; font-weight: 700; border-radius: 8px; }
+  .cal-day.selected { background: #c07a8a !important; color: #fff !important; font-weight: 700; border-radius: 8px !important; }
   .cal-dot {
     position: absolute; bottom: 3px; left: 50%; transform: translateX(-50%);
     width: 5px; height: 5px; border-radius: 50%; background: #c07a8a;
@@ -241,7 +276,7 @@
   #cal-upcoming { margin-top: 20px; }
   .upcoming-item {
     display: flex; align-items: center; gap: 14px; padding: 12px 14px;
-    background: #fff; border-radius: 14px; border: 1px solid #ede9e2;
+    background: #fff; border-radius: 14px; border: 1.5px solid #ede9e2;
     cursor: pointer; margin-bottom: 8px;
   }
   .upcoming-item.highlighted {
@@ -600,11 +635,18 @@
         <input class="field-input" id="date-custom-name" type="text" placeholder="Describe the activity…">
       </div>
       <div class="field-label">Date</div>
+      <div id="date-picker-wrap" style="position:relative;margin-bottom:8px">
+        <div id="date-picker-scroll" style="overflow-x:scroll;overflow-y:visible;scrollbar-width:none;-ms-overflow-style:none;border-radius:14px;border:1px solid #ede9e2;background:#fff;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch">
+          <div id="date-picker-inner" style="display:flex;width:max-content"></div>
+        </div>
+        <div id="date-picker-tooltip" class="picker-tooltip"></div>
+      </div>
       <div style="position:relative;margin-bottom:16px">
-        <svg style="position:absolute;left:13px;top:50%;transform:translateY(-50%);pointer-events:none" viewBox="0 0 24 24" width="16" height="16" stroke="#c07a8a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+        <svg style="position:absolute;left:13px;top:50%;transform:translateY(-50%);pointer-events:none;z-index:1" viewBox="0 0 24 24" width="16" height="16" stroke="#c07a8a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
           <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
         </svg>
-        <input class="field-input rose-picker" id="date-day" type="date" style="padding-left:38px;margin-bottom:0;text-align:left">
+        <input class="field-input" id="date-day-text" type="text" placeholder="e.g. 3/3, March 3, Mar 3" style="padding-left:38px;margin-bottom:0" onblur="finalizePickerText('date')">
+        <input type="hidden" id="date-day" value="">
       </div>
       <div class="field-label">Time</div>
       <div style="position:relative;margin-bottom:16px">
@@ -810,11 +852,18 @@
 
         <!-- Date -->
         <div class="field-label">Date</div>
+        <div id="ed-picker-wrap" style="position:relative;margin-bottom:8px">
+          <div id="ed-picker-scroll" style="overflow-x:scroll;overflow-y:visible;scrollbar-width:none;-ms-overflow-style:none;border-radius:14px;border:1px solid #ede9e2;background:#fff;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch">
+            <div id="ed-picker-inner" style="display:flex;width:max-content"></div>
+          </div>
+          <div id="ed-picker-tooltip" class="picker-tooltip"></div>
+        </div>
         <div style="position:relative;margin-bottom:16px">
-          <svg style="position:absolute;left:13px;top:50%;transform:translateY(-50%);pointer-events:none" viewBox="0 0 24 24" width="16" height="16" stroke="#c07a8a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+          <svg style="position:absolute;left:13px;top:50%;transform:translateY(-50%);pointer-events:none;z-index:1" viewBox="0 0 24 24" width="16" height="16" stroke="#c07a8a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
             <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
           </svg>
-          <input class="field-input rose-picker" id="ed-day" type="date" style="padding-left:38px;margin-bottom:0;text-align:left">
+          <input class="field-input" id="ed-day-text" type="text" placeholder="e.g. 3/3, March 3, Mar 3" style="padding-left:38px;margin-bottom:0" onblur="finalizePickerText('ed')">
+          <input type="hidden" id="ed-day" value="">
         </div>
 
         <!-- Time -->
@@ -1897,10 +1946,30 @@ function _buildIdeasBody(pool, q, byName, isFavFilter) {
   // ── All / Out / In view: Favorites carousel + sections
   const favsOut = ideas.filter(i => !i.archived && i.saved && i.type === 'out').sort(byName);
   const favsIn  = ideas.filter(i => !i.archived && i.saved && i.type === 'in').sort(byName);
+
+  // Shuffle helper (Fisher-Yates)
+  function _shuffle(arr) {
+    const a = [...arr];
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+
+  // Out: shuffle, but pin the first-alphabetically item to the end
+  let shuffledFavsOut = [];
+  if (favsOut.length) {
+    const firstAlpha = favsOut[0]; // already sorted by name, so [0] is first alpha
+    const rest = _shuffle(favsOut.filter(i => i.id !== firstAlpha.id));
+    shuffledFavsOut = [...rest, firstAlpha];
+  }
+  const shuffledFavsIn = _shuffle(favsIn);
+
   // When a type filter is active, only show that type's favs; hide Featured if none
-  const favs = ideasFilter === 'out' ? favsOut
-             : ideasFilter === 'in'  ? favsIn
-             : [...favsOut, ...favsIn];
+  const favs = ideasFilter === 'out' ? shuffledFavsOut
+             : ideasFilter === 'in'  ? shuffledFavsIn
+             : [...shuffledFavsOut, ...shuffledFavsIn];
   let favsHtml = '';
   if (!q && favs.length) {
     favsHtml = `<div style="margin-bottom:20px">
@@ -2105,7 +2174,7 @@ function renderTodo() {
 
   const listHtml = sorted.length
     ? sorted.map(todoRow).join('')
-    : `<div style="padding:60px 20px;text-align:center;color:#b0a090;font-size:15px;font-style:italic">Click + to add…</div>`;
+    : `<div style="padding:60px 20px;text-align:center;color:#b0a090;font-size:15px;font-style:italic">Nothing to do…</div>`;
 
   return `<div style="padding:20px 20px 80px"><div style="padding:0 10px">${listHtml}</div></div>`;
 }
@@ -2518,12 +2587,12 @@ function renderWeekStrip() {
   // Build pages HTML
   const pagesHtml = weeks.map(week => {
     const daysHtml = week.map(day => {
-      const dotColor = day.isSelected ? BURGUNDY : day.hasFutureDate ? ROSE : 'transparent';
-      const numColor = day.isToday ? ROSE : '#2a1f1f';
-      const numWeight = day.isToday ? 700 : 400;
+      const dotColor = (!day.isSelected && day.hasFutureDate) ? ROSE : 'transparent';
+      const numColor = day.isSelected ? '#fff' : day.isToday ? ROSE : '#2a1f1f';
+      const numWeight = (day.isSelected || day.isToday) ? 700 : 400;
       const labelColor = day.isToday ? ROSE : '#b0a090';
       const labelWeight = day.isToday ? 700 : 400;
-      const bgColor = day.isToday ? 'rgba(192,122,138,0.1)' : 'transparent';
+      const bgColor = day.isSelected ? ROSE : day.isToday ? 'rgba(192,122,138,0.15)' : 'transparent';
       const m = day.d.getMonth(), y = day.d.getFullYear(), dn = day.d.getDate();
       const clickHandler = day.hasFutureDate
         ? `selectWeekDate(${day.fdIdx})`
@@ -2773,7 +2842,7 @@ function renderCalendar() {
     .sort((a,b) => new Date((a.year||2026),MONTH_NUMS[a.month]||0,a.day) - new Date((b.year||2026),MONTH_NUMS[b.month]||0,b.day))
     .map(u => {
       const isSelected = u.month === monthAbbr && (u.year||2026) === currentCalYear && u.day === selectedCalDay;
-      const style = isSelected ? `border:1.5px solid ${ROSE};background:#fff;` : '';
+      const style = isSelected ? `border-color:${ROSE};background:#fff;` : '';
       return `
       <div class="upcoming-item" onclick="openDateInfo(UPCOMING_DATES.find(u=>u.month==='${u.month}'&&(u.year||2026)===${u.year||2026}&&u.day===${u.day}))" style="${style}">
         <div class="upcoming-date-badge">
@@ -2875,6 +2944,10 @@ function openNewDateFromCal(day, month, year) {
   setTimeout(() => {
     const dateInput = document.getElementById('date-day');
     if (dateInput) dateInput.value = dateStr;
+    const textEl = document.getElementById('date-day-text');
+    if (textEl) textEl.value = `${mm}/${dd}/${String(yyyy).slice(-2)}`;
+    _buildPickerStrip('date');
+    _initPickerStrip('date');
   }, 50);
 }
 
@@ -2970,6 +3043,274 @@ function closeWeekTooltip() {
   _weekTooltipOpenKey = null;
   const tt = document.getElementById('week-tooltip');
   if (tt) tt.style.display = 'none';
+}
+
+// ══════════════════════════════════════════════════════
+// POPUP DATE PICKER CAROUSEL  (New Date + Edit Date)
+// ══════════════════════════════════════════════════════
+let _pickerTooltipKey = { date: null, ed: null };
+
+function _pickerYMD(prefix) {
+  // Returns {y,m,d} from the hidden field, or null
+  const val = (document.getElementById(prefix + '-day') || {}).value || '';
+  if (!val) return null;
+  const parts = val.split('-').map(Number);
+  if (parts.length !== 3) return null;
+  return { y: parts[0], m: parts[1] - 1, d: parts[2] };
+}
+
+function _buildPickerStrip(prefix) {
+  const today = new Date(); today.setHours(0,0,0,0);
+  const DAY_LABELS = ['S','M','T','W','T','F','S'];
+
+  // Map UPCOMING_DATES timestamps → date object (for rose dots + tooltip)
+  const scheduledMap = {}; // ts → UPCOMING_DATES entry
+  UPCOMING_DATES.forEach(u => {
+    const mNum = MONTH_NUMS[u.month];
+    if (mNum === undefined) return;
+    const dt = new Date(u.year || today.getFullYear(), mNum, u.day);
+    dt.setHours(0,0,0,0);
+    scheduledMap[dt.getTime()] = u;
+  });
+
+  // Currently selected date ts
+  const sel = _pickerYMD(prefix);
+  const selectedTs = sel ? new Date(sel.y, sel.m, sel.d).setHours(0,0,0,0) : null;
+
+  // Sunday of today's week
+  const sunday = new Date(today);
+  sunday.setDate(today.getDate() - today.getDay());
+
+  // 4 weeks
+  const weeks = [];
+  for (let w = 0; w < 4; w++) {
+    const week = [];
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(sunday);
+      d.setDate(sunday.getDate() + w * 7 + i);
+      const ts = d.getTime();
+      week.push({ d, ts, label: DAY_LABELS[i], num: d.getDate(),
+        isToday: ts === today.getTime(),
+        isSelected: ts === selectedTs,
+        scheduled: scheduledMap[ts] || null });
+    }
+    weeks.push(week);
+  }
+
+  // Which page to start on (page containing selected, or 0)
+  let initPage = 0;
+  weeks.forEach((week, wi) => { if (week.some(d => d.isSelected)) initPage = wi; });
+
+  const pagesHtml = weeks.map(week => {
+    const daysHtml = week.map(day => {
+      const isSelected = day.isSelected;
+      const dotColor = (!isSelected && day.scheduled) ? ROSE : 'transparent';
+      const numColor = isSelected ? '#fff' : day.isToday ? ROSE : '#2a1f1f';
+      const numWeight = (isSelected || day.isToday) ? 700 : 400;
+      const labelColor = day.isToday ? ROSE : '#b0a090';
+      const bgColor = isSelected ? ROSE : day.isToday ? 'rgba(192,122,138,0.15)' : 'transparent';
+      const y = day.d.getFullYear(), m = day.d.getMonth(), dn = day.d.getDate();
+      const onclick = day.scheduled
+        ? `pickerClickScheduled('${prefix}',event,${y},${m},${dn})`
+        : `pickerClickEmpty('${prefix}',${y},${m},${dn})`;
+      return `<div class="week-day" onclick="${onclick}">
+        <span class="week-day-label" style="color:${labelColor};font-weight:${numWeight}">${day.label}</span>
+        <div class="week-day-num-wrap" style="background:${bgColor}">
+          <span class="week-day-num" style="color:${numColor};font-weight:${numWeight}">${day.num}</span>
+        </div>
+        <div class="week-day-dot" style="background:${dotColor}"></div>
+      </div>`;
+    }).join('');
+    return `<div class="week-page">${daysHtml}</div>`;
+  }).join('');
+
+  const inner = document.getElementById(prefix + '-picker-inner');
+  if (inner) inner.innerHTML = pagesHtml;
+
+  const scroll = document.getElementById(prefix + '-picker-scroll');
+  if (scroll) scroll.setAttribute('data-init-page', initPage);
+}
+
+function _initPickerStrip(prefix) {
+  const scroll = document.getElementById(prefix + '-picker-scroll');
+  if (!scroll) return;
+  const pages = scroll.querySelectorAll('.week-page');
+  if (!pages.length) return;
+  const w = scroll.offsetWidth;
+  pages.forEach(p => { p.style.width = w + 'px'; });
+  const page = parseInt(scroll.getAttribute('data-init-page') || '0');
+  scroll.scrollLeft = page * w;
+  // Remove old scroll listener then add fresh one
+  scroll._pickerScrollHandler && scroll.removeEventListener('scroll', scroll._pickerScrollHandler);
+  scroll._pickerScrollHandler = () => _closePickerTooltip(prefix);
+  scroll.addEventListener('scroll', scroll._pickerScrollHandler, { passive: true });
+}
+
+function _pickerSetDay(prefix, yyyy, mm, dd) {
+  // mm is 0-based
+  const pad = n => String(n).padStart(2,'0');
+  const hiddenVal = `${yyyy}-${pad(mm+1)}-${pad(dd)}`;
+  const displayVal = `${pad(mm+1)}/${pad(dd)}/${String(yyyy).slice(-2)}`;
+  const hidden = document.getElementById(prefix + '-day');
+  const text = document.getElementById(prefix + '-day-text');
+  if (hidden) hidden.value = hiddenVal;
+  if (text) text.value = displayVal;
+  // Re-render strip to update selected dot
+  _buildPickerStrip(prefix);
+  _initPickerStrip(prefix);
+}
+
+function pickerClickEmpty(prefix, y, m, d) {
+  _closePickerTooltip(prefix);
+  _pickerSetDay(prefix, y, m, d);
+}
+
+function pickerClickScheduled(prefix, e, y, m, d) {
+  e.stopPropagation();
+
+  const key = `${y}-${m}-${d}`;
+  const tt = document.getElementById(prefix + '-picker-tooltip');
+
+  // Capture geometry BEFORE _pickerSetDay re-renders the strip
+  const wrap = document.getElementById(prefix + '-picker-wrap');
+  const cell = e.currentTarget;
+  const wrapRect = wrap ? wrap.getBoundingClientRect() : null;
+  const cellRect = cell ? cell.getBoundingClientRect() : null;
+
+  // Toggle if same day and tooltip already open
+  if (tt && _pickerTooltipKey[prefix] === key && tt.style.display === 'block') {
+    _pickerSetDay(prefix, y, m, d);
+    _closePickerTooltip(prefix);
+    return;
+  }
+
+  // Set the date (this re-renders the strip)
+  _pickerSetDay(prefix, y, m, d);
+
+  if (!tt) return;
+
+  // Find the scheduled date
+  const dt = new Date(y, m, d); dt.setHours(0,0,0,0);
+  const u = UPCOMING_DATES.find(u2 => {
+    const uMNum = MONTH_NUMS[u2.month];
+    const uyr = u2.year || new Date().getFullYear();
+    return uMNum === m && u2.day === d && uyr === y;
+  });
+  if (!u || !wrapRect || !cellRect) { _closePickerTooltip(prefix); return; }
+
+  _pickerTooltipKey[prefix] = key;
+
+  const iconHtml = activityIcon(u.activity, 14, '#9a8a7a');
+  const timeHtml = u.time ? `<span style="font-size:12px;color:#9a8a7a;font-family:sans-serif;margin-left:4px">${u.time}</span>` : '';
+  tt.innerHTML = `<div style="display:flex;align-items:center;gap:6px">${iconHtml}<span style="font-size:14px;font-family:sans-serif;color:#2a1f1f">${u.venue}</span>${timeHtml}</div>`;
+  tt.style.display = 'block';
+
+  // Position below cell, caret points up (use pre-captured rects)
+  const cellCenterX = cellRect.left - wrapRect.left + cellRect.width / 2;
+  const cellBottom = cellRect.bottom - wrapRect.top;
+
+  const ttW = tt.offsetWidth || 140;
+  let left = cellCenterX - ttW / 2;
+  if (left < 4) left = 4;
+  if (left + ttW > wrapRect.width - 4) left = wrapRect.width - ttW - 4;
+  tt.style.left = left + 'px';
+  tt.style.top = (cellBottom - 9) + 'px';
+  tt.style.setProperty('--caret-left', (cellCenterX - left) + 'px');
+
+  setTimeout(() => {
+    document.addEventListener('click', () => _closePickerTooltip(prefix), { once: true });
+  }, 0);
+}
+
+function _closePickerTooltip(prefix) {
+  _pickerTooltipKey[prefix] = null;
+  const tt = document.getElementById(prefix + '-picker-tooltip');
+  if (tt) tt.style.display = 'none';
+}
+
+// Parse user-typed date strings → YYYY-MM-DD string or ''
+function parseDateText(raw) {
+  if (!raw || !raw.trim()) return '';
+  const s = raw.trim();
+  const now = new Date();
+  const curY = now.getFullYear();
+  const MONTHS = ['january','february','march','april','may','june',
+                  'july','august','september','october','november','december'];
+  const MONTHS3 = ['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
+
+  let y = null, m = null, d = null; // m is 0-based
+
+  // Try YYYY-MM-DD (already formatted)
+  let match = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+  if (match) { y = +match[1]; m = +match[2]-1; d = +match[3]; }
+
+  // MM/DD/YY or MM/DD/YYYY
+  if (!match) {
+    match = s.match(/^(\d{1,2})\/(\d{1,2})(?:\/(\d{2,4}))?$/);
+    if (match) { m = +match[1]-1; d = +match[2]; y = match[3] ? (match[3].length===2 ? 2000 + +match[3] : +match[3]) : null; }
+  }
+
+  // MM-DD or MM-DD-YYYY
+  if (!match) {
+    match = s.match(/^(\d{1,2})-(\d{1,2})(?:-(\d{2,4}))?$/);
+    if (match) { m = +match[1]-1; d = +match[2]; y = match[3] ? (match[3].length===2 ? 2000 + +match[3] : +match[3]) : null; }
+  }
+
+  // "Month DD" or "Month DD YYYY" or "Month DD, YYYY"
+  if (!match) {
+    const monthPattern = '(' + MONTHS.join('|') + '|' + MONTHS3.join('|') + ')';
+    const rx = new RegExp('^' + monthPattern + '[\\s,]+' + '(\\d{1,2})' + '(?:[\\s,]+(\\d{2,4}))?$', 'i');
+    match = s.match(rx);
+    if (match) {
+      const mn = match[1].toLowerCase();
+      m = MONTHS.indexOf(mn) >= 0 ? MONTHS.indexOf(mn) : MONTHS3.indexOf(mn);
+      d = +match[2];
+      y = match[3] ? (match[3].length===2 ? 2000 + +match[3] : +match[3]) : null;
+    }
+  }
+
+  // "DD Month" or "DD Month YYYY"
+  if (!match) {
+    const monthPattern = '(' + MONTHS.join('|') + '|' + MONTHS3.join('|') + ')';
+    const rx = new RegExp('^(\\d{1,2})[\\s,]+' + monthPattern + '(?:[\\s,]+(\\d{2,4}))?$', 'i');
+    match = s.match(rx);
+    if (match) {
+      d = +match[1];
+      const mn = match[2].toLowerCase();
+      m = MONTHS.indexOf(mn) >= 0 ? MONTHS.indexOf(mn) : MONTHS3.indexOf(mn);
+      y = match[4] ? (match[4].length===2 ? 2000 + +match[4] : +match[4]) : null;
+    }
+  }
+
+  if (m === null || d === null) return '';
+  if (m < 0 || m > 11 || d < 1 || d > 31) return '';
+
+  // If no year given: use current year; if that date is in the past, use next year
+  if (y === null) {
+    const attempt = new Date(curY, m, d); attempt.setHours(0,0,0,0);
+    const todayMid = new Date(); todayMid.setHours(0,0,0,0);
+    y = attempt < todayMid ? curY + 1 : curY;
+  }
+
+  const pad = n => String(n).padStart(2,'0');
+  return `${y}-${pad(m+1)}-${pad(d)}`;
+}
+
+function finalizePickerText(prefix) {
+  const textEl = document.getElementById(prefix + '-day-text');
+  const hiddenEl = document.getElementById(prefix + '-day');
+  if (!textEl || !hiddenEl) return;
+  const parsed = parseDateText(textEl.value);
+  if (parsed) {
+    hiddenEl.value = parsed;
+    const [yyyy, mm, dd] = parsed.split('-').map(Number);
+    const pad = n => String(n).padStart(2,'0');
+    textEl.value = `${pad(mm)}/${pad(dd)}/${String(yyyy).slice(-2)}`;
+    _buildPickerStrip(prefix);
+    _initPickerStrip(prefix);
+  } else {
+    hiddenEl.value = '';
+  }
 }
 
 // ═══════════════════════════════════════════════════════
@@ -3223,8 +3564,13 @@ function renderDateSheetUI() {
   const _fillYear  = selectedCalDay ? currentCalYear  : new Date().getFullYear();
   const mm = String(_fillMonth + 1).padStart(2, '0');
   const dd = String(_fillDay).padStart(2, '0');
-  document.getElementById('date-day').value = `${_fillYear}-${mm}-${dd}`;
+  const _hiddenVal = `${_fillYear}-${mm}-${dd}`;
+  const _displayVal = `${mm}/${dd}/${String(_fillYear).slice(-2)}`;
+  document.getElementById('date-day').value = _hiddenVal;
+  const _textEl = document.getElementById('date-day-text');
+  if (_textEl) _textEl.value = _displayVal;
   document.getElementById('date-time-select').value = '';
+  setTimeout(() => { _buildPickerStrip('date'); _initPickerStrip('date'); }, 0);
 }
 
 
@@ -4325,10 +4671,16 @@ function populateEditDateFields(u) {
   if (u.day && mNum !== undefined) {
     const yr = u.year || new Date().getFullYear();
     const pad = n => String(n).padStart(2,'0');
-    document.getElementById('ed-day').value = `${yr}-${pad(mNum+1)}-${pad(u.day)}`;
+    const hiddenVal = `${yr}-${pad(mNum+1)}-${pad(u.day)}`;
+    document.getElementById('ed-day').value = hiddenVal;
+    const edText = document.getElementById('ed-day-text');
+    if (edText) edText.value = `${pad(mNum+1)}/${pad(u.day)}/${String(yr).slice(-2)}`;
   } else {
     document.getElementById('ed-day').value = '';
+    const edText = document.getElementById('ed-day-text');
+    if (edText) edText.value = '';
   }
+  setTimeout(() => { _buildPickerStrip('ed'); _initPickerStrip('ed'); }, 0);
 
   document.getElementById('ed-time').value = u.time || '';
   // For custom activity: ed-location = address stored in u.address, ed-neighborhood = u.neighborhood
