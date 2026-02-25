@@ -3280,9 +3280,9 @@ function _scrollDateCards(animate) {
       else {
         scroll.scrollLeft = end;
         requestAnimationFrame(() => { scroll.style.scrollSnapType = 'x mandatory'; });
-        // Animate week strip if needed
+        // Animate week strip to correct page
         const ws = document.getElementById('week-strip');
-        if (ws) { ws.outerHTML = renderWeekStrip(); setTimeout(_initWeekStrip, 0); }
+        if (ws) { _weekStripAnimate = true; ws.outerHTML = renderWeekStrip(); setTimeout(_initWeekStrip, 0); }
       }
     }
     requestAnimationFrame(step);
@@ -3320,6 +3320,7 @@ function _initDateCardsScroll() {
         // Re-render week strip in place without full page re-render
         const ws = document.getElementById('week-strip');
         if (ws) {
+          _weekStripAnimate = true;
           ws.outerHTML = renderWeekStrip();
           setTimeout(_initWeekStrip, 0);
         }
@@ -3367,18 +3368,43 @@ function _initCalSwipe() {
 let _weekTooltipDay = 0, _weekTooltipMonth = 0, _weekTooltipYear = 0;
 let _weekTooltipOpenKey = null; // tracks which day tooltip is open for
 
+let _weekStripAnimate = false; // set true before re-render to animate the page transition
 function _initWeekStrip() {
   const scroll = document.getElementById('week-strip-scroll');
   if (!scroll) return;
   const pages = scroll.querySelectorAll('.week-page');
   if (!pages.length) return;
-  // Set each page width to the container width
   const w = scroll.offsetWidth;
   pages.forEach(p => { p.style.width = w + 'px'; });
-  // Scroll to the init page (no animation on initial load)
   const page = parseInt(scroll.getAttribute('data-init-page') || '0');
-  scroll.scrollLeft = page * w;
-  // Close tooltip whenever the strip is scrolled
+  scroll.style.scrollSnapType = 'none';
+  scroll.style.scrollBehavior = 'auto';
+  if (_weekStripAnimate && page > 0) {
+    // Start from page 0 (where the re-rendered strip begins) and animate to target page
+    scroll.scrollLeft = 0;
+    _weekStripAnimate = false;
+    requestAnimationFrame(() => {
+      const start = 0;
+      const end = page * w;
+      const duration = 300;
+      const startTime = performance.now();
+      const ease = t => t < 0.5 ? 2*t*t : -1+(4-2*t)*t;
+      function step(now) {
+        const t = Math.min((now - startTime) / duration, 1);
+        scroll.scrollLeft = start + (end - start) * ease(t);
+        if (t < 1) requestAnimationFrame(step);
+        else {
+          scroll.scrollLeft = end;
+          requestAnimationFrame(() => { scroll.style.scrollSnapType = 'x mandatory'; });
+        }
+      }
+      requestAnimationFrame(step);
+    });
+  } else {
+    _weekStripAnimate = false;
+    scroll.scrollLeft = page * w;
+    requestAnimationFrame(() => { scroll.style.scrollSnapType = 'x mandatory'; });
+  }
   scroll.addEventListener('scroll', closeWeekTooltip, { passive: true });
 }
 
