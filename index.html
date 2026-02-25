@@ -426,7 +426,7 @@
           <svg viewBox="0 0 24 24" width="16" height="16" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
           </svg>
-          Export
+          Save
         </button>
         <button onclick="navigate('past');closeMenu()">
           <svg viewBox="0 0 24 24" width="16" height="16" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
@@ -2155,6 +2155,7 @@ function _buildIdeasBody(pool, q, byName, isFavFilter) {
              : [...shuffledFavsOut, ...shuffledFavsIn];
   let favsHtml = '';
   if (!q && favs.length) {
+    _featuredNavOrder = favs.map(i => i.id); // capture current shuffle order for swipe nav
     favsHtml = `<div style="margin-bottom:20px">
       <div class="section-label" style="margin-bottom:8px">Featured</div>
       <div id="favs-scroll" style="display:flex;flex-direction:row;gap:10px;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch">
@@ -4637,6 +4638,7 @@ function diImgNav(dir, e) {
 }
 
 let _detailNavList = [];   // ordered idea IDs for swiping in Idea Info
+let _featuredNavOrder = []; // current rendered order of Featured carousel
 let _diNavList = [];       // ordered date objects for swiping in Date Info
 
 // ── Info popup swipe navigation ──
@@ -4667,10 +4669,8 @@ function openDetail(id, navContext) {
   const isOut = item.type === 'out';
   // Build nav list based on context
   if (navContext === 'featured') {
-    const _bn = (a,b) => a.name.localeCompare(b.name);
-    const fo = ideas.filter(i => !i.archived && i.saved && i.type === 'out').sort(_bn);
-    const fi = ideas.filter(i => !i.archived && i.saved && i.type === 'in').sort(_bn);
-    _detailNavList = [...fo, ...fi].map(i => i.id);
+    // Use the actual rendered order from the Featured carousel
+    _detailNavList = _featuredNavOrder.length ? [..._featuredNavOrder] : ideas.filter(i => !i.archived && i.saved).map(i => i.id);
   } else if (navContext === 'latest') {
     _detailNavList = ideas.filter(i => !i.archived).map(i => i.id);
   } else if (navContext === 'out') {
