@@ -473,6 +473,9 @@
   .todo-link.done { color:#b0a090; text-decoration:line-through; }
   body.dark-mode .todo-link { color:#dcd6ce; }
   body.dark-mode .todo-link.done { color:#b0a090; }
+  /* Edit Categories dark mode */
+  body.dark-mode .ec-row { border-bottom-color: #3a3330 !important; }
+  body.dark-mode .ec-row input { color: #f0ede9 !important; }
   .img-field-row { display:flex; align-items:center; gap:6px; margin-bottom:8px; }
   .img-field-row .field-input { flex:1 !important; width:auto !important; margin-bottom:0 !important; min-width:0; box-sizing:border-box; }
   .img-btn { background:none; border:none; cursor:pointer; padding:0; display:flex !important; align-items:center; justify-content:center; flex-shrink:0; width:20px !important; height:20px !important; line-height:0; }
@@ -642,7 +645,7 @@
       <div class="idea-row" id="idea-cat-in-row" style="display:none">
         <div id="idea-cat-icon-in" style="width:18px;flex-shrink:0"></div>
         <select class="field-input" id="idea-cat-select-in" onchange="onIdeaCatSelectChange()" style="flex:1;margin-bottom:0">
-          <option value="Order In">Order In</option>
+          <option value="orderin">Delivery</option>
           <option value="Cook">Cook</option>
           <option value="Movie">Movie</option>
           <option value="Game">Game</option>
@@ -1165,9 +1168,9 @@
       <div style="padding:20px 20px 14px;flex-shrink:0;border-bottom:1px solid var(--border)">
         <div style="font-size:17px;font-weight:700;color:var(--popup-title);font-family:Georgia,serif;margin-bottom:14px;text-align:center">Edit Categories</div>
         <!-- Out/In toggle -->
-        <div id="editcats-toggle" style="display:flex;background:#f0ebe5;border-radius:8px;padding:3px;gap:2px">
-          <button onclick="editCatsSetType('out')" id="editcats-btn-out" style="flex:1;padding:6px;border:none;border-radius:6px;font-family:sans-serif;font-size:13px;font-weight:600;cursor:pointer;background:#fff;color:#2a1f1f;box-shadow:0 1px 3px rgba(0,0,0,0.1)">Going Out</button>
-          <button onclick="editCatsSetType('in')" id="editcats-btn-in" style="flex:1;padding:6px;border:none;border-radius:6px;font-family:sans-serif;font-size:13px;font-weight:600;cursor:pointer;background:transparent;color:#9a8a7a">Staying In</button>
+        <div id="editcats-toggle" style="display:flex;background:var(--toggle-bg);border-radius:8px;padding:3px;gap:2px">
+          <button onclick="editCatsSetType('out')" id="editcats-btn-out" style="flex:1;padding:6px;border:none;border-radius:6px;font-family:sans-serif;font-size:13px;font-weight:600;cursor:pointer;background:var(--toggle-active-bg);color:var(--toggle-active-color);box-shadow:0 1px 3px rgba(0,0,0,0.1)">Going Out</button>
+          <button onclick="editCatsSetType('in')" id="editcats-btn-in" style="flex:1;padding:6px;border:none;border-radius:6px;font-family:sans-serif;font-size:13px;font-weight:600;cursor:pointer;background:transparent;color:var(--text-secondary)">Staying In</button>
         </div>
       </div>
       <!-- List -->
@@ -1583,7 +1586,7 @@ const DEFAULT_OUT_CATS = [
   {id:'other',      label:'Other',               iconKey:'park'},
 ];
 const DEFAULT_IN_CATS = [
-  {id:'orderin',    label:'Order In',  iconKey:'dinner'},
+  {id:'orderin',    label:'Delivery',  iconKey:'dinner'},
   {id:'cook',       label:'Cook',      iconKey:'chefhat'},
   {id:'moviein',    label:'Movie',     iconKey:'movie'},
   {id:'game',       label:'Game',      iconKey:'game'},
@@ -1851,7 +1854,7 @@ const ICONS = {
   frame: (s,c) => svgIcon('<rect x="2" y="4" width="20" height="16" rx="1"/><rect x="5" y="7" width="14" height="10"/><path d="M5 17 L10 12 L13 14 L19 9"/>',s,c),
   sofa2: (s,c) => svgIcon('<path d="M20 9V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v3"/><path d="M2 11v5a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-5a2 2 0 0 0-4 0v2H6v-2a2 2 0 0 0-4 0Z"/><path d="M4 18v2"/><path d="M20 18v2"/><path d="M12 4v9"/>',s,c),
   lingerie: (s,c) => `<svg viewBox="0 0 24 24" width="${s}" height="${s}" fill="none" stroke="${c}" stroke-linecap="round" stroke-linejoin="round"><path stroke-width="2" d="M4 5 C6 5 8 7 10 9.5 C11 11 12 11.5 12 11.5 C12 11.5 13 11 14 9.5 C16 7 18 5 20 5"/><path stroke-width="2" d="M4 5 C4 5 3 7 3 9 C3 12 5 14 8 14 C10 14 11 13 12 12 C13 13 14 14 16 14 C19 14 21 12 21 9 C21 7 20 5 20 5"/><line stroke-width="1.5" x1="5" y1="17" x2="19" y2="17"/><line stroke-width="1.5" x1="5" y1="17" x2="12" y2="22"/><line stroke-width="1.5" x1="19" y1="17" x2="12" y2="22"/></svg>`,
-  bowling: (s,c) => `<svg viewBox="0 0 24 24" width="${s}" height="${s}" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10" fill="${c}" stroke="${c}" stroke-width="1.5"/><circle cx="7.5" cy="8.5" r="1.8" fill="#faf8f5" stroke="none"/><circle cx="13.5" cy="8.5" r="1.8" fill="#faf8f5" stroke="none"/><circle cx="10.5" cy="13.5" r="1.8" fill="#faf8f5" stroke="none"/></svg>`,
+  bowling: (s,c) => `<svg viewBox="0 0 24 24" width="${s}" height="${s}"><path fill-rule="evenodd" d="M12 2a10 10 0 1 1 0 20A10 10 0 0 1 12 2zm-4.5 4.7a1.8 1.8 0 1 0 0 3.6 1.8 1.8 0 0 0 0-3.6zm6 0a1.8 1.8 0 1 0 0 3.6 1.8 1.8 0 0 0 0-3.6zm-3 5a1.8 1.8 0 1 0 0 3.6 1.8 1.8 0 0 0 0-3.6z" fill="${c}"/></svg>`,
   videogame: (s,c) => `<svg viewBox="0 0 409.31 338.63" width="${s}" height="${s}" fill="${c}" stroke="${c}" stroke-width="8" stroke-linejoin="round"><path d="M253.89,266.83c-11.96-17.1-52.03-13.53-72.03-12.74-15.32.6-26.81,10.3-34.52,22.13l-17.76,27.24c-17.03,26.12-46.26,40.71-77.18,32.89C24.2,329.23-.02,303.59,0,272.1l.05-93.9c.03-62.53,50.61-119.77,113.25-120.66l76.41-1.09.45-42.03c.09-8.64,5.85-13.54,13.58-14.36,6.25-.66,14.37,4.58,14.5,12.86l.68,43.61,76.35,1.04c61.07.83,109.4,55.93,112.95,117.24,1.92,33.06.89,64.56.26,97.42-.55,28.98-20.32,52.68-45.01,61.82-27.61,10.22-60.22,3.39-77.07-20.71l-32.5-46.49ZM285.99,262.54l16.47,25.43c10.38,16.02,26.06,25.52,46.03,21.13,15.37-3.38,31.6-17.99,31.58-36.69l-.11-94.68c-.06-47.65-41.23-90.49-90.13-92.03-57.47-1.81-111.94-1.42-169.45-.18-48.74,1.05-91.44,42.7-91.74,90.39l-.59,93.19c-.12,19.26,13.8,35.51,30.59,39.73,19.66,4.95,36.55-4.24,47.2-20.64l18.37-28.31c11.61-17.88,30.81-32.31,53.09-33.4,18.09-.89,35.83-.83,53.71,0,23.96,1.12,42.4,16.64,54.98,36.07Z"/><path d="M108.01,120.17c28.56-2.65,51.43,18.82,53.56,44.63,2.29,27.7-17.63,51.34-45.07,53.48-26.4,2.06-49.92-16.85-52.85-43.2-3-26.97,15.61-52.25,44.36-54.91ZM105.91,149.16c-12.09,3.64-16.64,16.82-13,27.16,3.89,11.06,15.04,16.55,26.06,13.07,10.93-3.45,17.37-14.93,13.76-25.84-3.61-10.92-13.82-18.3-26.82-14.38Z"/><path d="M309.24,207.58c-.24,6.28-6.93,10.25-11.46,10.6s-14.25-1.8-14.59-8.09l-1.38-26.08-22-.85c-8.47-.33-13.53-7.88-13.08-14.69.58-8.76,7.26-13.42,16.26-13.59l18.97-.35.86-24.97c.22-6.32,9.42-9.97,14.58-9.56,7.07.56,12.35,6.78,12.53,14.33l.49,20.4,20.14.39c9.2.18,14.85,6.94,14.48,14.95-.39,8.5-7.16,13.2-16.25,13.41l-18.64.45-.91,23.66Z"/></svg>`,
   mask: (s,c) => `<svg viewBox="-20 -10 459.9 299.81" width="${s}" height="${s}" fill="none" overflow="visible" stroke="${c}" stroke-width="35" stroke-linecap="round" stroke-linejoin="round"><path d="M418.97,65.7c1.54,24.87,1.28,57.72-1.64,82.55-4.01,34.04-15.4,63.1-37.28,89.44-6.22,7.49-12.91,13.64-20.68,19.46-22.29,16.69-47.52,24.62-75.5,22.25-14.16-1.19-27.29-5.77-39.35-13.15l-13.71-8.38c-13.83-8.46-30.92-7.46-44.68,1.01l-11.46,7.05c-11.8,7.26-24.58,11.81-38.49,13.27-14.73,1.55-28.98,0-42.96-4.86-20.04-6.98-37.65-19.16-51.7-35.06-17.13-19.39-28.92-42.52-34.89-67.7C.99,147.79.11,122.36,0,97.9-.11,70.83,2.15,32.69,11.47,7.41c.9-2.44,2.45-4.76,4.43-6.31,2.2-1.72,4.98-1.33,6.85.53l10.17,10.11c17.65,17.54,43.67,31.65,67.81,37.59l25.92,6.38c11.56,2.84,22.82,5.05,34.24,8.45s21.24,7.39,31.06,13.15l13.2,7.74c3.09,1.81,6.7,1.43,9.64-.3l11.7-6.89c39.14-23.07,86.77-19.31,131.09-43.89,14.78-8.2,27.34-18.99,38.45-31.59,2.31-2.62,5.85-3.3,8.4-.7,1.75,1.78,3.08,4.21,4.02,6.64,6.56,16.95,9.39,39.21,10.52,57.38ZM167.81,188.66c8.06-1.32,2.56-13.73.53-18.22-7.53-16.65-21.83-28.87-39.33-34.34-12.01-3.75-24.35-4.42-36.93-3.08-8.55.91-16.68,1.21-25.14-.15-2.71-.44-5.41-.79-8.18-.76s-4.47,2.88-4.05,5.33c.34,1.98.81,3.82,1.61,5.62,4.92,11.12,12.47,20.44,22.15,27.8,19.37,14.73,44.52,19.57,68.48,19.37,7.09-.06,13.69-.39,20.86-1.56ZM251.42,188.33c7.65,1.83,14.85,1.8,22.47,1.86,14.01.11,27.5-1.45,40.88-5.53,22.27-6.78,41.44-21.63,49.8-43.79.7-1.86.93-4.08.45-5.94-.98-3.78-7.32-2.8-10.57-2.27-20.49,3.3-28.12-1.55-46.1.1-10.31.95-20.04,3.41-29.17,8.24-15.74,8.33-27.39,22.72-31.38,40.05-.66,2.88.71,6.59,3.62,7.29Z"/></svg>`,
 };
@@ -3103,7 +3106,7 @@ const CAT_LABELS = {
   livejazz:'Live Jazz', concert:'Concert', livecomedy:'Live Comedy',
   theatre:'Theatre',
   venue:'Venue', park:'Park', other:'Other',
-  'Order In':'Order In', Cook:'Cook', Movie:'Movie', Game:'Game',
+  'orderin':'Delivery', Cook:'Cook', Movie:'Movie', Game:'Game',
   Activity:'Activity', Other:'Other'
 };
 function catLabel(cat, type) {
@@ -3116,8 +3119,8 @@ function _rebuildCatDropdown(type) {
   if (!sel) return;
   const cats = type === 'in' ? IN_CATS : OUT_CATS;
   const prev = sel.value;
-  sel.innerHTML = cats.map(c => `<option value="${c.id}">${c.label}</option>`).join('')
-    + `<option value="__edit_cats__" style="color:#9a8a7a;font-style:italic">Edit categories…</option>`;
+  sel.innerHTML = `<option value="__edit_cats__" style="color:#9a8a7a;font-style:italic">Edit categories…</option>`
+    + cats.map(c => `<option value="${c.id}">${c.label}</option>`).join('');
   // Restore selection if still valid
   if (cats.find(c => c.id === prev)) sel.value = prev;
   else sel.value = cats[0] ? cats[0].id : '';
@@ -4084,7 +4087,7 @@ function finalizePickerText(prefix) {
 // NEW IDEA / NEW DATE SHEET
 // ═══════════════════════════════════════════════════════
 
-const catMemory = { out: 'restaurant', in: 'Order In' };
+const catMemory = { out: 'restaurant', in: 'orderin' };
 let sheetMode = 'idea'; // 'idea' | 'date'
 
 function openSheet(type) {
@@ -6242,11 +6245,15 @@ function _renderEcToggle() {
   const btnIn  = document.getElementById('editcats-btn-in');
   if (!btnOut || !btnIn) return;
   const isOut = _ecType === 'out';
-  btnOut.style.background    = isOut ? '#fff' : 'transparent';
-  btnOut.style.color         = isOut ? '#2a1f1f' : '#9a8a7a';
+  const cs = getComputedStyle(document.documentElement);
+  const activeBg    = cs.getPropertyValue('--toggle-active-bg').trim();
+  const activeColor = cs.getPropertyValue('--toggle-active-color').trim();
+  const inactiveColor = cs.getPropertyValue('--text-secondary').trim();
+  btnOut.style.background    = isOut ? activeBg : 'transparent';
+  btnOut.style.color         = isOut ? activeColor : inactiveColor;
   btnOut.style.boxShadow     = isOut ? '0 1px 3px rgba(0,0,0,0.1)' : 'none';
-  btnIn.style.background     = !isOut ? '#fff' : 'transparent';
-  btnIn.style.color          = !isOut ? '#2a1f1f' : '#9a8a7a';
+  btnIn.style.background     = !isOut ? activeBg : 'transparent';
+  btnIn.style.color          = !isOut ? activeColor : inactiveColor;
   btnIn.style.boxShadow      = !isOut ? '0 1px 3px rgba(0,0,0,0.1)' : 'none';
 }
 function _renderEcList() {
@@ -6586,8 +6593,8 @@ function _rebuildPfTypeSelect(type) {
   const pfType = document.getElementById('pf-type');
   if (!pfType) return;
   const cats = type === 'in' ? IN_CATS : OUT_CATS;
-  pfType.innerHTML = cats.map(c => `<option value="${c.id}">${c.label}</option>`).join('')
-    + `<option value="__edit_cats__" style="color:#9a8a7a;font-style:italic">Edit categories…</option>`;
+  pfType.innerHTML = `<option value="__edit_cats__" style="color:#9a8a7a;font-style:italic">Edit categories…</option>`
+    + cats.map(c => `<option value="${c.id}">${c.label}</option>`).join('');
 }
 
 // ═══════════════════════════════════════════════════════
