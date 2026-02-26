@@ -622,7 +622,7 @@
       <!-- Name -->
       <div class="idea-row">
         <button id="idea-heart-btn" onclick="toggleIdeaHeart()" style="background:none;border:none;cursor:pointer;padding:0;display:flex;flex-shrink:0"></button>
-        <input class="field-input" id="idea-name" type="text" placeholder="Place name" style="flex:1;margin-bottom:0">
+        <input class="field-input" id="idea-name" type="text" placeholder="Place / activity" style="flex:1;margin-bottom:0">
         <button id="idea-lock-btn" onclick="toggleIdeaPrivate()" type="button" style="background:none;border:none;cursor:pointer;padding:2px;display:flex;flex-shrink:0;color:#9a8a7a" title="Mark as private"></button>
       </div>
 
@@ -1262,7 +1262,7 @@
           <!-- Name -->
           <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
             <span id="pf-name-icon" style="width:18px;flex-shrink:0;display:flex;align-items:center;justify-content:center"></span>
-            <input class="field-input" id="pf-name" type="text" placeholder="Place name" oninput="markPlaceChanged()" style="flex:1;margin-bottom:0">
+            <input class="field-input" id="pf-name" type="text" placeholder="Place / activity" oninput="markPlaceChanged()" style="flex:1;margin-bottom:0">
             <button id="pf-lock-btn" onclick="togglePfPrivate()" type="button" style="background:none;border:none;cursor:pointer;padding:2px;display:flex;flex-shrink:0;color:#9a8a7a" title="Mark as private"></button>
           </div>
           <!-- Type -->
@@ -1707,7 +1707,7 @@ function buildFutureDates() {
       };
     });
 }
-let FUTURE_DATES = buildFutureDates();
+let FUTURE_DATES = [];
 
 // ── Neighborhood helpers ──────────────────────────────
 // Parse approximate neighborhood from an address string
@@ -1810,6 +1810,7 @@ let partnerAddress = appSettings.partnerAddress || '';
 let partnerPronouns = appSettings.partnerPronouns || 'she/her';
 let partnerPronounsCustom = appSettings.partnerPronounsCustom || '';
 let hidePrivate = appSettings.hidePrivate || false;
+FUTURE_DATES = buildFutureDates();
 
 // Returns the object pronoun: "her", "him", "them", or custom
 function partnerObj() {
@@ -2712,8 +2713,9 @@ function renderTodo() {
 
   function todoRow(t) { return _todoRow(t); }
 
-  const listHtml = sorted.length
-    ? sorted.map(todoRow).join('')
+  const filtered = sorted.filter(t => !_isTodoHiddenPrivate(t));
+  const listHtml = filtered.length
+    ? filtered.map(todoRow).join('')
     : `<div style="padding:60px 20px;text-align:center;color:#b0a090;font-size:15px;font-style:italic">Nothing to do…</div>`;
 
   return `<div style="padding:20px 20px 80px"><div style="padding:0 10px">${listHtml}</div></div>`;
@@ -3017,11 +3019,12 @@ function _buildDateCardHtml(fd, idx) {
 function renderHome() {
   const savedIdeas = ideas.filter(i => !i.archived && !_isHiddenPrivate(i)).slice(0, 5);
 
-  const dateBubbleHTML = FUTURE_DATES.length > 0 ? `
+  const visibleDates = FUTURE_DATES.filter(fd => !_isDateHiddenPrivate(fd._ref || fd));
+  const dateBubbleHTML = visibleDates.length > 0 ? `
   <div id="date-cards-outer">
     <div id="date-cards-scroll">
       <div id="date-cards-inner">
-        ${FUTURE_DATES.map((fd, i) => _buildDateCardHtml(fd, i)).join('')}
+        ${visibleDates.map((fd, i) => _buildDateCardHtml(fd, i)).join('')}
       </div>
     </div>
     <div id="date-cards-arrows">
@@ -3060,7 +3063,7 @@ function renderHome() {
 
   ${(() => {
     const priorityOrder = { high: 0, normal: 1, low: 2 };
-    const active = todos.filter(t => !t.done && !(hidePrivate && t.isPrivate)).sort((a,b) => {
+    const active = todos.filter(t => !t.done && !_isTodoHiddenPrivate(t)).sort((a,b) => {
       const pa = priorityOrder[a.priority ?? 'normal'] ?? 1;
       const pb = priorityOrder[b.priority ?? 'normal'] ?? 1;
       if (pa !== pb) return pa - pb;
@@ -3191,9 +3194,21 @@ function catLabel(cat, type) {
 
 
 function _isDateHiddenPrivate(date) {
-  if (!hidePrivate) return false;
-  const idea = ideas.find(i => i.name && date.venue && i.name.toLowerCase() === date.venue.toLowerCase());
+  if (typeof hidePrivate === 'undefined' || !hidePrivate) return false;
+  if (date.isPrivate) return true;
+  // Also hide if the linked idea is private
+  const idea = ideas.find(i => (date.ideaId && i.id === date.ideaId) || (i.name && date.venue && i.name.toLowerCase() === date.venue.toLowerCase()));
   return !!(idea && idea.isPrivate);
+}
+function _isTodoHiddenPrivate(t) {
+  if (typeof hidePrivate === 'undefined' || !hidePrivate) return false;
+  if (t.isPrivate) return true;
+  // Also hide if the linked idea (by activity/place name) is private
+  if (t.activity) {
+    const idea = ideas.find(i => i.name && i.name.toLowerCase() === t.activity.toLowerCase());
+    if (idea && idea.isPrivate) return true;
+  }
+  return false;
 }
 
 // ── Date / Todo lock state ───────────────────────────────────────────────────
@@ -3477,6 +3492,7 @@ function renderCalendar() {
       const dt = new Date((u.year||2026), MONTH_NUMS[u.month]||0, u.day); dt.setHours(0,0,0,0);
       return dt >= _now;
     })
+    .filter(u => !_isDateHiddenPrivate(u))
     .sort((a,b) => new Date((a.year||2026),MONTH_NUMS[a.month]||0,a.day) - new Date((b.year||2026),MONTH_NUMS[b.month]||0,b.day))
     .map(u => {
       const isSelected = u.month === monthAbbr && (u.year||2026) === currentCalYear && u.day === selectedCalDay;
@@ -4394,7 +4410,7 @@ function renderSheetUI() {
   inCatRow.style.display  = isOut ? 'none' : 'flex';
 
   // Name placeholder
-  document.getElementById('idea-name').placeholder = isOut ? 'Place name' : 'e.g. Cook a new recipe';
+  document.getElementById('idea-name').placeholder = isOut ? 'Place / activity' : 'Activity';
 
   // Out/In only sections
   document.getElementById('out-fields-wrap').style.display = isOut ? 'block' : 'none';
@@ -6009,7 +6025,7 @@ function populateEditModal(item) {
   _updatePfTypeIcon();
 
   // Name field: update placeholder based on type
-  document.getElementById('pf-name').placeholder = isOut ? 'Place name' : 'e.g. Cook a new recipe';
+  document.getElementById('pf-name').placeholder = isOut ? 'Place / activity' : 'Activity';
   const pfNameIcon = document.getElementById('pf-name-icon');
   if (pfNameIcon) pfNameIcon.innerHTML = isOut ? ICONS.building(18,'#9a8a7a') : ICONS.sofa(18,'#9a8a7a');
 
@@ -6340,7 +6356,7 @@ async function exportAllData() {
     staticPastDates: STATIC_PAST_DATES,
     memoryNotes: (() => { try { return JSON.parse(localStorage.getItem('ll_memories') || '{}'); } catch(e) { return {}; } })(),
     todos: todos,
-    settings: (() => { try { return JSON.parse(localStorage.getItem('ll_settings') || '{}'); } catch(e) { return {}; } })(),
+    settings: (() => { try { const stored = JSON.parse(localStorage.getItem('ll_settings') || '{}'); return Object.assign(stored, appSettings); } catch(e) { return appSettings; } })(),
   };
   const json = JSON.stringify(data, null, 2);
   const filename = 'duet-' + new Date().toISOString().slice(0,10) + '.json';
