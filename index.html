@@ -85,6 +85,7 @@
     padding-top: 57px;
     box-sizing: border-box;
   }
+  body.overlay-open #app { overflow-y: hidden; }
   button { font-family: inherit; cursor: pointer; -webkit-appearance: none; }
   input, textarea { font-family: sans-serif; -webkit-appearance: none; }
   .view { padding-bottom: 102px; }
@@ -100,10 +101,18 @@
     z-index: 60;
   }
   #top-nav-inner {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 18px 20px 14px;
+    display: flex; flex-direction: column; align-items: stretch;
     width: 100%; max-width: 390px; box-sizing: border-box;
   }
+  #top-nav-main-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 18px 20px 14px;
+  }
+  #top-nav-ideas-row {
+    display: none;
+    padding: 0 20px 12px;
+  }
+  #app.ideas-nav { padding-top: 107px; }
   #nav-logo { display: flex; align-items: center; gap: 8px; background: none; border: none; outline: none; cursor: pointer; }
   #nav-logo span { font-size: 17px; font-weight: 600; letter-spacing: 0.02em; color: var(--text-primary); }
   body.dark-mode #logo-circle-dark { stroke: #845764; }
@@ -517,12 +526,13 @@
   <!-- TOP NAV -->
   <div id="top-nav">
   <div id="top-nav-inner">
+  <div id="top-nav-main-row">
     <button id="nav-logo" onclick="navigate('home')">
       <svg viewBox="0 0 28 18" width="28" height="18" fill="none">
         <circle id="logo-circle-light" cx="11" cy="9" r="7.5" stroke="#c07a8a" stroke-width="2.8"/>
         <circle id="logo-circle-dark" cx="18" cy="9" r="7.5" stroke="#8b3a52" stroke-width="2.8"/>
       </svg>
-      <span style="color:orange">duet</span>
+      <span style="color:purple">duet</span>
     </button>
     <button id="nav-back" onclick="navigate('home')" style="display:none">
       <svg viewBox="0 0 24 24" width="20" height="20" stroke="#b0a090" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
@@ -564,6 +574,8 @@
         </button>
       </div>
     </div>
+  </div><!-- /top-nav-main-row -->
+  <div id="top-nav-ideas-row"></div>
   </div>
   </div>
 
@@ -1957,6 +1969,12 @@ function render() {
   });
   const main = document.getElementById('main-content');
   if (!main) return;
+  if (currentView !== 'ideas') {
+    const _row = document.getElementById('top-nav-ideas-row');
+    if (_row) { _row.innerHTML = ''; _row.style.display = 'none'; }
+    const _appEl = document.getElementById('app');
+    if (_appEl) _appEl.classList.remove('ideas-nav');
+  }
   if (currentView === 'home')     main.innerHTML = renderHome();
   else if (currentView === 'ideas')    main.innerHTML = renderIdeas();
   else if (currentView === 'calendar') main.innerHTML = renderCalendar();
@@ -2038,6 +2056,12 @@ function navigate(view) {
   // Redirect legacy out/in to ideas
   if (view === 'out' || view === 'in') { currentView = 'ideas'; render(); return; }
   currentView = view;
+  // Hide ideas nav row when leaving ideas screen
+  if (view !== 'ideas') {
+    const row = document.getElementById('top-nav-ideas-row');
+    if (row) { row.innerHTML = ''; row.style.display = 'none'; }
+    document.getElementById('app').classList.remove('ideas-nav');
+  }
   render();
 }
 
@@ -2411,7 +2435,7 @@ function renderIdeas() {
   const _toggleActiveColor = _isDarkMode ? '#f0ede9' : '#2a1f1f';
   const af = f => `background:${ideasFilter===f?_toggleActiveBg:'transparent'};color:${ideasFilter===f?_toggleActiveColor:'#9a8a7a'};box-shadow:${ideasFilter===f?'0 1px 3px rgba(0,0,0,0.10)':'none'}`;
   const clearBtn = q ? `<button onclick="clearIdeasSearch()" style="background:none;border:none;cursor:pointer;padding:0;display:flex;flex-shrink:0;line-height:0;padding-top:9px"><svg viewBox="0 0 24 24" width="13" height="13" stroke="#9a8a7a" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>` : '';
-  const controlBar = `<div id="ideas-controlbar" style="display:flex;align-items:center;justify-content:space-between;padding:12px 20px 14px">
+  const controlBar = `<div id="ideas-controlbar" style="display:flex;align-items:center;justify-content:space-between">
     <div style="display:flex;background:var(--toggle-bg);border-radius:20px;padding:2px;gap:1px;flex-shrink:0">
       <button data-filter="all" onclick="setIdeasFilter('all')" style="padding:4px 12px;border:none;border-radius:18px;font-family:sans-serif;font-size:12px;font-weight:600;cursor:pointer;${af('all')}">All</button>
       <button data-filter="out" onclick="setIdeasFilter('out')" style="padding:4px 12px;border:none;border-radius:18px;font-family:sans-serif;font-size:12px;font-weight:600;cursor:pointer;${af('out')}">Out</button>
@@ -2425,7 +2449,13 @@ function renderIdeas() {
     </div>
   </div>`;
 
-  return controlBar + `<div id="ideas-body">${_buildIdeasBody(pool, q, byName, isFavFilter)}</div>`;
+  // Inject controlbar into top nav ideas row
+  setTimeout(() => {
+    const row = document.getElementById('top-nav-ideas-row');
+    if (row) { row.innerHTML = controlBar; row.style.display = 'flex'; row.style.alignItems = 'center'; row.style.justifyContent = 'space-between'; }
+    document.getElementById('app').classList.add('ideas-nav');
+  }, 0);
+  return `<div id="ideas-body">${_buildIdeasBody(pool, q, byName, isFavFilter)}</div>`;
 }
 
 // Shared body builder used by both renderIdeas (initial) and _renderIdeasBody (updates)
@@ -3230,8 +3260,9 @@ function _isTodoHiddenPrivate(t) {
   if (typeof hidePrivate === 'undefined' || !hidePrivate) return false;
   if (t.isPrivate) return true;
   // Also hide if the linked idea (by activity/place name) is private
-  if (t.activity) {
-    const idea = ideas.find(i => i.name && i.name.toLowerCase() === t.activity.toLowerCase());
+  if (t.activity && typeof t.activity === 'string') {
+    const tAct = t.activity.toLowerCase();
+    const idea = ideas.find(i => i.name && typeof i.name === 'string' && i.name.toLowerCase() === tAct);
     if (idea && idea.isPrivate) return true;
   }
   return false;
@@ -3259,6 +3290,7 @@ function toggleHideLocked() {
   if (cb) cb.checked = hidePrivate;
   // Show toast
   _showLockToast(hidePrivate);
+  currentView = 'home';
   render();
 }
 
@@ -5320,6 +5352,7 @@ function openDetail(id, navContext) {
 
   document.getElementById('detail-body').innerHTML = body;
   document.getElementById('detail-overlay').style.display = 'flex';
+  document.body.classList.add('overlay-open');
   // Attach swipe navigation to the padded body (not the image banner)
   _attachInfoSwipe('detail-padded',
     () => { // swipe left → next idea
@@ -5335,6 +5368,7 @@ function openDetail(id, navContext) {
 
 function closeDetail() {
   document.getElementById('detail-overlay').style.display = 'none';
+  document.body.classList.remove('overlay-open');
   detailItemId = null;
 }
 
@@ -5373,6 +5407,7 @@ function updateDetailMenuFav() {} // no-op, kept for safety
 
 function closeDateInfo() {
   document.getElementById('date-info-overlay').style.display = 'none';
+  document.body.classList.remove('overlay-open');
   currentDateInfo = null;
 }
 
@@ -5711,6 +5746,7 @@ function openDateInfo(u, memoryMode) {
   }
 
   document.getElementById('date-info-overlay').style.display = 'flex';
+  document.body.classList.add('overlay-open');
   // Attach swipe navigation to the padded body (not the image banner)
   _attachInfoSwipe('di-padded',
     () => { // swipe left → next date (later)
