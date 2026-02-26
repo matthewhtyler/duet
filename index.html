@@ -532,7 +532,7 @@
         <circle id="logo-circle-light" cx="11" cy="9" r="7.5" stroke="#c07a8a" stroke-width="2.8"/>
         <circle id="logo-circle-dark" cx="18" cy="9" r="7.5" stroke="#8b3a52" stroke-width="2.8"/>
       </svg>
-      <span style="color:purple">duet</span>
+      <span>duet</span>
     </button>
     <button id="nav-back" onclick="navigate('home')" style="display:none">
       <svg viewBox="0 0 24 24" width="20" height="20" stroke="#b0a090" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
@@ -2435,14 +2435,14 @@ function renderIdeas() {
   const _toggleActiveColor = _isDarkMode ? '#f0ede9' : '#2a1f1f';
   const af = f => `background:${ideasFilter===f?_toggleActiveBg:'transparent'};color:${ideasFilter===f?_toggleActiveColor:'#9a8a7a'};box-shadow:${ideasFilter===f?'0 1px 3px rgba(0,0,0,0.10)':'none'}`;
   const clearBtn = q ? `<button onclick="clearIdeasSearch()" style="background:none;border:none;cursor:pointer;padding:0;display:flex;flex-shrink:0;line-height:0;padding-top:9px"><svg viewBox="0 0 24 24" width="13" height="13" stroke="#9a8a7a" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>` : '';
-  const controlBar = `<div id="ideas-controlbar" style="display:flex;align-items:center;justify-content:space-between">
+  const controlBar = `<div id="ideas-controlbar" style="display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%">
     <div style="display:flex;background:var(--toggle-bg);border-radius:20px;padding:2px;gap:1px;flex-shrink:0">
       <button data-filter="all" onclick="setIdeasFilter('all')" style="padding:4px 12px;border:none;border-radius:18px;font-family:sans-serif;font-size:12px;font-weight:600;cursor:pointer;${af('all')}">All</button>
       <button data-filter="out" onclick="setIdeasFilter('out')" style="padding:4px 12px;border:none;border-radius:18px;font-family:sans-serif;font-size:12px;font-weight:600;cursor:pointer;${af('out')}">Out</button>
       <button data-filter="in" onclick="setIdeasFilter('in')"  style="padding:4px 12px;border:none;border-radius:18px;font-family:sans-serif;font-size:12px;font-weight:600;cursor:pointer;${af('in')}">In</button>
       <button data-filter="favs" onclick="setIdeasFilter('favs')" style="padding:4px 10px;border:none;border-radius:18px;font-family:sans-serif;font-size:12px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:4px;${af('favs')}">${heartSvg(ideasFilter==='favs')}</button>
     </div>
-    <div style="display:flex;align-items:center;background:var(--toggle-bg);border-radius:20px;padding:5px 10px;gap:6px;width:160px;flex-shrink:0">
+    <div style="display:flex;align-items:center;background:var(--toggle-bg);border-radius:20px;padding:5px 10px;gap:6px;width:160px;flex-shrink:0;margin-left:auto">
       <svg viewBox="0 0 24 24" width="13" height="13" stroke="#9a8a7a" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
       <input id="ideas-search-input" type="text" value="${q.replace(/"/g,'&quot;')}" oninput="ideasSearch=this.value;_renderIdeasBody()" placeholder="" style="border:none;background:transparent;outline:none;font-size:12px;font-family:sans-serif;color:var(--text-primary);width:100%;line-height:1;padding:0;min-width:0">
       ${clearBtn}
