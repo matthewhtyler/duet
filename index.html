@@ -74,7 +74,7 @@
   body { display: flex; justify-content: center; }
   #app {
     width: 100%;
-    max-width: 390px;
+    max-width: 402px;
     height: 100vh;
     height: 100dvh;
     background: var(--bg);
@@ -96,7 +96,7 @@
     border-bottom: 1px solid var(--nav-border);
     background: var(--nav-bg);
     position: fixed; top: 0; left: 50%; transform: translateX(-50%);
-    width: 100%; max-width: 390px; box-sizing: border-box;
+    width: 100%; max-width: 402px; box-sizing: border-box;
     z-index: 60;
   }
   #nav-logo { display: flex; align-items: center; gap: 8px; background: none; border: none; outline: none; cursor: pointer; }
@@ -133,7 +133,7 @@
   /* ── Bottom Nav ── */
   #bottom-nav {
     position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
-    width: 100%; max-width: 390px;
+    width: 100%; max-width: 402px;
     background: var(--nav-bg); border-top: 1px solid var(--nav-border);
     display: flex; justify-content: space-around; align-items: center;
     height: 90px; padding-top: 4px; padding-bottom: 18px; box-sizing: border-box; z-index: 60; overflow: visible;
@@ -419,7 +419,7 @@
   #sheet-overlay { position: fixed; inset: 0; z-index: 55; display: none; }
   #idea-sheet, #todo-sheet {
     position: fixed; bottom: 68px; left: 50%; transform: translateX(-50%);
-    width: 100%; max-width: 390px;
+    width: 100%; max-width: 402px;
     background: var(--bg); border-radius: 20px 20px 0 0;
     border-top: 1px solid var(--border); border-left: 1px solid var(--border); border-right: 1px solid var(--border);
     max-height: 82vh; display: none;
@@ -6357,6 +6357,7 @@ async function exportAllData() {
     memoryNotes: (() => { try { return JSON.parse(localStorage.getItem('ll_memories') || '{}'); } catch(e) { return {}; } })(),
     todos: todos,
     settings: (() => { try { const stored = JSON.parse(localStorage.getItem('ll_settings') || '{}'); return Object.assign(stored, appSettings); } catch(e) { return appSettings; } })(),
+    appearance: _appearance,
   };
   const json = JSON.stringify(data, null, 2);
   const filename = 'duet-' + new Date().toISOString().slice(0,10) + '.json';
@@ -6900,6 +6901,26 @@ function handleImportFile(e) {
           if (match) { _mergeFields(match, imp); } else { todos.push(imp); }
         });
         localStorage.setItem('lovelife_todos', JSON.stringify(todos));
+      }
+      // Restore settings (homeAddress, partnerAddress, pronouns, hidePrivate, etc.)
+      if (data.settings && typeof data.settings === 'object') {
+        Object.assign(appSettings, data.settings);
+        saveSettings(appSettings);
+        homeAddress         = appSettings.homeAddress || '';
+        partnerAddress      = appSettings.partnerAddress || '';
+        partnerPronouns     = appSettings.partnerPronouns || 'she/her';
+        partnerPronounsCustom = appSettings.partnerPronounsCustom || '';
+        hidePrivate         = appSettings.hidePrivate || false;
+      }
+      // Restore light/dark appearance
+      if (data.appearance) {
+        _appearance = data.appearance;
+        localStorage.setItem('duet_appearance', _appearance);
+        _applyAppearance(_appearance);
+      } else if (appSettings.appearance) {
+        _appearance = appSettings.appearance;
+        localStorage.setItem('duet_appearance', _appearance);
+        _applyAppearance(_appearance);
       }
       FUTURE_DATES = buildFutureDates();
       closeMoreMenu();
