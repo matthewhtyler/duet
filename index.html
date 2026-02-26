@@ -6370,7 +6370,14 @@ async function exportAllData() {
     staticPastDates: STATIC_PAST_DATES,
     memoryNotes: (() => { try { return JSON.parse(localStorage.getItem('ll_memories') || '{}'); } catch(e) { return {}; } })(),
     todos: todos,
-    settings: (() => { try { const stored = JSON.parse(localStorage.getItem('ll_settings') || '{}'); return Object.assign(stored, appSettings); } catch(e) { return appSettings; } })(),
+    settings: {
+      homeAddress: homeAddress,
+      partnerAddress: partnerAddress,
+      partnerPronouns: partnerPronouns,
+      partnerPronounsCustom: partnerPronounsCustom,
+      hidePrivate: hidePrivate,
+      appearance: _appearance,
+    },
     appearance: _appearance,
   };
   const json = JSON.stringify(data, null, 2);
@@ -6890,6 +6897,8 @@ function handleImportFile(e) {
   reader.onload = function(ev) {
     try {
       const data = JSON.parse(ev.target.result);
+      // Debug: show what settings are in the file
+      const _dbgS = data.settings || {};
       // Merge ideas: patch existing matches, add new ones
       if (Array.isArray(data.ideas)) {
         data.ideas.forEach(imp => {
@@ -6916,23 +6925,27 @@ function handleImportFile(e) {
         });
         localStorage.setItem('lovelife_todos', JSON.stringify(todos));
       }
-      // Restore settings (homeAddress, partnerAddress, pronouns, hidePrivate, etc.)
-      if (data.settings && typeof data.settings === 'object') {
-        Object.assign(appSettings, data.settings);
-        saveSettings(appSettings);
-        homeAddress         = appSettings.homeAddress || '';
-        partnerAddress      = appSettings.partnerAddress || '';
-        partnerPronouns     = appSettings.partnerPronouns || 'she/her';
-        partnerPronounsCustom = appSettings.partnerPronounsCustom || '';
-        hidePrivate         = appSettings.hidePrivate || false;
-      }
-      // Restore light/dark appearance
-      if (data.appearance) {
-        _appearance = data.appearance;
-        localStorage.setItem('duet_appearance', _appearance);
-        _applyAppearance(_appearance);
-      } else if (appSettings.appearance) {
-        _appearance = appSettings.appearance;
+      // Restore settings
+      const s = data.settings || {};
+      if (s.homeAddress   !== undefined) homeAddress          = s.homeAddress;
+      if (s.partnerAddress !== undefined) partnerAddress       = s.partnerAddress;
+      if (s.partnerPronouns !== undefined) partnerPronouns     = s.partnerPronouns;
+      if (s.partnerPronounsCustom !== undefined) partnerPronounsCustom = s.partnerPronounsCustom;
+      if (s.hidePrivate   !== undefined) hidePrivate           = s.hidePrivate;
+      // Sync appSettings and persist
+      appSettings.homeAddress          = homeAddress;
+      appSettings.partnerAddress       = partnerAddress;
+      appSettings.partnerPronouns      = partnerPronouns;
+      appSettings.partnerPronounsCustom = partnerPronounsCustom;
+      appSettings.hidePrivate          = hidePrivate;
+      saveSettings(appSettings);
+      // Refresh Settings popup fields if open
+      const _saEl = document.getElementById('settings-overlay');
+      if (_saEl && _saEl.style.display !== 'none') openSettings();
+      // Restore appearance
+      const importedAppearance = s.appearance || data.appearance;
+      if (importedAppearance) {
+        _appearance = importedAppearance;
         localStorage.setItem('duet_appearance', _appearance);
         _applyAppearance(_appearance);
       }
