@@ -4182,10 +4182,9 @@ function onIdeaSheetCategoryChange() {
   if (sdWrap) sdWrap.style.display = ideaType === 'out' ? 'flex' : 'none';
   const aboutWrap = document.getElementById('idea-about-wrap');
   if (aboutWrap) aboutWrap.style.display = ideaType === 'out' ? 'flex' : 'none';
-  const showRes = ['restaurant','bar','cafe','livemusic','venue','livejazz'].includes(cat);
-  document.getElementById('reservation-wrap').style.display = showRes ? 'block' : 'none';
+  document.getElementById('reservation-wrap').style.display = ideaType === 'out' ? 'block' : 'none';
   const resEl = document.getElementById('idea-reservation');
-  if (resEl && showRes) {
+  if (resEl && ideaType === 'out') {
     const resyDefault = ['restaurant','bar','livejazz'].includes(cat);
     if (!window._editingIdeaId) resEl.value = resyDefault ? 'resy' : 'website';
   }
@@ -4382,7 +4381,7 @@ function onPlaceTypeChange() {
   if (pfShortdesc) pfShortdesc.style.display = 'flex';
   const pfAbout = document.getElementById('pf-about-wrap');
   if (pfAbout) pfAbout.style.display = 'flex';
-  if (pfReservation) pfReservation.style.display = socialTypes.includes(sel.value) ? 'block' : 'none';
+  if (pfReservation) pfReservation.style.display = 'block';
 }
 
 function onReservationChange() {
