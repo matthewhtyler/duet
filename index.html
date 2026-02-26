@@ -439,7 +439,7 @@
   select.field-input:focus { border-color: #c07a8a; outline: none; }  #detail-overlay {
     position: fixed; inset: 0; background: rgba(30,20,20,0.5);
     display: none; align-items: flex-start; justify-content: center;
-    padding-top: 140px; z-index: 200;
+    padding-top: 66px; z-index: 200;
   }
   #detail-modal {
     width: calc(100% - 24px); max-width: 390px; background: var(--bg);
@@ -883,7 +883,7 @@
   </div>
 
   <!-- DATE INFO OVERLAY — same structure as detail modal -->
-  <div id="date-info-overlay" class="popup-overlay" onclick="closeDateInfo()" style="position:fixed;inset:0;background:rgba(30,20,20,0.5);z-index:400;display:none;align-items:flex-start;justify-content:center;padding-top:140px">
+  <div id="date-info-overlay" class="popup-overlay" onclick="closeDateInfo()" style="position:fixed;inset:0;background:rgba(30,20,20,0.5);z-index:400;display:none;align-items:flex-start;justify-content:center;padding-top:66px">
     <div id="date-info-modal" onclick="event.stopPropagation()" style="width:calc(100% - 24px);max-width:390px;background:var(--bg);border-radius:20px;overflow:hidden;max-height:80vh;overflow-y:auto;box-shadow:0 12px 48px rgba(0,0,0,0.18)">
 
       <!-- Banner slot (image if available) -->
@@ -3478,7 +3478,7 @@ function renderCalendar() {
     .sort((a,b) => new Date((a.year||2026),MONTH_NUMS[a.month]||0,a.day) - new Date((b.year||2026),MONTH_NUMS[b.month]||0,b.day))
     .map(u => {
       const isSelected = u.month === monthAbbr && (u.year||2026) === currentCalYear && u.day === selectedCalDay;
-      const style = isSelected ? `border-color:${ROSE};background:#fff;` : '';
+      const style = isSelected ? `border-color:${ROSE};` : '';
       return `
       <div class="upcoming-item" onclick="openDateInfo(UPCOMING_DATES.find(u=>u.month==='${u.month}'&&(u.year||2026)===${u.year||2026}&&u.day===${u.day}))" style="${style}">
         <div class="upcoming-date-badge">
