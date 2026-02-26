@@ -2337,9 +2337,21 @@ function _populateImgContainer(containerId, urls) {
 }
 
 // Wire static photo icon buttons
+function _openExternal(url) {
+  // In iOS standalone PWA mode, window.open opens in-app.
+  // Using a temporary <a target="_blank"> forces Safari to open externally.
+  const a = document.createElement('a');
+  a.href = url;
+  a.target = '_blank';
+  a.rel = 'noopener noreferrer';
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => document.body.removeChild(a), 100);
+}
+
 function _wireImgIconBtn(btnId, getNameFn) {
   const btn = document.getElementById(btnId);
-  if (btn) btn.onclick = () => { const n = getNameFn(); if (n) window.open('https://search.brave.com/images?q='+encodeURIComponent(n),'_blank'); };
+  if (btn) btn.onclick = () => { const n = getNameFn(); if (n) _openExternal('https://search.brave.com/images?q='+encodeURIComponent(n)); };
 }
 
 // Shims
@@ -2674,7 +2686,7 @@ function _todoRow(t) {
       resUrl = _buildResUrl(placeName, 'resy', dateStr, '19:00', '');
     }
     if (placeName) {
-      mainHtml = `<span style="${baseStyle}">Make a reservation at <a onclick="event.stopPropagation();window.open('${resUrl}','_blank')" class="todo-link${t.done?' done':''}">${placeName}</a></span>`;
+      mainHtml = `<span style="${baseStyle}">Make a reservation at <a onclick="event.stopPropagation();_openExternal('${resUrl}')" class="todo-link${t.done?' done':''}">${placeName}</a></span>`;
     } else {
       mainHtml = `<span style="${baseStyle}">Make a reservation</span>`;
     }
@@ -2688,7 +2700,7 @@ function _todoRow(t) {
     }
     if (actName) {
       const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(actName + ' tickets')}`;
-      mainHtml = `<span style="${baseStyle}">Buy tickets for <a onclick="event.stopPropagation();window.open('${searchUrl}','_blank')" class="todo-link${t.done?' done':''}">${actName}</a></span>`;
+      mainHtml = `<span style="${baseStyle}">Buy tickets for <a onclick="event.stopPropagation();_openExternal('${searchUrl}')" class="todo-link${t.done?' done':''}">${actName}</a></span>`;
     } else {
       mainHtml = `<span style="${baseStyle}">Buy tickets</span>`;
     }
@@ -3689,7 +3701,7 @@ function _nextDateCommuteHtml(date, cardColor) {
     travelMode = walkMatch2 ? 'walking' : 'driving';
   }
   const mapsOnclick = (homeAddress && dest)
-    ? `event.stopPropagation();window.open('https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(homeAddress)}&destination=${encodeURIComponent(dest)}&travelmode=${travelMode}','_blank')`
+    ? `event.stopPropagation();_openExternal('https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(homeAddress)}&destination=${encodeURIComponent(dest)}&travelmode=${travelMode}')`
     : '';
   const mapsCursor = mapsOnclick ? 'cursor:pointer' : '';
 
@@ -4648,17 +4660,17 @@ function ideaMapsAddress() {
   const addr = document.getElementById('idea-address').value.trim();
   const name = document.getElementById('idea-name').value.trim();
   const q = addr || name;
-  if (q) window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(q)}`, '_blank');
+  if (q) _openExternal(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(q)}`);
 }
 function ideaTransitDirections() {
   const dest = document.getElementById('idea-address').value.trim();
   if (!dest || !homeAddress) return;
-  window.open(`https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(homeAddress)}&destination=${encodeURIComponent(dest)}&travelmode=transit`, '_blank');
+  _openExternal(`https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(homeAddress)}&destination=${encodeURIComponent(dest)}&travelmode=transit`);
 }
 function ideaWalkingDirections() {
   const dest = document.getElementById('idea-address').value.trim();
   if (!dest || !homeAddress) return;
-  window.open(`https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(homeAddress)}&destination=${encodeURIComponent(dest)}&travelmode=walking`, '_blank');
+  _openExternal(`https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(homeAddress)}&destination=${encodeURIComponent(dest)}&travelmode=walking`);
 }
 function ideaOpenReservation() {
   const name = document.getElementById('idea-name').value.trim();
@@ -4667,10 +4679,10 @@ function ideaOpenReservation() {
   const date = new Date().toISOString().split('T')[0];
   const slug = name.toLowerCase().replace(/[^a-z0-9\s]/g,'').replace(/\s+/g,'-');
   const q = encodeURIComponent(name+' New York City');
-  if (res==='opentable') window.open(`https://www.opentable.com/s?term=${encodeURIComponent(name)}&covers=2&dateTime=${date}T19:00`,'_blank');
-  else if (res==='eventbrite') { const url=document.getElementById('idea-eventbrite-url').value.trim(); window.open(url||`https://www.google.com/search?q=${encodeURIComponent(name+' eventbrite')}`,'_blank'); }
-  else if (res==='website') window.open(`https://www.google.com/search?q=${encodeURIComponent(name)}`,'_blank');
-  else window.open(`https://resy.com/cities/new-york-ny/venues/${slug}?query=${q}&date=${date}&seats=2`,'_blank');
+  if (res==='opentable') _openExternal(`https://www.opentable.com/s?term=${encodeURIComponent(name)}&covers=2&dateTime=${date}T19:00`);
+  else if (res==='eventbrite') { const url=document.getElementById('idea-eventbrite-url').value.trim(); _openExternal(url||`https://www.google.com/search?q=${encodeURIComponent(name+' eventbrite')}`); }
+  else if (res==='website') _openExternal(`https://www.google.com/search?q=${encodeURIComponent(name)}`);
+  else _openExternal(`https://resy.com/cities/new-york-ny/venues/${slug}?query=${q}&date=${date}&seats=2`);
 }
 
 // ── Edit Idea modal helpers ──
@@ -4712,19 +4724,19 @@ function openPlaceMapsAddress() {
   const addr = (document.getElementById('pf-address')||{}).value || '';
   const name = (document.getElementById('pf-name')||{}).value || '';
   const q = addr.trim() || name.trim();
-  if (q) window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(q)}`, '_blank');
+  if (q) _openExternal(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(q)}`);
 }
 
 function openTransitDirections() {
   const dest = (document.getElementById('pf-address')||{}).value.trim();
   if (!dest || !homeAddress) return;
-  window.open(`https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(homeAddress)}&destination=${encodeURIComponent(dest)}&travelmode=transit`, '_blank');
+  _openExternal(`https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(homeAddress)}&destination=${encodeURIComponent(dest)}&travelmode=transit`);
 }
 
 function openWalkingDirections() {
   const dest = (document.getElementById('pf-address')||{}).value.trim();
   if (!dest || !homeAddress) return;
-  window.open(`https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(homeAddress)}&destination=${encodeURIComponent(dest)}&travelmode=walking`, '_blank');
+  _openExternal(`https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(homeAddress)}&destination=${encodeURIComponent(dest)}&travelmode=walking`);
 }
 
 function openReservationLink() {
@@ -4734,10 +4746,10 @@ function openReservationLink() {
   const date = new Date().toISOString().split('T')[0];
   const slug = name.toLowerCase().replace(/[^a-z0-9\s]/g,'').replace(/\s+/g,'-');
   const q = encodeURIComponent(name+' New York City');
-  if (res==='opentable') window.open(`https://www.opentable.com/s?term=${encodeURIComponent(name)}&covers=2&dateTime=${date}T19:00`,'_blank');
-  else if (res==='eventbrite') { const url=(document.getElementById('pf-eventbrite-url')||{}).value||''; window.open(url||`https://www.google.com/search?q=${encodeURIComponent(name+' eventbrite')}`,'_blank'); }
-  else if (res==='website') window.open(`https://www.google.com/search?q=${encodeURIComponent(name)}`,'_blank');
-  else window.open(`https://resy.com/cities/new-york-ny/venues/${slug}?query=${q}&date=${date}&seats=2`,'_blank');
+  if (res==='opentable') _openExternal(`https://www.opentable.com/s?term=${encodeURIComponent(name)}&covers=2&dateTime=${date}T19:00`);
+  else if (res==='eventbrite') { const url=(document.getElementById('pf-eventbrite-url')||{}).value||''; _openExternal(url||`https://www.google.com/search?q=${encodeURIComponent(name+' eventbrite')}`); }
+  else if (res==='website') _openExternal(`https://www.google.com/search?q=${encodeURIComponent(name)}`);
+  else _openExternal(`https://resy.com/cities/new-york-ny/venues/${slug}?query=${q}&date=${date}&seats=2`);
 }
 
 function saveNewIdea() {
@@ -5292,7 +5304,7 @@ function openDetail(id, navContext) {
         // website with no URL — no button
       } else {
         const btnLabel = (item.reservation === 'resy' || item.reservation === 'opentable') ? 'Reserve' : 'Tickets';
-        leftBtn = `<button onclick="window.open('${resUrl}','_blank')" style="display:flex;align-items:center;gap:7px;height:34px;padding:0 16px;border:1.5px solid #c07a8a;border-radius:17px;font-family:sans-serif;font-size:13px;font-weight:600;color:#c07a8a;background:none;cursor:pointer;line-height:1">${resIcon}${btnLabel}</button>`;
+        leftBtn = `<button onclick="_openExternal('${resUrl}')" style="display:flex;align-items:center;gap:7px;height:34px;padding:0 16px;border:1.5px solid #c07a8a;border-radius:17px;font-family:sans-serif;font-size:13px;font-weight:600;color:#c07a8a;background:none;cursor:pointer;line-height:1">${resIcon}${btnLabel}</button>`;
       }
     }
 
@@ -5404,7 +5416,7 @@ function buildWalkDriveBadgesHtml(walkDriveTime) {
 
 
 function openReserveLink(url, dateKey) {
-  window.open(url, '_blank');
+  _openExternal(url);
   _reservedDateKeys.add(dateKey);
   _saveReserved();
   const btn = document.getElementById('di-reserve-btn');
@@ -5577,7 +5589,7 @@ function openDateInfo(u, memoryMode) {
     // Build subway badges as a clickable block (transit directions)
     const url = _mapsUrl('transit');
     const cursor = dest ? 'cursor:pointer' : '';
-    const onclick = dest ? `onclick="event.stopPropagation();window.open('${url}','_blank')"` : '';
+    const onclick = dest ? `onclick="event.stopPropagation();_openExternal('${url}')"` : '';
     commuteHtml += `<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;${cursor}" ${onclick}>${buildSubwayBadgesHtml(subwayVal)}</div>`;
   }
 
@@ -5593,16 +5605,16 @@ function openDateInfo(u, memoryMode) {
     if (wm && dm) {
       // Walk and drive: separate clickable spans
       const walkUrl = _mapsUrl('walking'), driveUrl = _mapsUrl('driving');
-      const wc = dest ? `onclick="event.stopPropagation();window.open('${walkUrl}','_blank')" style="display:flex;align-items:center;gap:3px;font-size:12px;color:#9a8a7a;font-family:sans-serif;cursor:pointer"` : `style="display:flex;align-items:center;gap:3px;font-size:12px;color:#9a8a7a;font-family:sans-serif"`;
-      const dc = dest ? `onclick="event.stopPropagation();window.open('${driveUrl}','_blank')" style="display:flex;align-items:center;gap:3px;font-size:12px;color:#9a8a7a;font-family:sans-serif;cursor:pointer"` : `style="display:flex;align-items:center;gap:3px;font-size:12px;color:#9a8a7a;font-family:sans-serif"`;
+      const wc = dest ? `onclick="event.stopPropagation();_openExternal('${walkUrl}')" style="display:flex;align-items:center;gap:3px;font-size:12px;color:#9a8a7a;font-family:sans-serif;cursor:pointer"` : `style="display:flex;align-items:center;gap:3px;font-size:12px;color:#9a8a7a;font-family:sans-serif"`;
+      const dc = dest ? `onclick="event.stopPropagation();_openExternal('${driveUrl}')" style="display:flex;align-items:center;gap:3px;font-size:12px;color:#9a8a7a;font-family:sans-serif;cursor:pointer"` : `style="display:flex;align-items:center;gap:3px;font-size:12px;color:#9a8a7a;font-family:sans-serif"`;
       commuteHtml += `<span ${wc}>${personSvg}${wm[1]} min</span><span style="color:#c8bfb6;font-size:12px">/</span><span ${dc}>${carSvg}${dm[1]} min</span>`;
     } else if (wm) {
       const walkUrl = _mapsUrl('walking');
-      const wc = dest ? `onclick="event.stopPropagation();window.open('${walkUrl}','_blank')" style="display:flex;align-items:center;gap:3px;font-size:12px;color:#9a8a7a;font-family:sans-serif;cursor:pointer"` : `style="display:flex;align-items:center;gap:3px;font-size:12px;color:#9a8a7a;font-family:sans-serif"`;
+      const wc = dest ? `onclick="event.stopPropagation();_openExternal('${walkUrl}')" style="display:flex;align-items:center;gap:3px;font-size:12px;color:#9a8a7a;font-family:sans-serif;cursor:pointer"` : `style="display:flex;align-items:center;gap:3px;font-size:12px;color:#9a8a7a;font-family:sans-serif"`;
       commuteHtml += `<span ${wc}>${personSvg}${wm[1]} min</span>`;
     } else if (dm) {
       const driveUrl = _mapsUrl('driving');
-      const dc = dest ? `onclick="event.stopPropagation();window.open('${driveUrl}','_blank')" style="display:flex;align-items:center;gap:3px;font-size:12px;color:#9a8a7a;font-family:sans-serif;cursor:pointer"` : `style="display:flex;align-items:center;gap:3px;font-size:12px;color:#9a8a7a;font-family:sans-serif"`;
+      const dc = dest ? `onclick="event.stopPropagation();_openExternal('${driveUrl}')" style="display:flex;align-items:center;gap:3px;font-size:12px;color:#9a8a7a;font-family:sans-serif;cursor:pointer"` : `style="display:flex;align-items:center;gap:3px;font-size:12px;color:#9a8a7a;font-family:sans-serif"`;
       commuteHtml += `<span ${dc}>${carSvg}${dm[1]} min</span>`;
     }
   }
