@@ -415,9 +415,9 @@
   .upcoming-month { font-size: 10px; font-family: sans-serif; font-weight: 600; color: var(--text-muted); letter-spacing: 0.06em; text-transform: uppercase; }
   .upcoming-day-num { font-size: 22px; font-weight: 700; color: var(--text-primary); line-height: 1.1; }
   .upcoming-divider { width: 1px; height: 36px; background: var(--border); flex-shrink: 0; }
-  .upcoming-info { flex: 1; min-width: 0; }
-  .upcoming-venue-row { display: flex; align-items: center; gap: 7px; margin-bottom: 2px; }
-  .upcoming-venue { font-size: 15px; font-weight: 700; color: var(--text-primary); letter-spacing: -0.01em; }
+  .upcoming-info { flex: 1; min-width: 0; overflow: hidden; }
+  .upcoming-venue-row { display: flex; align-items: center; gap: 7px; margin-bottom: 2px; min-width: 0; }
+  .upcoming-venue { font-size: 15px; font-weight: 700; color: var(--text-primary); letter-spacing: -0.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
   .upcoming-sub { font-size: 12px; color: var(--text-secondary); font-family: sans-serif; }
   .highlighted .upcoming-month { color: rgba(255,255,255,0.7); }
   .highlighted .upcoming-day-num { color: #fff; }
@@ -472,7 +472,7 @@
     display: flex; align-items: center; gap: 14px; padding: 12px 14px;
     background: var(--bg-card); border-radius: 14px; border: 1px solid var(--border);
   }
-  .quick-row-name { font-size: 15px; font-weight: 700; color: var(--text-primary); letter-spacing: -0.01em; }
+  .quick-row-name { font-size: 15px; font-weight: 700; color: var(--text-primary); letter-spacing: -0.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .quick-row-sub { font-size: 12px; color: var(--text-secondary); font-family: sans-serif; margin-top: 2px; }
   .type-badge {
     font-size: 11px; padding: 3px 8px; border-radius: 10px;
@@ -522,7 +522,7 @@
         <circle id="logo-circle-light" cx="11" cy="9" r="7.5" stroke="#c07a8a" stroke-width="2.8"/>
         <circle id="logo-circle-dark" cx="18" cy="9" r="7.5" stroke="#8b3a52" stroke-width="2.8"/>
       </svg>
-      <span style="color:green">duet</span>
+      <span style="color:orange">duet</span>
     </button>
     <button id="nav-back" onclick="navigate('home')" style="display:none">
       <svg viewBox="0 0 24 24" width="20" height="20" stroke="#b0a090" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
