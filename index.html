@@ -6481,17 +6481,11 @@ function importData() {
   document.getElementById('import-file-input').click();
 }
 function _mergeFields(existing, imported) {
+  // Overwrite existing fields with imported values; keep local-only fields untouched
   Object.keys(imported).forEach(key => {
     const impVal = imported[key];
-    const curVal = existing[key];
     if (impVal === null || impVal === undefined) return;
-    if (Array.isArray(impVal)) {
-      if (!Array.isArray(curVal) || curVal.length === 0) existing[key] = impVal;
-    } else if (typeof impVal === 'object') {
-      if (!curVal || (typeof curVal === 'object' && Object.keys(curVal).length === 0)) existing[key] = impVal;
-    } else {
-      if (curVal === null || curVal === undefined || curVal === '') existing[key] = impVal;
-    }
+    existing[key] = impVal;
   });
 }
 
