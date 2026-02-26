@@ -454,6 +454,9 @@
   .idea-row { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
   .idea-row-top { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 12px; }
   .idea-row .field-input, .idea-row-top .field-input { flex: 1; margin-bottom: 0; }
+  .img-field-row { display:flex; align-items:center; gap:6px; margin-bottom:8px; }
+  .img-field-row .field-input { flex:1 !important; width:auto !important; margin-bottom:0 !important; min-width:0; box-sizing:border-box; }
+  .img-btn { background:none; border:none; cursor:pointer; padding:0; display:flex !important; align-items:center; justify-content:center; flex-shrink:0; width:20px !important; height:20px !important; line-height:0; }
   .idea-row-icon { width: 18px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
   .idea-row-icon button { background: none; border: none; padding: 0; cursor: pointer; display: flex; }
   textarea.idea-sheet-area { flex: 1; padding: 10px 14px; font-size: 14px; border: 1.5px solid var(--border); border-radius: 10px; background: var(--bg-input); color: var(--text-primary); outline: none; font-family: sans-serif; resize: none; line-height: 1.5; margin-bottom: 0; }
@@ -708,14 +711,11 @@
 
 
         <!-- Image URLs -->
-        <div id="idea-images-wrap" style="margin-top:7px;margin-bottom:12px">
-          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
-            <button onclick="(function(){const n=(document.getElementById('idea-name')||{}).value||'';if(n.trim())window.open('https://www.google.com/search?q='+encodeURIComponent(n)+'+photos','_blank');})()" title="Search for photos" style="background:none;border:none;cursor:pointer;padding:0;display:flex;flex-shrink:0">
-              <svg viewBox="0 0 24 24" width="18" height="18" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-            </button>
-            <span style="font-size:13px;color:#9a8a7a;flex-shrink:0">Images</span>
-          </div>
-          <div id="idea-image-fields" style="margin-left:26px"></div>
+        <div id="idea-images-wrap" style="margin-top:20px;margin-bottom:12px;display:flex;align-items:flex-start;gap:10px">
+          <button id="idea-img-icon-btn" title="Search for photos" style="background:none;border:none;cursor:pointer;padding:0;display:flex;align-items:center;flex-shrink:0;line-height:0;padding-top:9px">
+            <svg viewBox="0 0 24 24" width="18" height="18" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          </button>
+          <div id="idea-image-fields" style="flex:1;min-width:0"></div>
         </div>
       </div><!-- /out-fields-wrap -->
       <input type="hidden" id="idea-note-short" value="">
@@ -830,7 +830,7 @@
           <div style="min-width:0;flex:1">
             <div style="display:flex;align-items:center;gap:6px">
               <a id="detail-title" style="font-size:17px;font-weight:700;text-decoration:none;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;outline:none" target="_blank" rel="noopener"></a>
-              <button id="detail-heart-btn" onclick="toggleSavedCurrent()" style="background:none;border:none;display:flex;padding:1px;cursor:pointer;flex-shrink:0;line-height:0"></button>
+              <button id="detail-heart-btn" onclick="toggleSavedCurrent()" style="background:none;border:none;display:flex;padding:1px;cursor:pointer;flex-shrink:0;line-height:0;padding-top:9px"></button>
             </div>
             <div id="detail-subtitle" style="font-size:13px;color:#b0a090;font-style:italic;margin-top:6px"></div>
           </div>
@@ -1016,13 +1016,9 @@
         <input class="field-input" id="ed-note" type="text" placeholder="">
 
         <!-- Image Links -->
-        <div class="field-label" style="margin-top:16px">Images</div>
-        <div id="ed-images-wrap" style="margin-bottom:4px">
-          <div style="position:relative">
-            <input class="field-input" id="ed-image-0" type="text" placeholder="Image URL…" style="margin-bottom:0;padding-right:32px">
-            <button onclick="addEdImageField(this)" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;padding:0;line-height:0;color:#9a8a7a;font-size:18px;font-weight:300">+</button>
-          </div>
-          <div id="ed-extra-image-fields"></div>
+        <div class="field-label">Images</div>
+        <div id="ed-images-wrap" style="margin-top:0;margin-bottom:4px">
+          <div id="ed-image-fields"></div>
         </div>
         <div style="height:8px"></div>
       </div>
@@ -1317,14 +1313,11 @@
           </div>
 
           <!-- Image URLs -->
-          <div id="pf-images-wrap" style="margin-top:19px;margin-bottom:0">
-            <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
-              <button onclick="(function(){const n=(document.getElementById('pf-name')||{}).value||'';if(n.trim())window.open('https://www.google.com/search?q='+encodeURIComponent(n)+'+photos','_blank');})()" title="Search for photos" style="background:none;border:none;cursor:pointer;padding:0;display:flex;flex-shrink:0">
-                <svg viewBox="0 0 24 24" width="18" height="18" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-              </button>
-              <span style="font-size:13px;color:#9a8a7a;flex-shrink:0">Images</span>
-            </div>
-            <div id="pf-image-fields" style="margin-left:26px"></div>
+          <div id="pf-images-wrap" style="margin-top:20px;margin-bottom:0;display:flex;align-items:flex-start;gap:10px">
+            <button id="pf-img-icon-btn" title="Search for photos" style="background:none;border:none;cursor:pointer;padding:0;display:flex;align-items:center;flex-shrink:0;line-height:0;padding-top:9px">
+              <svg viewBox="0 0 24 24" width="18" height="18" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+            </button>
+            <div id="pf-image-fields" style="flex:1;min-width:0"></div>
           </div>
         </div>
         <div style="height:8px"></div>
@@ -2054,58 +2047,58 @@ function detailImgNav(itemId, dir, e) {
 
 // Collect image URL fields from new-idea sheet
 // ── Unified image field system ──
-// Creates a field row: [drag handle] [thumb?] [input] [×?] [+]
+// All rows are identical: [drag grip] [thumb?] [input] [×] [+]
+// The photo icon lives in static HTML to the left of the container.
 function _makeImgFieldRow(value, containerId) {
   const row = document.createElement('div');
   row.className = 'img-field-row';
   row.draggable = true;
-  row.style.cssText = 'display:flex;align-items:center;gap:6px;margin-bottom:8px;cursor:default';
 
   // Drag grip
   const grip = document.createElement('span');
-  grip.innerHTML = `<svg viewBox="0 0 24 24" width="14" height="14" fill="#c0b8b0" style="display:block;cursor:grab;flex-shrink:0"><circle cx="9" cy="7" r="1.3"/><circle cx="15" cy="7" r="1.3"/><circle cx="9" cy="12" r="1.3"/><circle cx="15" cy="12" r="1.3"/><circle cx="9" cy="17" r="1.3"/><circle cx="15" cy="17" r="1.3"/></svg>`;
-  grip.style.cssText = 'flex-shrink:0;display:flex;align-items:center';
+  grip.style.cssText = 'flex-shrink:0;display:flex;align-items:center;cursor:grab;line-height:0';
+  grip.innerHTML = `<svg viewBox="0 0 24 24" width="14" height="14" fill="#c0b8b0" style="display:block"><circle cx="9" cy="7" r="1.3"/><circle cx="15" cy="7" r="1.3"/><circle cx="9" cy="12" r="1.3"/><circle cx="15" cy="12" r="1.3"/><circle cx="9" cy="17" r="1.3"/><circle cx="15" cy="17" r="1.3"/></svg>`;
   row.appendChild(grip);
 
   // Thumb
   const thumb = document.createElement('div');
   thumb.className = 'img-field-thumb';
-  thumb.style.cssText = 'width:28px;height:28px;border-radius:4px;overflow:hidden;flex-shrink:0;background:#ede9e2;display:none;border:1px solid #ddd8d0';
+  thumb.style.cssText = 'width:26px;height:26px;border-radius:4px;overflow:hidden;flex-shrink:0;background:#ede9e2;display:none;border:1px solid #ddd8d0';
   const thumbImg = document.createElement('img');
   thumbImg.style.cssText = 'width:100%;height:100%;object-fit:cover;display:block';
   thumb.appendChild(thumbImg);
   row.appendChild(thumb);
 
-  // Input
+  // Input — .img-field-row .field-input CSS handles width:auto and margin-bottom:0
   const inp = document.createElement('input');
   inp.className = 'field-input';
   inp.type = 'text';
   inp.placeholder = 'Image URL…';
   inp.value = value || '';
-  inp.style.cssText = 'flex:1;margin-bottom:0;min-width:0';
   row.appendChild(inp);
 
-  // Clear (×) button
+  // Clear (×) — .img-btn CSS handles sizing and centering
   const clearBtn = document.createElement('button');
   clearBtn.type = 'button';
+  clearBtn.className = 'img-btn';
+  clearBtn.style.opacity = '0.35';
   clearBtn.innerHTML = `<svg viewBox="0 0 24 24" width="13" height="13" stroke="#9a8a7a" stroke-width="2.5" fill="none" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`;
-  clearBtn.style.cssText = 'background:none;border:none;cursor:pointer;padding:2px;display:none;flex-shrink:0;line-height:0';
   clearBtn.title = 'Clear';
-  clearBtn.onclick = () => { inp.value = ''; clearBtn.style.display = 'none'; thumb.style.display = 'none'; inp.focus(); };
+  clearBtn.onclick = () => { inp.value = ''; thumb.style.display = 'none'; clearBtn.style.opacity = '0.35'; inp.focus(); };
   row.appendChild(clearBtn);
 
-  // Plus (+) button
+  // Plus (+) — SVG avoids all font metric/descent issues, .img-btn handles centering
   const plusBtn = document.createElement('button');
   plusBtn.type = 'button';
-  plusBtn.textContent = '+';
-  plusBtn.style.cssText = 'background:none;border:none;cursor:pointer;padding:2px 0;line-height:1;color:#9a8a7a;font-size:18px;font-weight:300;flex-shrink:0';
+  plusBtn.className = 'img-btn';
+  plusBtn.innerHTML = `<svg viewBox="0 0 24 24" width="13" height="13" stroke="#9a8a7a" stroke-width="2.5" fill="none" stroke-linecap="round"><line x1="12" y1="4" x2="12" y2="20"/><line x1="4" y1="12" x2="20" y2="12"/></svg>`;
   plusBtn.onclick = () => _addImgFieldTo(containerId);
   row.appendChild(plusBtn);
 
-  // Update thumb + clear visibility on input
+  // Update thumb + clear on input
   function _updateRow() {
     const v = inp.value.trim();
-    clearBtn.style.display = v ? 'flex' : 'none';
+    clearBtn.style.opacity = v ? '1' : '0.35';
     if (v && /^https?:\/\//i.test(v)) {
       thumbImg.src = v;
       thumbImg.onload = () => { thumb.style.display = 'block'; };
@@ -2120,10 +2113,9 @@ function _makeImgFieldRow(value, containerId) {
   // Drag-to-reorder
   row.addEventListener('dragstart', e => {
     e.dataTransfer.effectAllowed = 'move';
-    row._dragging = true;
     setTimeout(() => row.style.opacity = '0.4', 0);
   });
-  row.addEventListener('dragend', () => { row.style.opacity = '1'; row._dragging = false; });
+  row.addEventListener('dragend', () => { row.style.opacity = '1'; });
   row.addEventListener('dragover', e => {
     e.preventDefault();
     const container = document.getElementById(containerId);
@@ -2131,10 +2123,9 @@ function _makeImgFieldRow(value, containerId) {
     const dragging = container.querySelector('.img-field-row[style*="opacity: 0.4"], .img-field-row[style*="opacity:0.4"]');
     if (dragging && dragging !== row) {
       const rows = [...container.querySelectorAll('.img-field-row')];
-      const fromIdx = rows.indexOf(dragging);
-      const toIdx = rows.indexOf(row);
-      if (fromIdx !== -1 && toIdx !== -1) {
-        if (fromIdx < toIdx) container.insertBefore(dragging, row.nextSibling);
+      const fi = rows.indexOf(dragging), ti = rows.indexOf(row);
+      if (fi !== -1 && ti !== -1) {
+        if (fi < ti) container.insertBefore(dragging, row.nextSibling);
         else container.insertBefore(dragging, row);
       }
     }
@@ -2146,9 +2137,8 @@ function _makeImgFieldRow(value, containerId) {
 function _addImgFieldTo(containerId) {
   const container = document.getElementById(containerId);
   if (!container) return;
-  const row = _makeImgFieldRow('', containerId);
-  container.appendChild(row);
-  row.querySelector('input').focus();
+  container.appendChild(_makeImgFieldRow('', containerId));
+  container.lastChild.querySelector('input').focus();
 }
 
 function _collectImgUrls(containerId) {
@@ -2166,46 +2156,23 @@ function _populateImgContainer(containerId, urls) {
   list.forEach(url => container.appendChild(_makeImgFieldRow(url, containerId)));
 }
 
-// Shims for existing call sites
+// Wire static photo icon buttons
+function _wireImgIconBtn(btnId, getNameFn) {
+  const btn = document.getElementById(btnId);
+  if (btn) btn.onclick = () => { const n = getNameFn(); if (n) window.open('https://www.google.com/search?q='+encodeURIComponent(n)+'+photos','_blank'); };
+}
+
+// Shims
 function collectNewIdeaImageUrls() { return _collectImgUrls('idea-image-fields'); }
 function collectPfImageUrls()      { return _collectImgUrls('pf-image-fields'); }
-function populatePfImageFields(item) { _populateImgContainer('pf-image-fields', getImageUrls(item)); }
+function collectEdImageUrls()      { return _collectImgUrls('ed-image-fields'); }
+function populatePfImageFields(item) { _populateImgContainer('pf-image-fields', getImageUrls(item)); _wireImgIconBtn('pf-img-icon-btn', () => (document.getElementById('pf-name')||{value:''}).value.trim()); }
+function populateEdImageFields(urls) { _populateImgContainer('ed-image-fields', urls); }
 function addImageField(btn)   { _addImgFieldTo('idea-image-fields'); }
 function addPfImageField(btn) { _addImgFieldTo('pf-image-fields'); }
+function addEdImageField(btn) { _addImgFieldTo('ed-image-fields'); }
 
-function addEdImageField(btn) {
-  const container = document.getElementById('ed-extra-image-fields');
-  const div = document.createElement('div');
-  div.style.cssText = 'margin-top:8px;position:relative';
-  div.innerHTML = `<input class="field-input" type="text" placeholder="Image URL…" style="margin-bottom:0;padding-right:32px"><button onclick="addEdImageField(this)" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;padding:0;line-height:0;color:#9a8a7a;font-size:18px;font-weight:300">+</button>`;
-  container.appendChild(div);
-  div.querySelector('input').focus();
-}
-
-function collectEdImageUrls() {
-  const urls = [];
-  const first = document.getElementById('ed-image-0');
-  if (first && first.value.trim()) urls.push(first.value.trim());
-  document.querySelectorAll('#ed-extra-image-fields input[type=text]').forEach(inp => {
-    if (inp.value.trim()) urls.push(inp.value.trim());
-  });
-  return urls;
-}
-
-function populateEdImageFields(urls) {
-  const first = document.getElementById('ed-image-0');
-  if (first) first.value = (urls && urls[0]) || '';
-  const extra = document.getElementById('ed-extra-image-fields');
-  if (extra) {
-    extra.innerHTML = '';
-    for (let i = 1; i < (urls || []).length; i++) {
-      const div = document.createElement('div');
-      div.style.cssText = 'margin-top:8px;position:relative';
-      div.innerHTML = `<input class="field-input" type="text" value="${urls[i]}" placeholder="Image URL…" style="margin-bottom:0;padding-right:32px"><button onclick="addEdImageField(this)" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;padding:0;line-height:0;color:#9a8a7a;font-size:18px;font-weight:300">+</button>`;
-      extra.appendChild(div);
-    }
-  }
-}
+// addEdImageField, collectEdImageUrls, populateEdImageFields — now handled by unified image system shims above
 
 // Resolve image URLs for a memory: own imageUrls > matched idea's imageUrls
 function _getMemoryImageUrls(d) {
@@ -2251,7 +2218,7 @@ function renderIdeas() {
   const _toggleActiveBg = _isDarkMode ? '#9a8a7a' : '#fff';
   const _toggleActiveColor = _isDarkMode ? '#f0ede9' : '#2a1f1f';
   const af = f => `background:${ideasFilter===f?_toggleActiveBg:'transparent'};color:${ideasFilter===f?_toggleActiveColor:'#9a8a7a'};box-shadow:${ideasFilter===f?'0 1px 3px rgba(0,0,0,0.10)':'none'}`;
-  const clearBtn = q ? `<button onclick="clearIdeasSearch()" style="background:none;border:none;cursor:pointer;padding:0;display:flex;flex-shrink:0;line-height:0"><svg viewBox="0 0 24 24" width="13" height="13" stroke="#9a8a7a" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>` : '';
+  const clearBtn = q ? `<button onclick="clearIdeasSearch()" style="background:none;border:none;cursor:pointer;padding:0;display:flex;flex-shrink:0;line-height:0;padding-top:9px"><svg viewBox="0 0 24 24" width="13" height="13" stroke="#9a8a7a" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>` : '';
   const controlBar = `<div id="ideas-controlbar" style="display:flex;align-items:center;justify-content:space-between;padding:12px 20px 14px">
     <div style="display:flex;background:var(--toggle-bg);border-radius:20px;padding:2px;gap:1px;flex-shrink:0">
       <button data-filter="all" onclick="setIdeasFilter('all')" style="padding:4px 12px;border:none;border-radius:18px;font-family:sans-serif;font-size:12px;font-weight:600;cursor:pointer;${af('all')}">All</button>
@@ -4029,6 +3996,7 @@ function openSheet(type) {
     selectedCategory = catMemory[ideaType];
     document.getElementById('idea-name').value = '';
   _populateImgContainer('idea-image-fields', []);
+  _wireImgIconBtn('idea-img-icon-btn', () => (document.getElementById('idea-name')||{value:''}).value.trim());
     document.getElementById('idea-address').value = '';
     if (document.getElementById('idea-neighborhood')) document.getElementById('idea-neighborhood').value = '';
     document.getElementById('idea-note-short').value = '';
@@ -5760,7 +5728,7 @@ function populateEditModal(item) {
   renderSubwayBadges();
   renderWalkDriveBadges();
   const imagesWrap = document.getElementById('pf-images-wrap');
-  if (imagesWrap) imagesWrap.style.display = 'block';
+  if (imagesWrap) imagesWrap.style.display = 'flex';
   populatePfImageFields(item);
 
   // Remove / Unarchive btn
