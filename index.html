@@ -9,15 +9,71 @@
 <meta name="theme-color" content="#faf8f5">
 <title>duet</title>
 <style>
+  :root {
+    --bg: #faf8f5;
+    --bg-card: #fff;
+    --bg-card2: #faf8f5;
+    --bg-input: #fff;
+    --border: #ede9e2;
+    --border-light: #f5f0eb;
+    --text-primary: #2a1f1f;
+    --text-secondary: #9a8a7a;
+    --text-muted: #b0a090;
+    --text-placeholder: #ccc;
+    --nav-bg: #faf8f5;
+    --nav-border: #ede9e2;
+    --hamburger: #b0a090;
+    --week-strip-bg: #fff;
+    --popup-title: #2a1f1f;
+    --icon-close: #888;
+    --img-sep: #ede9e2;
+    --todo-divider: #ede9e2;
+    --todo-check-border: #9a8a7a;
+    --picker-toggle-bg: #f0ede8;
+    --picker-tab-active-bg: #fff;
+    --picker-tab-active-color: #2a1f1f;
+    --toggle-bg: #f0ede8;
+    --toggle-active-bg: #fff;
+    --toggle-active-color: #2a1f1f;
+    --popup-week-bg: #fff;
+  }
+  body.dark-mode {
+    --bg: #211d1c;
+    --bg-card: #2a2522;
+    --bg-card2: #211d1c;
+    --bg-input: #302b29;
+    --border: #3a3330;
+    --border-light: #302b29;
+    --text-primary: #f0ede8;
+    --text-secondary: #9a8a7a;
+    --text-muted: #9a8a7a;
+    --text-placeholder: #55504e;
+    --nav-bg: #211d1c;
+    --nav-border: #3a3330;
+    --hamburger: #7a6e68;
+    --week-strip-bg: #2a2522;
+    --popup-title: #ddd6cd;
+    --icon-close: #9a8a7a;
+    --img-sep: var(--bg-card);
+    --todo-divider: #282423;
+    --todo-check-border: #9a8a7a;
+    --picker-toggle-bg: #302b29;
+    --picker-tab-active-bg: #9a8a7a;
+    --picker-tab-active-color: #f0ede9;
+    --toggle-bg: #302b29;
+    --toggle-active-bg: #9a8a7a;
+    --toggle-active-color: #f0ede9;
+    --popup-week-bg: var(--bg-input);
+  }
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-  html, body { height: 100%; background: #faf8f5; font-family: Georgia, "Times New Roman", serif; }
+  html, body { height: 100%; background: var(--bg); font-family: Georgia, "Times New Roman", serif; }
   body { display: flex; justify-content: center; }
   #app {
     width: 100%;
     max-width: 390px;
     min-height: 100vh;
     min-height: 100dvh;
-    background: #faf8f5;
+    background: var(--bg);
     position: relative;
     overflow-x: hidden;
   }
@@ -29,35 +85,37 @@
   #top-nav {
     display: flex; align-items: center; justify-content: space-between;
     padding: 18px 20px 14px;
-    border-bottom: 1px solid #ede9e2;
-    background: #faf8f5;
+    border-bottom: 1px solid var(--nav-border);
+    background: var(--nav-bg);
     position: sticky; top: 0; z-index: 50;
   }
   #nav-logo { display: flex; align-items: center; gap: 8px; background: none; border: none; outline: none; cursor: pointer; }
-  #nav-logo span { font-size: 17px; font-weight: 600; letter-spacing: 0.02em; color: #2a1f1f; }
+  #nav-logo span { font-size: 17px; font-weight: 600; letter-spacing: 0.02em; color: var(--text-primary); }
+  body.dark-mode #logo-circle-dark { stroke: #784755; }
+  body.dark-mode #nav-logo span { color: #ddd6cd; }
   #nav-back { background: none; border: none; padding: 4px; display: flex; }
   #nav-center { display: flex; align-items: center; gap: 0; }
   .nav-switcher-btn {
     background: none; border: none; display: flex; align-items: center; gap: 5px;
-    padding: 4px 10px; font-size: 13px; font-weight: 500; color: #9a8a7a;
+    padding: 4px 10px; font-size: 13px; font-weight: 500; color: var(--text-secondary);
     letter-spacing: 0.05em; text-transform: uppercase;
   }
   #nav-center-divider { color: #ddd; font-size: 14px; line-height: 1; }
-  #nav-center-title { font-size: 13px; color: #9a8a7a; letter-spacing: 0.05em; text-transform: uppercase; }
+  #nav-center-title { font-size: 13px; color: var(--text-secondary); letter-spacing: 0.05em; text-transform: uppercase; }
   #nav-hamburger { background: none; border: none; padding: 4px; display: flex; flex-direction: column; gap: 4px; }
-  #nav-hamburger span { display: block; width: 18px; height: 1.5px; background: #b0a090; border-radius: 2px; }
+  #nav-hamburger span { display: block; width: 18px; height: 1.5px; background: var(--hamburger); border-radius: 2px; }
   #nav-menu-overlay { position: fixed; inset: 0; z-index: 98; display: none; }
   #nav-menu-dropdown {
     position: absolute; top: calc(100% + 8px); right: 0;
-    background: #fff; border: 1px solid #ede9e2; border-radius: 14px;
+    background: var(--bg-card); border: 1px solid var(--border); border-radius: 14px;
     box-shadow: 0 8px 24px rgba(0,0,0,0.1); min-width: 160px;
     overflow: hidden; z-index: 99; display: none;
   }
   #nav-menu-dropdown button {
     width: 100%; display: flex; align-items: center; gap: 10px;
     padding: 14px 16px; background: none; border: none;
-    border-bottom: 1px solid #f5f0eb; font-family: sans-serif;
-    font-size: 14px; color: #9a8a7a; text-align: left;
+    border-bottom: 1px solid var(--border-light); font-family: sans-serif;
+    font-size: 14px; color: var(--text-secondary); text-align: left;
   }
   #hamburger-wrap { position: relative; }
 
@@ -65,7 +123,7 @@
   #bottom-nav {
     position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
     width: 100%; max-width: 390px;
-    background: #faf8f5; border-top: 1px solid #ede9e2;
+    background: var(--nav-bg); border-top: 1px solid var(--nav-border);
     display: flex; justify-content: space-around; align-items: center;
     height: 90px; padding-top: 4px; padding-bottom: 18px; box-sizing: border-box; z-index: 60; overflow: visible;
   }
@@ -83,10 +141,11 @@
     box-shadow: 0 4px 14px rgba(192,122,138,0.45);
     transition: background 0.15s ease;
   }
+  body.dark-mode #btn-new-circle { box-shadow: none; }
 
   /* ── Cards / shared ── */
   .card {
-    background: #fff; border-radius: 14px; border: 1px solid #ede9e2;
+    background: var(--bg-card); border-radius: 14px; border: 1px solid var(--border);
     padding: 14px 16px; display: flex; align-items: center; gap: 14px;
     cursor: pointer;
   }
@@ -95,24 +154,24 @@
     display: flex; align-items: center; justify-content: center; flex-shrink: 0;
   }
   .section-label {
-    font-size: 11px; color: #9a8a7a; letter-spacing: 0.1em;
+    font-size: 11px; color: var(--text-secondary); letter-spacing: 0.1em;
     text-transform: uppercase; font-family: sans-serif;
     padding-left: 10px;
   }
   .field-label {
-    font-size: 12px; font-weight: 600; color: #9a8a7a;
+    font-size: 12px; font-weight: 600; color: var(--text-secondary);
     letter-spacing: 0.05em; text-transform: uppercase;
     font-family: sans-serif; margin-bottom: 6px;
   }
   .field-input {
     width: 100%; padding: 11px 14px; font-size: 14px;
-    border: 1.5px solid #ede9e2; border-radius: 10px;
-    background: #fff; color: #2a1f1f; outline: none;
+    border: 1.5px solid var(--border); border-radius: 10px;
+    background: var(--bg-input); color: var(--text-primary); outline: none;
     font-family: sans-serif; margin-bottom: 16px;
     -webkit-appearance: none;
   }
   .field-input:focus { border-color: #c07a8a; }
-  textarea.field-input { height: 100px; resize: none; line-height: 1.5; }
+  textarea.field-input { height: 100px; resize: none; line-height: 1.5; color: var(--text-primary); background: var(--bg-input); }
 
   /* ── Week Strip Carousel ── */
   #week-strip {
@@ -125,8 +184,8 @@
     scrollbar-width: none;
     -ms-overflow-style: none;
     border-radius: 14px;
-    border: 1px solid #ede9e2;
-    background: #fff;
+    border: 1px solid var(--border);
+    background: var(--week-strip-bg);
     scroll-snap-type: x mandatory;
     -webkit-overflow-scrolling: touch;
   }
@@ -155,8 +214,8 @@
   /* Tooltip */
   #week-tooltip {
     position: absolute;
-    background: #fff;
-    border: 1px solid #ede9e2;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
     border-radius: 10px;
     padding: 8px 14px;
     box-shadow: 0 6px 24px rgba(0,0,0,0.32);
@@ -185,7 +244,7 @@
     transform: translateX(-50%);
     border-left: 6px solid transparent;
     border-right: 6px solid transparent;
-    border-bottom: 6px solid #fff;
+    border-bottom: 6px solid var(--bg-card);
   }
 
   /* Picker tooltip (in New/Edit Date popups) */
@@ -220,7 +279,7 @@
     transform: translateX(-50%);
     border-left: 6px solid transparent;
     border-right: 6px solid transparent;
-    border-bottom: 6px solid #fff;
+    border-bottom: 6px solid var(--bg-card);
   }
 
   /* ── Next Date Bubble ── */
@@ -237,6 +296,9 @@
     box-shadow: 0 4px 20px rgba(139,58,82,0.45);
     background: linear-gradient(to right, #8b3a52 50%, #c07a8a 50%);
   }
+  body.dark-mode #date-cards-outer { box-shadow: none; }
+  body.dark-mode #next-date-card { box-shadow: none !important; }
+
   #date-cards-scroll {
     overflow-x: scroll; overflow-y: hidden;
     scrollbar-width: none; -ms-overflow-style: none;
@@ -269,9 +331,9 @@
 
   /* ── Catalog view ── */
   #catalog-list { padding: 20px 20px 0; display: flex; flex-direction: column; gap: 10px; }
-  .catalog-item-name { font-size: 15px; font-weight: 600; color: #2a1f1f; }
-  .catalog-item-sub { font-size: 12px; color: #9a8a7a; font-family: sans-serif; margin-top: 2px; }
-  .catalog-item-note { font-size: 12px; color: #b0a090; font-style: italic; margin-top: 3px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .catalog-item-name { font-size: 15px; font-weight: 600; color: var(--text-primary); }
+  .catalog-item-sub { font-size: 12px; color: var(--text-secondary); font-family: sans-serif; margin-top: 2px; }
+  .catalog-item-note { font-size: 12px; color: var(--text-muted); font-style: italic; margin-top: 3px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   #catalog-new-btn {
     margin: 20px 20px 0; width: calc(100% - 40px); padding: 12px 0;
     background: transparent; border-radius: 12px; font-size: 13px;
@@ -282,16 +344,16 @@
 
   /* ── Calendar ── */
   #cal-wrap { padding: 20px; }
-  #cal-card { background: #fff; border-radius: 16px; border: 1px solid #ede9e2; padding: 16px; }
+  #cal-card { background: var(--bg-card); border-radius: 16px; border: 1px solid var(--border); padding: 16px; }
   #cal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
-  #cal-month-label { font-size: 15px; font-weight: 700; color: #b0a090; letter-spacing: 0.01em; }
+  #cal-month-label { font-size: 15px; font-weight: 700; color: var(--text-muted); letter-spacing: 0.01em; }
   .cal-nav-btn { background: none; border: none; padding: 4px 8px; border-radius: 8px; display: flex; align-items: center; cursor: pointer; }
   #cal-dow { display: grid; grid-template-columns: repeat(7,1fr); margin-bottom: 8px; }
-  .cal-dow-cell { text-align: center; font-size: 11px; color: #b0a090; font-family: sans-serif; font-weight: 600; padding: 4px 0; }
+  .cal-dow-cell { text-align: center; font-size: 11px; color: var(--text-muted); font-family: sans-serif; font-weight: 600; padding: 4px 0; }
   #cal-grid { display: grid; grid-template-columns: repeat(7,1fr); gap: 2px; }
   .cal-day {
     aspect-ratio: 1; border-radius: 8px; border: none;
-    background: transparent; color: #2a1f1f;
+    background: transparent; color: var(--text-primary);
     font-family: sans-serif; font-size: 14px;
     cursor: pointer; position: relative;
     display: flex; align-items: center; justify-content: center;
@@ -308,7 +370,7 @@
   #cal-upcoming { margin-top: 20px; }
   .upcoming-item {
     display: flex; align-items: center; gap: 14px; padding: 12px 14px;
-    background: #fff; border-radius: 14px; border: 1.5px solid #ede9e2;
+    background: var(--bg-card); border-radius: 14px; border: 1.5px solid var(--border);
     cursor: pointer; margin-bottom: 8px;
   }
   .upcoming-item.highlighted {
@@ -316,13 +378,13 @@
     box-shadow: 0 2px 12px rgba(192,122,138,0.3);
   }
   .upcoming-date-badge { width: 40px; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; }
-  .upcoming-month { font-size: 10px; font-family: sans-serif; font-weight: 600; color: #b0a090; letter-spacing: 0.06em; text-transform: uppercase; }
-  .upcoming-day-num { font-size: 22px; font-weight: 700; color: #2a1f1f; line-height: 1.1; }
-  .upcoming-divider { width: 1px; height: 36px; background: #ede9e2; flex-shrink: 0; }
+  .upcoming-month { font-size: 10px; font-family: sans-serif; font-weight: 600; color: var(--text-muted); letter-spacing: 0.06em; text-transform: uppercase; }
+  .upcoming-day-num { font-size: 22px; font-weight: 700; color: var(--text-primary); line-height: 1.1; }
+  .upcoming-divider { width: 1px; height: 36px; background: var(--border); flex-shrink: 0; }
   .upcoming-info { flex: 1; min-width: 0; }
   .upcoming-venue-row { display: flex; align-items: center; gap: 7px; margin-bottom: 2px; }
-  .upcoming-venue { font-size: 15px; font-weight: 700; color: #2a1f1f; letter-spacing: -0.01em; }
-  .upcoming-sub { font-size: 12px; color: #9a8a7a; font-family: sans-serif; }
+  .upcoming-venue { font-size: 15px; font-weight: 700; color: var(--text-primary); letter-spacing: -0.01em; }
+  .upcoming-sub { font-size: 12px; color: var(--text-secondary); font-family: sans-serif; }
   .highlighted .upcoming-month { color: rgba(255,255,255,0.7); }
   .highlighted .upcoming-day-num { color: #fff; }
   .highlighted .upcoming-divider { background: rgba(255,255,255,0.25); }
@@ -334,21 +396,24 @@
   #idea-sheet, #todo-sheet {
     position: fixed; bottom: 68px; left: 50%; transform: translateX(-50%);
     width: 100%; max-width: 390px;
-    background: #faf8f5; border-radius: 20px 20px 0 0;
-    border-top: 1px solid #ede9e2; border-left: 1px solid #ede9e2; border-right: 1px solid #ede9e2;
-    padding: 20px 20px 24px; max-height: 82vh; overflow-y: auto;
+    background: var(--bg); border-radius: 20px 20px 0 0;
+    border-top: 1px solid var(--border); border-left: 1px solid var(--border); border-right: 1px solid var(--border);
+    max-height: 82vh; display: none;
     z-index: 56; box-shadow: 0 -8px 32px rgba(0,0,0,0.08);
-    display: none;
   }
-  #sheet-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
-  #sheet-title { font-size: 18px; font-weight: 700; color: #2a1f1f; }
+  #idea-sheet { flex-direction: column; overflow: hidden; }
+  #todo-sheet { overflow-y: auto; padding: 20px 20px 24px; }
+  #idea-sheet-body { flex: 1; overflow-y: auto; padding: 16px 20px 60px; min-height: 0; }
+  #sheet-header { display: flex; align-items: center; justify-content: space-between; padding: 20px 20px 14px; flex-shrink: 0; border-bottom: 1px solid var(--border); }
+  #sheet-title { font-size: 18px; font-weight: 700; color: var(--text-primary); }
+  body.dark-mode #sheet-title { color: var(--popup-title); }
   #sheet-close { background: none; border: none; display: flex; }
 
 
   /* ── Rose-tinted date/time pickers ── */
   .rose-picker { color-scheme: light; accent-color: #c07a8a; }
   .rose-picker:focus { border-color: #c07a8a; outline: none; }
-  .showtype-check { appearance:none; -webkit-appearance:none; width:16px; height:16px; border:1.5px solid #c8bfb6; border-radius:4px; background:#fff; cursor:pointer; flex-shrink:0; position:relative; transition: background 0.15s, border-color 0.15s; }
+  .showtype-check { appearance:none; -webkit-appearance:none; width:16px; height:16px; border:1.5px solid #c8bfb6; border-radius:4px; background:var(--bg-input); cursor:pointer; flex-shrink:0; position:relative; transition: background 0.15s, border-color 0.15s; }
   .showtype-check:checked { background:#c07a8a; border-color:#c07a8a; }
   .showtype-check:checked::after { content:''; position:absolute; left:50%; top:50%; width:5px; height:9px; border:2px solid #fff; border-top:none; border-left:none; transform:translate(-50%, -60%) rotate(45deg); display:block; }
   select.field-input { appearance: none; -webkit-appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23b0a090' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 32px; cursor: pointer; }
@@ -358,30 +423,31 @@
     padding-top: 60px; z-index: 200;
   }
   #detail-modal {
-    width: calc(100% - 24px); max-width: 390px; background: #faf8f5;
+    width: calc(100% - 24px); max-width: 390px; background: var(--bg);
     border-radius: 20px; overflow: hidden;
     max-height: 80vh; overflow-y: auto;
   }
   #detail-banner { overflow: hidden; border-radius: 20px 20px 0 0; flex-shrink: 0; }
   #detail-padded { padding: 20px 20px 32px; }
   #detail-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 16px; }
-  #detail-title { font-size: 17px; font-weight: 700; color: #2a1f1f; outline: none; text-decoration: none; }
+  #detail-title { font-size: 17px; font-weight: 700; color: var(--text-primary); outline: none; text-decoration: none; }
+  body.dark-mode #detail-title { color: var(--popup-title); }
 
   /* ── Home quick rows ── */
   .quick-row {
     display: flex; align-items: center; gap: 14px; padding: 12px 14px;
-    background: #fff; border-radius: 14px; border: 1px solid #ede9e2;
+    background: var(--bg-card); border-radius: 14px; border: 1px solid var(--border);
   }
-  .quick-row-name { font-size: 15px; font-weight: 700; color: #2a1f1f; letter-spacing: -0.01em; }
-  .quick-row-sub { font-size: 12px; color: #9a8a7a; font-family: sans-serif; margin-top: 2px; }
+  .quick-row-name { font-size: 15px; font-weight: 700; color: var(--text-primary); letter-spacing: -0.01em; }
+  .quick-row-sub { font-size: 12px; color: var(--text-secondary); font-family: sans-serif; margin-top: 2px; }
   .type-badge {
     font-size: 11px; padding: 3px 8px; border-radius: 10px;
     font-family: sans-serif; font-weight: 500; flex-shrink: 0;
   }
 
   /* ── Placeholder color ── */
-  ::placeholder { color: #ccc; opacity: 1; }
-  :-ms-input-placeholder { color: #ccc; }
+  ::placeholder { color: var(--text-placeholder); opacity: 1; }
+  :-ms-input-placeholder { color: var(--text-placeholder); }
 
   /* ── Idea sheet field rows — match Favorite Places modal exactly ── */
   .idea-row { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
@@ -389,11 +455,15 @@
   .idea-row .field-input, .idea-row-top .field-input { flex: 1; margin-bottom: 0; }
   .idea-row-icon { width: 18px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
   .idea-row-icon button { background: none; border: none; padding: 0; cursor: pointer; display: flex; }
-  textarea.idea-sheet-area { flex: 1; padding: 10px 14px; font-size: 14px; border: 1.5px solid #ede9e2; border-radius: 10px; background: #fff; color: #2a1f1f; outline: none; font-family: sans-serif; resize: none; line-height: 1.5; margin-bottom: 0; }
+  textarea.idea-sheet-area { flex: 1; padding: 10px 14px; font-size: 14px; border: 1.5px solid var(--border); border-radius: 10px; background: var(--bg-input); color: var(--text-primary); outline: none; font-family: sans-serif; resize: none; line-height: 1.5; margin-bottom: 0; }
   textarea.idea-sheet-area:focus { border-color: #c07a8a; }
 
   /* scrollbar hide */
   ::-webkit-scrollbar { display: none; }
+
+  body.dark-mode .icon-close { stroke: var(--icon-close) !important; }
+  body.dark-mode .icon-close-fill { fill: var(--icon-close) !important; }
+  body.dark-mode .btn-outline { border-color: #9a8a7a !important; }
 </style>
 </head>
 <body>
@@ -403,8 +473,8 @@
   <div id="top-nav">
     <button id="nav-logo" onclick="navigate('home')">
       <svg viewBox="0 0 28 18" width="28" height="18" fill="none">
-        <circle cx="11" cy="9" r="7.5" stroke="#c07a8a" stroke-width="2.8"/>
-        <circle cx="18" cy="9" r="7.5" stroke="#8b3a52" stroke-width="2.8"/>
+        <circle id="logo-circle-light" cx="11" cy="9" r="7.5" stroke="#c07a8a" stroke-width="2.8"/>
+        <circle id="logo-circle-dark" cx="18" cy="9" r="7.5" stroke="#8b3a52" stroke-width="2.8"/>
       </svg>
       <span>duet</span>
     </button>
@@ -495,18 +565,21 @@
     <div id="sheet-header">
       <!-- Three-column: title left | toggle center | close right -->
       <div id="sheet-title" style="white-space:nowrap;flex:1"></div>
-      <div id="sheet-type-toggle" style="display:none;background:#f0ede8;border-radius:6px;padding:2px;gap:1px;flex-shrink:0">
-        <button onclick="switchSheetType('out')" id="stoggle-out" style="padding:3px 10px;border:none;border-radius:5px;font-family:sans-serif;font-size:12px;font-weight:600;cursor:pointer;background:#fff;color:#2a1f1f;box-shadow:0 1px 3px rgba(0,0,0,0.1)">Out</button>
+      <div id="sheet-type-toggle" style="display:none;background:var(--toggle-bg);border-radius:6px;padding:2px;gap:1px;flex-shrink:0">
+        <button onclick="switchSheetType('out')" id="stoggle-out" style="padding:3px 10px;border:none;border-radius:5px;font-family:sans-serif;font-size:12px;font-weight:600;cursor:pointer;background:var(--toggle-active-bg);color:var(--toggle-active-color);box-shadow:0 1px 3px rgba(0,0,0,0.1)">Out</button>
         <button onclick="switchSheetType('in')"  id="stoggle-in"  style="padding:3px 10px;border:none;border-radius:5px;font-family:sans-serif;font-size:12px;font-weight:600;cursor:pointer;background:transparent;color:#9a8a7a">In</button>
       </div>
       <div style="flex:1;display:flex;justify-content:flex-end">
         <button id="sheet-close" onclick="closeSheet()">
-          <svg viewBox="0 0 24 24" width="20" height="20" stroke="#888" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+          <svg viewBox="0 0 24 24" width="20" height="20" stroke="#888" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="icon-close">
             <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
           </svg>
         </button>
       </div>
     </div>
+
+    <!-- Scrollable body -->
+    <div id="idea-sheet-body">
 
     <!-- Idea fields (Out / In) -->
     <div id="idea-fields">
@@ -616,11 +689,15 @@
               <svg viewBox="0 0 24 24" width="18" height="18" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
             </button>
             <select class="field-input" id="idea-reservation" onchange="onIdeaReservationChange()" style="flex:1;margin-bottom:0">
+              <option value="website">Website</option>
               <option value="resy">Resy</option>
               <option value="opentable">OpenTable</option>
               <option value="eventbrite">Eventbrite</option>
               <option value="none">No reservation needed</option>
             </select>
+          </div>
+          <div id="idea-website-wrap" style="display:none;margin-left:28px">
+            <input class="field-input" id="idea-website-url" type="text" placeholder="Website URL" style="margin-bottom:0">
           </div>
           <div id="idea-eventbrite-wrap" style="display:none;margin-left:28px">
             <input class="field-input" id="idea-eventbrite-url" type="text" placeholder="Eventbrite URL" style="margin-bottom:0">
@@ -656,7 +733,7 @@
     <div id="date-fields" style="display:none">
       <div class="field-label">Activity</div>
       <button id="date-activity-btn" onclick="openIdeasPicker()"
-        style="width:100%;padding:11px 14px;background:#fff;border:1.5px solid #ede9e2;border-radius:10px;font-family:sans-serif;font-size:14px;color:#b0a090;text-align:left;cursor:pointer;display:flex;align-items:center;gap:10px;margin-bottom:16px">
+        style="width:100%;padding:11px 14px;background:var(--bg-input);border:1.5px solid var(--border);border-radius:10px;font-family:sans-serif;font-size:14px;color:#b0a090;text-align:left;cursor:pointer;display:flex;align-items:center;gap:10px;margin-bottom:16px">
         <span id="date-activity-icon"></span>
         <span id="date-activity-label">Date ideas…</span>
       </button>
@@ -666,7 +743,7 @@
       </div>
       <div class="field-label">Date</div>
       <div id="date-picker-wrap" style="position:relative;margin-bottom:8px">
-        <div id="date-picker-scroll" style="overflow-x:scroll;overflow-y:visible;scrollbar-width:none;-ms-overflow-style:none;border-radius:14px;border:1px solid #ede9e2;background:#fff;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch">
+        <div id="date-picker-scroll" style="overflow-x:scroll;overflow-y:visible;scrollbar-width:none;-ms-overflow-style:none;border-radius:14px;border:1px solid var(--border);background:var(--popup-week-bg);scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch">
           <div id="date-picker-inner" style="display:flex;width:max-content"></div>
         </div>
         <div id="date-picker-tooltip" class="picker-tooltip"></div>
@@ -719,21 +796,22 @@
       <div class="field-label">Note</div>
       <input class="field-input" id="date-note" type="text" placeholder="">
     </div>
+    </div><!-- /idea-sheet-body -->
   </div>
 
   <!-- IDEAS PICKER MODAL -->
   <div id="ideas-picker-overlay" onclick="closeIdeasPicker()" style="position:fixed;inset:0;background:rgba(30,20,20,0.5);z-index:500;display:none;align-items:center;justify-content:center;padding:20px">
-    <div id="ideas-picker-sheet" onclick="event.stopPropagation()" style="width:100%;max-width:370px;background:#faf8f5;border-radius:20px;padding:20px 20px 24px;max-height:76vh;display:flex;flex-direction:column;box-shadow:0 12px 48px rgba(0,0,0,0.18)">
+    <div id="ideas-picker-sheet" onclick="event.stopPropagation()" style="width:100%;max-width:370px;background:var(--bg);border-radius:20px;padding:20px 20px 24px;max-height:76vh;display:flex;flex-direction:column;box-shadow:0 12px 48px rgba(0,0,0,0.18)">
       <!-- Header -->
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-shrink:0">
-        <div style="font-size:17px;font-weight:700;color:#2a1f1f">Choose Activity</div>
+        <div style="font-size:17px;font-weight:700;color:var(--popup-title)">Choose Activity</div>
         <button onclick="closeIdeasPicker()" style="background:none;border:none;display:flex;cursor:pointer">
-          <svg viewBox="0 0 24 24" width="20" height="20" stroke="#888" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          <svg viewBox="0 0 24 24" width="20" height="20" stroke="#888" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="icon-close"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
         </button>
       </div>
       <!-- Filter toggle -->
-      <div id="picker-toggle" style="display:flex;background:#f0ede8;border-radius:10px;padding:3px;gap:2px;margin-bottom:14px;flex-shrink:0">
-        <button class="picker-tab active" id="ptab-all" onclick="setPickerFilter('all')" style="flex:1;padding:7px 0;border:none;border-radius:8px;font-family:sans-serif;font-size:13px;font-weight:600;cursor:pointer;background:#fff;color:#2a1f1f;box-shadow:0 1px 4px rgba(0,0,0,0.08)">All</button>
+      <div id="picker-toggle" style="display:flex;background:var(--picker-toggle-bg);border-radius:10px;padding:3px;gap:2px;margin-bottom:14px;flex-shrink:0">
+        <button class="picker-tab active" id="ptab-all" onclick="setPickerFilter('all')" style="flex:1;padding:7px 0;border:none;border-radius:8px;font-family:sans-serif;font-size:13px;font-weight:600;cursor:pointer;background:var(--picker-tab-active-bg);color:var(--picker-tab-active-color);box-shadow:0 1px 4px rgba(0,0,0,0.08)">All</button>
         <button class="picker-tab" id="ptab-out" onclick="setPickerFilter('out')" style="flex:1;padding:7px 0;border:none;border-radius:8px;font-family:sans-serif;font-size:13px;font-weight:600;cursor:pointer;background:transparent;color:#9a8a7a">Out</button>
         <button class="picker-tab" id="ptab-in"  onclick="setPickerFilter('in')"  style="flex:1;padding:7px 0;border:none;border-radius:8px;font-family:sans-serif;font-size:13px;font-weight:600;cursor:pointer;background:transparent;color:#9a8a7a">In</button>
       </div>
@@ -746,13 +824,13 @@
   <div id="detail-overlay" onclick="closeDetail()">
     <div id="detail-modal" onclick="event.stopPropagation()">
       <div id="detail-banner"></div>
-      <div id="detail-padded">
+      <div id="detail-padded" style="background:var(--bg)">
       <div id="detail-header">
         <!-- Title row: title + heart right of title -->
         <div style="display:flex;align-items:center;gap:8px;flex:1;min-width:0">
           <div style="min-width:0;flex:1">
             <div style="display:flex;align-items:center;gap:6px">
-              <a id="detail-title" style="font-size:17px;font-weight:700;color:#2a1f1f;text-decoration:none;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;outline:none" target="_blank" rel="noopener"></a>
+              <a id="detail-title" style="font-size:17px;font-weight:700;text-decoration:none;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;outline:none" target="_blank" rel="noopener"></a>
               <button id="detail-heart-btn" onclick="toggleSavedCurrent()" style="background:none;border:none;display:flex;padding:1px;cursor:pointer;flex-shrink:0;line-height:0"></button>
             </div>
             <div id="detail-subtitle" style="font-size:13px;color:#b0a090;font-style:italic;margin-top:6px"></div>
@@ -761,10 +839,10 @@
         <!-- Right side: 3-dot (opens edit) + close — no gap between them -->
         <div id="detail-header-btns" style="display:flex;align-items:center;flex-shrink:0;margin-left:8px;padding-top:2px">
           <button onclick="editIdea(detailItemId)" style="background:none;border:none;display:flex;padding:6px 2px;cursor:pointer;align-items:center">
-            <svg viewBox="0 0 24 24" width="18" height="18" fill="#888"><circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/></svg>
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="#888" class="icon-close-fill"><circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/></svg>
           </button>
           <button onclick="closeDetail()" style="background:none;border:none;display:flex;padding:4px 2px;cursor:pointer">
-            <svg viewBox="0 0 24 24" width="20" height="20" stroke="#888" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+            <svg viewBox="0 0 24 24" width="20" height="20" stroke="#888" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="icon-close">
               <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
             </svg>
           </button>
@@ -777,31 +855,31 @@
 
   <!-- DATE INFO OVERLAY — same structure as detail modal -->
   <div id="date-info-overlay" onclick="closeDateInfo()" style="position:fixed;inset:0;background:rgba(30,20,20,0.5);z-index:400;display:none;align-items:flex-start;justify-content:center;padding-top:60px">
-    <div id="date-info-modal" onclick="event.stopPropagation()" style="width:calc(100% - 24px);max-width:390px;background:#faf8f5;border-radius:20px;overflow:hidden;max-height:80vh;overflow-y:auto;box-shadow:0 12px 48px rgba(0,0,0,0.18)">
+    <div id="date-info-modal" onclick="event.stopPropagation()" style="width:calc(100% - 24px);max-width:390px;background:var(--bg);border-radius:20px;overflow:hidden;max-height:80vh;overflow-y:auto;box-shadow:0 12px 48px rgba(0,0,0,0.18)">
 
       <!-- Banner slot (image if available) -->
       <div id="di-banner" style="display:none"></div>
 
       <!-- Padded content -->
-      <div id="di-padded" style="padding:20px 20px 32px">
+      <div id="di-padded" style="padding:20px 20px 32px;background:var(--bg)">
 
         <!-- Header: title + heart, 3-dot edit, close -->
-        <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
           <div style="display:flex;align-items:center;gap:8px;flex:1;min-width:0">
             <div style="min-width:0;flex:1">
               <div style="display:flex;align-items:center;gap:6px">
-                <div id="di-title" style="font-size:17px;font-weight:700;color:#2a1f1f;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"></div>
-                <div id="di-heart" style="flex-shrink:0;line-height:0"></div>
+                <div id="di-title" style="font-size:17px;font-weight:700;color:var(--popup-title);white-space:nowrap;overflow:hidden;text-overflow:ellipsis"></div>
+                <div id="di-heart" style="flex-shrink:0;line-height:0;display:flex;padding:1px"></div>
               </div>
               <div id="di-subtitle" style="font-size:13px;color:#b0a090;font-style:italic;margin-top:6px;display:none"></div>
             </div>
           </div>
           <div id="di-header-btns" style="display:flex;align-items:center;flex-shrink:0;margin-left:8px;padding-top:2px">
             <button id="di-edit-btn" onclick="editDateFromInfo()" style="background:none;border:none;display:flex;padding:6px 2px;cursor:pointer;align-items:center">
-              <svg viewBox="0 0 24 24" width="18" height="18" fill="#888"><circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/></svg>
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="#888" class="icon-close-fill"><circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/></svg>
             </button>
             <button onclick="closeDateInfo()" style="background:none;border:none;cursor:pointer;display:flex;padding:4px 2px;align-items:center">
-              <svg viewBox="0 0 24 24" width="20" height="20" stroke="#888" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              <svg viewBox="0 0 24 24" width="20" height="20" stroke="#888" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="icon-close"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
             </button>
           </div>
         </div>
@@ -836,29 +914,29 @@
         </div>
 
         <!-- Action buttons (Reserve + Reschedule) -->
-        <div id="di-btns-wrap" style="display:none;margin-top:40px;justify-content:center;gap:10px"></div>
+        <div id="di-btns-wrap" style="display:none;margin-top:40px;justify-content:center;gap:10px;min-height:34px;align-items:center"></div>
 
       </div><!-- /di-padded -->
     </div>
   </div>
   <!-- EDIT DATE MODAL -->
   <div id="edit-date-overlay" onclick="closeEditDate()" style="position:fixed;inset:0;background:rgba(30,20,20,0.5);z-index:400;display:none;align-items:center;justify-content:center;padding:16px">
-    <div id="edit-date-modal" onclick="event.stopPropagation()" style="width:100%;max-width:390px;background:#faf8f5;border-radius:20px;display:flex;flex-direction:column;height:min(88vh,620px);box-shadow:0 12px 48px rgba(0,0,0,0.18)">
+    <div id="edit-date-modal" onclick="event.stopPropagation()" style="width:100%;max-width:390px;background:var(--bg);border-radius:20px;display:flex;flex-direction:column;height:min(88vh,620px);box-shadow:0 12px 48px rgba(0,0,0,0.18)">
 
       <!-- Header (sticky) -->
-      <div style="padding:20px 20px 14px;flex-shrink:0;border-bottom:1px solid #ede9e2">
+      <div style="padding:20px 20px 14px;flex-shrink:0;border-bottom:1px solid var(--border)">
         <div style="display:flex;align-items:center;justify-content:space-between">
           <div style="display:flex;align-items:center;gap:10px">
             <button id="ed-prev-btn" onclick="editDateNav(-1)" style="background:none;border:none;cursor:pointer;padding:4px;display:flex;opacity:0.3">
               <svg viewBox="0 0 24 24" width="18" height="18" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
             </button>
-            <div style="font-size:18px;font-weight:700;color:#2a1f1f">Edit Date</div>
+            <div style="font-size:18px;font-weight:700;color:var(--popup-title)">Edit Date</div>
             <button id="ed-next-btn" onclick="editDateNav(1)" style="background:none;border:none;cursor:pointer;padding:4px;display:flex;opacity:0.3">
               <svg viewBox="0 0 24 24" width="18" height="18" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
             </button>
           </div>
           <button onclick="closeEditDate()" style="background:none;border:none;cursor:pointer;display:flex;padding:4px">
-            <svg viewBox="0 0 24 24" width="20" height="20" stroke="#888" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            <svg viewBox="0 0 24 24" width="20" height="20" stroke="#888" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="icon-close"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
           </button>
         </div>
       </div>
@@ -869,7 +947,7 @@
         <!-- Activity -->
         <div class="field-label">Activity</div>
         <button id="ed-activity-btn" onclick="openIdeasPickerForEdit()"
-          style="width:100%;padding:11px 14px;background:#fff;border:1.5px solid #ede9e2;border-radius:10px;font-family:sans-serif;font-size:14px;color:#b0a090;text-align:left;cursor:pointer;display:flex;align-items:center;gap:10px;margin-bottom:16px">
+          style="width:100%;padding:11px 14px;background:var(--bg-input);border:1.5px solid var(--border);border-radius:10px;font-family:sans-serif;font-size:14px;color:#b0a090;text-align:left;cursor:pointer;display:flex;align-items:center;gap:10px;margin-bottom:16px">
           <span id="ed-activity-icon"></span>
           <span id="ed-activity-label" style="flex:1">Date ideas…</span>
           <span id="ed-activity-edit-btn" onclick="edEditActivityIdea(event)" style="display:none;width:20px;height:20px;background:#c07a8a;border-radius:50%;flex-shrink:0;align-items:center;justify-content:center;cursor:pointer">
@@ -883,7 +961,7 @@
         <!-- Date -->
         <div class="field-label">Date</div>
         <div id="ed-picker-wrap" style="position:relative;margin-bottom:8px">
-          <div id="ed-picker-scroll" style="overflow-x:scroll;overflow-y:visible;scrollbar-width:none;-ms-overflow-style:none;border-radius:14px;border:1px solid #ede9e2;background:#fff;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch">
+          <div id="ed-picker-scroll" style="overflow-x:scroll;overflow-y:visible;scrollbar-width:none;-ms-overflow-style:none;border-radius:14px;border:1px solid var(--border);background:var(--popup-week-bg);scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch">
             <div id="ed-picker-inner" style="display:flex;width:max-content"></div>
           </div>
           <div id="ed-picker-tooltip" class="picker-tooltip"></div>
@@ -952,11 +1030,11 @@
       </div>
 
       <!-- Footer (sticky) -->
-      <div style="flex-shrink:0;padding:12px 20px 20px;border-top:1px solid #ede9e2">
+      <div style="flex-shrink:0;padding:12px 20px 20px;border-top:1px solid var(--border)">
         <div style="display:flex;gap:8px">
-          <button onclick="deleteEditDate()" style="padding:10px 16px;background:none;border:1.5px solid #f0d0d5;border-radius:10px;font-family:sans-serif;font-size:13px;font-weight:600;color:#c07a8a;cursor:pointer">Delete</button>
+          <button onclick="deleteEditDate()" style="padding:10px 16px;background:none;border:1.5px solid #c07a8a;border-radius:10px;font-family:sans-serif;font-size:13px;font-weight:600;color:#c07a8a;cursor:pointer">Delete</button>
           <div style="flex:1"></div>
-          <button onclick="closeEditDate()" style="padding:10px 16px;background:none;border:1.5px solid #ede9e2;border-radius:10px;font-family:sans-serif;font-size:13px;font-weight:600;color:#9a8a7a;cursor:pointer">Cancel</button>
+          <button onclick="closeEditDate()" style="padding:10px 16px;background:none;border:1.5px solid #ede9e2;border-radius:10px;font-family:sans-serif;font-size:13px;font-weight:600;color:#9a8a7a;cursor:pointer" class="btn-outline">Cancel</button>
           <button onclick="saveEditDate()" style="padding:10px 20px;background:#c07a8a;border:none;border-radius:10px;font-family:sans-serif;font-size:13px;font-weight:600;color:#fff;cursor:pointer">Save</button>
         </div>
       </div>
@@ -964,11 +1042,11 @@
   </div>
 
   <div id="settings-overlay" onclick="closeSettings()" style="position:fixed;inset:0;background:rgba(30,20,20,0.5);z-index:400;display:none;align-items:center;justify-content:center;padding:20px">
-    <div onclick="event.stopPropagation()" style="width:100%;max-width:370px;background:#faf8f5;border-radius:20px;padding:24px 20px 28px;box-shadow:0 12px 48px rgba(0,0,0,0.18)">
+    <div onclick="event.stopPropagation()" style="width:100%;max-width:370px;background:var(--bg);border-radius:20px;padding:24px 20px 28px;box-shadow:0 12px 48px rgba(0,0,0,0.18)">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:22px">
-        <div style="font-size:17px;font-weight:700;color:#2a1f1f">Settings</div>
+        <div style="font-size:17px;font-weight:700;color:var(--popup-title)">Settings</div>
         <button onclick="closeSettings()" style="background:none;border:none;cursor:pointer;display:flex">
-          <svg viewBox="0 0 24 24" width="20" height="20" stroke="#888" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          <svg viewBox="0 0 24 24" width="20" height="20" stroke="#888" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="icon-close"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
         </button>
       </div>
       <!-- Home Address -->
@@ -997,19 +1075,81 @@
       <div id="settings-pronouns-custom-wrap" style="display:none;margin-top:10px">
         <input class="field-input" id="settings-pronouns-custom" type="text" placeholder="Enter pronouns…" style="margin-bottom:0">
       </div>
-      <div style="margin-top:18px;display:flex;justify-content:space-between;align-items:center">
-        <button onclick="openEditCategories()" style="padding:10px 16px;background:none;border:1.5px solid #ede9e2;border-radius:10px;font-family:sans-serif;font-size:13px;font-weight:600;color:#9a8a7a;cursor:pointer">Edit Categories</button>
-        <button onclick="saveSettingsData()" style="padding:10px 24px;background:#c07a8a;border:none;border-radius:10px;font-family:sans-serif;font-size:14px;font-weight:600;color:#fff;cursor:pointer">Save</button>
+      <!-- Appearance -->
+      <div class="field-label" style="display:flex;align-items:center;gap:6px;margin-top:32px">
+        <svg viewBox="0 0 24 24" width="14" height="14" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+        Appearance
+      </div>
+      <div style="display:flex;gap:16px;margin-top:6px;margin-bottom:46px">
+        <label onclick="setAppearance('light')" style="display:flex;align-items:center;gap:8px;cursor:pointer;font-family:sans-serif;font-size:14px;color:var(--text-primary)">
+          <span id="radio-light" onclick="setAppearance('light')" style="width:18px;height:18px;border-radius:50%;border:2px solid #c07a8a;background:#c07a8a;display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer">
+            <span style="width:6px;height:6px;border-radius:50%;background:#fff;display:block"></span>
+          </span>
+          Light
+        </label>
+        <label onclick="setAppearance('dark')" style="display:flex;align-items:center;gap:8px;cursor:pointer;font-family:sans-serif;font-size:14px;color:var(--text-primary)">
+          <span id="radio-dark" onclick="setAppearance('dark')" style="width:18px;height:18px;border-radius:50%;border:2px solid #c8bfb6;background:transparent;display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer">
+            <span style="width:6px;height:6px;border-radius:50%;background:transparent;display:block"></span>
+          </span>
+          Dark
+        </label>
+      </div>
+      <div style="margin-top:0;display:flex;justify-content:space-between;align-items:center">
+        <button onclick="openMoreMenu()" style="padding:10px 16px;background:none;border:1.5px solid #ede9e2;border-radius:10px;font-family:sans-serif;font-size:13px;font-weight:600;color:#9a8a7a;cursor:pointer" class="btn-outline">More…</button>
+        <div style="display:flex;gap:8px">
+          <button onclick="closeSettings()" style="padding:10px 16px;background:none;border:1.5px solid #ede9e2;border-radius:10px;font-family:sans-serif;font-size:13px;font-weight:600;color:#9a8a7a;cursor:pointer" class="btn-outline">Cancel</button>
+          <button onclick="saveSettingsData()" style="padding:10px 24px;background:#c07a8a;border:none;border-radius:10px;font-family:sans-serif;font-size:14px;font-weight:600;color:#fff;cursor:pointer">Save</button>
+        </div>
       </div>
     </div>
   </div>
 
+
+  <!-- MORE MENU POPUP -->
+  <div id="more-menu-overlay" onclick="closeMoreMenu()" style="position:fixed;inset:0;background:rgba(30,20,20,0.45);z-index:450;display:none;align-items:center;justify-content:center;padding:20px">
+    <div onclick="event.stopPropagation()" style="background:var(--bg);border-radius:18px;padding:16px;box-shadow:0 12px 48px rgba(0,0,0,0.18);display:flex;flex-direction:column;gap:8px;min-width:220px">
+      <button onclick="importData()" style="display:flex;align-items:center;gap:10px;padding:11px 14px;background:none;border:1.5px solid #ede9e2;border-radius:10px;font-family:sans-serif;font-size:13px;font-weight:600;color:#9a8a7a;cursor:pointer;text-align:left;width:100%" class="btn-outline">
+        <svg viewBox="0 0 24 24" width="15" height="15" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 5 17 10"/><line x1="12" y1="5" x2="12" y2="15"/></svg>
+        Import Data
+      </button>
+      <button onclick="exportAllData();closeMoreMenu()" style="display:flex;align-items:center;gap:10px;padding:11px 14px;background:none;border:1.5px solid #ede9e2;border-radius:10px;font-family:sans-serif;font-size:13px;font-weight:600;color:#9a8a7a;cursor:pointer;text-align:left;width:100%" class="btn-outline">
+        <svg viewBox="0 0 24 24" width="15" height="15" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Save Data
+      </button>
+      <button onclick="openEraseConfirm()" style="display:flex;align-items:center;gap:10px;padding:11px 14px;background:none;border:1.5px solid #ede9e2;border-radius:10px;font-family:sans-serif;font-size:13px;font-weight:600;color:#9a8a7a;cursor:pointer;text-align:left;width:100%" class="btn-outline">
+        <svg viewBox="0 0 24 24" width="15" height="15" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+        Erase Data
+      </button>
+      <button onclick="closeMoreMenu();openEditCategories()" style="display:flex;align-items:center;gap:10px;padding:11px 14px;background:none;border:1.5px solid #ede9e2;border-radius:10px;font-family:sans-serif;font-size:13px;font-weight:600;color:#9a8a7a;cursor:pointer;text-align:left;width:100%" class="btn-outline">
+        <svg viewBox="0 0 24 24" width="15" height="15" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>
+        Edit Categories
+      </button>
+      <div style="margin-top:12px">
+        <button onclick="closeMoreMenu()" style="display:flex;align-items:center;justify-content:center;width:100%;padding:11px 14px;background:#c07a8a;border:none;border-radius:10px;font-family:sans-serif;font-size:14px;font-weight:600;color:#fff;cursor:pointer">Done</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ERASE CONFIRM POPUP -->
+  <div id="erase-confirm-overlay" onclick="closeEraseConfirm()" style="position:fixed;inset:0;background:rgba(30,20,20,0.5);z-index:500;display:none;align-items:center;justify-content:center;padding:24px">
+    <div onclick="event.stopPropagation()" style="background:var(--bg);border-radius:18px;padding:24px 20px;box-shadow:0 12px 48px rgba(0,0,0,0.18);max-width:300px;width:100%">
+      <div style="font-size:16px;font-weight:700;color:var(--popup-title);text-align:center;margin-bottom:10px">Erase all data?</div>
+      <div style="font-size:13px;color:#9a8a7a;font-family:sans-serif;text-align:center;margin-bottom:20px;line-height:1.5">This will erase all date ideas, dates, and custom categories.</div>
+      <div style="display:flex;gap:10px">
+        <button onclick="closeEraseConfirm()" autofocus style="flex:1;padding:11px;background:#c07a8a;border:none;border-radius:10px;font-family:sans-serif;font-size:14px;font-weight:600;color:#fff;cursor:pointer">Cancel</button>
+        <button onclick="eraseAllData()" style="flex:1;padding:11px;background:none;border:1.5px solid #e05050;border-radius:10px;font-family:sans-serif;font-size:14px;font-weight:600;color:#e05050;cursor:pointer">Erase</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hidden file input for import -->
+  <input type="file" id="import-file-input" accept=".json" style="display:none" onchange="handleImportFile(event)">
   <!-- EDIT CATEGORIES POPUP -->
   <div id="editcats-overlay" onclick="closeEditCategories()" style="position:fixed;inset:0;background:rgba(30,20,20,0.5);z-index:500;display:none;align-items:center;justify-content:center;padding:20px">
-    <div id="editcats-modal" onclick="event.stopPropagation()" style="width:100%;max-width:390px;background:#faf8f5;border-radius:20px;display:flex;flex-direction:column;max-height:88vh;box-shadow:0 12px 48px rgba(0,0,0,0.18)">
+    <div id="editcats-modal" onclick="event.stopPropagation()" style="width:100%;max-width:390px;background:var(--bg);border-radius:20px;display:flex;flex-direction:column;max-height:88vh;box-shadow:0 12px 48px rgba(0,0,0,0.18)">
       <!-- Header -->
-      <div style="padding:20px 20px 14px;flex-shrink:0;border-bottom:1px solid #ede9e2">
-        <div style="font-size:17px;font-weight:700;color:#2a1f1f;font-family:Georgia,serif;margin-bottom:14px;text-align:center">Edit Categories</div>
+      <div style="padding:20px 20px 14px;flex-shrink:0;border-bottom:1px solid var(--border)">
+        <div style="font-size:17px;font-weight:700;color:var(--popup-title);font-family:Georgia,serif;margin-bottom:14px;text-align:center">Edit Categories</div>
         <!-- Out/In toggle -->
         <div id="editcats-toggle" style="display:flex;background:#f0ebe5;border-radius:8px;padding:3px;gap:2px">
           <button onclick="editCatsSetType('out')" id="editcats-btn-out" style="flex:1;padding:6px;border:none;border-radius:6px;font-family:sans-serif;font-size:13px;font-weight:600;cursor:pointer;background:#fff;color:#2a1f1f;box-shadow:0 1px 3px rgba(0,0,0,0.1)">Going Out</button>
@@ -1019,8 +1159,8 @@
       <!-- List -->
       <div id="editcats-list" style="flex:1;overflow-y:auto;padding:10px 16px"></div>
       <!-- Footer -->
-      <div style="padding:14px 20px;flex-shrink:0;border-top:1px solid #ede9e2;display:flex;justify-content:flex-end;gap:8px;align-items:center">
-        <button onclick="closeEditCategories()" style="padding:10px 16px;background:none;border:1.5px solid #ede9e2;border-radius:10px;font-family:sans-serif;font-size:13px;font-weight:600;color:#9a8a7a;cursor:pointer">Cancel</button>
+      <div style="padding:14px 20px;flex-shrink:0;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px;align-items:center">
+        <button onclick="closeEditCategories()" style="padding:10px 16px;background:none;border:1.5px solid #ede9e2;border-radius:10px;font-family:sans-serif;font-size:13px;font-weight:600;color:#9a8a7a;cursor:pointer" class="btn-outline">Cancel</button>
         <button onclick="saveEditCategories()" style="padding:10px 20px;background:#8b3a52;border:none;border-radius:10px;font-family:sans-serif;font-size:13px;font-weight:600;color:#fff;cursor:pointer">Save</button>
       </div>
     </div>
@@ -1028,10 +1168,10 @@
 
   <!-- ICON PICKER POPUP -->
   <div id="iconpicker-overlay" onclick="closeIconPicker(false)" style="position:fixed;inset:0;background:rgba(30,20,20,0.55);z-index:600;display:none;align-items:center;justify-content:center;padding:20px">
-    <div id="iconpicker-modal" onclick="event.stopPropagation()" style="width:100%;max-width:340px;background:#faf8f5;border-radius:20px;padding:20px;box-shadow:0 12px 48px rgba(0,0,0,0.18)">
+    <div id="iconpicker-modal" onclick="event.stopPropagation()" style="width:100%;max-width:340px;background:var(--bg);border-radius:20px;padding:20px;box-shadow:0 12px 48px rgba(0,0,0,0.18)">
       <div id="iconpicker-grid" style="display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:20px"></div>
       <div style="display:flex;justify-content:flex-end;gap:8px">
-        <button onclick="closeIconPicker(false)" style="padding:10px 16px;background:none;border:1.5px solid #ede9e2;border-radius:10px;font-family:sans-serif;font-size:13px;font-weight:600;color:#9a8a7a;cursor:pointer">Cancel</button>
+        <button onclick="closeIconPicker(false)" style="padding:10px 16px;background:none;border:1.5px solid #ede9e2;border-radius:10px;font-family:sans-serif;font-size:13px;font-weight:600;color:#9a8a7a;cursor:pointer" class="btn-outline">Cancel</button>
         <button onclick="closeIconPicker(true)" style="padding:10px 20px;background:#8b3a52;border:none;border-radius:10px;font-family:sans-serif;font-size:13px;font-weight:600;color:#fff;cursor:pointer">Save</button>
       </div>
     </div>
@@ -1039,7 +1179,7 @@
 
   <!-- DELETE CATEGORY CONFIRM -->
   <div id="delcat-overlay" onclick="closeDelCat()" style="position:fixed;inset:0;background:rgba(30,20,20,0.55);z-index:700;display:none;align-items:center;justify-content:center;padding:20px">
-    <div onclick="event.stopPropagation()" style="width:100%;max-width:320px;background:#faf8f5;border-radius:20px;padding:24px;box-shadow:0 12px 48px rgba(0,0,0,0.18);text-align:center">
+    <div onclick="event.stopPropagation()" style="width:100%;max-width:320px;background:var(--bg);border-radius:20px;padding:24px;box-shadow:0 12px 48px rgba(0,0,0,0.18);text-align:center">
       <div style="font-size:16px;font-weight:600;color:#2a1f1f;font-family:sans-serif;margin-bottom:18px">Delete category?</div>
       <div style="display:flex;gap:10px">
         <button id="delcat-cancel-btn" onclick="closeDelCat()" style="flex:1;padding:10px;background:#c07a8a;border:none;border-radius:10px;font-family:sans-serif;font-size:14px;font-weight:600;color:#fff;cursor:pointer" autofocus>Cancel</button>
@@ -1050,21 +1190,21 @@
 
   <!-- FAVORITE PLACES MODAL -->
   <div id="places-overlay" onclick="closePlaces()" style="position:fixed;inset:0;background:rgba(30,20,20,0.5);z-index:400;display:none;align-items:center;justify-content:center;padding:16px">
-    <div id="places-modal" onclick="event.stopPropagation()" style="width:100%;max-width:390px;background:#faf8f5;border-radius:20px;display:flex;flex-direction:column;height:min(88vh,660px);box-shadow:0 12px 48px rgba(0,0,0,0.18)">
+    <div id="places-modal" onclick="event.stopPropagation()" style="width:100%;max-width:390px;background:var(--bg);border-radius:20px;display:flex;flex-direction:column;height:min(88vh,660px);box-shadow:0 12px 48px rgba(0,0,0,0.18)">
       <!-- Header (sticky) -->
-      <div style="padding:20px 20px 14px;flex-shrink:0;border-bottom:1px solid #ede9e2">
+      <div style="padding:20px 20px 14px;flex-shrink:0;border-bottom:1px solid var(--border)">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
           <div style="display:flex;align-items:center;gap:10px">
             <button id="places-prev-btn" onclick="placesNav(-1)" style="background:none;border:none;cursor:pointer;padding:4px;display:flex;opacity:0.4">
               <svg viewBox="0 0 24 24" width="18" height="18" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
             </button>
-            <div id="places-modal-title" style="font-size:17px;font-weight:700;color:#2a1f1f">Edit Idea</div>
+            <div id="places-modal-title" style="font-size:17px;font-weight:700;color:var(--popup-title)">Edit Idea</div>
             <button id="places-next-btn" onclick="placesNav(1)" style="background:none;border:none;cursor:pointer;padding:4px;display:flex;opacity:0.4">
               <svg viewBox="0 0 24 24" width="18" height="18" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
             </button>
           </div>
           <button onclick="closePlaces()" style="background:none;border:none;cursor:pointer;display:flex">
-            <svg viewBox="0 0 24 24" width="20" height="20" stroke="#888" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            <svg viewBox="0 0 24 24" width="20" height="20" stroke="#888" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="icon-close"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
           </button>
         </div>
 
@@ -1163,11 +1303,15 @@
                 <svg viewBox="0 0 24 24" width="18" height="18" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
               </button>
               <select class="field-input" id="pf-reservation" onchange="markPlaceChanged();onReservationChange()" style="flex:1;margin-bottom:0">
+                <option value="website">Website</option>
                 <option value="resy">Resy</option>
                 <option value="opentable">OpenTable</option>
                 <option value="eventbrite">Eventbrite</option>
                 <option value="none">No reservation needed</option>
               </select>
+            </div>
+            <div id="pf-website-wrap" style="display:none;margin-left:28px;margin-bottom:8px">
+              <input class="field-input" id="pf-website-url" type="text" placeholder="Website URL" oninput="markPlaceChanged()" style="margin-bottom:0">
             </div>
             <div id="pf-eventbrite-wrap" style="display:none;margin-left:28px">
               <input class="field-input" id="pf-eventbrite-url" type="text" placeholder="Eventbrite URL" oninput="markPlaceChanged()">
@@ -1192,11 +1336,11 @@
       </div>
 
       <!-- Footer (sticky) -->
-      <div style="flex-shrink:0;padding:12px 20px 20px;border-top:1px solid #ede9e2">
+      <div style="flex-shrink:0;padding:12px 20px 20px;border-top:1px solid var(--border)">
         <div style="display:flex;gap:8px">
-          <button id="places-delete-btn" onclick="promptRemoveIdea()" style="padding:10px 16px;background:none;border:1.5px solid #f0d0d5;border-radius:10px;font-family:sans-serif;font-size:13px;font-weight:600;color:#c07a8a;cursor:pointer;opacity:0.4" disabled>Remove</button>
+          <button id="places-delete-btn" onclick="promptRemoveIdea()" style="padding:10px 16px;background:none;border:1.5px solid #c07a8a;border-radius:10px;font-family:sans-serif;font-size:13px;font-weight:600;color:#c07a8a;cursor:pointer;opacity:0.4" disabled>Remove</button>
           <div style="flex:1"></div>
-          <button onclick="closePlaces()" style="padding:10px 16px;background:none;border:1.5px solid #ede9e2;border-radius:10px;font-family:sans-serif;font-size:13px;font-weight:600;color:#9a8a7a;cursor:pointer">Cancel</button>
+          <button onclick="closePlaces()" style="padding:10px 16px;background:none;border:1.5px solid #ede9e2;border-radius:10px;font-family:sans-serif;font-size:13px;font-weight:600;color:#9a8a7a;cursor:pointer" class="btn-outline">Cancel</button>
           <button id="places-save-btn" onclick="savePlace()" style="padding:10px 20px;background:#c07a8a;border:none;border-radius:10px;font-family:sans-serif;font-size:13px;font-weight:600;color:#fff;cursor:pointer">Save</button>
         </div>
       </div>
@@ -1205,8 +1349,8 @@
 
 <!-- ARCHIVE / DELETE CONFIRMATION POPUP — z-index 450, above Edit Idea (400) -->
 <div id="remove-confirm-overlay" onclick="closeRemoveConfirm()" style="position:fixed;inset:0;background:rgba(30,20,20,0.45);z-index:450;display:none;align-items:center;justify-content:center;padding:24px">
-  <div onclick="event.stopPropagation()" style="width:100%;max-width:340px;background:#faf8f5;border-radius:20px;padding:24px 24px 20px;box-shadow:0 16px 48px rgba(0,0,0,0.22)">
-    <div style="font-size:16px;font-weight:700;color:#2a1f1f;margin-bottom:6px">Archive or delete the idea?</div>
+  <div onclick="event.stopPropagation()" style="width:100%;max-width:340px;background:var(--bg);border-radius:20px;padding:24px 24px 20px;box-shadow:0 16px 48px rgba(0,0,0,0.22)">
+    <div style="font-size:16px;font-weight:700;color:var(--popup-title);margin-bottom:6px">Archive or delete the idea?</div>
     <div style="font-size:13px;color:#9a8a7a;font-family:sans-serif;margin-bottom:24px;line-height:1.5">Archiving hides it from your Date Ideas list but keeps it accessible from past memories.</div>
     <div style="display:flex;gap:10px;justify-content:flex-end">
       <button onclick="confirmDeleteIdea()" style="padding:10px 16px;background:none;border:1.5px solid #c07a8a;border-radius:10px;font-family:sans-serif;font-size:13px;font-weight:600;color:#c07a8a;cursor:pointer">Delete</button>
@@ -1219,10 +1363,10 @@
 <div id="todo-sheet">
   <!-- Header: title left, X right -->
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
-    <div style="font-size:18px;font-weight:700;color:#2a1f1f;flex:1">New To Do</div>
+    <div style="font-size:18px;font-weight:700;color:var(--popup-title);flex:1">New To Do</div>
     <div style="flex:1;display:flex;justify-content:flex-end">
       <button onclick="closeTodoSheet()" style="background:none;border:none;display:flex;cursor:pointer">
-        <svg viewBox="0 0 24 24" width="20" height="20" stroke="#888" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        <svg viewBox="0 0 24 24" width="20" height="20" stroke="#888" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="icon-close"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
       </button>
     </div>
   </div>
@@ -1250,7 +1394,7 @@
     <div class="idea-row">
       <svg viewBox="0 0 24 24" width="18" height="18" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M8 22h8"/><path d="M12 15.8v6.2"/><path d="M5 3h14l-1.5 9a5 5 0 0 1-5 4h-1a5 5 0 0 1-5-4L5 3z"/></svg>
       <button id="ts-activity-btn" onclick="openIdeasPickerForTodo()"
-        style="flex:1;padding:11px 14px;background:#fff;border:1.5px solid #ede9e2;border-radius:10px;font-family:sans-serif;font-size:14px;color:#b0a090;text-align:left;cursor:pointer;display:flex;align-items:center;gap:10px;margin-bottom:0">
+        style="flex:1;padding:11px 14px;background:var(--bg-input);border:1.5px solid var(--border);border-radius:10px;font-family:sans-serif;font-size:14px;color:#b0a090;text-align:left;cursor:pointer;display:flex;align-items:center;gap:10px;margin-bottom:0">
         <span id="ts-activity-icon"></span>
         <span id="ts-activity-label">Choose activity…</span>
       </button>
@@ -1287,20 +1431,20 @@
 
 <!-- EDIT TO DO OVERLAY — traditional popup, same as Edit Date -->
 <div id="edit-todo-overlay" onclick="closeEditTodo()" style="position:fixed;inset:0;background:rgba(30,20,20,0.5);z-index:400;display:none;align-items:center;justify-content:center;padding:16px">
-  <div id="edit-todo-modal" onclick="event.stopPropagation()" style="width:100%;max-width:390px;background:#faf8f5;border-radius:20px;padding:20px 20px 24px;max-height:88vh;overflow-y:auto;box-shadow:0 12px 48px rgba(0,0,0,0.18)">
+  <div id="edit-todo-modal" onclick="event.stopPropagation()" style="width:100%;max-width:390px;background:var(--bg);border-radius:20px;padding:20px 20px 24px;max-height:88vh;overflow-y:auto;box-shadow:0 12px 48px rgba(0,0,0,0.18)">
     <!-- Header: prev arrow | Edit To Do | next arrow | X -->
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
       <div style="display:flex;align-items:center;gap:10px">
         <button id="et-prev-btn" onclick="editTodoNav(-1)" style="background:none;border:none;cursor:pointer;padding:4px;display:flex;opacity:0.3">
           <svg viewBox="0 0 24 24" width="18" height="18" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
         </button>
-        <div style="font-size:18px;font-weight:700;color:#2a1f1f">Edit To Do</div>
+        <div style="font-size:18px;font-weight:700;color:var(--popup-title)">Edit To Do</div>
         <button id="et-next-btn" onclick="editTodoNav(1)" style="background:none;border:none;cursor:pointer;padding:4px;display:flex;opacity:0.3">
           <svg viewBox="0 0 24 24" width="18" height="18" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
         </button>
       </div>
       <button onclick="closeEditTodo()" style="background:none;border:none;cursor:pointer;display:flex;padding:4px">
-        <svg viewBox="0 0 24 24" width="20" height="20" stroke="#888" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        <svg viewBox="0 0 24 24" width="20" height="20" stroke="#888" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="icon-close"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
       </button>
     </div>
 
@@ -1327,7 +1471,7 @@
       <div class="idea-row">
         <svg viewBox="0 0 24 24" width="18" height="18" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M8 22h8"/><path d="M12 15.8v6.2"/><path d="M5 3h14l-1.5 9a5 5 0 0 1-5 4h-1a5 5 0 0 1-5-4L5 3z"/></svg>
         <button id="et-activity-btn" onclick="openIdeasPickerForEditTodo()"
-          style="flex:1;padding:11px 14px;background:#fff;border:1.5px solid #ede9e2;border-radius:10px;font-family:sans-serif;font-size:14px;color:#b0a090;text-align:left;cursor:pointer;display:flex;align-items:center;gap:10px;margin-bottom:0">
+          style="flex:1;padding:11px 14px;background:var(--bg-input);border:1.5px solid var(--border);border-radius:10px;font-family:sans-serif;font-size:14px;color:#b0a090;text-align:left;cursor:pointer;display:flex;align-items:center;gap:10px;margin-bottom:0">
           <span id="et-activity-icon"></span>
           <span id="et-activity-label">Choose activity…</span>
         </button>
@@ -1360,10 +1504,10 @@
     </div>
 
     <!-- Buttons: Delete / Cancel / Save -->
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-top:8px;gap:8px">
-      <button onclick="deleteTodoFromEdit()" style="padding:10px 16px;background:none;border:1.5px solid #f0d0d5;border-radius:10px;font-family:sans-serif;font-size:13px;font-weight:600;color:#c07a8a;cursor:pointer">Delete</button>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-top:24px;gap:8px">
+      <button onclick="deleteTodoFromEdit()" style="padding:10px 16px;background:none;border:1.5px solid #c07a8a;border-radius:10px;font-family:sans-serif;font-size:13px;font-weight:600;color:#c07a8a;cursor:pointer">Delete</button>
       <div style="display:flex;gap:8px">
-        <button onclick="closeEditTodo()" style="padding:10px 16px;background:none;border:1.5px solid #ede9e2;border-radius:10px;font-family:sans-serif;font-size:13px;font-weight:600;color:#9a8a7a;cursor:pointer">Cancel</button>
+        <button onclick="closeEditTodo()" style="padding:10px 16px;background:none;border:1.5px solid #ede9e2;border-radius:10px;font-family:sans-serif;font-size:13px;font-weight:600;color:#9a8a7a;cursor:pointer" class="btn-outline">Cancel</button>
         <button onclick="saveEditTodo()" style="padding:10px 20px;background:#c07a8a;border:none;border-radius:10px;font-family:sans-serif;font-size:13px;font-weight:600;color:#fff;cursor:pointer">Save</button>
       </div>
     </div>
@@ -1375,6 +1519,16 @@
 // STATE
 // ═══════════════════════════════════════════════════════
 const ROSE = '#c07a8a', BURGUNDY = '#8b3a52';
+function accentColor(type) {
+  // In dark mode, always use ROSE for icons regardless of in/out
+  if (document.body.classList.contains('dark-mode')) return ROSE;
+  return type === 'out' ? BURGUNDY : ROSE;
+}
+function subColor(type) {
+  // In dark mode, always use brown for subtitles
+  if (document.body.classList.contains('dark-mode')) return '#9a8a7a';
+  return type === 'out' ? BURGUNDY : ROSE;
+}
 const ROSE_BG = 'rgba(192,122,138,0.1)', BURGUNDY_BG = 'rgba(139,58,82,0.1)';
 const ROSE_MUTED = '#c9a0aa', BURGUNDY_MUTED = '#a0b8d0';
 const MTA_COLORS = {
@@ -1679,7 +1833,7 @@ const ICONS = {
   evergreen: (s,c) => svgIcon('<path d="M12 2 L5 10 L8 10 L4 16 L8 16 L10 16 L10 22 L14 22 L14 16 L16 16 L20 16 L16 10 L19 10 Z"/>',s,c),
   palmtree: (s,c) => svgIcon('<path d="M13 8c0-2.76-2.46-5-5.5-5S2 5.24 2 8h2l1-1 1 1h4"/><path d="M13 7.14A5.82 5.82 0 0 1 16.5 6c3.04 0 5.5 2.24 5.5 5h-3l-1-1-1 1h-4"/><path d="M5.89 9.71c-2.15 2.15-2.3 5.47-.35 7.43l4.24-4.25.7-.7.71-.71 2.12-2.12c-1.95-1.96-5.27-1.8-7.42.35Z"/><path d="M11 15.5c.5 2.5-.17 4.5-1 6.5h4c2-5.5-.5-12-1-14"/>',s,c),
   bed: (s,c) => svgIcon('<path d="M2 4v16"/><path d="M2 8h18a2 2 0 0 1 2 2v10"/><path d="M2 17h20"/><path d="M6 8v9"/>',s,c),
-  eightball: (s,c) => `<svg viewBox="0 0 24 24" width="${s}" height="${s}" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10" fill="${c}" stroke="${c}" stroke-width="1.5"/><circle cx="12" cy="11" r="5.5" fill="#faf8f5" stroke="none"/><text x="12" y="14" text-anchor="middle" font-size="8" font-family="sans-serif" font-weight="900" fill="${c}" stroke="none">8</text></svg>`,
+  eightball: (s,c) => `<svg viewBox="0 0 24 24" width="${s}" height="${s}"><path fill-rule="evenodd" fill="${c}" d="M12 2a10 10 0 1 1 0 20A10 10 0 0 1 12 2zM12 5.5a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11z"/><text x="12" y="14" text-anchor="middle" font-size="8" font-family="sans-serif" font-weight="900" fill="${c}" stroke="none">8</text></svg>`,
   moon: (s,c) => svgIcon('<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>',s,c),
   star: (s,c) => svgIcon('<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>',s,c),
   camera: (s,c) => svgIcon('<path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/>',s,c),
@@ -2031,21 +2185,24 @@ function renderIdeas() {
   const byName = (a,b) => a.name.localeCompare(b.name);
 
   // ── Heart SVG for toggle button
-  const heartSvg = (active) => `<svg viewBox="0 0 24 24" width="13" height="13" stroke="${active?'#2a1f1f':'#9a8a7a'}" stroke-width="2" fill="${active?'#2a1f1f':'none'}" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>`;
+  const heartSvg = (active) => `<svg viewBox="0 0 24 24" width="13" height="13" stroke="${active?_toggleActiveColor:'#9a8a7a'}" stroke-width="2" fill="${active?_toggleActiveColor:'none'}" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>`;
 
   // ── Control bar: toggle LEFT, search pill RIGHT
-  const af = f => `background:${ideasFilter===f?'#fff':'transparent'};color:${ideasFilter===f?'#2a1f1f':'#9a8a7a'};box-shadow:${ideasFilter===f?'0 1px 3px rgba(0,0,0,0.10)':'none'}`;
+  const _isDarkMode = document.body.classList.contains('dark-mode');
+  const _toggleActiveBg = _isDarkMode ? '#9a8a7a' : '#fff';
+  const _toggleActiveColor = _isDarkMode ? '#f0ede9' : '#2a1f1f';
+  const af = f => `background:${ideasFilter===f?_toggleActiveBg:'transparent'};color:${ideasFilter===f?_toggleActiveColor:'#9a8a7a'};box-shadow:${ideasFilter===f?'0 1px 3px rgba(0,0,0,0.10)':'none'}`;
   const clearBtn = q ? `<button onclick="clearIdeasSearch()" style="background:none;border:none;cursor:pointer;padding:0;display:flex;flex-shrink:0;line-height:0"><svg viewBox="0 0 24 24" width="13" height="13" stroke="#9a8a7a" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>` : '';
   const controlBar = `<div id="ideas-controlbar" style="display:flex;align-items:center;justify-content:space-between;padding:12px 20px 14px">
-    <div style="display:flex;background:#f0ede8;border-radius:20px;padding:2px;gap:1px;flex-shrink:0">
+    <div style="display:flex;background:var(--toggle-bg);border-radius:20px;padding:2px;gap:1px;flex-shrink:0">
       <button data-filter="all" onclick="setIdeasFilter('all')" style="padding:4px 12px;border:none;border-radius:18px;font-family:sans-serif;font-size:12px;font-weight:600;cursor:pointer;${af('all')}">All</button>
       <button data-filter="out" onclick="setIdeasFilter('out')" style="padding:4px 12px;border:none;border-radius:18px;font-family:sans-serif;font-size:12px;font-weight:600;cursor:pointer;${af('out')}">Out</button>
       <button data-filter="in" onclick="setIdeasFilter('in')"  style="padding:4px 12px;border:none;border-radius:18px;font-family:sans-serif;font-size:12px;font-weight:600;cursor:pointer;${af('in')}">In</button>
       <button data-filter="favs" onclick="setIdeasFilter('favs')" style="padding:4px 10px;border:none;border-radius:18px;font-family:sans-serif;font-size:12px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:4px;${af('favs')}">${heartSvg(ideasFilter==='favs')}</button>
     </div>
-    <div style="display:flex;align-items:center;background:#f0ede8;border-radius:20px;padding:5px 10px;gap:6px;width:160px;flex-shrink:0">
+    <div style="display:flex;align-items:center;background:var(--toggle-bg);border-radius:20px;padding:5px 10px;gap:6px;width:160px;flex-shrink:0">
       <svg viewBox="0 0 24 24" width="13" height="13" stroke="#9a8a7a" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-      <input id="ideas-search-input" type="text" value="${q.replace(/"/g,'&quot;')}" oninput="ideasSearch=this.value;_renderIdeasBody()" placeholder="" style="border:none;background:transparent;outline:none;font-size:12px;font-family:sans-serif;color:#2a1f1f;width:100%;line-height:1;padding:0;min-width:0">
+      <input id="ideas-search-input" type="text" value="${q.replace(/"/g,'&quot;')}" oninput="ideasSearch=this.value;_renderIdeasBody()" placeholder="" style="border:none;background:transparent;outline:none;font-size:12px;font-family:sans-serif;color:var(--text-primary);width:100%;line-height:1;padding:0;min-width:0">
       ${clearBtn}
     </div>
   </div>`;
@@ -2058,10 +2215,10 @@ function _buildIdeasBody(pool, q, byName, isFavFilter) {
   // ── Small card: same image panel as home page (120px wide)
   function smallCard(item, accent, navCtx) {
     const sub = itemSubLine(item);
-    const subColor = item.type === 'out' ? BURGUNDY : ROSE;
+    const _subColor = subColor(item.type);
     const urls = getImageUrls(item);
     const imgPanel = urls.length
-      ? `<div style="width:120px;flex-shrink:0;margin:-12px -14px -12px 0;border-left:1px solid #ede9e2;border-radius:0 14px 14px 0;overflow:hidden;align-self:stretch;background:#6b2340;position:relative"><img src="${urls[0]}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center;display:block" onerror="this.parentNode.style.background='#6b2340';this.style.display='none'"></div>`
+      ? `<div style="width:120px;flex-shrink:0;margin:-12px -14px -12px 0;border-left:1px solid var(--img-sep);border-radius:0 14px 14px 0;overflow:hidden;align-self:stretch;background:#6b2340;position:relative"><img src="${urls[0]}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center;display:block" onerror="this.parentNode.style.background='#6b2340';this.style.display='none'"></div>`
       : '';
     return `<div class="quick-row" onclick="openDetail(${item.id},'${navCtx}')" style="cursor:pointer;overflow:hidden">
       <div style="flex:1;min-width:0">
@@ -2069,7 +2226,7 @@ function _buildIdeasBody(pool, q, byName, isFavFilter) {
           ${ideaIcon(item, 14, accent)}
           <div class="quick-row-name">${item.name}</div>
         </div>
-        ${sub ? `<div class="quick-row-sub" style="color:${subColor}">${sub}</div>` : ''}
+        ${sub ? `<div class="quick-row-sub" style="color:${_subColor}">${sub}</div>` : ''}
       </div>
       ${imgPanel}
     </div>`;
@@ -2078,8 +2235,8 @@ function _buildIdeasBody(pool, q, byName, isFavFilter) {
   // ── Fav card: full-width, image banner on top, text row identical to smallCard + nav arrows
   function favCard(item, idx, total) {
     const sub = itemSubLine(item);
-    const accent = item.type === 'out' ? BURGUNDY : ROSE;
-    const subColor = item.type === 'out' ? BURGUNDY : ROSE;
+    const accent = accentColor(item.type);
+    const _subColor = subColor(item.type);
     const urls = getImageUrls(item);
     const hasPrev = idx > 0;
     const hasNext = idx < total - 1;
@@ -2100,7 +2257,7 @@ function _buildIdeasBody(pool, q, byName, isFavFilter) {
             ${ideaIcon(item, 14, accent)}
             <div class="quick-row-name" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${item.name}</div>
           </div>
-          ${sub ? `<div class="quick-row-sub" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:${subColor}">${sub}</div>` : ''}
+          ${sub ? `<div class="quick-row-sub" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:${_subColor}">${sub}</div>` : ''}
         </div>
         ${navArrows}
       </div>
@@ -2117,7 +2274,7 @@ function _buildIdeasBody(pool, q, byName, isFavFilter) {
     const favIn  = pool.filter(i => i.type === 'in').sort(byName);
     const favOutHtml = favOut.length ? `<div style="margin-bottom:20px">
       <div class="section-label" style="margin-bottom:8px">Going Out</div>
-      <div style="display:flex;flex-direction:column;gap:8px">${favOut.map(i => smallCard(i, BURGUNDY, 'out')).join('')}</div>
+      <div style="display:flex;flex-direction:column;gap:8px">${favOut.map(i => smallCard(i, accentColor('out'), 'out')).join('')}</div>
     </div>` : '';
     const favInHtml = favIn.length ? `<div>
       <div class="section-label" style="margin-bottom:8px">Staying In</div>
@@ -2168,7 +2325,7 @@ function _buildIdeasBody(pool, q, byName, isFavFilter) {
   const inIdeas = pool.filter(i => i.type === 'in').sort(byName);
   const outHtml = (out.length && ideasFilter !== 'in') ? `<div style="margin-bottom:20px">
     <div class="section-label" style="margin-bottom:8px">Going Out</div>
-    <div style="display:flex;flex-direction:column;gap:8px">${out.map(i => smallCard(i, BURGUNDY, 'out')).join('')}</div>
+    <div style="display:flex;flex-direction:column;gap:8px">${out.map(i => smallCard(i, accentColor('out'), 'out')).join('')}</div>
   </div>` : '';
   const inHtml = (inIdeas.length && ideasFilter !== 'out') ? `<div>
     <div class="section-label" style="margin-bottom:8px">Staying In</div>
@@ -2208,11 +2365,14 @@ function _renderIdeasBody() {
   // Update controlbar toggle active states
   const cb = document.getElementById('ideas-controlbar');
   if (cb) {
+    const _dm = document.body.classList.contains('dark-mode');
+    const _activeBg = _dm ? '#9a8a7a' : '#fff';
+    const _activeColor = _dm ? '#f0ede9' : '#2a1f1f';
     cb.querySelectorAll('button[data-filter]').forEach(btn => {
       const f = btn.dataset.filter;
       const active = ideasFilter === f;
-      btn.style.background = active ? '#fff' : 'transparent';
-      btn.style.color = active ? '#2a1f1f' : '#9a8a7a';
+      btn.style.background = active ? _activeBg : 'transparent';
+      btn.style.color = active ? _activeColor : '#9a8a7a';
       btn.style.boxShadow = active ? '0 1px 3px rgba(0,0,0,0.10)' : 'none';
     });
   }
@@ -2242,6 +2402,9 @@ function clearIdeasSearch() {
 
 // ── Todo state ─────────────────────────────────────────
 let todos = JSON.parse(localStorage.getItem('lovelife_todos') || '[]');
+let _reservedDateKeys = new Set(JSON.parse(localStorage.getItem('duet_reserved') || '[]'));
+function _saveReserved() { localStorage.setItem('duet_reserved', JSON.stringify([..._reservedDateKeys])); }
+function _dateKey(u) { return `${u.month}-${u.day}-${u.year||2026}`; }
 function saveTodos() { localStorage.setItem('lovelife_todos', JSON.stringify(todos)); }
 
 // Track auto-delete timers keyed by todo id
@@ -2265,11 +2428,15 @@ function _todoTimeStr(timeStr) {
   if (ampm === 'AM' && h === 12) h = 0;
   return `${String(h).padStart(2,'0')}:${min}`;
 }
-function _buildResUrl(name, res, dateStr, timeStr, eventbriteUrl) {
+function _buildResUrl(name, res, dateStr, timeStr, eventbriteUrl, websiteUrl) {
   const slug = name.toLowerCase().replace(/[^a-z0-9\s]/g,'').replace(/\s+/g,'-');
   const q = encodeURIComponent(name + ' New York City');
   if (res === 'opentable') return `https://www.opentable.com/s?term=${encodeURIComponent(name)}&covers=2&dateTime=${dateStr}T${timeStr}`;
   if (res === 'eventbrite') return eventbriteUrl || `https://www.google.com/search?q=${encodeURIComponent(name+' eventbrite')}`;
+  if (res === 'website') {
+    if (!websiteUrl) return '';
+    return /^https?:\/\//i.test(websiteUrl) ? websiteUrl : 'https://' + websiteUrl;
+  }
   return `https://resy.com/cities/new-york-ny/venues/${slug}?query=${q}&date=${dateStr}&seats=2`;
 }
 
@@ -2294,7 +2461,7 @@ function _todoRow(t) {
       const dateStr = scheduled ? _todoDateStr(scheduled) : new Date().toISOString().split('T')[0];
       const timeStr = scheduled ? _todoTimeStr(scheduled.time) : '19:00';
       const res = idea ? (idea.reservation || 'resy') : 'resy';
-      resUrl = _buildResUrl(placeName, res, dateStr, timeStr, idea ? idea.eventbriteUrl : '');
+      resUrl = _buildResUrl(placeName, res, dateStr, timeStr, idea ? idea.eventbriteUrl : '', idea ? idea.websiteUrl : '');
     } else if (t.activity && t.activity.custom && t.customPlace) {
       placeName = t.customPlace;
       const dateStr = new Date().toISOString().split('T')[0];
@@ -2333,12 +2500,12 @@ function _todoRow(t) {
     mainHtml = `<span style="${baseStyle}">${displayText}</span>`;
   }
 
-  return `<div id="todo-row-${t.id}" onclick="openTodoEdit('${t.id}')" style="display:flex;align-items:flex-start;justify-content:space-between;padding:14px 0;border-bottom:1px solid #ede9e2;cursor:pointer;gap:12px;opacity:${t.done?'0.45':'1'}">
+  return `<div id="todo-row-${t.id}" onclick="openTodoEdit('${t.id}')" style="display:flex;align-items:flex-start;justify-content:space-between;padding:14px 0;border-bottom:1px solid var(--todo-divider);cursor:pointer;gap:12px;opacity:${t.done?'0.45':'1'}">
     <div style="flex:1;min-width:0">
       <div style="line-height:1.4">${mainHtml}</div>
       <div style="font-size:11px;margin-top:3px;font-family:sans-serif;color:${t.done?'#c8bfb6':col};font-weight:500;letter-spacing:0.03em">${label}</div>
     </div>
-    <button onclick="event.stopPropagation();toggleTodoDone('${t.id}')" style="width:20px;height:20px;flex-shrink:0;margin-top:2px;margin-left:-2px;border:1.5px solid ${t.done?'#c8bfb6':'#9a8a7a'};border-radius:4px;background:${t.done?'#c8bfb6':'white'};cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0">
+    <button onclick="event.stopPropagation();toggleTodoDone('${t.id}')" style="width:20px;height:20px;flex-shrink:0;margin-top:2px;margin-left:-2px;border:1.5px solid ${t.done?'#c8bfb6':'#9a8a7a'};border-radius:4px;background:${t.done?'#c8bfb6':'var(--bg-input)'};cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0">
       ${t.done?'<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>':''}
     </button>
   </div>`;
@@ -2418,17 +2585,17 @@ function _updateActivityBtn(btnId, iconId, labelId, customWrapId, item) {
     btn.style.borderColor = '#b0a090';
     if (customWrap) customWrap.style.display = 'block';
   } else if (item) {
-    const accent = item.type === 'out' ? BURGUNDY : ROSE;
+    const accent = accentColor(item.type);
     iconEl.innerHTML = ideaIcon(item, 16, accent);
     labelEl.textContent = item.name;
-    labelEl.style.color = '#2a1f1f';
+    labelEl.style.color = document.body.classList.contains('dark-mode') ? 'var(--text-primary)' : '#2a1f1f';
     btn.style.borderColor = '#c07a8a';
     if (customWrap) customWrap.style.display = 'none';
   } else {
     iconEl.innerHTML = '';
     labelEl.textContent = 'Choose activity…';
     labelEl.style.color = '#b0a090';
-    btn.style.borderColor = '#ede9e2';
+    btn.style.borderColor = document.body.classList.contains('dark-mode') ? 'var(--border)' : '#ede9e2';
     if (customWrap) customWrap.style.display = 'none';
   }
 }
@@ -2744,10 +2911,10 @@ function renderWeekStrip() {
   const todaySunday = new Date(today);
   todaySunday.setDate(today.getDate() - today.getDay());
 
-  // Build exactly 3 weeks starting from today's Sunday
+  // Build exactly 4 weeks starting from today's Sunday
   const DAY_LABELS = ['S','M','T','W','T','F','S'];
   const weeks = [];
-  for (let w = 0; w < 3; w++) {
+  for (let w = 0; w < 4; w++) {
     const week = [];
     for (let i = 0; i < 7; i++) {
       const d = new Date(todaySunday);
@@ -2776,7 +2943,8 @@ function renderWeekStrip() {
   const pagesHtml = weeks.map(week => {
     const daysHtml = week.map(day => {
       const dotColor = day.hasFutureDate ? (day.fdIdx === 0 ? BURGUNDY : ROSE) : 'transparent';
-      const numColor = day.isSelected ? '#fff' : day.isToday ? ROSE : '#2a1f1f';
+      const _isDark = document.body.classList.contains('dark-mode');
+      const numColor = day.isSelected ? '#fff' : day.isToday ? ROSE : (_isDark ? '#f0ede9' : '#2a1f1f');
       const numWeight = (day.isSelected || day.isToday) ? 700 : 400;
       const labelColor = day.isToday ? ROSE : '#b0a090';
       const labelWeight = day.isToday ? 700 : 400;
@@ -2830,7 +2998,8 @@ function _rebuildCatDropdown(type) {
   if (!sel) return;
   const cats = type === 'in' ? IN_CATS : OUT_CATS;
   const prev = sel.value;
-  sel.innerHTML = cats.map(c => `<option value="${c.id}">${c.label}</option>`).join('');
+  sel.innerHTML = cats.map(c => `<option value="${c.id}">${c.label}</option>`).join('')
+    + `<option value="__edit_cats__" style="color:#9a8a7a;font-style:italic">Edit categories…</option>`;
   // Restore selection if still valid
   if (cats.find(c => c.id === prev)) sel.value = prev;
   else sel.value = cats[0] ? cats[0].id : '';
@@ -2849,12 +3018,12 @@ function itemSubLine(item) {
 }
 
 function renderQuickRow(item, navCtx) {
-  const color = item.type === 'out' ? BURGUNDY : ROSE;
+  const color = accentColor(item.type);
   const bg = item.type === 'out' ? BURGUNDY_BG : ROSE_BG;
-  const subColor = item.type === 'out' ? BURGUNDY : ROSE;
+  const _subColor = subColor(item.type);
   const sub = itemSubLine(item);
   const urls = getImageUrls(item);
-  const imgPanel = urls.length ? `<div style="width:120px;flex-shrink:0;margin:-12px -14px -12px 0;border-left:1px solid #ede9e2;border-radius:0 14px 14px 0;overflow:hidden;align-self:stretch;background:#6b2340;position:relative"><img src="${urls[0]}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center;display:block" onerror="this.parentNode.style.background='#6b2340';this.style.display='none'"></div>` : (item.type==='in' ? `<span class="type-badge" style="background:${bg};color:${color}">In</span>` : '');
+  const imgPanel = urls.length ? `<div style="width:120px;flex-shrink:0;margin:-12px -14px -12px 0;border-left:1px solid var(--img-sep);border-radius:0 14px 14px 0;overflow:hidden;align-self:stretch;background:#6b2340;position:relative"><img src="${urls[0]}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center;display:block" onerror="this.parentNode.style.background='#6b2340';this.style.display='none'"></div>` : (item.type==='in' ? `<span class="type-badge" style="background:${bg};color:${color}">In</span>` : '');
   return `
   <div class="quick-row" onclick="openDetail(${item.id},'${navCtx||'latest'}' )" style="cursor:pointer;overflow:hidden">
     <div style="flex:1;min-width:0">
@@ -2862,7 +3031,7 @@ function renderQuickRow(item, navCtx) {
         ${ideaIcon(item, 14, color)}
         <div class="quick-row-name">${item.name}</div>
       </div>
-      ${sub ? `<div class="quick-row-sub" style="color:${subColor}">${sub}</div>` : ''}
+      ${sub ? `<div class="quick-row-sub" style="color:${_subColor}">${sub}</div>` : ''}
     </div>
     ${imgPanel}
   </div>`;
@@ -2903,7 +3072,7 @@ function renderPastDates() {
       </div>`;
 
     if (hasImg) {
-      return `<div onclick="openMemoryInfo('${safeId}')" style="background:#fff;border-radius:14px;border:1px solid #ede9e2;margin-bottom:8px;overflow:hidden;cursor:pointer">
+      return `<div onclick="openMemoryInfo('${safeId}')" style="background:var(--bg-card);border-radius:14px;border:1px solid var(--border);margin-bottom:8px;overflow:hidden;cursor:pointer">
         <div style="height:120px;overflow:hidden;background:#6b2340;position:relative">
           <img src="${imgUrls[0]}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center;display:block" onerror="this.parentNode.style.background='#6b2340';this.style.display='none'">
         </div>
@@ -3535,7 +3704,8 @@ function _buildPickerStrip(prefix) {
     const daysHtml = week.map(day => {
       const isSelected = day.isSelected;
       const dotColor = day.scheduled ? ROSE : 'transparent';
-      const numColor = isSelected ? '#fff' : day.isToday ? ROSE : '#2a1f1f';
+      const _isDark2 = document.body.classList.contains('dark-mode');
+      const numColor = isSelected ? '#fff' : day.isToday ? ROSE : (_isDark2 ? '#f0ede9' : '#2a1f1f');
       const numWeight = (isSelected || day.isToday) ? 700 : 400;
       const labelColor = day.isToday ? ROSE : '#b0a090';
       const bgColor = isSelected ? ROSE : day.isToday ? 'rgba(192,122,138,0.15)' : 'transparent';
@@ -3805,7 +3975,7 @@ function openSheet(type) {
     document.getElementById('idea-note-long').value = '';
   }
   renderSheetUI();
-  document.getElementById('idea-sheet').style.display = 'block';
+  document.getElementById('idea-sheet').style.display = 'flex';
   sheetOpen = true;
   document.getElementById('btn-new-circle').style.background = '#a05268';
   document.getElementById('btn-new-icon-plus').style.display = 'none';
@@ -3848,7 +4018,7 @@ function switchSheetContext(view) {
     else sheetMode = 'idea';
     // Ensure idea sheet is shown
     document.getElementById('sheet-overlay').style.display = 'block';
-    document.getElementById('idea-sheet').style.display = 'block';
+    document.getElementById('idea-sheet').style.display = 'flex';
     sheetOpen = true;
     document.getElementById('btn-new-circle').style.background = '#a05268';
     document.getElementById('btn-new-icon-plus').style.display = 'none';
@@ -3920,7 +4090,10 @@ function renderSheetUI() {
     const outBtn = document.getElementById('stoggle-out');
     const inBtn  = document.getElementById('stoggle-in');
     if (outBtn && inBtn) {
-      const activeStyle = 'background:#fff;color:#2a1f1f;box-shadow:0 1px 3px rgba(0,0,0,0.1)';
+      const _dm = document.body.classList.contains('dark-mode');
+      const _tabActiveBg = _dm ? '#9a8a7a' : '#fff';
+      const _tabActiveColor = _dm ? '#f0ede9' : '#2a1f1f';
+      const activeStyle = `background:${_tabActiveBg};color:${_tabActiveColor};box-shadow:0 1px 3px rgba(0,0,0,0.1)`;
       const inactiveStyle = 'background:transparent;color:#9a8a7a';
       outBtn.style.cssText = `padding:3px 10px;border:none;border-radius:5px;font-family:sans-serif;font-size:12px;font-weight:600;cursor:pointer;${isOut?activeStyle:inactiveStyle}`;
       inBtn.style.cssText  = `padding:3px 10px;border:none;border-radius:5px;font-family:sans-serif;font-size:12px;font-weight:600;cursor:pointer;${!isOut?activeStyle:inactiveStyle}`;
@@ -3979,6 +4152,12 @@ function onIdeaCatSelectChange() {
   const sel = isOut
     ? document.getElementById('idea-cat-select')
     : document.getElementById('idea-cat-select-in');
+  if (sel.value === '__edit_cats__') {
+    // Restore previous selection, then open Edit Categories
+    sel.value = selectedCategory;
+    openEditCategories(ideaType);
+    return;
+  }
   selectedCategory = sel.value;
   catMemory[ideaType] = selectedCategory;
   updateIdeaCatIcon();
@@ -4003,16 +4182,22 @@ function onIdeaSheetCategoryChange() {
   if (sdWrap) sdWrap.style.display = ideaType === 'out' ? 'flex' : 'none';
   const aboutWrap = document.getElementById('idea-about-wrap');
   if (aboutWrap) aboutWrap.style.display = ideaType === 'out' ? 'flex' : 'none';
-  const showRes = ['restaurant','bar','cafe','livemusic','venue'].includes(cat);
+  const showRes = ['restaurant','bar','cafe','livemusic','venue','livejazz'].includes(cat);
   document.getElementById('reservation-wrap').style.display = showRes ? 'block' : 'none';
+  const resEl = document.getElementById('idea-reservation');
+  if (resEl && showRes) {
+    const resyDefault = ['restaurant','bar','livejazz'].includes(cat);
+    if (!window._editingIdeaId) resEl.value = resyDefault ? 'resy' : 'website';
+  }
   onIdeaReservationChange();
 }
 
 function onIdeaReservationChange() {
   const el = document.getElementById('idea-reservation');
   if (!el) return;
-  const isEventbrite = el.value === 'eventbrite';
-  document.getElementById('idea-eventbrite-wrap').style.display = isEventbrite ? 'block' : 'none';
+  const v = el.value;
+  document.getElementById('idea-website-wrap').style.display = v === 'website' ? 'block' : 'none';
+  document.getElementById('idea-eventbrite-wrap').style.display = v === 'eventbrite' ? 'block' : 'none';
 }
 
 function renderDateSheetUI() {
@@ -4025,7 +4210,7 @@ function renderDateSheetUI() {
   document.getElementById('date-activity-icon').innerHTML = '';
   document.getElementById('date-activity-label').textContent = 'Date ideas…';
   document.getElementById('date-activity-label').style.color = '#b0a090';
-  document.getElementById('date-activity-btn').style.borderColor = '#ede9e2';
+  document.getElementById('date-activity-btn').style.borderColor = document.body.classList.contains('dark-mode') ? 'var(--border)' : '#ede9e2';
   document.getElementById('date-custom-wrap').style.display = 'none';
   document.getElementById('date-custom-name').value = '';
   // Hide location until Custom is selected
@@ -4178,6 +4363,14 @@ function markPlaceChanged() { /* no-op — changes are saved on savePlace() */ }
 
 function onPlaceTypeChange() {
   const sel = document.getElementById('pf-type');
+  if (sel.value === '__edit_cats__') {
+    // Restore previous selection, open Edit Categories for the right type
+    const isOut = !(IN_CATS.find(c => c.id === (window._pfPrevCat || '')));
+    sel.value = window._pfPrevCat || (isOut ? OUT_CATS[0].id : IN_CATS[0].id);
+    openEditCategories(isOut ? 'out' : 'in');
+    return;
+  }
+  window._pfPrevCat = sel.value;
   _pfCustomIconKey = null; // clear custom icon when category changes
   _updatePfTypeIcon();
   const cuisineTypes = ['restaurant','cafe'];
@@ -4194,6 +4387,8 @@ function onPlaceTypeChange() {
 
 function onReservationChange() {
   const res = (document.getElementById('pf-reservation')||{}).value;
+  const webWrap = document.getElementById('pf-website-wrap');
+  if (webWrap) webWrap.style.display = res === 'website' ? 'block' : 'none';
   const wrap = document.getElementById('pf-eventbrite-wrap');
   if (wrap) wrap.style.display = res === 'eventbrite' ? 'block' : 'none';
 }
@@ -4246,6 +4441,7 @@ function saveNewIdea() {
   const resEl     = document.getElementById('idea-reservation');
   const reservation = (isOut && resEl) ? resEl.value : '';
   const eventbriteUrl = (isOut && reservation === 'eventbrite') ? document.getElementById('idea-eventbrite-url').value.trim() : '';
+  const websiteUrl = (isOut && reservation === 'website') ? document.getElementById('idea-website-url').value.trim() : '';
   const note = isOut
     ? document.getElementById('idea-note-short').value.trim()
     : '';
@@ -4253,11 +4449,11 @@ function saveNewIdea() {
   if (window._editingIdeaId) {
     const item = ideas.find(i=>i.id===window._editingIdeaId);
     const _editImgUrls = collectNewIdeaImageUrls();
-    if (item) Object.assign(item, { name, address, neighborhood, cuisine, shortdesc, showType, subwayRoute: subway, walkDriveTime: walkdrive, about, reservation, eventbriteUrl, note, category: selectedCategory, saved: window._ideaSaved, imageUrls: _editImgUrls });
+    if (item) Object.assign(item, { name, address, neighborhood, cuisine, shortdesc, showType, subwayRoute: subway, walkDriveTime: walkdrive, about, reservation, eventbriteUrl, websiteUrl, note, category: selectedCategory, saved: window._ideaSaved, imageUrls: _editImgUrls });
     window._editingIdeaId = null;
   } else {
     const _newImgUrls = collectNewIdeaImageUrls();
-    ideas.unshift({ id: Date.now(), type: ideaType, category: selectedCategory, name, address, neighborhood, cuisine, shortdesc, showType, subwayRoute: subway, walkDriveTime: walkdrive, about, reservation, eventbriteUrl, note, saved: !!window._ideaSaved, imageUrls: _newImgUrls });
+    ideas.unshift({ id: Date.now(), type: ideaType, category: selectedCategory, name, address, neighborhood, cuisine, shortdesc, showType, subwayRoute: subway, walkDriveTime: walkdrive, about, reservation, eventbriteUrl, websiteUrl, note, saved: !!window._ideaSaved, imageUrls: _newImgUrls });
   }
   saveIdeas(ideas);
   closeSheet();
@@ -4285,11 +4481,14 @@ function setPickerFilter(f) {
 }
 
 function setPickerTabUI(active) {
+  const _dm = document.body.classList.contains('dark-mode');
+  const _activeBg = _dm ? '#9a8a7a' : '#fff';
+  const _activeColor = _dm ? '#f0ede9' : '#2a1f1f';
   ['all','out','in'].forEach(f => {
     const btn = document.getElementById('ptab-' + f);
     if (f === active) {
-      btn.style.background = '#fff';
-      btn.style.color = '#2a1f1f';
+      btn.style.background = _activeBg;
+      btn.style.color = _activeColor;
       btn.style.boxShadow = '0 1px 4px rgba(0,0,0,0.08)';
     } else {
       btn.style.background = 'transparent';
@@ -4309,8 +4508,8 @@ function renderPickerBody() {
 
   // Custom row (always at top)
   const customRow = `
-    <div onclick="selectCustomActivity()" style="display:flex;align-items:center;gap:12px;padding:11px 13px;background:#fff;border-radius:12px;border:1.5px dashed #ede9e2;cursor:pointer;margin-bottom:12px">
-      <div style="width:36px;height:36px;border-radius:10px;background:#f5f2ee;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+    <div onclick="selectCustomActivity()" style="display:flex;align-items:center;gap:12px;padding:11px 13px;background:var(--bg-card);border-radius:12px;border:1.5px dashed var(--border);cursor:pointer;margin-bottom:12px">
+      <div style="width:36px;height:36px;border-radius:10px;background:var(--bg-input);display:flex;align-items:center;justify-content:center;flex-shrink:0">
         <svg viewBox="0 0 24 24" width="18" height="18" stroke="#b0a090" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
       </div>
       <div style="flex:1">
@@ -4321,18 +4520,18 @@ function renderPickerBody() {
 
   function section(items, type) {
     if (!items.length) return '';
-    const accent = type === 'out' ? BURGUNDY : ROSE;
+    const accent = accentColor(type);
     const accentBg = type === 'out' ? BURGUNDY_BG : ROSE_BG;
     const label = type === 'out' ? 'Going Out' : 'Staying In';
     return `
       <div style="font-size:11px;font-weight:700;color:${accent};letter-spacing:0.08em;text-transform:uppercase;font-family:sans-serif;margin:0 0 8px">${label}</div>
       ${items.map(item => `
-        <div onclick="selectActivity(${item.id})" style="display:flex;align-items:center;gap:12px;padding:11px 13px;background:#fff;border-radius:12px;border:1px solid #ede9e2;cursor:pointer;margin-bottom:7px">
+        <div onclick="selectActivity(${item.id})" style="display:flex;align-items:center;gap:12px;padding:11px 13px;background:var(--bg-card);border-radius:12px;border:1px solid var(--border);cursor:pointer;margin-bottom:7px">
           <div style="width:36px;height:36px;border-radius:10px;background:${accentBg};display:flex;align-items:center;justify-content:center;flex-shrink:0">
             ${ideaIcon(item, 18, accent)}
           </div>
           <div style="flex:1;min-width:0">
-            <div style="font-size:15px;font-weight:700;color:#2a1f1f;letter-spacing:-0.01em;margin-bottom:2px">${item.name}</div>
+            <div style="font-size:15px;font-weight:700;color:var(--text-primary);letter-spacing:-0.01em;margin-bottom:2px">${item.name}</div>
             <div style="font-size:12px;color:#9a8a7a;font-family:sans-serif">${toTitleCase(item.category)}${item.address ? ' · ' + item.address.split(',')[0] : ''}</div>
           </div>
         </div>`).join('')}
@@ -4395,7 +4594,7 @@ function selectCustomActivity() {
 function selectActivity(id) {
   const item = ideas.find(i => i.id === id);
   if (!item) return;
-  const accent = item.type === 'out' ? BURGUNDY : ROSE;
+  const accent = accentColor(item.type);
 
   if (ideasPickerContext === 'todo') {
     ideasPickerContext = 'sheet';
@@ -4414,7 +4613,7 @@ function selectActivity(id) {
     edSelectedActivity = item;
     document.getElementById('ed-activity-icon').innerHTML = ideaIcon(item, 16, accent);
     document.getElementById('ed-activity-label').textContent = item.name;
-    document.getElementById('ed-activity-label').style.color = '#2a1f1f';
+    document.getElementById('ed-activity-label').style.color = document.body.classList.contains('dark-mode') ? 'var(--text-primary)' : '#2a1f1f';
     document.getElementById('ed-activity-btn').style.borderColor = accent;
     document.getElementById('ed-custom-wrap').style.display = 'none';
     document.getElementById('ed-location-wrap').style.display = 'none';
@@ -4428,7 +4627,7 @@ function selectActivity(id) {
   selectedActivity = item;
   document.getElementById('date-activity-icon').innerHTML = ideaIcon(item, 16, accent);
   document.getElementById('date-activity-label').textContent = item.name;
-  document.getElementById('date-activity-label').style.color = '#2a1f1f';
+  document.getElementById('date-activity-label').style.color = document.body.classList.contains('dark-mode') ? 'var(--text-primary)' : '#2a1f1f';
   document.getElementById('date-activity-btn').style.borderColor = accent;
   document.getElementById('date-custom-wrap').style.display = 'none';
   // Hide out/custom location fields
@@ -4614,7 +4813,7 @@ function saveNewDate() {
   document.getElementById('date-activity-label').textContent = 'Date ideas…';
   document.getElementById('date-activity-label').style.color = '#b0a090';
   document.getElementById('date-activity-icon').innerHTML = '';
-  document.getElementById('date-activity-btn').style.borderColor = '#ede9e2';
+  document.getElementById('date-activity-btn').style.borderColor = document.body.classList.contains('dark-mode') ? 'var(--border)' : '#ede9e2';
   document.getElementById('date-custom-wrap').style.display = 'none';
   closeSheet();
   render();
@@ -4761,18 +4960,25 @@ function openDetail(id, navContext) {
     const resUrls = {
       resy: `https://resy.com/cities/ny?query=${encodeURIComponent(item.name)}&party_size=2`,
       opentable: `https://www.opentable.com/s?term=${encodeURIComponent(item.name)}&covers=2`,
-      eventbrite: item.eventbriteUrl || `https://www.eventbrite.com/d/online/${encodeURIComponent(item.name)}/`
+      eventbrite: item.eventbriteUrl || `https://www.eventbrite.com/d/online/${encodeURIComponent(item.name)}/`,
+      website: item.websiteUrl ? (/^https?:\/\//i.test(item.websiteUrl) ? item.websiteUrl : 'https://' + item.websiteUrl) : ''
     };
 
     let leftBtn = '';
     if (hasReservation) {
-      const resUrl = resUrls[item.reservation] || '#';
-      leftBtn = `<a href="${resUrl}" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:7px;padding:7px 16px;border:1.5px solid #c07a8a;border-radius:7px;font-family:sans-serif;font-size:13px;font-weight:600;color:#c07a8a;text-decoration:none;line-height:1">${resIcon}Reserve</a>`;
+      const resUrl = resUrls[item.reservation] || '';
+      const isWebsite = item.reservation === 'website';
+      if (isWebsite && !resUrl) {
+        // website with no URL — no button
+      } else {
+        const btnLabel = (item.reservation === 'resy' || item.reservation === 'opentable') ? 'Reserve' : 'Tickets';
+        leftBtn = `<button onclick="window.open('${resUrl}','_blank')" style="display:flex;align-items:center;gap:7px;height:34px;padding:0 16px;border:1.5px solid #c07a8a;border-radius:17px;font-family:sans-serif;font-size:13px;font-weight:600;color:#c07a8a;background:none;cursor:pointer;line-height:1">${resIcon}${btnLabel}</button>`;
+      }
     }
 
     let rightBtn = '';
     if (isOut) {
-      rightBtn = `<button onclick="planDateFromIdea(${item.id})" style="display:flex;align-items:center;gap:7px;padding:7px 16px;border:1.5px solid #c07a8a;border-radius:7px;font-family:sans-serif;font-size:13px;font-weight:600;color:#fff;background:#c07a8a;cursor:pointer;line-height:1">${calIcon}Plan a Date</button>`;
+      rightBtn = `<button onclick="planDateFromIdea(${item.id})" style="display:flex;align-items:center;gap:7px;height:34px;padding:0 16px;border:none;border-radius:17px;font-family:sans-serif;font-size:13px;font-weight:600;color:#fff;background:#c07a8a;cursor:pointer;line-height:1">${calIcon}Plan a Date</button>`;
     }
 
     body += `<div style="margin-top:40px;display:flex;align-items:center;justify-content:center;gap:10px">
@@ -4808,10 +5014,10 @@ function planDateFromIdea(ideaId) {
     const item = ideas.find(i => i.id === ideaId);
     if (item) {
       selectedActivity = item;
-      const accent = item.type === 'out' ? BURGUNDY : ROSE;
+      const accent = accentColor(item.type);
       document.getElementById('date-activity-icon').innerHTML = ideaIcon(item, 16, accent);
       document.getElementById('date-activity-label').textContent = item.name;
-      document.getElementById('date-activity-label').style.color = '#2a1f1f';
+      document.getElementById('date-activity-label').style.color = document.body.classList.contains('dark-mode') ? 'var(--text-primary)' : '#2a1f1f';
       document.getElementById('date-activity-btn').style.borderColor = accent;
       document.getElementById('date-custom-wrap').style.display = 'none';
       document.getElementById('date-location-label').style.display = 'none';
@@ -4821,7 +5027,7 @@ function planDateFromIdea(ideaId) {
     }
     sheetMode = 'date';
     sheetOpen = true;
-    document.getElementById('idea-sheet').style.display = 'block';
+    document.getElementById('idea-sheet').style.display = 'flex';
     document.getElementById('btn-new-circle').style.background = '#a05268';
     document.getElementById('btn-new-icon-plus').style.display = 'none';
     document.getElementById('btn-new-icon-check').style.display = 'block';
@@ -4872,6 +5078,24 @@ function buildWalkDriveBadgesHtml(walkDriveTime) {
   if(walkMatch&&driveMatch) html+=`<span style="color:#c8bfb6;font-size:12px">/</span>`;
   if(driveMatch) html+=`<span style="display:flex;align-items:center;gap:3px;font-size:12px;color:#9a8a7a;font-family:sans-serif">${carSvg}${driveMatch[1]} min</span>`;
   return html;
+}
+
+
+function openReserveLink(url, dateKey) {
+  window.open(url, '_blank');
+  _reservedDateKeys.add(dateKey);
+  _saveReserved();
+  const btn = document.getElementById('di-reserve-btn');
+  if (btn) {
+    const chk = `<svg viewBox="0 0 24 24" width="16" height="16" stroke="#c07a8a" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`;
+    btn.outerHTML = `<button id="di-reserve-btn" onclick="unreserveDate('${dateKey}')" style="display:flex;align-items:center;justify-content:center;width:26px;height:26px;border:1.5px solid #c07a8a;border-radius:50%;background:none;cursor:pointer"><svg viewBox="0 0 24 24" width="11" height="11" stroke="#c07a8a" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-linejoin="round" style="display:block"><polyline points="20 6 9 17 4 12"/></svg></button>`;
+  }
+}
+
+function unreserveDate(dateKey) {
+  _reservedDateKeys.delete(dateKey);
+  _saveReserved();
+  if (currentDateInfo) openDateInfo(currentDateInfo);
 }
 
 function openDateInfo(u, memoryMode) {
@@ -4946,9 +5170,7 @@ function openDateInfo(u, memoryMode) {
   diTitle.textContent = name;
   if (matchedIdeaForBanner) {
     diTitle.style.cursor = 'pointer';
-    diTitle.style.textDecoration = 'underline';
-    diTitle.style.textDecorationColor = '#ddd8d0';
-    diTitle.style.textUnderlineOffset = '3px';
+    diTitle.style.textDecoration = '';
     diTitle.onclick = () => { closeDateInfo(); openDetail(matchedIdeaForBanner.id); };
   } else {
     diTitle.style.cursor = '';
@@ -5072,16 +5294,22 @@ function openDateInfo(u, memoryMode) {
     const resUrls = {
       resy: resyUrl,
       opentable: otUrl,
-      eventbrite: matchedIdea.eventbriteUrl || `https://www.eventbrite.com/d/online/${encodeURIComponent(u.venue)}/`
+      eventbrite: matchedIdea.eventbriteUrl || `https://www.eventbrite.com/d/online/${encodeURIComponent(u.venue)}/`,
+      website: matchedIdea.websiteUrl ? (/^https?:\/\//i.test(matchedIdea.websiteUrl) ? matchedIdea.websiteUrl : 'https://' + matchedIdea.websiteUrl) : ''
     };
-    const resUrl2 = resUrls[matchedIdea.reservation] || '#';
-    leftBtnDi = `<a href="${resUrl2}" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:7px;padding:7px 16px;border:1.5px solid #c07a8a;border-radius:7px;font-family:sans-serif;font-size:13px;font-weight:600;color:#c07a8a;text-decoration:none;line-height:1">${resIcon}Reserve</a>`;
+    const resUrl2 = resUrls[matchedIdea.reservation] || '';
+    if (matchedIdea.reservation !== 'website' || resUrl2) {
+      const _dk = _dateKey(u);
+      const _alreadyReserved = _reservedDateKeys.has(_dk);
+      const _diLabel = (matchedIdea.reservation === 'resy' || matchedIdea.reservation === 'opentable') ? 'Reserve' : 'Tickets';
+      leftBtnDi = _alreadyReserved
+        ? `<button id="di-reserve-btn" onclick="unreserveDate('${_dk}')" style="display:flex;align-items:center;justify-content:center;width:26px;height:26px;border:1.5px solid #c07a8a;border-radius:50%;background:none;cursor:pointer"><svg viewBox="0 0 24 24" width="11" height="11" stroke="#c07a8a" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></button>`
+        : `<button id="di-reserve-btn" onclick="openReserveLink('${resUrl2.replace(/'/g,"'")}','${_dk}')" style="display:flex;align-items:center;gap:7px;height:34px;padding:0 16px;border:none;border-radius:17px;font-family:sans-serif;font-size:13px;font-weight:600;color:#fff;background:#c07a8a;cursor:pointer;line-height:1"><svg viewBox="0 0 24 24" width="14" height="14" stroke="#fff" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-linejoin="round" style="display:block;flex-shrink:0"><polyline points="20 6 9 17 4 12"/></svg>${_diLabel}</button>`;
+    }
   }
 
-  const rescheduleBtn = `<button onclick="editDateFromInfo()" style="display:flex;align-items:center;gap:7px;padding:7px 16px;border:1.5px solid #c07a8a;border-radius:7px;font-family:sans-serif;font-size:13px;font-weight:600;color:#fff;background:#c07a8a;cursor:pointer;line-height:1">${calIconDi}Edit Date</button>`;
-
-  if (leftBtnDi || rescheduleBtn) {
-    btnsWrap.innerHTML = leftBtnDi + rescheduleBtn;
+  if (leftBtnDi) {
+    btnsWrap.innerHTML = leftBtnDi;
     btnsWrap.style.display = 'flex';
   } else {
     btnsWrap.style.display = 'none';
@@ -5176,10 +5404,10 @@ function populateEditDateFields(u) {
     i.name.toLowerCase() === u.venue.toLowerCase());
   if (matched) {
     edSelectedActivity = matched;
-    const accent = matched.type === 'out' ? BURGUNDY : ROSE;
+    const accent = accentColor(matched.type);
     document.getElementById('ed-activity-icon').innerHTML = activityIcon(matched.category, 16, accent);
     document.getElementById('ed-activity-label').textContent = matched.name;
-    document.getElementById('ed-activity-label').style.color = '#2a1f1f';
+    document.getElementById('ed-activity-label').style.color = document.body.classList.contains('dark-mode') ? 'var(--text-primary)' : '#2a1f1f';
     document.getElementById('ed-activity-btn').style.borderColor = accent;
     document.getElementById('ed-custom-wrap').style.display = 'none';
     document.getElementById('ed-location-wrap').style.display = 'none';
@@ -5413,34 +5641,12 @@ function populateEditModal(item) {
   });
   sel.value = item.id;
 
-  // Swap pf-type options based on Out vs In
+  // Swap pf-type options based on Out vs In — built from cats + Edit sentinel
   const typeSelect = document.getElementById('pf-type');
-  if (isOut) {
-    typeSelect.innerHTML = `
-      <option value="restaurant">Restaurant</option>
-      <option value="bar">Bar</option>
-      <option value="cafe">Cafe</option>
-      <option value="movie">Movie</option>
-      <option value="museum">Museum</option>
-      <option value="bookstore">Bookstore</option>
-      <option value="livemusic">Live Music</option>
-      <option value="livejazz">Live Jazz</option>
-      <option value="concert">Concert</option>
-      <option value="livecomedy">Live Comedy</option>
-                  <option value="theatre">Theatre</option>
-      <option value="venue">Venue</option>
-      <option value="park">Park</option>
-      <option value="other">Other</option>`;
-  } else {
-    typeSelect.innerHTML = `
-      <option value="Order In">Order In</option>
-      <option value="Cook">Cook</option>
-      <option value="Movie">Movie</option>
-      <option value="Game">Game</option>
-      <option value="Activity">Activity</option>
-      <option value="Other">Other</option>`;
-  }
-  typeSelect.value = item.category || (isOut ? 'restaurant' : 'Order In');
+  window._pfTypeMode = isOut ? 'out' : 'in';
+  _rebuildPfTypeSelect(isOut ? 'out' : 'in');
+  typeSelect.value = item.category || (isOut ? OUT_CATS[0].id : IN_CATS[0].id);
+  window._pfPrevCat = typeSelect.value;
 
   // Type icon — load custom icon key and display
   _pfCustomIconKey = item.customIconKey || null;
@@ -5461,6 +5667,10 @@ function populateEditModal(item) {
   document.getElementById('pf-about').value = item.about || '';
   document.getElementById('pf-reservation').value = item.reservation || 'resy';
   document.getElementById('pf-eventbrite-url').value = item.eventbriteUrl || '';
+  const pfWebUrl = document.getElementById('pf-website-url');
+  if (pfWebUrl) { pfWebUrl.value = item.websiteUrl || ''; }
+  const pfWebWrap = document.getElementById('pf-website-wrap');
+  if (pfWebWrap) pfWebWrap.style.display = (item.reservation === 'website') ? 'block' : 'none';
 
   // Show/hide Out-only fields
   if (document.getElementById('pf-shortdesc')) document.getElementById('pf-shortdesc').value = item.shortdesc || '';
@@ -5570,6 +5780,7 @@ function savePlace() {
     item.walkDriveTime= document.getElementById('pf-walkdrive').value.trim();
     item.reservation  = document.getElementById('pf-reservation').value;
     item.eventbriteUrl= document.getElementById('pf-eventbrite-url').value.trim();
+    item.websiteUrl   = item.reservation === 'website' ? (document.getElementById('pf-website-url')||{value:''}).value.trim() : '';
 
     // Sync address/name/neighborhood change to any UPCOMING_DATES referencing this idea
     if (addrChanged || item.name !== oldName) {
@@ -5642,7 +5853,7 @@ function renderArchive() {
 
   function section(items, type) {
     if (!items.length) return '';
-    const accent = type === 'out' ? BURGUNDY : ROSE;
+    const accent = accentColor(type);
     const label = type === 'out' ? 'Going Out' : 'Staying In';
     return `<div style="margin-bottom:20px">
       <div style="font-size:11px;font-weight:700;letter-spacing:.08em;color:#b0a090;font-family:sans-serif;text-transform:uppercase;margin-bottom:8px">${label}</div>
@@ -5680,6 +5891,8 @@ function openSettings() {
   if (customWrap) customWrap.style.display = partnerPronouns === 'other' ? 'block' : 'none';
   if (partnerPronouns === 'other') document.getElementById('settings-pronouns-custom').value = partnerPronounsCustom;
   document.getElementById('settings-overlay').style.display = 'flex';
+  // Sync radio buttons to current appearance
+  setTimeout(() => _applyAppearance(_appearance), 0);
 }
 function onPronounsChange() {
   const val = document.getElementById('settings-pronouns').value;
@@ -5700,6 +5913,8 @@ function saveSettingsData() {
     partnerPronounsCustom = document.getElementById('settings-pronouns-custom').value.trim();
     appSettings.partnerPronounsCustom = partnerPronounsCustom;
   }
+  // Save appearance
+  localStorage.setItem('duet_appearance', _appearance);
   saveSettings(appSettings);
   // Update "Her place" option label in location dropdowns
   _updatePartnerPlaceOptions();
@@ -5727,7 +5942,7 @@ function closePlaces() {
       const updated = ideas.find(i => i.id === edSelectedActivity.id);
       if (updated) {
         edSelectedActivity = updated;
-        const accent = updated.type === 'out' ? BURGUNDY : ROSE;
+        const accent = accentColor(updated.type);
         document.getElementById('ed-activity-icon').innerHTML = activityIcon(updated.category, 16, accent);
         document.getElementById('ed-activity-label').textContent = updated.name;
         document.getElementById('ed-activity-label').style.color = '#2a1f1f';
@@ -5789,10 +6004,10 @@ let _ecIconPrev = null;
 let _ideaIconMode = false; // true when icon picker opened from Edit Idea
 let _pfCustomIconKey = null; // temp custom icon key while editing an idea
 
-function openEditCategories() {
+function openEditCategories(startType) {
   _ecOut = OUT_CATS.map(c => ({...c}));
   _ecIn  = IN_CATS.map(c => ({...c}));
-  _ecType = 'out';
+  _ecType = (startType === 'in') ? 'in' : 'out';
   _renderEcToggle();
   _renderEcList();
   document.getElementById('editcats-overlay').style.display = 'flex';
@@ -5898,7 +6113,8 @@ function _ecDragOver(e, i) {
   if (_ecDragOverIdx !== i) {
     _ecDragOverIdx = i;
     document.querySelectorAll('.ec-row').forEach((r, ri) => {
-      r.style.borderTop = (ri === i && i !== _ecDragIdx) ? '2px solid #8b3a52' : '';
+      const _dmEc = document.body.classList.contains('dark-mode');
+      r.style.borderTop = (ri === i && i !== _ecDragIdx) ? `2px solid ${_dmEc ? ROSE : BURGUNDY}` : '';
     });
   }
 }
@@ -5949,7 +6165,8 @@ function _initEcTouchDrag() {
       lastOverIdx = null;
       rows.forEach((r, ri) => {
         const isOver = r === overRow && ri !== i;
-        r.style.borderTop = isOver ? '2px solid #8b3a52' : '';
+        const _dmEcT = document.body.classList.contains('dark-mode');
+        r.style.borderTop = isOver ? `2px solid ${_dmEcT ? ROSE : BURGUNDY}` : '';
         if (isOver) lastOverIdx = ri;
       });
     }, {passive:false});
@@ -6004,9 +6221,11 @@ function _openIconPicker(catIdx) {
   grid.innerHTML = ALL_ICON_KEYS.map(key => {
     const sel = key === current;
     const prev = key === _ecIconPrev && !sel;
-    const iconColor = sel ? '#8b3a52' : prev ? '#c07a8a' : '#b0a090';
-    const bg = sel ? 'rgba(139,58,82,0.08)' : 'transparent';
-    const border = sel ? '#8b3a52' : 'transparent';
+    const _dm = document.body.classList.contains('dark-mode');
+    const _selC = _dm ? ROSE : BURGUNDY;
+    const iconColor = sel ? _selC : prev ? ROSE : '#b0a090';
+    const bg = sel ? (_dm ? 'rgba(192,122,138,0.12)' : 'rgba(139,58,82,0.08)') : 'transparent';
+    const border = sel ? _selC : 'transparent';
     return `<button onclick="_ecSelectIcon('${key}')" id="iconpicker-btn-${key}"
       style="display:flex;align-items:center;justify-content:center;aspect-ratio:1;background:${bg};border:2px solid ${border};border-radius:10px;cursor:pointer;padding:7px">
       ${ICONS[key] ? ICONS[key](22, iconColor) : ''}
@@ -6016,14 +6235,16 @@ function _openIconPicker(catIdx) {
 }
 function _ecSelectIcon(key) {
   _ecIconSelected = key;
+  const _dm = document.body.classList.contains('dark-mode');
+  const _selC = _dm ? ROSE : BURGUNDY;
   ALL_ICON_KEYS.forEach(k => {
     const btn = document.getElementById(`iconpicker-btn-${k}`);
     if (!btn) return;
     const sel = k === key;
     const prev = k === _ecIconPrev && !sel;
-    const iconColor = sel ? '#8b3a52' : prev ? '#c07a8a' : '#b0a090';
-    btn.style.background = sel ? 'rgba(139,58,82,0.08)' : 'transparent';
-    btn.style.border = `2px solid ${sel ? '#8b3a52' : 'transparent'}`;
+    const iconColor = sel ? _selC : prev ? ROSE : '#b0a090';
+    btn.style.background = sel ? (_dm ? 'rgba(192,122,138,0.12)' : 'rgba(139,58,82,0.08)') : 'transparent';
+    btn.style.border = `2px solid ${sel ? _selC : 'transparent'}`;
     btn.innerHTML = ICONS[k] ? ICONS[k](22, iconColor) : '';
   });
 }
@@ -6060,9 +6281,11 @@ function openIdeaIconPicker() {
   grid.innerHTML = ALL_ICON_KEYS.map(key => {
     const sel = key === currentKey;
     const prev = key === _ecIconPrev && !sel;
-    const iconColor = sel ? '#8b3a52' : prev ? '#c07a8a' : '#b0a090';
-    const bg = sel ? 'rgba(139,58,82,0.08)' : 'transparent';
-    const border = sel ? '#8b3a52' : 'transparent';
+    const _dm2 = document.body.classList.contains('dark-mode');
+    const _selC2 = _dm2 ? ROSE : BURGUNDY;
+    const iconColor = sel ? _selC2 : prev ? ROSE : '#b0a090';
+    const bg = sel ? (_dm2 ? 'rgba(192,122,138,0.12)' : 'rgba(139,58,82,0.08)') : 'transparent';
+    const border = sel ? _selC2 : 'transparent';
     return `<button onclick="_ecSelectIcon('${key}')" id="iconpicker-btn-${key}"
       style="display:flex;align-items:center;justify-content:center;aspect-ratio:1;background:${bg};border:2px solid ${border};border-radius:10px;cursor:pointer;padding:7px">
       ${ICONS[key] ? ICONS[key](22, iconColor) : ''}
@@ -6082,7 +6305,8 @@ function _updatePfTypeIcon() {
   const defaultKey = _ideaDefaultIconKey(typeVal);
   const isCustom = _pfCustomIconKey && _pfCustomIconKey !== defaultKey;
   const iconKey = isCustom ? _pfCustomIconKey : defaultKey;
-  const color = isCustom ? '#8b3a52' : '#9a8a7a';
+  const _dmPf = document.body.classList.contains('dark-mode');
+  const color = isCustom ? (_dmPf ? ROSE : BURGUNDY) : '#9a8a7a';
   const iconEl = document.getElementById('pf-type-icon');
   if (iconEl) iconEl.innerHTML = ICONS[iconKey] ? ICONS[iconKey](18, color) : activityIcon(typeVal, 18, color);
 }
@@ -6143,11 +6367,150 @@ function _rebuildAllCatDropdowns() {
   // pf-type (places modal)
   const pfType = document.getElementById('pf-type');
   if (pfType) {
-    const prev = pfType.value;
-    pfType.innerHTML = OUT_CATS.map(c => `<option value="${c.id}">${c.label}</option>`).join('');
-    if (OUT_CATS.find(c => c.id === prev)) pfType.value = prev;
+    const prev = window._pfPrevCat || pfType.value;
+    const curType = window._pfTypeMode || 'out';
+    _rebuildPfTypeSelect(curType);
+    const cats = curType === 'in' ? IN_CATS : OUT_CATS;
+    if (cats.find(c => c.id === prev)) { pfType.value = prev; window._pfPrevCat = prev; }
+    else { pfType.value = cats[0] ? cats[0].id : ''; window._pfPrevCat = pfType.value; }
   }
 }
+
+function _rebuildPfTypeSelect(type) {
+  const pfType = document.getElementById('pf-type');
+  if (!pfType) return;
+  const cats = type === 'in' ? IN_CATS : OUT_CATS;
+  pfType.innerHTML = cats.map(c => `<option value="${c.id}">${c.label}</option>`).join('')
+    + `<option value="__edit_cats__" style="color:#9a8a7a;font-style:italic">Edit categories…</option>`;
+}
+
+// ═══════════════════════════════════════════════════════
+// DARK MODE
+// ═══════════════════════════════════════════════════════
+let _appearance = localStorage.getItem('duet_appearance') || 'light';
+function _applyAppearance(mode) {
+  _appearance = mode;
+  document.body.classList.toggle('dark-mode', mode === 'dark');
+  // Re-render week strip so day number colors update immediately
+  if (currentView === 'home') {
+    const inner = document.getElementById('week-strip-inner');
+    if (inner) {
+      const ws = document.getElementById('week-strip-scroll');
+      const curPage = ws ? (parseInt(ws.getAttribute('data-cur-page')) || 0) : 0;
+      const newHtml = renderWeekStrip();
+      const tmp = document.createElement('div');
+      tmp.innerHTML = newHtml;
+      const newInner = tmp.querySelector('#week-strip-inner');
+      if (newInner) inner.innerHTML = newInner.innerHTML;
+      setTimeout(() => _initWeekStrip(curPage), 0);
+    }
+  }
+  // Update radio buttons if settings is open
+  const rLight = document.getElementById('radio-light');
+  const rDark  = document.getElementById('radio-dark');
+  if (rLight && rDark) {
+    if (mode === 'light') {
+      rLight.style.cssText = 'width:18px;height:18px;border-radius:50%;border:2px solid #c07a8a;background:#c07a8a;display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer';
+      rLight.children[0].style.background = '#fff';
+      rDark.style.cssText = 'width:18px;height:18px;border-radius:50%;border:2px solid #c8bfb6;background:transparent;display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer';
+      rDark.children[0].style.background = 'transparent';
+    } else {
+      rLight.style.cssText = 'width:18px;height:18px;border-radius:50%;border:2px solid #c8bfb6;background:transparent;display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer';
+      rLight.children[0].style.background = 'transparent';
+      rDark.style.cssText = 'width:18px;height:18px;border-radius:50%;border:2px solid #c07a8a;background:#c07a8a;display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer';
+      rDark.children[0].style.background = '#fff';
+    }
+  }
+}
+function setAppearance(mode) {
+  _applyAppearance(mode);
+}
+_applyAppearance(_appearance); // apply on load
+
+// ═══════════════════════════════════════════════════════
+// MORE MENU
+// ═══════════════════════════════════════════════════════
+function openMoreMenu() {
+  document.getElementById('more-menu-overlay').style.display = 'flex';
+}
+function closeMoreMenu() {
+  document.getElementById('more-menu-overlay').style.display = 'none';
+}
+
+// ═══════════════════════════════════════════════════════
+// ERASE CONFIRM
+// ═══════════════════════════════════════════════════════
+function openEraseConfirm() {
+  document.getElementById('erase-confirm-overlay').style.display = 'flex';
+}
+function closeEraseConfirm() {
+  document.getElementById('erase-confirm-overlay').style.display = 'none';
+}
+function eraseAllData() {
+  // Clear all app data
+  localStorage.removeItem('lovelife_ideas');
+  localStorage.removeItem('lovelife_dates');
+  localStorage.removeItem('ll_memories');
+  localStorage.removeItem('lovelife_todos');
+  localStorage.removeItem('ll_cats');
+  localStorage.removeItem('duet_reserved');
+  // Reload to fresh state
+  location.reload();
+}
+
+// ═══════════════════════════════════════════════════════
+// IMPORT DATA
+// ═══════════════════════════════════════════════════════
+function importData() {
+  document.getElementById('import-file-input').click();
+}
+function handleImportFile(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(ev) {
+    try {
+      const data = JSON.parse(ev.target.result);
+      // Merge ideas
+      if (Array.isArray(data.ideas)) {
+        const existingIds = new Set(ideas.map(i => i.id));
+        const existingNames = new Set(ideas.map(i => (i.name||'').toLowerCase().trim()));
+        data.ideas.forEach(imp => {
+          if (!existingIds.has(imp.id) && !existingNames.has((imp.name||'').toLowerCase().trim())) {
+            ideas.push(imp);
+          }
+        });
+        saveIdeas(ideas);
+      }
+      // Merge upcoming dates
+      if (Array.isArray(data.upcomingDates)) {
+        const existingDates = new Set(UPCOMING_DATES.map(d => d.month+'-'+d.day+'-'+(d.year||2026)+'-'+(d.venue||'').toLowerCase()));
+        data.upcomingDates.forEach(imp => {
+          const key = imp.month+'-'+imp.day+'-'+(imp.year||2026)+'-'+(imp.venue||'').toLowerCase();
+          if (!existingDates.has(key)) UPCOMING_DATES.push(imp);
+        });
+        saveDates(UPCOMING_DATES);
+      }
+      // Merge todos
+      if (Array.isArray(data.todos)) {
+        const existingTodoIds = new Set(todos.map(t => t.id));
+        data.todos.forEach(imp => {
+          if (!existingTodoIds.has(imp.id)) todos.push(imp);
+        });
+        localStorage.setItem('lovelife_todos', JSON.stringify(todos));
+      }
+      FUTURE_DATES = buildFutureDates();
+      closeMoreMenu();
+      render();
+      alert('Import complete!');
+    } catch(err) {
+      alert('Could not read file. Make sure it\'s a valid duet export.');
+    }
+    e.target.value = '';
+  };
+  reader.readAsText(file);
+}
+
 
 render();
 </script>
