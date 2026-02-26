@@ -6245,15 +6245,11 @@ function _renderEcToggle() {
   const btnIn  = document.getElementById('editcats-btn-in');
   if (!btnOut || !btnIn) return;
   const isOut = _ecType === 'out';
-  const cs = getComputedStyle(document.documentElement);
-  const activeBg    = cs.getPropertyValue('--toggle-active-bg').trim();
-  const activeColor = cs.getPropertyValue('--toggle-active-color').trim();
-  const inactiveColor = cs.getPropertyValue('--text-secondary').trim();
-  btnOut.style.background    = isOut ? activeBg : 'transparent';
-  btnOut.style.color         = isOut ? activeColor : inactiveColor;
+  btnOut.style.background    = isOut ? 'var(--toggle-active-bg)' : 'transparent';
+  btnOut.style.color         = isOut ? 'var(--toggle-active-color)' : 'var(--text-secondary)';
   btnOut.style.boxShadow     = isOut ? '0 1px 3px rgba(0,0,0,0.1)' : 'none';
-  btnIn.style.background     = !isOut ? activeBg : 'transparent';
-  btnIn.style.color          = !isOut ? activeColor : inactiveColor;
+  btnIn.style.background     = !isOut ? 'var(--toggle-active-bg)' : 'transparent';
+  btnIn.style.color          = !isOut ? 'var(--toggle-active-color)' : 'var(--text-secondary)';
   btnIn.style.boxShadow      = !isOut ? '0 1px 3px rgba(0,0,0,0.1)' : 'none';
 }
 function _renderEcList() {
