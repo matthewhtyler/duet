@@ -6,7 +6,9 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="duet">
-<meta name="theme-color" content="#faf8f5">
+<link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiIgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIj4KICA8cmVjdCB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHJ4PSI3IiBmaWxsPSIjMjExZDFjIi8+CiAgPGNpcmNsZSBjeD0iMTIiIGN5PSIxNiIgcj0iNyIgc3Ryb2tlPSIjYzA3YThhIiBzdHJva2Utd2lkdGg9IjIuNSIgZmlsbD0ibm9uZSIvPgogIDxjaXJjbGUgY3g9IjIwIiBjeT0iMTYiIHI9IjciIHN0cm9rZT0iIzg0NTc2NCIgc3Ryb2tlLXdpZHRoPSIyLjUiIGZpbGw9Im5vbmUiLz4KPC9zdmc+">
+  <link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiIgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIj4KICA8cmVjdCB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHJ4PSI3IiBmaWxsPSIjMjExZDFjIi8+CiAgPGNpcmNsZSBjeD0iMTIiIGN5PSIxNiIgcj0iNyIgc3Ryb2tlPSIjYzA3YThhIiBzdHJva2Utd2lkdGg9IjIuNSIgZmlsbD0ibm9uZSIvPgogIDxjaXJjbGUgY3g9IjIwIiBjeT0iMTYiIHI9IjciIHN0cm9rZT0iIzg0NTc2NCIgc3Ryb2tlLXdpZHRoPSIyLjUiIGZpbGw9Im5vbmUiLz4KPC9zdmc+">
+  <meta name="theme-color" content="#faf8f5">
 <title>duet</title>
 <style>
   :root {
@@ -282,6 +284,18 @@
     border-right: 6px solid transparent;
     border-bottom: 6px solid var(--bg-card);
   }
+
+  /* Tooltips: force light mode colors in dark mode */
+  body.dark-mode #week-tooltip,
+  body.dark-mode .picker-tooltip {
+    background: #f5f1ec;
+    border-color: #ddd8d0;
+    color: #3a3330;
+  }
+  body.dark-mode #week-tooltip::before { border-bottom-color: #ddd8d0; }
+  body.dark-mode #week-tooltip::after  { border-bottom-color: #f5f1ec; }
+  body.dark-mode .picker-tooltip::before { border-bottom-color: #ddd8d0; }
+  body.dark-mode .picker-tooltip::after  { border-bottom-color: #f5f1ec; }
 
   /* ── Next Date Bubble ── */
   #next-date-card {
@@ -3484,9 +3498,14 @@ function _scrollDateCards(animate) {
     }
     requestAnimationFrame(step);
   } else {
+    scroll.style.visibility = 'hidden';
     scroll.style.scrollSnapType = 'none';
     scroll.scrollLeft = dateIdx * w;
-    requestAnimationFrame(() => { scroll.style.scrollSnapType = 'x mandatory'; });
+    requestAnimationFrame(() => {
+      scroll.scrollLeft = dateIdx * w;
+      scroll.style.scrollSnapType = 'x mandatory';
+      scroll.style.visibility = '';
+    });
   }
   _updateDateCardsUI();
 }
@@ -3499,10 +3518,15 @@ function _initDateCardsScroll() {
   if (!w) return;
   // Set each slide to outer container width
   scroll.querySelectorAll('.date-card-slide').forEach(s => { s.style.width = w + 'px'; });
-  // Scroll to current dateIdx without animation
+  // Scroll to current dateIdx without animation — hide during reposition to prevent flash
+  scroll.style.visibility = 'hidden';
   scroll.style.scrollSnapType = 'none';
   scroll.scrollLeft = dateIdx * w;
-  requestAnimationFrame(() => { scroll.style.scrollSnapType = 'x mandatory'; });
+  requestAnimationFrame(() => {
+    scroll.scrollLeft = dateIdx * w; // set again in case browser reset it
+    scroll.style.scrollSnapType = 'x mandatory';
+    scroll.style.visibility = '';
+  });
   _updateDateCardsUI();
   // Listen for swipe to update dateIdx + week strip
   if (scroll._dateScrollHandler) scroll.removeEventListener('scroll', scroll._dateScrollHandler);
