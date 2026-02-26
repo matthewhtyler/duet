@@ -317,6 +317,7 @@
     margin: 22px 20px 0; border-radius: 14px; overflow: hidden;
     position: relative; min-height: 70px; box-sizing: border-box;
     box-shadow: 0 4px 20px rgba(139,58,82,0.45);
+    background: linear-gradient(to right, #8b3a52 50%, #c07a8a 50%);
   }
   body.dark-mode #date-cards-outer { box-shadow: none; }
   body.dark-mode #next-date-card { box-shadow: none !important; }
@@ -325,7 +326,7 @@
     overflow-x: scroll; overflow-y: hidden;
     scrollbar-width: none; -ms-overflow-style: none;
     scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch;
-    display: flex; font-size: 0; overscroll-behavior-x: none;
+    display: flex; font-size: 0;
   }
   #date-cards-scroll::-webkit-scrollbar { display: none; }
   #date-cards-inner { display: flex; width: max-content; font-size: 0; }
@@ -825,7 +826,7 @@
       <div class="field-label">Note</div>
       <input class="field-input" id="date-note" type="text" placeholder="" style="margin-bottom:0">
       <!-- Date lock row -->
-      <div style="display:flex;justify-content:center;padding:18px 0 8px">
+      <div style="display:flex;justify-content:center;padding:17px 0 9px">
         <button id="date-lock-btn" onclick="toggleDatePrivate()" type="button" style="background:none;border:none;cursor:pointer;padding:4px;display:flex;color:#9a8a7a" title="Mark as private"></button>
       </div>
     </div>
@@ -4068,7 +4069,8 @@ function _pickerSetDay(prefix, yyyy, mm, dd) {
     const labelSpan = cell.querySelector('.week-day-label');
     if (numWrap) numWrap.style.background = isSelected ? ROSE : isToday ? 'rgba(192,122,138,0.15)' : 'transparent';
     if (numSpan) {
-      numSpan.style.color = isSelected ? '#fff' : isToday ? ROSE : '#2a1f1f';
+      const _dm = document.body.classList.contains('dark-mode');
+      numSpan.style.color = isSelected ? '#fff' : isToday ? ROSE : (_dm ? '#f0ede9' : '#2a1f1f');
       numSpan.style.fontWeight = (isSelected || isToday) ? '700' : '400';
     }
     if (labelSpan) labelSpan.style.fontWeight = (isSelected || isToday) ? '700' : '400';
