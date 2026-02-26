@@ -2556,7 +2556,7 @@ function _buildResUrl(name, res, dateStr, timeStr, eventbriteUrl, websiteUrl) {
     if (!websiteUrl) return '';
     return /^https?:\/\//i.test(websiteUrl) ? websiteUrl : 'https://' + websiteUrl;
   }
-  return `https://resy.com/cities/new-york-ny/venues/${slug}?query=${q}&date=${dateStr}&seats=2`;
+  return `https://resy.com/cities/new-york-ny/venues/${slug}?query=`;
 }
 
 function _todoRow(t) {
@@ -5477,9 +5477,8 @@ function openDateInfo(u, memoryMode) {
         resTimeParam = `${String(hr).padStart(2,'0')}:${mn}`;
       }
     }
-    let resyUrl = `https://resy.com/cities/ny?query=${encodeURIComponent(u.venue)}&party_size=2`;
-    if (resDateParam) resyUrl += `&date=${resDateParam}`;
-    if (resTimeParam) resyUrl += `&time=${resTimeParam}`;
+    const resySlug = u.venue.toLowerCase().replace(/[^a-z0-9\s]/g,'').replace(/\s+/g,'-');
+    let resyUrl = `https://resy.com/cities/new-york-ny/venues/${resySlug}?query=`;
     let otUrl = `https://www.opentable.com/s?term=${encodeURIComponent(u.venue)}&covers=2`;
     if (resDateParam) otUrl += `&datetime=${resDateParam}${resTimeParam ? 'T'+resTimeParam : ''}`;
     const resUrls = {
