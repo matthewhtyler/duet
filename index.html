@@ -5969,7 +5969,7 @@ function closeMenu() {
   document.getElementById('nav-menu-dropdown').style.display = 'none';
 }
 
-function exportAllData() {
+async function exportAllData() {
   const data = {
     exportedAt: new Date().toISOString(),
     ideas: ideas,
@@ -5980,11 +5980,26 @@ function exportAllData() {
     settings: (() => { try { return JSON.parse(localStorage.getItem('ll_settings') || '{}'); } catch(e) { return {}; } })(),
   };
   const json = JSON.stringify(data, null, 2);
+  const filename = 'duet-' + new Date().toISOString().slice(0,10) + '.json';
+  if (window.showSaveFilePicker) {
+    try {
+      const fh = await window.showSaveFilePicker({
+        suggestedName: filename,
+        types: [{ description: 'JSON file', accept: { 'application/json': ['.json'] } }]
+      });
+      const writable = await fh.createWritable();
+      await writable.write(json);
+      await writable.close();
+      return;
+    } catch(e) {
+      if (e.name === 'AbortError') return;
+    }
+  }
   const blob = new Blob([json], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = 'duet-export-' + new Date().toISOString().slice(0,10) + '.json';
+  a.download = filename;
   document.body.appendChild(a);
   a.click();
   setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 1000);
@@ -6424,6 +6439,7 @@ function _applyAppearance(mode) {
 }
 function setAppearance(mode) {
   _applyAppearance(mode);
+  render();
 }
 _applyAppearance(_appearance); // apply on load
 
