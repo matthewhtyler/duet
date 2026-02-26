@@ -82,6 +82,8 @@
     overflow-x: hidden;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
+    padding-top: 57px;
+    box-sizing: border-box;
   }
   button { font-family: inherit; cursor: pointer; -webkit-appearance: none; }
   input, textarea { font-family: sans-serif; -webkit-appearance: none; }
@@ -93,7 +95,9 @@
     padding: 18px 20px 14px;
     border-bottom: 1px solid var(--nav-border);
     background: var(--nav-bg);
-    position: sticky; top: 0; z-index: 50;
+    position: fixed; top: 0; left: 50%; transform: translateX(-50%);
+    width: 100%; max-width: 390px; box-sizing: border-box;
+    z-index: 60;
   }
   #nav-logo { display: flex; align-items: center; gap: 8px; background: none; border: none; outline: none; cursor: pointer; }
   #nav-logo span { font-size: 17px; font-weight: 600; letter-spacing: 0.02em; color: var(--text-primary); }
