@@ -468,6 +468,10 @@
   .idea-row { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
   .idea-row-top { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 12px; }
   .idea-row .field-input, .idea-row-top .field-input { flex: 1; margin-bottom: 0; }
+  .todo-link { color:#2a1f1f; font-weight:700; cursor:pointer; }
+  .todo-link.done { color:#b0a090; text-decoration:line-through; }
+  body.dark-mode .todo-link { color:#dcd6ce; }
+  body.dark-mode .todo-link.done { color:#b0a090; }
   .img-field-row { display:flex; align-items:center; gap:6px; margin-bottom:8px; }
   .img-field-row .field-input { flex:1 !important; width:auto !important; margin-bottom:0 !important; min-width:0; box-sizing:border-box; }
   .img-btn { background:none; border:none; cursor:pointer; padding:0; display:flex !important; align-items:center; justify-content:center; flex-shrink:0; width:20px !important; height:20px !important; line-height:0; }
@@ -2583,8 +2587,7 @@ function _todoRow(t) {
       resUrl = _buildResUrl(placeName, 'resy', dateStr, '19:00', '');
     }
     if (placeName) {
-      const linkStyle = `color:${t.done?'#b0a090':'#2a1f1f'};font-weight:700;text-decoration:${t.done?'line-through':'none'};cursor:pointer`;
-      mainHtml = `<span style="${baseStyle}">Make a reservation at <a onclick="event.stopPropagation();window.open('${resUrl}','_blank')" style="${linkStyle}">${placeName}</a></span>`;
+      mainHtml = `<span style="${baseStyle}">Make a reservation at <a onclick="event.stopPropagation();window.open('${resUrl}','_blank')" class="todo-link${t.done?' done':''}">${placeName}</a></span>`;
     } else {
       mainHtml = `<span style="${baseStyle}">Make a reservation</span>`;
     }
@@ -2598,8 +2601,7 @@ function _todoRow(t) {
     }
     if (actName) {
       const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(actName + ' tickets')}`;
-      const linkStyle = `color:${t.done?'#b0a090':'#2a1f1f'};font-weight:700;text-decoration:${t.done?'line-through':'none'};cursor:pointer`;
-      mainHtml = `<span style="${baseStyle}">Buy tickets for <a onclick="event.stopPropagation();window.open('${searchUrl}','_blank')" style="${linkStyle}">${actName}</a></span>`;
+      mainHtml = `<span style="${baseStyle}">Buy tickets for <a onclick="event.stopPropagation();window.open('${searchUrl}','_blank')" class="todo-link${t.done?' done':''}">${actName}</a></span>`;
     } else {
       mainHtml = `<span style="${baseStyle}">Buy tickets</span>`;
     }
