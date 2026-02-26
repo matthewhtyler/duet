@@ -317,7 +317,6 @@
     margin: 22px 20px 0; border-radius: 14px; overflow: hidden;
     position: relative; min-height: 70px; box-sizing: border-box;
     box-shadow: 0 4px 20px rgba(139,58,82,0.45);
-    background: linear-gradient(to right, #8b3a52 50%, #c07a8a 50%);
   }
   body.dark-mode #date-cards-outer { box-shadow: none; }
   body.dark-mode #next-date-card { box-shadow: none !important; }
@@ -326,9 +325,10 @@
     overflow-x: scroll; overflow-y: hidden;
     scrollbar-width: none; -ms-overflow-style: none;
     scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch;
+    display: flex; font-size: 0; overscroll-behavior-x: none;
   }
   #date-cards-scroll::-webkit-scrollbar { display: none; }
-  #date-cards-inner { display: flex; width: max-content; }
+  #date-cards-inner { display: flex; width: max-content; font-size: 0; }
   .date-card-slide {
     flex-shrink: 0; scroll-snap-align: start; scroll-snap-stop: always;
     box-sizing: border-box; cursor: pointer;
