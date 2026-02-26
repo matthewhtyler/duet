@@ -441,7 +441,7 @@
     width: 100%; max-width: 402px;
     background: var(--bg); border-radius: 20px 20px 0 0;
     border-top: 1px solid var(--border); border-left: 1px solid var(--border); border-right: 1px solid var(--border);
-    max-height: 82vh; display: none;
+    max-height: calc(82vh - 150px); display: none;
     z-index: 56; box-shadow: 0 -8px 32px rgba(0,0,0,0.08);
   }
   #idea-sheet { flex-direction: column; overflow: hidden; }
@@ -532,7 +532,7 @@
         <circle id="logo-circle-light" cx="11" cy="9" r="7.5" stroke="#c07a8a" stroke-width="2.8"/>
         <circle id="logo-circle-dark" cx="18" cy="9" r="7.5" stroke="#8b3a52" stroke-width="2.8"/>
       </svg>
-      <span>duet</span>
+      <span style="color:orange">duet</span>
     </button>
     <button id="nav-back" onclick="navigate('home')" style="display:none">
       <svg viewBox="0 0 24 24" width="20" height="20" stroke="#b0a090" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
