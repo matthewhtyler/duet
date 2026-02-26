@@ -6480,6 +6480,21 @@ function eraseAllData() {
 function importData() {
   document.getElementById('import-file-input').click();
 }
+function _mergeFields(existing, imported) {
+  Object.keys(imported).forEach(key => {
+    const impVal = imported[key];
+    const curVal = existing[key];
+    if (impVal === null || impVal === undefined) return;
+    if (Array.isArray(impVal)) {
+      if (!Array.isArray(curVal) || curVal.length === 0) existing[key] = impVal;
+    } else if (typeof impVal === 'object') {
+      if (!curVal || (typeof curVal === 'object' && Object.keys(curVal).length === 0)) existing[key] = impVal;
+    } else {
+      if (curVal === null || curVal === undefined || curVal === '') existing[key] = impVal;
+    }
+  });
+}
+
 function handleImportFile(e) {
   const file = e.target.files[0];
   if (!file) return;
@@ -6487,31 +6502,29 @@ function handleImportFile(e) {
   reader.onload = function(ev) {
     try {
       const data = JSON.parse(ev.target.result);
-      // Merge ideas
+      // Merge ideas: patch existing matches, add new ones
       if (Array.isArray(data.ideas)) {
-        const existingIds = new Set(ideas.map(i => i.id));
-        const existingNames = new Set(ideas.map(i => (i.name||'').toLowerCase().trim()));
         data.ideas.forEach(imp => {
-          if (!existingIds.has(imp.id) && !existingNames.has((imp.name||'').toLowerCase().trim())) {
-            ideas.push(imp);
-          }
+          const match = ideas.find(i => i.id === imp.id)
+                     || ideas.find(i => (i.name||'').toLowerCase().trim() === (imp.name||'').toLowerCase().trim());
+          if (match) { _mergeFields(match, imp); } else { ideas.push(imp); }
         });
         saveIdeas(ideas);
       }
-      // Merge upcoming dates
+      // Merge upcoming dates: patch existing matches, add new ones
       if (Array.isArray(data.upcomingDates)) {
-        const existingDates = new Set(UPCOMING_DATES.map(d => d.month+'-'+d.day+'-'+(d.year||2026)+'-'+(d.venue||'').toLowerCase()));
         data.upcomingDates.forEach(imp => {
           const key = imp.month+'-'+imp.day+'-'+(imp.year||2026)+'-'+(imp.venue||'').toLowerCase();
-          if (!existingDates.has(key)) UPCOMING_DATES.push(imp);
+          const match = UPCOMING_DATES.find(d => d.month+'-'+d.day+'-'+(d.year||2026)+'-'+(d.venue||'').toLowerCase() === key);
+          if (match) { _mergeFields(match, imp); } else { UPCOMING_DATES.push(imp); }
         });
         saveDates(UPCOMING_DATES);
       }
-      // Merge todos
+      // Merge todos: patch existing matches, add new ones
       if (Array.isArray(data.todos)) {
-        const existingTodoIds = new Set(todos.map(t => t.id));
         data.todos.forEach(imp => {
-          if (!existingTodoIds.has(imp.id)) todos.push(imp);
+          const match = todos.find(t => t.id === imp.id);
+          if (match) { _mergeFields(match, imp); } else { todos.push(imp); }
         });
         localStorage.setItem('lovelife_todos', JSON.stringify(todos));
       }
