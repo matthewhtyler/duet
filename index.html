@@ -2067,8 +2067,6 @@ function detailImgNav(itemId, dir, e) {
 function _makeImgFieldRow(value, containerId) {
   const row = document.createElement('div');
   row.className = 'img-field-row';
-  row.draggable = true;
-
   // Drag grip
   const grip = document.createElement('span');
   grip.style.cssText = 'flex-shrink:0;display:flex;align-items:center;cursor:grab;line-height:0';
@@ -2125,28 +2123,104 @@ function _makeImgFieldRow(value, containerId) {
   inp.addEventListener('input', _updateRow);
   if (value) setTimeout(_updateRow, 0);
 
-  // Drag-to-reorder
-  row.addEventListener('dragstart', e => {
-    e.dataTransfer.effectAllowed = 'move';
-    setTimeout(() => row.style.opacity = '0.4', 0);
-  });
-  row.addEventListener('dragend', () => { row.style.opacity = '1'; });
-  row.addEventListener('dragover', e => {
-    e.preventDefault();
-    const container = document.getElementById(containerId);
-    if (!container) return;
-    const dragging = container.querySelector('.img-field-row[style*="opacity: 0.4"], .img-field-row[style*="opacity:0.4"]');
-    if (dragging && dragging !== row) {
-      const rows = [...container.querySelectorAll('.img-field-row')];
-      const fi = rows.indexOf(dragging), ti = rows.indexOf(row);
-      if (fi !== -1 && ti !== -1) {
-        if (fi < ti) container.insertBefore(dragging, row.nextSibling);
-        else container.insertBefore(dragging, row);
-      }
-    }
-  });
+  // Touch/mouse drag-to-reorder — works on mobile and desktop
+  // Drag handle: grip OR thumb
+  [grip, thumb].forEach(handle => _attachImgRowDrag(handle, row, containerId));
 
   return row;
+}
+
+function _attachImgRowDrag(handle, row, containerId) {
+  let clone = null, startY = 0, offsetY = 0, dragging = false, scrollEl = null;
+
+  function getContainer() { return document.getElementById(containerId); }
+
+  function startDrag(clientY) {
+    dragging = true;
+    const rect = row.getBoundingClientRect();
+    startY = clientY;
+    offsetY = clientY - rect.top;
+
+    // Find scrollable parent
+    scrollEl = row.closest('[style*="overflow-y:auto"], [style*="overflow-y: auto"], [style*="overflow-y:scroll"]');
+
+    // Ghost clone
+    clone = row.cloneNode(true);
+    clone.style.cssText = `position:fixed;left:${rect.left}px;top:${rect.top}px;width:${rect.width}px;opacity:0.85;pointer-events:none;z-index:9999;background:var(--bg-card);border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,0.25);box-sizing:border-box`;
+    document.body.appendChild(clone);
+    row.style.opacity = '0.35';
+  }
+
+  function moveDrag(clientY) {
+    if (!dragging || !clone) return;
+    clone.style.top = (clientY - offsetY) + 'px';
+
+    const container = getContainer();
+    if (!container) return;
+    const rows = [...container.querySelectorAll('.img-field-row')].filter(r => r !== row);
+    let target = null;
+    for (const r of rows) {
+      const rect = r.getBoundingClientRect();
+      if (clientY < rect.top + rect.height / 2) { target = r; break; }
+    }
+    // Visual placeholder: show insertion line
+    rows.forEach(r => r.style.borderTop = '');
+    if (target) target.style.borderTop = '2px solid #c07a8a';
+    else if (rows.length) rows[rows.length - 1].style.borderBottom = '2px solid #c07a8a';
+  }
+
+  function endDrag(clientY) {
+    if (!dragging) return;
+    dragging = false;
+    if (clone) { clone.remove(); clone = null; }
+    row.style.opacity = '';
+
+    const container = getContainer();
+    if (!container) return;
+    const rows = [...container.querySelectorAll('.img-field-row')].filter(r => r !== row);
+    rows.forEach(r => { r.style.borderTop = ''; r.style.borderBottom = ''; });
+
+    let target = null;
+    for (const r of rows) {
+      const rect = r.getBoundingClientRect();
+      if (clientY < rect.top + rect.height / 2) { target = r; break; }
+    }
+    if (target) container.insertBefore(row, target);
+    else container.appendChild(row);
+  }
+
+  // Touch events
+  handle.addEventListener('touchstart', e => {
+    if (e.touches.length !== 1) return;
+    e.preventDefault(); // prevent scroll while dragging
+    startDrag(e.touches[0].clientY);
+  }, { passive: false });
+
+  handle.addEventListener('touchmove', e => {
+    if (!dragging) return;
+    e.preventDefault();
+    moveDrag(e.touches[0].clientY);
+  }, { passive: false });
+
+  handle.addEventListener('touchend', e => {
+    endDrag(e.changedTouches[0].clientY);
+  }, { passive: true });
+
+  // Mouse events (desktop fallback)
+  handle.style.cursor = 'grab';
+  handle.addEventListener('mousedown', e => {
+    if (e.button !== 0) return;
+    e.preventDefault();
+    startDrag(e.clientY);
+    function onMove(e) { moveDrag(e.clientY); }
+    function onUp(e) {
+      endDrag(e.clientY);
+      window.removeEventListener('mousemove', onMove);
+      window.removeEventListener('mouseup', onUp);
+    }
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onUp);
+  });
 }
 
 function _addImgFieldTo(containerId) {
