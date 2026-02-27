@@ -2887,8 +2887,8 @@ function _buildIdeasBody(pool, q, byName, isFavFilter) {
 
   if (!pool.length) {
     const _openNew = `<a onclick="event.stopPropagation();openSheet('out')" style="color:${ROSE};cursor:pointer;text-decoration:none">&#8239;Create one ›</a>`;
-    const _emptyText = q ? 'No matches.' : `No ideas.${_openNew}`;
-    return `<div style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;color:#b0a090;font-size:15px;font-style:italic;width:80%;z-index:1">${_emptyText}</div>`;
+    const _emptyText = q ? 'No matches.' : (ideasFilter === 'in' ? 'No reason to stay…' : 'Nowhere to go…');
+    return `<div style="position:fixed;top:calc(50% - 60px);left:50%;transform:translateX(-50%);text-align:center;color:#b0a090;font-size:15px;font-style:italic;pointer-events:none;width:80%;z-index:1">${_emptyText}</div>`;
   }
 
   // ── Favs filter view: vertical list split by Going Out / Staying In
@@ -3232,7 +3232,7 @@ function renderTodo() {
     if (groups[UNGROUPED]) groupKeys.push(UNGROUPED);
 
     if (groupKeys.length === 0) {
-      return `<div style="padding:20px 20px 80px"><div style="padding:0 10px"><div style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;color:#b0a090;font-size:15px;font-style:italic;pointer-events:none;width:80%;z-index:1">Nothing to do.</div></div></div>`;
+      return `<div style="padding:20px 20px 80px"><div style="padding:0 10px"><div style="position:fixed;top:calc(50% - 60px);left:50%;transform:translateX(-50%);text-align:center;color:#b0a090;font-size:15px;font-style:italic;pointer-events:none;width:80%;z-index:1">Nothing to do.</div></div></div>`;
     }
     const listHtml = groupKeys.map((key, gi) => {
       const label = key === UNGROUPED ? 'Other' : key;
@@ -3251,7 +3251,7 @@ function renderTodo() {
   const sorted = filtered.sort(byPriority);
   const listHtml = sorted.length
     ? sorted.map(t => _todoRow(t)).join('')
-    : `<div style="padding:10px 20px 60px;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;color:#b0a090;font-size:15px;font-style:italic;pointer-events:none;width:80%;z-index:1">Nothing to do.</div>`;
+    : `<div style="padding:10px 20px 60px;position:fixed;top:calc(50% - 60px);left:50%;transform:translateX(-50%);text-align:center;color:#b0a090;font-size:15px;font-style:italic;pointer-events:none;width:80%;z-index:1">Nothing to do.</div>`;
   return `<div style="padding:20px 20px 80px"><div style="padding:0 10px">${listHtml}</div></div>`;
 }
 
@@ -4240,7 +4240,7 @@ function renderPastDates() {
   const memories = _computeMemories();
   const BROWN = '#9a8a7a';
   if (memories.length === 0) {
-    return `<div style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;color:#b0a090;font-size:15px;font-style:italic;pointer-events:none;width:80%;z-index:1">No past dates.</div>`;
+    return `<div style="position:fixed;top:calc(50% - 60px);left:50%;transform:translateX(-50%);text-align:center;color:#b0a090;font-size:15px;font-style:italic;pointer-events:none;width:80%;z-index:1">Nothing to remember…</div>`;
   }
   const rows = memories.map(d => {
     const sub = d.note
@@ -7434,7 +7434,7 @@ function deletePlace() {
 function renderArchive() {
   const archived = ideas.filter(i => i.archived);
   if (!archived.length) {
-    return `<div style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;color:#b0a090;font-size:15px;font-style:italic;pointer-events:none;width:80%;z-index:1">No archived ideas.</div>`;
+    return `<div style="position:fixed;top:calc(50% - 60px);left:50%;transform:translateX(-50%);text-align:center;color:#b0a090;font-size:15px;font-style:italic;pointer-events:none;width:80%;z-index:1">No archived ideas.</div>`;
   }
   const out = archived.filter(i => i.type === 'out');
   const inIdeas = archived.filter(i => i.type === 'in');
