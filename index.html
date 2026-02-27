@@ -1001,8 +1001,8 @@
             <div style="min-width:0;flex:1">
               <div style="display:flex;align-items:center;gap:0">
                 <div id="di-title" style="font-size:17px;font-weight:700;color:var(--popup-title);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0"></div>
-                <button id="di-cal-btn" onclick="goToDateOnCalendar(currentDateInfo&&currentDateInfo.day,currentDateInfo&&MONTH_NUMS[currentDateInfo.month],currentDateInfo&&(currentDateInfo.year||2026))" style="background:none;border:none;display:flex;padding:1px;margin-left:6px;cursor:pointer;flex-shrink:0;line-height:0">
-                  <svg viewBox="0 0 24 24" width="15" height="15" stroke="#b0a090" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                <button id="di-cal-btn" onclick="_diGoToCalendar()" style="background:none;border:none;display:flex;padding:1px;margin-left:6px;cursor:pointer;flex-shrink:0;line-height:0;opacity:0.6;color:var(--popup-title)">
+                  <svg viewBox="0 0 24 24" width="15" height="15" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
                 </button>
                 <div style="flex:1"></div>
                 <button id="di-edit-btn-title" onclick="editDateFromInfo()" style="background:none;border:none;display:flex;padding:4px 2px;cursor:pointer;align-items:center;flex-shrink:0">
@@ -1731,7 +1731,7 @@ const ROSE = '#c07a8a', BURGUNDY = '#8b3a52';
 // every renderNav() so it survives re-renders. When null/false, the override is
 // removed and the element falls back to its normal CSS (color:var(--text-primary)).
 // ─────────────────────────────────────────────────────────────────────────────
-const testcolor = 'green';
+const testcolor = null;
 function _applyTestcolor() {
   const el = document.getElementById('duet-logo-text');
   if (!el) return;
@@ -6382,7 +6382,7 @@ function openDetail(id, navContext) {
   const heartBtn = document.getElementById('detail-heart-btn');
   const heartColor = item.saved ? ROSE : (document.body.classList.contains('dark-mode') ? '#ddd6cd' : '#2a1f1f');
   heartBtn.style.opacity = item.saved ? '1' : '0.4';
-  heartBtn.innerHTML = ICONS.heart(15, heartColor, false);
+  heartBtn.innerHTML = ICONS.heart(15, heartColor, item.saved);
   const _dot3 = document.getElementById('detail-3dot');
   if (_dot3) { const _titleColor = document.body.classList.contains('dark-mode') ? '#ddd6cd' : '#2a1f1f'; _dot3.setAttribute('fill', _titleColor); }
   const _closeX = document.getElementById('detail-close-x');
@@ -6588,6 +6588,18 @@ function goToDateOnCalendar(day, monthNum, year) {
   currentCalMonth = monthNum;
   currentCalYear = year;
   selectedCalDay = day;
+  navigate('calendar');
+}
+
+function _diGoToCalendar() {
+  if (!currentDateInfo) return;
+  const _day = currentDateInfo.day;
+  const _month = MONTH_NUMS[currentDateInfo.month];
+  const _year = currentDateInfo.year || new Date().getFullYear();
+  closeDateInfo();
+  currentCalMonth = _month;
+  currentCalYear = _year;
+  selectedCalDay = _day;
   navigate('calendar');
 }
 
