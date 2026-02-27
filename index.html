@@ -2871,7 +2871,7 @@ function _buildIdeasBody(pool, q, byName, isFavFilter) {
   }
 
   if (!pool.length) {
-    return `<div style="padding:40px 20px;text-align:center;color:#b0a090;font-size:14px;font-style:italic">${q ? 'No matches' : (isFavFilter ? 'No favorites yet' : 'No ideas yet')}</div>`;
+    return `<div style="padding:60px 20px;text-align:center;color:#b0a090;font-size:15px;font-style:italic">${q ? 'No matches' : (isFavFilter ? 'No favorites yet' : 'Click + to begin…')}</div>`;
   }
 
   // ── Favs filter view: vertical list split by Going Out / Staying In
@@ -3836,10 +3836,10 @@ function renderHome() {
   ${dateBubbleHTML}
 
   <div style="padding:36px 20px 36px">
-    <button onclick="navigate('out')" style="background:none;border:none;cursor:pointer;padding:0;display:flex;align-items:center;gap:4px;margin-bottom:12px">
+    ${savedIdeas.length ? `<button onclick="navigate('out')" style="background:none;border:none;cursor:pointer;padding:0;display:flex;align-items:center;gap:4px;margin-bottom:12px">
       <span class="section-label">Latest Ideas</span>
       <span style="font-size:11px;color:#9a8a7a;font-family:sans-serif;letter-spacing:0.05em;line-height:1">›</span>
-    </button>
+    </button>` : ''}
     <div style="display:flex;flex-direction:column;gap:8px">
       ${savedIdeas.map(item => renderQuickRow(item, 'latest')).join('')}
     </div>
@@ -4214,7 +4214,7 @@ function renderPastDates() {
   const memories = _computeMemories();
   const BROWN = '#9a8a7a';
   if (memories.length === 0) {
-    return `<div style="padding:60px 20px;text-align:center;color:#b0a090;font-size:15px;font-style:italic">No memories yet.</div>`;
+    return `<div style="padding:60px 20px;text-align:center;color:#b0a090;font-size:15px;font-style:italic">No memories yet…</div>`;
   }
   const rows = memories.map(d => {
     const sub = d.note
