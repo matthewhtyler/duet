@@ -2887,7 +2887,7 @@ function _buildIdeasBody(pool, q, byName, isFavFilter) {
 
   if (!pool.length) {
     const _openNew = `<a onclick="event.stopPropagation();openSheet('out')" style="color:${ROSE};cursor:pointer;text-decoration:none">&#8239;Create one ›</a>`;
-    const _emptyText = q ? 'No matches.' : (ideasFilter === 'in' ? 'No reason to stay…' : 'Nowhere to go…');
+    const _emptyText = q ? 'No matches.' : 'No ideas.';
     return `<div style="position:fixed;top:calc(50% - 60px);left:50%;transform:translateX(-50%);text-align:center;color:#b0a090;font-size:15px;font-style:italic;pointer-events:none;width:80%;z-index:1">${_emptyText}</div>`;
   }
 
@@ -4240,7 +4240,7 @@ function renderPastDates() {
   const memories = _computeMemories();
   const BROWN = '#9a8a7a';
   if (memories.length === 0) {
-    return `<div style="position:fixed;top:calc(50% - 60px);left:50%;transform:translateX(-50%);text-align:center;color:#b0a090;font-size:15px;font-style:italic;pointer-events:none;width:80%;z-index:1">Nothing to remember…</div>`;
+    return `<div style="position:fixed;top:calc(50% - 60px);left:50%;transform:translateX(-50%);text-align:center;color:#b0a090;font-size:15px;font-style:italic;pointer-events:none;width:80%;z-index:1">No past dates.</div>`;
   }
   const rows = memories.map(d => {
     const sub = d.note
