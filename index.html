@@ -462,12 +462,12 @@
     width: 100%; max-width: 402px;
     background: var(--bg); border-radius: 20px 20px 0 0;
     border-top: 1px solid var(--border); border-left: 1px solid var(--border); border-right: 1px solid var(--border);
-    max-height: calc(70vh); display: none;
+    display: none;
     z-index: 56; box-shadow: 0 -8px 32px rgba(0,0,0,0.08);
   }
-  #idea-sheet { flex-direction: column; overflow: hidden; }
+  #idea-sheet { flex-direction: column; overflow: visible; height: calc(60vh); max-height: calc(60vh); }
   #todo-sheet { overflow-y: auto; padding: 20px 20px 24px; }
-  #idea-sheet-body { flex: 1; overflow-y: auto; padding: 16px 20px 36px; min-height: 0; display: flex; flex-direction: column; }
+  #idea-sheet-body { flex: 1; overflow-y: auto; padding: 16px 20px 32px; min-height: 0; display: flex; flex-direction: column; }
   #sheet-header { display: flex; align-items: center; justify-content: space-between; padding: 20px 20px 14px; flex-shrink: 0; border-bottom: 1px solid var(--border); }
   #sheet-title { font-size: 18px; font-weight: 700; color: var(--text-primary); }
   body.dark-mode #sheet-title { color: var(--popup-title); }
@@ -677,7 +677,7 @@
       <!-- Name -->
       <div class="idea-row">
         <button id="idea-heart-btn" onclick="toggleIdeaHeart()" style="background:none;border:none;cursor:pointer;padding:0;display:flex;flex-shrink:0"></button>
-        <input class="field-input" id="idea-name" type="text" placeholder="Place / activity" style="flex:1;margin-bottom:0">
+        <input class="field-input" id="idea-name" type="text" placeholder="Place / activity" oninput="_applyTitleCase(this)" style="flex:1;margin-bottom:0">
         <button id="idea-lock-btn" onclick="toggleIdeaPrivate()" type="button" style="background:none;border:none;cursor:pointer;padding:2px;display:flex;flex-shrink:0;color:#9a8a7a" title="Mark as private"></button>
       </div>
 
@@ -727,7 +727,7 @@
         <!-- Cuisine (shown for restaurant/cafe) -->
         <div class="idea-row" id="cuisine-wrap" style="display:none">
           <svg viewBox="0 0 24 24" width="18" height="18" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M12 4a8 8 0 0 1 8 8H4a8 8 0 0 1 8-8z"/><path d="M12 4V2"/><circle cx="12" cy="2" r="1" fill="#c07a8a" stroke="none"/><path d="M2 12h20"/><path d="M3 15h18"/></svg>
-          <input class="field-input" id="idea-cuisine" type="text" placeholder="Cuisine (e.g. Italian, Japanese)" style="flex:1;margin-bottom:0">
+          <input class="field-input" id="idea-cuisine" type="text" placeholder="Cuisine (e.g. Italian, Japanese)" oninput="_applyTitleCase(this)" style="flex:1;margin-bottom:0">
         </div>
 
         <!-- Image URLs -->
@@ -742,13 +742,13 @@
         <!-- Short description (shown for all other out types) -->
         <div class="idea-row" id="idea-shortdesc-wrap" style="display:none">
           <svg viewBox="0 0 24 24" width="18" height="18" style="flex-shrink:0" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="17" x2="12" y2="11"/><circle cx="12" cy="7" r="1.2" fill="#9a8a7a" stroke="none"/></svg>
-          <input class="field-input" id="idea-shortdesc" type="text" placeholder="Short description…" style="flex:1;margin-bottom:0">
+          <input class="field-input" id="idea-shortdesc" type="text" placeholder="Short description…" oninput="_applyFirstCap(this)" style="flex:1;margin-bottom:0">
         </div>
 
         <!-- About (long description) -->
         <div class="idea-row" id="idea-about-wrap" style="display:none">
           <div style="width:18px;flex-shrink:0"></div>
-          <textarea class="idea-sheet-area" id="idea-about" rows="2" placeholder="Long description (ambience, etc)…" style="flex:1;margin-bottom:0"></textarea>
+          <textarea class="idea-sheet-area" id="idea-about" rows="2" placeholder="Long description (ambience, etc)…" oninput="_applyFirstCap(this)" style="flex:1;margin-bottom:0"></textarea>
         </div>
 
         <!-- Address -->
@@ -761,7 +761,7 @@
         <!-- Neighborhood -->
         <div class="idea-row">
           <svg viewBox="0 0 24 24" width="18" height="18" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/></svg>
-          <input class="field-input" id="idea-neighborhood" type="text" placeholder="Neighborhood (e.g. Williamsburg)" style="flex:1;margin-bottom:0">
+          <input class="field-input" id="idea-neighborhood" type="text" placeholder="Neighborhood (e.g. Williamsburg)" oninput="_applyTitleCase(this)" style="flex:1;margin-bottom:0">
         </div>
 
         <!-- Subway -->
@@ -822,12 +822,12 @@
         <!-- Short description -->
         <div class="idea-row" id="idea-in-shortdesc-wrap">
           <svg viewBox="0 0 24 24" width="18" height="18" style="flex-shrink:0" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="17" x2="12" y2="11"/><circle cx="12" cy="7" r="1.2" fill="#9a8a7a" stroke="none"/></svg>
-          <input class="field-input" id="idea-in-shortdesc" type="text" placeholder="Short description…" style="flex:1;margin-bottom:0">
+          <input class="field-input" id="idea-in-shortdesc" type="text" placeholder="Short description…" oninput="_applyFirstCap(this)" style="flex:1;margin-bottom:0">
         </div>
         <!-- About (long description) -->
         <div class="idea-row-top" id="idea-in-note-row" style="flex:1;min-height:0;display:flex">
           <div style="width:18px;flex-shrink:0;margin-top:10px"></div>
-          <textarea class="idea-sheet-area" id="idea-note-long" placeholder="Long description…" style="flex:1;height:100%;min-height:120px;resize:none"></textarea>
+          <textarea class="idea-sheet-area" id="idea-note-long" placeholder="Long description…" oninput="_applyFirstCap(this)" style="flex:1;height:100%;min-height:120px;resize:none"></textarea>
         </div>
       </div>
 
@@ -1395,7 +1395,7 @@
           <!-- Name -->
           <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
             <span id="pf-name-icon" style="width:18px;flex-shrink:0;display:flex;align-items:center;justify-content:center"></span>
-            <input class="field-input" id="pf-name" type="text" placeholder="Place / activity" oninput="markPlaceChanged()" style="flex:1;margin-bottom:0">
+            <input class="field-input" id="pf-name" type="text" placeholder="Place / activity" oninput="markPlaceChanged();_applyTitleCase(this)" style="flex:1;margin-bottom:0">
             <button id="pf-lock-btn" onclick="togglePfPrivate()" type="button" style="background:none;border:none;cursor:pointer;padding:2px;display:flex;flex-shrink:0;color:#9a8a7a" title="Mark as private"></button>
           </div>
           <!-- Type -->
@@ -1432,17 +1432,17 @@
           <!-- Cuisine (restaurants/cafes) or short description (other types) -->
           <div id="pf-cuisine-wrap" style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
             <svg viewBox="0 0 24 24" width="18" height="18" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4a8 8 0 0 1 8 8H4a8 8 0 0 1 8-8z"/><path d="M12 4V2"/><circle cx="12" cy="2" r="1" fill="#c07a8a" stroke="none"/><path d="M2 12h20"/><path d="M3 15h18"/></svg>
-            <input class="field-input" id="pf-cuisine" type="text" placeholder="Cuisine (e.g. Italian, Japanese)" oninput="markPlaceChanged()" style="flex:1;margin-bottom:0">
+            <input class="field-input" id="pf-cuisine" type="text" placeholder="Cuisine (e.g. Italian, Japanese)" oninput="markPlaceChanged();_applyTitleCase(this)" style="flex:1;margin-bottom:0">
           </div>
           <div id="pf-shortdesc-wrap" style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
             <svg viewBox="0 0 24 24" width="18" height="18" style="flex-shrink:0" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="17" x2="12" y2="11"/><circle cx="12" cy="7" r="1.2" fill="#9a8a7a" stroke="none"/></svg>
-            <input class="field-input" id="pf-shortdesc" type="text" placeholder="Short description…" oninput="markPlaceChanged()" style="flex:1;margin-bottom:0">
+            <input class="field-input" id="pf-shortdesc" type="text" placeholder="Short description…" oninput="markPlaceChanged();_applyFirstCap(this)" style="flex:1;margin-bottom:0">
           </div>
 
           <!-- About (long description) — no icon, indented to align with shortdesc input -->
           <div id="pf-about-wrap" style="display:flex;align-items:flex-start;gap:10px;margin-bottom:12px">
             <div style="width:18px;flex-shrink:0"></div>
-            <textarea class="field-input" id="pf-about" rows="2" placeholder="Long description (ambience, etc)…" oninput="markPlaceChanged()" style="flex:1;resize:none;font-family:sans-serif;margin-bottom:0"></textarea>
+            <textarea class="field-input" id="pf-about" rows="2" placeholder="Long description (ambience, etc)…" oninput="markPlaceChanged();_applyFirstCap(this)" style="flex:1;resize:none;font-family:sans-serif;margin-bottom:0"></textarea>
           </div>
           <!-- Address -->
           <div id="pf-address-row" style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
@@ -1454,7 +1454,7 @@
           <!-- Neighborhood -->
           <div id="pf-neighborhood-row" style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
             <svg viewBox="0 0 24 24" width="18" height="18" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/></svg>
-            <input class="field-input" id="pf-neighborhood" type="text" placeholder="Neighborhood (e.g. Williamsburg)" oninput="markPlaceChanged()" style="flex:1;margin-bottom:0">
+            <input class="field-input" id="pf-neighborhood" type="text" placeholder="Neighborhood (e.g. Williamsburg)" oninput="markPlaceChanged();_applyTitleCase(this)" style="flex:1;margin-bottom:0">
           </div>
 
           <!-- Commute: Subway -->
@@ -1717,6 +1717,18 @@
 // STATE
 // ═══════════════════════════════════════════════════════
 const ROSE = '#c07a8a', BURGUNDY = '#8b3a52';
+// Title case helper — preserves cursor position
+function _applyTitleCase(inp) {
+  const words = ['a','an','the','and','but','or','for','nor','on','at','to','by','in','of','up','as','is'];
+  const v = inp.value;
+  const start = inp.selectionStart, end = inp.selectionEnd;
+  const tc = v.replace(/\S+/g, (w, off) => {
+    const lower = w.toLowerCase();
+    return (off === 0 || !words.includes(lower)) ? w.charAt(0).toUpperCase() + w.slice(1) : lower;
+  });
+  if (tc !== v) { inp.value = tc; inp.setSelectionRange(start, end); }
+}
+
 
 // ─────────────────────────────────────────────────────────────────────────────
 // TESTCOLOR — developer override for the "duet" logo text color in the top nav.
@@ -5429,6 +5441,15 @@ function renderSheetUI() {
     renderDateSheetUI();
     return;
   }
+  // Restore fixed height for New Idea mode
+  const _sheet = document.getElementById('idea-sheet');
+  _sheet.style.height = 'calc(60vh)';
+  _sheet.style.maxHeight = 'calc(60vh)';
+  _sheet.style.overflow = 'visible';
+  const _body = document.getElementById('idea-sheet-body');
+  _body.style.flex = '1';
+  _body.style.overflowY = 'auto';
+  _body.style.paddingBottom = '';
   const isOut = ideaType === 'out';
   document.getElementById('sheet-title').textContent = 'New Idea';
 
@@ -5465,7 +5486,8 @@ function renderSheetUI() {
   document.getElementById('out-fields-wrap').style.display = isOut ? 'block' : 'none';
   if (isOut) document.getElementById('idea-images-wrap').style.display = 'flex';
   document.getElementById('in-fields-wrap').style.display = isOut ? 'none' : 'flex';
-  // idea-fields must stretch to fill body height so In textarea can expand
+  // In Out mode, let idea-fields be natural height so idea-sheet-body can scroll.
+  // In In mode, stretch to fill so the long-description textarea can expand.
   const ideaFields = document.getElementById('idea-fields');
   ideaFields.style.display = 'flex';
   ideaFields.style.flexDirection = 'column';
@@ -5585,6 +5607,14 @@ function onIdeaReservationChange(manual) {
 }
 
 function renderDateSheetUI() {
+  const _sheet = document.getElementById('idea-sheet');
+  _sheet.style.height = 'auto';
+  _sheet.style.maxHeight = 'calc(90vh)';
+  _sheet.style.overflow = 'hidden';
+  const _body = document.getElementById('idea-sheet-body');
+  _body.style.flex = '';
+  _body.style.overflowY = 'visible';
+  _body.style.paddingBottom = '36px';
   document.getElementById('sheet-title').textContent = 'New Date';
   const toggle = document.getElementById('sheet-type-toggle');
   if (toggle) toggle.style.display = 'none';
@@ -6719,6 +6749,8 @@ function openReserveLinkFromCal(url, dateKey) {
       }
     }, 30000);
   }
+  // If Date Info popup is open for this date, refresh it too
+  if (currentDateInfo && _dateKey(currentDateInfo) === dateKey) openDateInfo(currentDateInfo);
   _openExternal(url);
 }
 
@@ -6726,16 +6758,27 @@ function unreserveFromCal(dateKey) {
   if (_calResTimers[dateKey]) { clearTimeout(_calResTimers[dateKey]); delete _calResTimers[dateKey]; }
   _reservedDateKeys.delete(dateKey);
   _saveReserved();
+  // If Date Info popup is open for this date, refresh it too
+  if (currentDateInfo) {
+    const _diDk = _dateKey(currentDateInfo);
+    if (_diDk === dateKey) openDateInfo(currentDateInfo);
+  }
   render();
 }
 
 function openReserveLink(url, dateKey) {
   _reservedDateKeys.add(dateKey);
   _saveReserved();
+  // Morph the di-reserve-btn to checkmark
   const btn = document.getElementById('di-reserve-btn');
   if (btn) {
-    const chk = `<svg viewBox="0 0 24 24" width="16" height="16" stroke="#c07a8a" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`;
     btn.outerHTML = `<button id="di-reserve-btn" onclick="unreserveDate('${dateKey}')" style="display:flex;align-items:center;justify-content:center;width:26px;height:26px;border:1.5px solid #c07a8a;border-radius:50%;background:none;cursor:pointer"><svg viewBox="0 0 24 24" width="11" height="11" stroke="#c07a8a" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-linejoin="round" style="display:block"><polyline points="20 6 9 17 4 12"/></svg></button>`;
+  }
+  // Morph the matching card button in-place (home / calendar screen)
+  const chkSvg = `<svg viewBox="0 0 24 24" width="10" height="10" stroke="#c07a8a" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-linejoin="round" style="display:block"><polyline points="20 6 9 17 4 12"/></svg>`;
+  const cardWrap = document.getElementById('cal-res-' + dateKey);
+  if (cardWrap) {
+    cardWrap.innerHTML = `<button class="cal-res-chk" style="border:1.5px solid #c07a8a" onclick="event.stopPropagation();unreserveFromCal('${dateKey}')">${chkSvg}</button>`;
   }
   _openExternal(url);
 }
@@ -7838,7 +7881,7 @@ function _renderEcList() {
         ${iconSvg}
       </button>
       <input id="ec-name-${i}" value="${_escAttr(cat.label)}"
-        oninput="_ecUpdateName(${i},this.value)"
+        oninput="_applyTitleCase(this);_ecUpdateName(${i},this.value)"
         style="flex:1;border:none;background:transparent;font-size:15px;font-family:sans-serif;color:#2a1f1f;outline:none;padding:3px 0;min-width:0;cursor:text"
         onclick="this.select()">
       <button onclick="_openDelCat(${i})" style="background:none;border:none;cursor:pointer;padding:5px;flex-shrink:0;display:flex" title="Delete">
@@ -8183,6 +8226,7 @@ function saveEditCategories() {
       }
     });
     window._ecLastSavedId = null;
+    updateIdeaCatIcon();
   }
   closeEditCategories();
   render();
