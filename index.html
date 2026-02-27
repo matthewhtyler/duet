@@ -4118,6 +4118,19 @@ function renderCalendar() {
     .map(u => {
       const isSelected = u.month === monthAbbr && (u.year||2026) === currentCalYear && u.day === selectedCalDay;
       const style = isSelected ? `border-color:${ROSE};` : '';
+      // Build small reserve/tickets button if applicable and not already reserved
+      let _calResBtn = '';
+      const _calIdea = ideas.find(i => i.name && u.venue && i.name.toLowerCase() === u.venue.toLowerCase());
+      if (_calIdea && _calIdea.reservation && _calIdea.reservation !== 'none') {
+        const _calDk = _dateKey(u);
+        if (!_reservedDateKeys.has(_calDk)) {
+          const _calResUrl = _buildResUrl(u.venue, _calIdea.reservation, _todoDateStr(u), _todoTimeStr(u.time), _calIdea.eventbriteUrl, _calIdea.websiteUrl);
+          if (_calIdea.reservation !== 'website' || _calResUrl) {
+            const _calLabel = (_calIdea.reservation === 'resy' || _calIdea.reservation === 'opentable') ? 'Reserve' : 'Tickets';
+            _calResBtn = `<button onclick="event.stopPropagation();openReserveLinkFromCal('${_calResUrl.replace(/'/g,"\\'")}','${_calDk}')" style="flex-shrink:0;padding:5px 10px;border:1.5px solid ${ROSE};border-radius:12px;background:none;font-family:sans-serif;font-size:12px;font-weight:600;color:${ROSE};cursor:pointer;line-height:1;white-space:nowrap">${_calLabel}</button>`;
+          }
+        }
+      }
       return `
       <div class="upcoming-item" onclick="openDateInfo(UPCOMING_DATES.find(u=>u.month==='${u.month}'&&(u.year||2026)===${u.year||2026}&&u.day===${u.day}))" style="${style}">
         <div class="upcoming-date-badge">
@@ -4132,6 +4145,7 @@ function renderCalendar() {
           </div>
           <span class="upcoming-sub">${u.time ? u.time + ((_dateLocationLabel(u) || u.neighborhood) ? ' · ' + (_dateLocationLabel(u) || u.neighborhood) : '') : (_dateLocationLabel(u) || u.neighborhood || '')}</span>
         </div>
+        ${_calResBtn ? `<div style="display:flex;align-items:center;padding-left:8px">${_calResBtn}</div>` : ''}
       </div>`;
     }).join('');
 
@@ -6017,7 +6031,19 @@ function openDetail(id, navContext) {
         // website with no URL — no button
       } else {
         const btnLabel = (item.reservation === 'resy' || item.reservation === 'opentable') ? 'Reserve' : 'Tickets';
-        leftBtn = `<button onclick="_openExternal('${resUrl}')" style="display:flex;align-items:center;gap:7px;height:34px;padding:0 16px;border:1.5px solid #c07a8a;border-radius:17px;font-family:sans-serif;font-size:13px;font-weight:600;color:#c07a8a;background:none;cursor:pointer;line-height:1">${resIcon}${btnLabel}</button>`;
+        // If there's a soonest upcoming date, mirror its reserved state
+        if (_soonestDate) {
+          const _ideaDk = _dateKey(_soonestDate);
+          if (_reservedDateKeys.has(_ideaDk)) {
+            // Checkmark-only circle — clicking unreserves and refreshes
+            leftBtn = `<button id="idea-reserve-btn" onclick="unreserveIdeaDate('${_ideaDk}',${item.id})" style="display:flex;align-items:center;justify-content:center;width:26px;height:26px;border:1.5px solid #c07a8a;border-radius:50%;background:none;cursor:pointer"><svg viewBox="0 0 24 24" width="11" height="11" stroke="#c07a8a" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-linejoin="round" style="display:block"><polyline points="20 6 9 17 4 12"/></svg></button>`;
+          } else {
+            leftBtn = `<button id="idea-reserve-btn" onclick="openReserveLinkFromIdea('${resUrl.replace(/'/g,"\'")}','${_ideaDk}',${item.id})" style="display:flex;align-items:center;gap:7px;height:34px;padding:0 16px;border:1.5px solid #c07a8a;border-radius:17px;font-family:sans-serif;font-size:13px;font-weight:600;color:#c07a8a;background:none;cursor:pointer;line-height:1">${resIcon}${btnLabel}</button>`;
+          }
+        } else {
+          // No upcoming date — default full button
+          leftBtn = `<button onclick="_openExternal('${resUrl}')" style="display:flex;align-items:center;gap:7px;height:34px;padding:0 16px;border:1.5px solid #c07a8a;border-radius:17px;font-family:sans-serif;font-size:13px;font-weight:600;color:#c07a8a;background:none;cursor:pointer;line-height:1">${resIcon}${btnLabel}</button>`;
+        }
       }
     }
 
@@ -6205,6 +6231,13 @@ function buildWalkDriveBadgesHtml(walkDriveTime) {
 }
 
 
+function openReserveLinkFromCal(url, dateKey) {
+  _openExternal(url);
+  _reservedDateKeys.add(dateKey);
+  _saveReserved();
+  render(); // re-render calendar to remove the button from the card
+}
+
 function openReserveLink(url, dateKey) {
   _openExternal(url);
   _reservedDateKeys.add(dateKey);
@@ -6220,6 +6253,21 @@ function unreserveDate(dateKey) {
   _reservedDateKeys.delete(dateKey);
   _saveReserved();
   if (currentDateInfo) openDateInfo(currentDateInfo);
+}
+
+function openReserveLinkFromIdea(url, dateKey, ideaId) {
+  _openExternal(url);
+  _reservedDateKeys.add(dateKey);
+  _saveReserved();
+  // Refresh Idea Info popup to show checkmark state
+  if (detailItemId === ideaId) openDetail(ideaId);
+}
+
+function unreserveIdeaDate(dateKey, ideaId) {
+  _reservedDateKeys.delete(dateKey);
+  _saveReserved();
+  // Refresh Idea Info popup to show full button again
+  if (detailItemId === ideaId) openDetail(ideaId);
 }
 
 function openDateInfo(u, memoryMode) {
