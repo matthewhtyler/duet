@@ -1326,7 +1326,7 @@
   </div>
 
   <!-- IMAGES POPUP -->
-  <div id="images-popup-overlay" onclick="closeImagesPopup()" style="position:fixed;inset:0;background:rgba(30,20,20,0.45);z-index:600;display:none;align-items:center;justify-content:center;padding:20px">
+  <div id="images-popup-overlay" onclick="cancelImagesPopup()" style="position:fixed;inset:0;background:rgba(30,20,20,0.45);z-index:600;display:none;align-items:center;justify-content:center;padding:20px">
     <div onclick="event.stopPropagation()" style="width:100%;max-width:370px;background:var(--bg);border-radius:20px;overflow:hidden;box-shadow:0 12px 48px rgba(0,0,0,0.18);display:flex;flex-direction:column;gap:0">
       <div id="images-popup-banner" style="display:none;position:relative;flex-shrink:0;border-radius:0;overflow:hidden"></div>
       <div style="padding:20px 20px 16px;display:flex;flex-direction:column;gap:0">
@@ -1335,8 +1335,9 @@
         <input id="img-popup-search-term" type="text" placeholder="Search term…" style="width:100%;box-sizing:border-box;padding:9px 12px 9px 34px;font-size:14px;font-family:sans-serif;background:var(--bg-input);border:1.5px solid var(--border);border-radius:10px;color:var(--text-primary);outline:none">
       </div>
       <div id="images-popup-fields" style="max-height:44vh;overflow-y:auto;padding-bottom:4px"></div>
-      <div style="margin-top:16px;display:flex;justify-content:center">
-        <button onclick="closeImagesPopup()" style="width:90px;padding:11px 0;background:#c07a8a;border:none;border-radius:10px;font-family:sans-serif;font-size:14px;font-weight:600;color:#fff;cursor:pointer">Done</button>
+      <div style="margin-top:16px;display:flex;justify-content:center;gap:10px">
+        <button onclick="cancelImagesPopup()" style="padding:10px 16px;background:none;border:1.5px solid #ede9e2;border-radius:10px;font-family:sans-serif;font-size:13px;font-weight:600;color:#9a8a7a;cursor:pointer" class="btn-outline">Cancel</button>
+        <button onclick="saveImagesPopup()" style="padding:10px 24px;background:#c07a8a;border:none;border-radius:10px;font-family:sans-serif;font-size:14px;font-weight:600;color:#fff;cursor:pointer">Save</button>
       </div>
       </div>
     </div>
@@ -2517,7 +2518,7 @@ function _makeImgFieldRow(value, containerId) {
     magIcon.style.display  = state === 'empty' ? 'flex' : 'none';
     warnIcon.style.display = state === 'warn'  ? 'flex' : 'none';
     thumbImg.style.display = state === 'image' ? 'block' : 'none';
-    thumb.style.cursor = (state === 'image') ? 'grab' : 'pointer';
+    thumb.style.cursor = (state === 'empty' || state === 'warn') ? 'pointer' : 'default';
   }
   _setThumbState('empty');
 
@@ -2546,7 +2547,6 @@ function _makeImgFieldRow(value, containerId) {
   clearBtn.innerHTML = `<svg viewBox="0 0 24 24" width="13" height="13" stroke="#9a8a7a" stroke-width="2.5" fill="none" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`;
   clearBtn.title = 'Clear';
   clearBtn.onclick = () => {
-    // Use row's live parent (may be popup or hidden container)
     const liveParent = row.parentNode;
     const allRows = liveParent ? liveParent.querySelectorAll('.img-field-row') : [];
     if (!inp.value.trim() && allRows.length > 1) {
@@ -2557,7 +2557,6 @@ function _makeImgFieldRow(value, containerId) {
       _setThumbState('empty');
       delete thumb.dataset.imgOk;
       clearBtn.style.opacity = '0.35';
-      _detachThumbDrag();
       inp.focus();
       if (document.getElementById('images-popup-banner')) refreshImgsPopupBanner();
     }
@@ -2581,15 +2580,8 @@ function _makeImgFieldRow(value, containerId) {
   };
   row.appendChild(plusBtn);
 
-  // Thumb drag state — only active when image is loaded
-  let _thumbDragCleanup = null;
-  function _detachThumbDrag() {
-    if (_thumbDragCleanup) { _thumbDragCleanup(); _thumbDragCleanup = null; }
-  }
-  function _attachThumbDrag() {
-    _detachThumbDrag();
-    _thumbDragCleanup = _attachImgRowDrag(thumb, row);
-  }
+  // Thumb drag state — removed: only grip is draggable, not thumb
+  function _detachThumbDrag() { /* no-op: thumb drag not used */ }
 
   // Update thumb state on input change
   function _updateRow() {
@@ -2598,26 +2590,22 @@ function _makeImgFieldRow(value, containerId) {
     if (!v) {
       _setThumbState('empty');
       delete thumb.dataset.imgOk;
-      _detachThumbDrag();
     } else if (/^https?:\/\//i.test(v)) {
       thumbImg.src = v;
       thumbImg.onload = () => {
         _setThumbState('image');
         thumb.dataset.imgOk = 'true';
-        _attachThumbDrag();
         if (document.getElementById('images-popup-banner')) refreshImgsPopupBanner();
       };
       thumbImg.onerror = () => {
         _setThumbState('warn');
         delete thumb.dataset.imgOk;
-        _detachThumbDrag();
         if (document.getElementById('images-popup-banner')) refreshImgsPopupBanner();
       };
     } else {
       // Has text but not a URL
       _setThumbState('warn');
       delete thumb.dataset.imgOk;
-      _detachThumbDrag();
     }
   }
   function _updateRowAndBanner() { _updateRow(); if (document.getElementById('images-popup-banner')) setTimeout(refreshImgsPopupBanner, 50); }
@@ -2815,7 +2803,17 @@ function _getDateImgsearchName() {
 
 // ── Images popup ──
 let _imagesPopupContainerId = null;
+let _imagesPopupSnapshot = null; // [{value, imgSearchTerm}] captured on open for cancel
 window._imgsearchFns = window._imgsearchFns || {};
+
+function _snapshotImgRows(containerId) {
+  // Capture current URL values + search term so Cancel can restore
+  const src = document.getElementById(containerId);
+  const popup = document.getElementById('images-popup-fields');
+  const active = (_imagesPopupContainerId === containerId && popup) ? popup : src;
+  const rows = active ? [...active.querySelectorAll('.img-field-row')] : [];
+  return rows.map(r => (r.querySelector('input[type=text]') || {}).value || '');
+}
 
 function openImagesPopup(containerId, getNameFn, getItemFn) {
   _imagesPopupContainerId = containerId;
@@ -2841,6 +2839,12 @@ function openImagesPopup(containerId, getNameFn, getItemFn) {
     [...sourceContainer.querySelectorAll('.img-field-row')].forEach(r => popupFields.appendChild(r));
   }
 
+  // Snapshot state for Cancel
+  _imagesPopupSnapshot = {
+    urls: (popupFields ? [...popupFields.querySelectorAll('.img-field-row')].map(r => (r.querySelector('input[type=text]') || {}).value || '') : []),
+    searchTerm: (document.getElementById('img-popup-search-term') || {}).value || '',
+  };
+
   document.getElementById('images-popup-overlay').style.display = 'flex';
   document.body.classList.add('overlay-open');
   _ipImgIdx = 0;
@@ -2863,6 +2867,8 @@ function openImagesPopup(containerId, getNameFn, getItemFn) {
     };
     // Init pending term for new items
     window._imgsPopupPendingSearchTerm = _stInput.value;
+    // Update snapshot search term after populating
+    _imagesPopupSnapshot.searchTerm = _stInput.value;
   }
 
   // Auto-run imgsearch if no filled image urls yet
@@ -2873,6 +2879,36 @@ function openImagesPopup(containerId, getNameFn, getItemFn) {
   // Focus first input
   const firstInput = popupFields ? popupFields.querySelector('input[type=text]') : null;
   if (firstInput) setTimeout(() => firstInput.focus(), 80);
+}
+
+function saveImagesPopup() {
+  // Commit — just close normally
+  _imagesPopupSnapshot = null;
+  closeImagesPopup();
+}
+
+function cancelImagesPopup() {
+  if (!_imagesPopupContainerId) return;
+  // Restore snapshot: rebuild rows from captured URLs
+  const snap = _imagesPopupSnapshot;
+  const containerId = _imagesPopupContainerId;
+  if (snap) {
+    const popupFields = document.getElementById('images-popup-fields');
+    if (popupFields) {
+      popupFields.innerHTML = '';
+      const urls = snap.urls.filter(u => u.trim());
+      const restoreUrls = urls.length ? urls : [''];
+      restoreUrls.forEach(url => {
+        popupFields.appendChild(_makeImgFieldRow(url, containerId));
+      });
+    }
+    // Restore search term
+    const _stInput = document.getElementById('img-popup-search-term');
+    if (_stInput) _stInput.value = snap.searchTerm || '';
+    window._imgsPopupPendingSearchTerm = snap.searchTerm || '';
+  }
+  _imagesPopupSnapshot = null;
+  closeImagesPopup();
 }
 
 function closeImagesPopup() {
