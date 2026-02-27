@@ -5734,7 +5734,7 @@ function saveNewIdea() {
     const catSel = document.getElementById('idea-cat-select'); if (catSel) catSel.value = 'restaurant';
     const catSelIn = document.getElementById('idea-cat-select-in'); if (catSelIn) catSelIn.value = 'restaurant';
     window._ideaSaved = false; renderIdeaHeartBtn();
-    window._ideaIsPrivate = false;
+    window._ideaIsPrivate = false; _renderLockBtn('idea-lock-btn', false);
     _ideaCustomIconKey = null;
     _newImgUrls = []; _editImgUrls = [];
     populateIdeaImageFields([]);
