@@ -2641,23 +2641,14 @@ function _updateImgCountBox(containerId, boxId) {
     box.style.gap = '';
     box.style.padding = '9px 14px';
   } else {
-    // Build mini thumbnails + count label
     const countLabel = n === 1 ? '1 image' : n + ' images';
-    let thumbsHtml = '';
-    thumbs.forEach(thumb => {
-      const img = thumb.querySelector('img');
-      const src = img ? img.src : '';
-      thumbsHtml += '<div style="width:24px;height:24px;border-radius:3px;overflow:hidden;flex-shrink:0;background:var(--bg-card)">'
-        + '<img src="' + src + '" style="width:100%;height:100%;object-fit:cover;display:block" onerror="this.parentNode.style.background=\'#6b2340\';this.style.display=\'none\'">'
-        + '</div>';
-    });
-    box.style.display = 'flex';
-    box.style.alignItems = 'center';
-    box.style.gap = '5px';
-    box.style.padding = '9px 14px 9px 6px';
+    box.innerHTML = '';
+    box.textContent = countLabel;
     box.style.color = 'var(--text-primary)';
-    box.innerHTML = thumbsHtml
-      + '<span style="font-size:14px;font-family:sans-serif;color:var(--text-placeholder);flex-shrink:0;margin-left:2px">' + countLabel + '</span>';
+    box.style.display = '';
+    box.style.alignItems = '';
+    box.style.gap = '';
+    box.style.padding = '9px 14px';
   }
 }
 
