@@ -135,12 +135,12 @@
   #nav-center-title { font-size: 13px; color: var(--text-secondary); letter-spacing: 0.05em; text-transform: uppercase; }
   #nav-hamburger { background: none; border: none; padding: 4px; display: flex; flex-direction: column; gap: 4px; }
   #nav-hamburger span { display: block; width: 18px; height: 1.5px; background: var(--hamburger); border-radius: 2px; }
-  #nav-menu-overlay { position: fixed; inset: 0; z-index: 98; display: none; }
+  
   #nav-menu-dropdown {
     position: absolute; top: calc(100% + 8px); right: 0;
     background: var(--bg-card); border: 1px solid var(--border); border-radius: 14px;
     box-shadow: 0 8px 24px rgba(0,0,0,0.1); min-width: 160px;
-    overflow: hidden; z-index: 99; display: none;
+    overflow: hidden; z-index: 100; display: none;
   }
   #nav-menu-dropdown button {
     width: 100%; display: flex; align-items: center; gap: 10px;
@@ -569,15 +569,20 @@
       <button id="nav-hamburger" onclick="toggleMenu()">
         <span></span><span></span><span></span>
       </button>
-      <div id="nav-menu-overlay" onclick="closeMenu()"></div>
       <div id="nav-menu-dropdown">
-        <button onclick="exportAllData();closeMenu()">
+        <button onclick="exportAllData();closeMenu()" style="border-bottom:none">
           <svg viewBox="0 0 24 24" width="16" height="16" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
           </svg>
           Save
         </button>
-        <button onclick="navigate('past');closeMenu()">
+        <button onclick="importData();closeMenu()">
+          <svg viewBox="0 0 24 24" width="16" height="16" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/>
+          </svg>
+          Open…
+        </button>
+        <button onclick="navigate('past');closeMenu()" style="border-bottom:none">
           <svg viewBox="0 0 24 24" width="16" height="16" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
             <path d="M2.5 8A9 9 0 1 1 3.5 15"/><polyline points="2 4 2.5 8 7 7.5"/>
           </svg>
@@ -1334,7 +1339,7 @@
       <div id="iconpicker-grid" style="display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:20px"></div>
       <div style="display:flex;justify-content:flex-end;gap:8px">
         <button onclick="closeIconPicker(false)" style="padding:10px 16px;background:none;border:1.5px solid #ede9e2;border-radius:10px;font-family:sans-serif;font-size:13px;font-weight:600;color:#9a8a7a;cursor:pointer" class="btn-outline">Cancel</button>
-        <button onclick="closeIconPicker(true)" style="padding:10px 20px;background:#8b3a52;border:none;border-radius:10px;font-family:sans-serif;font-size:13px;font-weight:600;color:#fff;cursor:pointer">Save</button>
+        <button onclick="closeIconPicker(true)" style="padding:10px 20px;background:#c07a8a;border:none;border-radius:10px;font-family:sans-serif;font-size:13px;font-weight:600;color:#fff;cursor:pointer">Save</button>
       </div>
     </div>
   </div>
@@ -2881,8 +2886,9 @@ function _buildIdeasBody(pool, q, byName, isFavFilter) {
   }
 
   if (!pool.length) {
-    const _emptyText = q ? 'No matches' : (isFavFilter ? 'No favorites yet' : (ideasFilter === 'in' ? 'No reason to stay…' : 'Nowhere to go…'));
-    return `<div style="padding:10px 20px 60px;text-align:center;color:#b0a090;font-size:15px;font-style:italic">${_emptyText}</div>`;
+    const _openNew = `<a onclick="event.stopPropagation();openSheet('out')" style="color:${ROSE};cursor:pointer;text-decoration:none">&#8239;Create one ›</a>`;
+    const _emptyText = q ? 'No matches.' : `No ideas.${_openNew}`;
+    return `<div style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;color:#b0a090;font-size:15px;font-style:italic;width:80%;z-index:1">${_emptyText}</div>`;
   }
 
   // ── Favs filter view: vertical list split by Going Out / Staying In
@@ -3226,7 +3232,7 @@ function renderTodo() {
     if (groups[UNGROUPED]) groupKeys.push(UNGROUPED);
 
     if (groupKeys.length === 0) {
-      return `<div style="padding:20px 20px 80px"><div style="padding:0 10px"><div style="padding:10px 20px 60px;text-align:center;color:#b0a090;font-size:15px;font-style:italic">Nothing to do…</div></div></div>`;
+      return `<div style="padding:20px 20px 80px"><div style="padding:0 10px"><div style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;color:#b0a090;font-size:15px;font-style:italic;pointer-events:none;width:80%;z-index:1">Nothing to do.</div></div></div>`;
     }
     const listHtml = groupKeys.map((key, gi) => {
       const label = key === UNGROUPED ? 'Other' : key;
@@ -3245,7 +3251,7 @@ function renderTodo() {
   const sorted = filtered.sort(byPriority);
   const listHtml = sorted.length
     ? sorted.map(t => _todoRow(t)).join('')
-    : `<div style="padding:10px 20px 60px;text-align:center;color:#b0a090;font-size:15px;font-style:italic">Nothing to do…</div>`;
+    : `<div style="padding:10px 20px 60px;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;color:#b0a090;font-size:15px;font-style:italic;pointer-events:none;width:80%;z-index:1">Nothing to do.</div>`;
   return `<div style="padding:20px 20px 80px"><div style="padding:0 10px">${listHtml}</div></div>`;
 }
 
@@ -4234,7 +4240,7 @@ function renderPastDates() {
   const memories = _computeMemories();
   const BROWN = '#9a8a7a';
   if (memories.length === 0) {
-    return `<div style="padding:60px 20px;text-align:center;color:#b0a090;font-size:15px;font-style:italic">Nothing to remember…</div>`;
+    return `<div style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;color:#b0a090;font-size:15px;font-style:italic;pointer-events:none;width:80%;z-index:1">No past dates.</div>`;
   }
   const rows = memories.map(d => {
     const sub = d.note
@@ -7428,7 +7434,7 @@ function deletePlace() {
 function renderArchive() {
   const archived = ideas.filter(i => i.archived);
   if (!archived.length) {
-    return `<div style="padding:60px 20px;text-align:center;color:#b0a090;font-size:15px;font-style:italic">No archived ideas yet.</div>`;
+    return `<div style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;color:#b0a090;font-size:15px;font-style:italic;pointer-events:none;width:80%;z-index:1">No archived ideas.</div>`;
   }
   const out = archived.filter(i => i.type === 'out');
   const inIdeas = archived.filter(i => i.type === 'in');
@@ -7547,16 +7553,19 @@ function closePlaces() {
 // HAMBURGER MENU
 // ═══════════════════════════════════════════════════════
 function toggleMenu() {
-  const overlay = document.getElementById('nav-menu-overlay');
   const dropdown = document.getElementById('nav-menu-dropdown');
   const isOpen = dropdown.style.display === 'block';
-  overlay.style.display = isOpen ? 'none' : 'block';
   dropdown.style.display = isOpen ? 'none' : 'block';
 }
 function closeMenu() {
-  document.getElementById('nav-menu-overlay').style.display = 'none';
-  document.getElementById('nav-menu-dropdown').style.display = 'none';
+  const dropdown = document.getElementById('nav-menu-dropdown');
+  if (dropdown) dropdown.style.display = 'none';
 }
+// Close menu when clicking outside hamburger-wrap
+document.addEventListener('click', function(e) {
+  const wrap = document.getElementById('hamburger-wrap');
+  if (wrap && !wrap.contains(e.target)) closeMenu();
+});
 
 async function exportAllData() {
   const data = {
