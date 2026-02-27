@@ -3046,10 +3046,19 @@ function _buildResUrl(name, res, dateStr, timeStr, eventbriteUrl, websiteUrl) {
     if (!websiteUrl) return '';
     return /^https?:\/\//i.test(websiteUrl) ? websiteUrl : 'https://' + websiteUrl;
   }
-  // Resy: ?date=YYYY-MM-DD&seats=2&time=HHMM (4-digit 24h, no colon)
   let url = `https://resy.com/cities/new-york-ny/venues/${slug}?seats=2`;
   if (dateStr) url += `&date=${dateStr}`;
-  if (timeStr) url += `&time=${timeStr.replace(':','')}`;
+  if (timeStr) {
+    const _tm = timeStr.match(/(\d+):(\d+)\s*(AM|PM)/i);
+    if (_tm) {
+      let _h = parseInt(_tm[1]); const _m = _tm[2];
+      if (_tm[3].toUpperCase() === 'PM' && _h < 12) _h += 12;
+      if (_tm[3].toUpperCase() === 'AM' && _h === 12) _h = 0;
+      url += `&time=${String(_h).padStart(2,'0')}:${_m}`;
+    } else {
+      url += `&time=${timeStr}`;
+    }
+  }
   return url;
 }
 
