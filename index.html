@@ -3933,7 +3933,7 @@ function _buildDateCardHtml(fd, idx) {
   </div>`;
 }
 
-function _buildUpcomingCardHtml(u, extraStyle) {
+function _buildUpcomingCardHtml(u, extraStyle, directOpen) {
   // Build small reserve/tickets button if applicable and not already reserved
   let _calResBtn = '';
   let _calDk = '';
@@ -3948,8 +3948,11 @@ function _buildUpcomingCardHtml(u, extraStyle) {
       }
     }
   }
+  const _clickHandler = directOpen
+    ? `openDateInfo(UPCOMING_DATES.find(d=>String(d.id)==='${u.id||''}'))`
+    : `_calCardClick(${u.day},'${u.month}',${u.year||2026},'${u.id||''}')`;
   return `
-    <div class="upcoming-item" onclick="_calCardClick(${u.day},'${u.month}',${u.year||2026},'${u.id||''}')" style="${extraStyle || ''}">
+    <div class="upcoming-item" onclick="${_clickHandler}" style="${extraStyle || ''}">
       <div class="upcoming-date-badge">
         <span class="upcoming-month">${u.month}</span>
         <span class="upcoming-day-num">${u.day}</span>
@@ -4024,7 +4027,7 @@ function renderHome() {
         '<span class="section-label">Upcoming</span>' +
         '<span style="font-size:11px;color:#9a8a7a;font-family:sans-serif;letter-spacing:0.05em;line-height:1">›</span>' +
       '</button>' +
-      upcoming3.map(u => _buildUpcomingCardHtml(u, '')).join('') +
+      upcoming3.map(u => _buildUpcomingCardHtml(u, '', true)).join('') +
       '</div>';
   })()}
 
@@ -4502,7 +4505,7 @@ function renderCalendar() {
   // Selected date detail card
   const selDate = UPCOMING_DATES.find(u => u.month === monthAbbr && (u.year||2026) === currentCalYear && u.day === selectedCalDay);
   let selectedCardHTML = '';
-  if (selDate) {
+  if (selDate && !_isDateHiddenPrivate(selDate)) {
     const selDateObj = new Date(currentCalYear, currentCalMonth, selectedCalDay); selDateObj.setHours(0,0,0,0);
     const isPastSel = selDateObj < _now;
     const cardColor = isPastSel ? '#9a8a7a' : ROSE;
@@ -4522,6 +4525,19 @@ function renderCalendar() {
           <span style="font-size:12px;color:rgba(255,255,255,0.65);font-family:sans-serif">${selDate.time}${(_dateLocationLabel(selDate) || selDate.neighborhood) ? ' · ' + (_dateLocationLabel(selDate) || selDate.neighborhood) : ''}</span>
         </div>
         ${ICONS.chevRight(15,'rgba(255,255,255,0.7)')}
+      </div>`;
+  } else if (selDate && _isDateHiddenPrivate(selDate)) {
+    const _selObj = new Date(currentCalYear, currentCalMonth, selectedCalDay); _selObj.setHours(0,0,0,0);
+    const _tomorrow = new Date(_now); _tomorrow.setDate(_now.getDate() + 1);
+    const _endOfWeek = new Date(_now); _endOfWeek.setDate(_now.getDate() + (7 - _now.getDay()) % 7 || 7);
+    const _DAY_NAMES = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+    const _privDateLabel = _selObj.getTime() === _now.getTime() ? 'today'
+      : _selObj.getTime() === _tomorrow.getTime() ? 'tomorrow'
+      : (_selObj > _tomorrow && _selObj <= _endOfWeek) ? _DAY_NAMES[_selObj.getDay()]
+      : _calDayLabel(selectedCalDay, currentCalMonth, currentCalYear);
+    selectedCardHTML = `
+      <div style="margin-top:20px;min-height:64px;box-sizing:border-box;padding:12px 16px;border-radius:14px;display:flex;align-items:center;justify-content:center;color:#b0a090;font-size:14px;font-style:italic">
+        Private date ${_privDateLabel}
       </div>`;
   } else if (selectedCalDay) {
     const _selObj = new Date(currentCalYear, currentCalMonth, selectedCalDay); _selObj.setHours(0,0,0,0);
