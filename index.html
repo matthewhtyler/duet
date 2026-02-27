@@ -1795,12 +1795,7 @@ function catLabelForId(val, type) {
 // All available icon keys
 const ALL_ICON_KEYS = ['dinner','wine','coffee','movie','music','ticket','mic','frame','painting','camera','walker','park','evergreen','palmtree','building','sofa','sofa2','bed','lingerie','mask','game','puzzle','eightball','bowling','videogame','book','gift','chefhat','clock','smile','sun','moon','star','heart','spade'];
 
-const DEFAULT_UPCOMING_DATES = [
-  { day:28, month:'Feb', year:2026, activity:'Dinner',  venue:'Lilia',           neighborhood:'Williamsburg', time:'7:30 PM',  isFeb:true  },
-  { day:7,  month:'Mar', year:2026, activity:'Concert', venue:'National Sawdust', neighborhood:'Williamsburg', time:'8:00 PM',  isFeb:false },
-  { day:15, month:'Mar', year:2026, activity:'Brunch',  venue:'Maison Premiere',  neighborhood:'Williamsburg', time:'11:00 AM', isFeb:false },
-  { day:20, month:'Mar', year:2026, activity:'Movie',   venue:'Nitehawk Cinema',  neighborhood:'Williamsburg', time:'7:00 PM',  isFeb:false },
-];
+const DEFAULT_UPCOMING_DATES = [];
 
 function loadDates() {
   try {
@@ -1882,22 +1877,9 @@ function _ideaNeighborhood(idea) {
   return _neighborhoodFromAddress(idea.address || '');
 }
 
-const DEFAULT_IDEAS = [
-  { id:1, type:'out', category:'restaurant', name:'Lilia',                address:'567 Union Ave, Williamsburg', note:'Best pasta in Brooklyn', saved:true  },
-  { id:2, type:'out', category:'bar',        name:'Maison Premiere',      address:'298 Bedford Ave, Williamsburg', note:'Absinthe, oysters, dreamy', saved:false },
-  { id:3, type:'out', category:'livemusic',  name:'National Sawdust',     address:'80 N 6th St, Williamsburg', note:'Small intimate venue', saved:true  },
-  { id:4, type:'out', category:'movie',      name:'Nitehawk Cinema',      address:'136 Metropolitan Ave, Williamsburg', note:'Dinner + film in one', saved:false },
-  { id:5, type:'out', category:'park',       name:'Prospect Park',        address:'Prospect Park, Brooklyn', note:'Golden hour walk', saved:true  },
-  { id:6, type:'out', category:'venue',      name:"St. Ann's Warehouse",  address:'45 Water St, DUMBO', note:'Experimental / incredible', saved:false },
-  { id:7, type:'in',  category:'Cook',       name:'Cook pasta together',  address:'', note:'She loves to cook', saved:true  },
-  { id:8, type:'in',  category:'Movie',      name:'Film night at home',   address:'', note:'Criterion picks', saved:true  },
-  { id:9, type:'in',  category:'Game',       name:'Board game night',     address:'', note:'', saved:false },
-];
+const DEFAULT_IDEAS = [];
 
-const STATIC_PAST_DATES = [
-  { id:'p1', day:14, month:'Feb', year:2026, label:'Sat Feb 14', activity:'Dinner',  venue:'Aska',            time:'8:00 PM', neighborhood:'Williamsburg', note:"First Valentine's. Perfect." },
-  { id:'p2', day:7,  month:'Feb', year:2026, label:'Sat Feb 7',  activity:'Concert', venue:'National Sawdust', time:'8:00 PM', neighborhood:'Williamsburg', note:'Ambrose Akinmusire. She cried (good).' },
-];
+const STATIC_PAST_DATES = [];
 const PAST_DATES = STATIC_PAST_DATES; // legacy alias
 
 function _computeMemories() {
@@ -1905,8 +1887,10 @@ function _computeMemories() {
   const M = {Jan:0,Feb:1,Mar:2,Apr:3,May:4,Jun:5,Jul:6,Aug:7,Sep:8,Oct:9,Nov:10,Dec:11};
   let saved = {};
   try { saved = JSON.parse(localStorage.getItem('ll_memories') || '{}'); } catch(e) {}
-  // Start with static past dates merged with any saved edits
-  const all = STATIC_PAST_DATES.map(d => ({ ...d, ...(saved[d.id] || {}) }));
+  // Start with static past dates merged with any saved edits, excluding deleted ones
+  let _deletedStatic = [];
+  try { _deletedStatic = JSON.parse(localStorage.getItem('ll_deleted_static') || '[]'); } catch(e) {}
+  const all = STATIC_PAST_DATES.filter(d => !_deletedStatic.includes(d.id)).map(d => ({ ...d, ...(saved[d.id] || {}) }));
   // Add any UPCOMING_DATES that are before today
   UPCOMING_DATES.forEach(u => {
     const mNum = M[u.month]; if (mNum === undefined) return;
@@ -4415,7 +4399,7 @@ function renderCalendar() {
     </div>
     ${selectedCardHTML}
     <div id="cal-upcoming">
-      <div class="section-label" style="margin-bottom:12px">Upcoming</div>
+      ${upcomingHTML ? '<div class="section-label" style="margin-bottom:12px">Upcoming</div>' : ''}
       ${upcomingHTML}
     </div>
     ${(() => {
@@ -7108,14 +7092,27 @@ function saveEditDate() {
 }
 
 function deleteEditDate() {
-  if (_editingMemory && _editingMemory.id) {
-    // Memory/past-date mode: remove by id
-    const idx = UPCOMING_DATES.findIndex(u => u.id === _editingMemory.id);
-    if (idx !== -1) {
-      UPCOMING_DATES.splice(idx, 1);
-      saveDates(UPCOMING_DATES);
-      FUTURE_DATES = buildFutureDates();
-      if (dateIdx >= FUTURE_DATES.length) dateIdx = Math.max(0, FUTURE_DATES.length - 1);
+  if (_editingMemory) {
+    // Check if it's a static past date (id like 'p1', 'p2')
+    const isStatic = STATIC_PAST_DATES.some(d => d.id === _editingMemory.id);
+    if (isStatic) {
+      // Persist deletion of static date
+      let _deletedStatic = [];
+      try { _deletedStatic = JSON.parse(localStorage.getItem('ll_deleted_static') || '[]'); } catch(e) {}
+      if (!_deletedStatic.includes(_editingMemory.id)) {
+        _deletedStatic.push(_editingMemory.id);
+        localStorage.setItem('ll_deleted_static', JSON.stringify(_deletedStatic));
+      }
+    } else {
+      // Memory/past-date mode: try id match first, then fall back to day+month+year
+      let idx = UPCOMING_DATES.findIndex(u => u.id === _editingMemory.id);
+      if (idx === -1) idx = UPCOMING_DATES.findIndex(u => u.day === _editingMemory.day && u.month === _editingMemory.month && (u.year || new Date().getFullYear()) === (_editingMemory.year || new Date().getFullYear()));
+      if (idx !== -1) {
+        UPCOMING_DATES.splice(idx, 1);
+        saveDates(UPCOMING_DATES);
+        FUTURE_DATES = buildFutureDates();
+        if (dateIdx >= FUTURE_DATES.length) dateIdx = Math.max(0, FUTURE_DATES.length - 1);
+      }
     }
   } else {
     // Upcoming date mode: remove by edDateIdx
