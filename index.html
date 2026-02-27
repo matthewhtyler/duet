@@ -446,7 +446,7 @@
   }
   #idea-sheet { flex-direction: column; overflow: hidden; }
   #todo-sheet { overflow-y: auto; padding: 20px 20px 24px; }
-  #idea-sheet-body { flex: 1; overflow-y: auto; padding: 16px 20px 36px; min-height: 0; }
+  #idea-sheet-body { flex: 1; overflow-y: auto; padding: 16px 20px 36px; min-height: 0; display: flex; flex-direction: column; }
   #sheet-header { display: flex; align-items: center; justify-content: space-between; padding: 20px 20px 14px; flex-shrink: 0; border-bottom: 1px solid var(--border); }
   #sheet-title { font-size: 18px; font-weight: 700; color: var(--text-primary); }
   body.dark-mode #sheet-title { color: var(--popup-title); }
@@ -532,7 +532,7 @@
         <circle id="logo-circle-light" cx="11" cy="9" r="7.5" stroke="#c07a8a" stroke-width="2.8"/>
         <circle id="logo-circle-dark" cx="18" cy="9" r="7.5" stroke="#8b3a52" stroke-width="2.8"/>
       </svg>
-      <span style="color:green">duet</span>
+      <span style="color:yellow">duet</span>
     </button>
     <button id="nav-back" onclick="navigate('home')" style="display:none">
       <svg viewBox="0 0 24 24" width="20" height="20" stroke="#b0a090" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
@@ -654,7 +654,7 @@
 
       <!-- Category: dynamic icon + dropdown (Out) -->
       <div class="idea-row" id="idea-cat-out-row">
-        <div id="idea-cat-icon" style="width:18px;flex-shrink:0"></div>
+        <button id="idea-cat-icon-btn" onclick="openNewIdeaIconPicker()" title="Change icon" style="width:18px;flex-shrink:0;background:none;border:none;cursor:pointer;padding:0;display:flex;align-items:center;justify-content:center"></button>
         <select class="field-input" id="idea-cat-select" onchange="onIdeaCatSelectChange()" style="flex:1;margin-bottom:0;min-width:0">
           <option value="restaurant">Restaurant</option>
           <option value="bar">Bar</option>
@@ -678,7 +678,7 @@
 
       <!-- Category: dynamic icon + dropdown (In) -->
       <div class="idea-row" id="idea-cat-in-row" style="display:none">
-        <div id="idea-cat-icon-in" style="width:18px;flex-shrink:0"></div>
+        <button id="idea-cat-icon-in-btn" onclick="openNewIdeaIconPicker()" title="Change icon" style="width:18px;flex-shrink:0;background:none;border:none;cursor:pointer;padding:0;display:flex;align-items:center;justify-content:center"></button>
         <select class="field-input" id="idea-cat-select-in" onchange="onIdeaCatSelectChange()" style="flex:1;margin-bottom:0">
           <option value="orderin">Delivery</option>
           <option value="Cook">Cook</option>
@@ -687,6 +687,9 @@
           <option value="Activity">Activity</option>
           <option value="Other">Other</option>
         </select>
+        <label style="flex-shrink:0;display:flex;align-items:center;cursor:pointer;padding:2px" title="Show type in subtitle">
+          <input type="checkbox" id="idea-showtype-in" checked class="showtype-check">
+        </label>
       </div>
 
       <!-- OUT-only fields -->
@@ -699,11 +702,12 @@
         </div>
 
         <!-- Image URLs -->
-        <div id="idea-images-wrap" style="margin-bottom:12px;display:flex;align-items:flex-start;gap:10px">
-          <button id="idea-img-icon-btn" title="Search for photos" style="background:none;border:none;cursor:pointer;padding:0;display:flex;align-items:center;flex-shrink:0;line-height:0;height:38px;margin-top:1px">
+        <div id="idea-images-wrap" style="margin-bottom:12px;display:flex;align-items:center;gap:10px">
+          <button id="idea-img-icon-btn" title="Search for photos" style="background:none;border:none;cursor:pointer;padding:0;display:flex;align-items:center;flex-shrink:0;line-height:0">
             <svg viewBox="0 0 24 24" width="18" height="18" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
           </button>
-          <div id="idea-image-fields" style="flex:1;min-width:0"></div>
+          <button id="idea-img-count-box" onclick="openImagesPopup('idea-image-fields', _getIdeaImgsearchName)" style="flex:1;padding:9px 14px;font-size:16px;font-family:sans-serif;background:var(--bg-input);border:1.5px solid var(--border);border-radius:10px;text-align:left;cursor:pointer;color:var(--text-placeholder);margin-bottom:0">No images</button>
+          <div id="idea-image-fields" style="display:none"></div>
         </div>
 
         <!-- Short description (shown for all other out types) -->
@@ -725,8 +729,9 @@
           </button>
           <input class="field-input" id="idea-address" type="text" placeholder="Address" style="flex:1;margin-bottom:0">
         </div>
-        <!-- Neighborhood (no icon — indented to align with input above) -->
-        <div class="idea-row" style="padding-left:28px">
+        <!-- Neighborhood -->
+        <div class="idea-row">
+          <svg viewBox="0 0 24 24" width="18" height="18" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/></svg>
           <input class="field-input" id="idea-neighborhood" type="text" placeholder="Neighborhood (e.g. Williamsburg)" style="flex:1;margin-bottom:0">
         </div>
 
@@ -734,11 +739,11 @@
         <div style="margin-bottom:12px">
           <div style="display:flex;align-items:center;gap:10px">
             <button onclick="ideaTransitDirections()" title="Transit directions from home" style="background:none;border:none;cursor:pointer;padding:0;display:flex;flex-shrink:0">
-              <svg viewBox="0 0 24 24" width="18" height="18" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 11h16"/><circle cx="8" cy="15" r="1" fill="#9a8a7a" stroke="none"/><circle cx="16" cy="15" r="1" fill="#9a8a7a" stroke="none"/><path d="M9 4v3"/><path d="M15 4v3"/></svg>
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#9a8a7a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><text x="12" y="16.5" text-anchor="middle" font-family="'Helvetica Neue','Arial Black',Arial,sans-serif" font-weight="900" font-size="13" fill="#9a8a7a" stroke="none">A</text></svg>
             </button>
-            <input class="field-input" id="idea-subway" type="text" placeholder="e.g. A C to 14th St 25min" oninput="renderIdeaSubwayBadges()" style="flex:1;margin-bottom:0">
+            <input class="field-input" id="idea-subway" type="text" placeholder="Transit (e.g. A C to 14th St 25min)" oninput="renderIdeaSubwayBadges()" style="flex:1;margin-bottom:0">
           </div>
-          <div id="idea-subway-badges" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:8px;margin-left:28px;min-height:0"></div>
+          <div id="idea-subway-badges" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:0;margin-left:28px;min-height:0"></div>
         </div>
 
         <!-- Walk/Drive -->
@@ -747,16 +752,16 @@
             <button onclick="ideaWalkingDirections()" title="Walking directions from home" style="background:none;border:none;cursor:pointer;padding:0;display:flex;flex-shrink:0">
               <svg viewBox="0 0 24 24" width="18" height="18" fill="#9a8a7a"><path d="M13.5 5.5c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zM9.8 8.9L7 23h2.1l1.8-8 2.1 2v6h2v-7.5l-2.1-2 .6-3C14.8 12 16.8 13 19 13v-2c-1.9 0-3.5-1-4.3-2.4l-1-1.6c-.4-.6-1-1-1.7-1-.3 0-.5.1-.8.1L6 8.3V13h2V9.6l1.8-.7"/></svg>
             </button>
-            <input class="field-input" id="idea-walkdrive" type="text" placeholder="e.g. 20min walk / 8min drive" oninput="renderIdeaWalkDriveBadges()" style="flex:1;margin-bottom:0">
+            <input class="field-input" id="idea-walkdrive" type="text" placeholder="Walk / Drive (e.g. 20min walk / 8min drive)" oninput="renderIdeaWalkDriveBadges()" style="flex:1;margin-bottom:0">
           </div>
-          <div id="idea-walkdrive-badges" style="display:flex;align-items:center;gap:8px;margin-top:8px;margin-left:28px;min-height:0"></div>
+          <div id="idea-walkdrive-badges" style="display:flex;align-items:center;gap:8px;margin-top:0;margin-left:28px;min-height:0"></div>
         </div>
 
         <!-- Reservation -->
         <div id="reservation-wrap" style="margin-bottom:12px">
           <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
             <button onclick="ideaOpenReservation()" title="Open reservation" style="background:none;border:none;cursor:pointer;padding:0;display:flex;flex-shrink:0">
-              <svg viewBox="0 0 24 24" width="18" height="18" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+              <svg viewBox="0 0 24 24" width="18" height="18" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/><line x1="9" y1="9" x2="9" y2="15"/><line x1="12" y1="9" x2="12" y2="15"/><line x1="15" y1="9" x2="15" y2="15"/></svg>
             </button>
             <select class="field-input" id="idea-reservation" onchange="onIdeaReservationChange()" style="flex:1;margin-bottom:0">
               <option value="website">Website</option>
@@ -776,83 +781,122 @@
       </div><!-- /out-fields-wrap -->
       <input type="hidden" id="idea-note-short" value="">
 
-      <!-- IN-only note -->
-      <div class="idea-row-top" id="idea-in-note-row" style="display:none">
-        <svg style="margin-top:10px;flex-shrink:0" viewBox="0 0 24 24" width="18" height="18" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="17" x2="12" y2="11"/><circle cx="12" cy="7" r="1.2" fill="#9a8a7a" stroke="none"/></svg>
-        <textarea class="idea-sheet-area" id="idea-note-long" rows="8" placeholder="Description…"></textarea>
+      <!-- IN-only fields -->
+      <div id="in-fields-wrap" style="display:none;flex-direction:column;flex:1;min-height:0">
+        <!-- Images -->
+        <div id="idea-in-images-wrap" style="margin-bottom:12px;display:flex;align-items:center;gap:10px">
+          <button id="idea-in-img-icon-btn" title="Search for photos" style="background:none;border:none;cursor:pointer;padding:0;display:flex;align-items:center;flex-shrink:0;line-height:0">
+            <svg viewBox="0 0 24 24" width="18" height="18" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          </button>
+          <button id="idea-img-count-box-in" onclick="openImagesPopup('idea-image-fields', _getIdeaImgsearchName)" style="flex:1;padding:9px 14px;font-size:16px;font-family:sans-serif;background:var(--bg-input);border:1.5px solid var(--border);border-radius:10px;text-align:left;cursor:pointer;color:var(--text-placeholder);margin-bottom:0">No images</button>
+        </div>
+        <!-- Short description -->
+        <div class="idea-row" id="idea-in-shortdesc-wrap">
+          <svg viewBox="0 0 24 24" width="18" height="18" style="flex-shrink:0" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="17" x2="12" y2="11"/><circle cx="12" cy="7" r="1.2" fill="#9a8a7a" stroke="none"/></svg>
+          <input class="field-input" id="idea-in-shortdesc" type="text" placeholder="Short description…" style="flex:1;margin-bottom:0">
+        </div>
+        <!-- About (long description) -->
+        <div class="idea-row-top" id="idea-in-note-row" style="flex:1;min-height:0">
+          <div style="width:18px;flex-shrink:0;margin-top:10px"></div>
+          <textarea class="idea-sheet-area" id="idea-note-long" placeholder="Long description…" style="flex:1;height:100%;min-height:80px;resize:none"></textarea>
+        </div>
       </div>
 
     </div>
 
     <!-- Date fields (Calendar) -->
     <div id="date-fields" style="display:none">
-      <div class="field-label">Activity</div>
-      <button id="date-activity-btn" onclick="openIdeasPicker()"
-        style="width:100%;padding:11px 14px;background:var(--bg-input);border:1.5px solid var(--border);border-radius:10px;font-family:sans-serif;font-size:14px;color:#b0a090;text-align:left;cursor:pointer;display:flex;align-items:center;gap:10px;margin-bottom:16px">
-        <span id="date-activity-icon"></span>
-        <span id="date-activity-label">Date ideas…</span>
-      </button>
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+        <svg viewBox="0 0 24 24" width="18" height="18" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0">
+          <path d="M8 22h8"/><path d="M12 15.8v6.2"/><path d="M5 3h14l-1.5 9a5 5 0 0 1-5 4h-1a5 5 0 0 1-5-4L5 3z"/>
+        </svg>
+        <button id="date-activity-btn" onclick="openIdeasPicker()"
+          style="flex:1;padding:9px 14px;background:var(--bg-input);border:1.5px solid var(--border);border-radius:10px;font-family:sans-serif;color:var(--text-primary);text-align:left;cursor:pointer;display:flex;align-items:center;gap:10px;margin-bottom:0">
+          <span id="date-activity-icon" style="display:none"></span>
+          <span id="date-activity-label" style="flex:1;font-size:16px;color:var(--text-placeholder)">Date ideas…</span>
+          <span id="date-activity-info-btn" onclick="openDetailFromActivity('date-activity-info-btn',event)" style="display:none;width:20px;height:20px;background:#c07a8a;border-radius:50%;flex-shrink:0;align-items:center;justify-content:center;cursor:pointer"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
+        </button>
+      </div>
       <!-- Custom activity text input (shown when Custom selected) -->
-      <div id="date-custom-wrap" style="display:none">
-        <input class="field-input" id="date-custom-name" type="text" placeholder="Describe the activity…">
+      <div id="date-custom-wrap" style="display:none;align-items:center;gap:10px;margin-bottom:18px">
+        <div style="width:18px;flex-shrink:0"></div>
+        <input class="field-input" id="date-custom-name" type="text" placeholder="Place / activity" style="flex:1;margin-bottom:0">
       </div>
-      <div class="field-label">Date</div>
-      <div id="date-picker-wrap" style="position:relative;margin-bottom:8px">
-        <div id="date-picker-scroll" style="overflow-x:scroll;overflow-y:visible;scrollbar-width:none;-ms-overflow-style:none;border-radius:14px;border:1px solid var(--border);background:var(--popup-week-bg);scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch">
-          <div id="date-picker-inner" style="display:flex;width:max-content"></div>
-        </div>
-        <div id="date-picker-tooltip" class="picker-tooltip"></div>
-      </div>
-      <div style="position:relative;margin-bottom:16px">
-        <svg style="position:absolute;left:13px;top:50%;transform:translateY(-50%);pointer-events:none;z-index:1" viewBox="0 0 24 24" width="16" height="16" stroke="#c07a8a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+      <!-- Calendar icon + week picker on same row -->
+      <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:8px">
+        <svg viewBox="0 0 24 24" width="18" height="18" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:10px">
           <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
         </svg>
-        <input class="field-input" id="date-day-text" type="text" placeholder="e.g. 3/3, March 3, Mar 3" style="padding-left:38px;margin-bottom:0" onblur="finalizePickerText('date')">
-        <input type="hidden" id="date-day" value="">
-      </div>
-      <div class="field-label">Time</div>
-      <div style="position:relative;margin-bottom:16px">
-        <svg style="position:absolute;left:13px;top:50%;transform:translateY(-50%);pointer-events:none;z-index:1" viewBox="0 0 24 24" width="16" height="16" stroke="#c07a8a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
-        </svg>
-        <input class="field-input" id="date-time-select" type="text" placeholder="e.g. 730, 8, 11am" style="padding-left:38px;margin-bottom:0" oninput="formatTimeInput(this)" onblur="finalizeTime(this)">
+        <div style="flex:1;min-width:0">
+          <div id="date-picker-wrap" style="position:relative;margin-bottom:8px">
+            <div id="date-picker-scroll" style="overflow-x:scroll;overflow-y:visible;scrollbar-width:none;-ms-overflow-style:none;border-radius:14px;border:1px solid var(--border);background:var(--popup-week-bg);scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch">
+              <div id="date-picker-inner" style="display:flex;width:max-content"></div>
+            </div>
+            <div id="date-picker-tooltip" class="picker-tooltip"></div>
+          </div>
+          <div style="display:flex;gap:8px">
+            <div style="position:relative;flex:1">
+              <svg style="position:absolute;left:13px;top:50%;transform:translateY(-50%);pointer-events:none;z-index:1" viewBox="0 0 24 24" width="16" height="16" stroke="#c07a8a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+              </svg>
+              <input class="field-input" id="date-day-text" type="text" placeholder="e.g. 3/3, March 3" style="padding-left:38px;margin-bottom:0" onblur="finalizePickerText('date')">
+              <input type="hidden" id="date-day" value="">
+            </div>
+            <div style="position:relative;flex:1">
+              <svg style="position:absolute;left:13px;top:50%;transform:translateY(-50%);pointer-events:none;z-index:1" viewBox="0 0 24 24" width="16" height="16" stroke="#c07a8a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+              </svg>
+              <input class="field-input" id="date-time-select" type="text" placeholder="e.g. 8, 11am" style="padding-left:38px;margin-bottom:0" oninput="formatTimeInput(this)" onblur="finalizeTime(this)">
+            </div>
+          </div>
+        </div>
       </div>
       <!-- In-location (only for In activities) -->
-      <div id="date-in-location-wrap" style="display:none">
-        <div class="field-label">Location</div>
-        <div style="position:relative;margin-bottom:16px">
-          <svg style="position:absolute;left:13px;top:50%;transform:translateY(-50%);pointer-events:none;z-index:1" viewBox="0 0 24 24" width="16" height="16" stroke="#c07a8a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-          <select class="field-input" id="date-in-location-select" onchange="onDateInLocationChange()" style="padding-left:38px;margin-bottom:0">
+      <div id="date-in-location-wrap" style="display:none;margin-top:18px">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+          <svg viewBox="0 0 24 24" width="18" height="18" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          <select class="field-input" id="date-in-location-select" onchange="onDateInLocationChange()" style="margin-bottom:0;flex:1">
             <option value="my_place">My place</option>
             <option id="date-in-partner-option" value="partner_place">Her place</option>
             <option value="other">Other</option>
           </select>
         </div>
-        <div id="date-in-location-other-wrap" style="display:none;position:relative;margin-bottom:16px">
-          <svg style="position:absolute;left:13px;top:50%;transform:translateY(-50%);pointer-events:none;z-index:1" viewBox="0 0 24 24" width="16" height="16" stroke="#c07a8a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-          <input class="field-input" id="date-in-location-other" type="text" placeholder="Address or place name" style="padding-left:38px;margin-bottom:0">
+        <div id="date-in-location-other-wrap" style="display:none;align-items:center;gap:10px;margin-bottom:12px">
+          <svg viewBox="0 0 24 24" width="18" height="18" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          <input class="field-input" id="date-in-location-other" type="text" placeholder="Address or place name" style="flex:1;margin-bottom:0">
         </div>
       </div>
-      <!-- Location: text input for Out/Custom, select for In -->
-
-      <div class="field-label" id="date-location-label">Location</div>
-      <div id="date-location-text-wrap" style="position:relative;margin-bottom:16px">
-        <svg style="position:absolute;left:13px;top:50%;transform:translateY(-50%);pointer-events:none;z-index:1" viewBox="0 0 24 24" width="16" height="16" stroke="#c07a8a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-        <input class="field-input" id="date-location-text" type="text" placeholder="Address (e.g. 123 Metropolitan Ave, Brooklyn, NY)" style="padding-left:38px;margin-bottom:0">
+      <!-- Location: text input for Out/Custom -->
+      <div id="date-location-text-wrap" style="display:none;align-items:center;gap:10px;margin-top:18px;margin-bottom:12px">
+        <svg viewBox="0 0 24 24" width="18" height="18" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+        <input class="field-input" id="date-location-text" type="text" placeholder="Address (e.g. 123 Metropolitan Ave, Brooklyn, NY)" style="flex:1;margin-bottom:0">
       </div>
       <!-- Neighborhood (Custom activity only) -->
-      <div id="date-neighborhood-wrap" style="display:none;margin-bottom:16px">
-        <input class="field-input" id="date-neighborhood" type="text" placeholder="Neighborhood (e.g. Williamsburg)" style="margin-bottom:0">
+      <div id="date-neighborhood-wrap" style="display:none;align-items:center;gap:10px;margin-bottom:12px">
+        <svg viewBox="0 0 24 24" width="18" height="18" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/></svg>
+        <input class="field-input" id="date-neighborhood" type="text" placeholder="Neighborhood (e.g. Williamsburg)" style="flex:1;margin-bottom:0">
       </div>
-      <select class="field-input" id="date-location-select" style="display:none">
-        <option value="My place">My place</option>
-        <option value="Her place">Her place</option>
-      </select>
-      <div class="field-label">Note</div>
-      <input class="field-input" id="date-note" type="text" placeholder="" style="margin-bottom:0">
-      <!-- Date lock row -->
-      <div style="display:flex;justify-content:center;padding:17px 0 9px">
-        <button id="date-lock-btn" onclick="toggleDatePrivate()" type="button" style="background:none;border:none;cursor:pointer;padding:4px;display:flex;color:#9a8a7a" title="Mark as private"></button>
+      <div style="display:flex;align-items:center;gap:10px;margin-top:16px;margin-bottom:16px">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" style="flex-shrink:0">
+          <line x1="4" y1="5" x2="20" y2="5" stroke="#9a8a7a" stroke-width="2" stroke-linecap="round"/>
+          <line x1="4" y1="10" x2="17" y2="10" stroke="#9a8a7a" stroke-width="2" stroke-linecap="round"/>
+          <line x1="4" y1="15" x2="20" y2="15" stroke="#9a8a7a" stroke-width="2" stroke-linecap="round"/>
+          <line x1="4" y1="20" x2="13" y2="20" stroke="#9a8a7a" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        <input class="field-input" id="date-note" type="text" placeholder="Note…" style="flex:1;margin-bottom:0">
+      </div>
+      <!-- Images -->
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:0">
+        <button id="date-img-icon-btn" title="Search for photos" style="background:none;border:none;cursor:pointer;padding:0;display:flex;align-items:center;flex-shrink:0;line-height:0">
+          <svg viewBox="0 0 24 24" width="18" height="18" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+        </button>
+        <button id="date-img-count-box" onclick="openImagesPopup('date-image-fields', _getDateImgsearchName)" style="flex:1;padding:9px 14px;font-size:16px;font-family:sans-serif;background:var(--bg-input);border:1.5px solid var(--border);border-radius:10px;text-align:left;cursor:pointer;color:var(--text-placeholder);margin-bottom:0">No images</button>
+        <div id="date-image-fields" style="display:none"></div>
+      </div>
+      <!-- Privacy box -->
+      <div style="display:flex;align-items:center;gap:10px;margin-top:12px;padding-bottom:8px">
+        <button id="date-lock-icon" onclick="toggleDatePrivate()" type="button" style="background:none;border:none;cursor:pointer;padding:0;display:flex;flex-shrink:0;color:#9a8a7a"></button>
+        <button id="date-privacy-box" onclick="toggleDatePrivate()" style="flex:1;padding:9px 14px;font-size:16px;font-family:sans-serif;background:var(--bg-input);border:1.5px solid var(--border);border-radius:10px;text-align:left;cursor:pointer;color:var(--text-placeholder);margin-bottom:0">Not private</button>
       </div>
     </div>
     </div><!-- /idea-sheet-body -->
@@ -860,19 +904,27 @@
 
   <!-- IDEAS PICKER MODAL -->
   <div id="ideas-picker-overlay" class="popup-overlay" onclick="closeIdeasPicker()" style="position:fixed;inset:0;background:rgba(30,20,20,0.5);z-index:500;display:none;align-items:center;justify-content:center;padding:20px">
-    <div id="ideas-picker-sheet" onclick="event.stopPropagation()" style="width:100%;max-width:370px;background:var(--bg);border-radius:20px;padding:20px 20px 24px;max-height:76vh;display:flex;flex-direction:column;box-shadow:0 12px 48px rgba(0,0,0,0.18)">
-      <!-- Header -->
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-shrink:0">
-        <div style="font-size:17px;font-weight:700;color:var(--popup-title)">Choose Activity</div>
+    <div id="ideas-picker-sheet" onclick="event.stopPropagation()" style="width:100%;max-width:370px;background:var(--bg);border-radius:20px;padding:20px 20px 24px;height:76vh;display:flex;flex-direction:column;box-shadow:0 12px 48px rgba(0,0,0,0.18)">
+      <!-- Header: title + X -->
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-shrink:0">
+        <div style="font-size:17px;font-weight:700;color:var(--popup-title)">Date Ideas</div>
         <button onclick="closeIdeasPicker()" style="background:none;border:none;display:flex;cursor:pointer">
           <svg viewBox="0 0 24 24" width="20" height="20" stroke="#888" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="icon-close"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
         </button>
       </div>
-      <!-- Filter toggle -->
-      <div id="picker-toggle" style="display:flex;background:var(--picker-toggle-bg);border-radius:10px;padding:3px;gap:2px;margin-bottom:14px;flex-shrink:0">
-        <button class="picker-tab active" id="ptab-all" onclick="setPickerFilter('all')" style="flex:1;padding:7px 0;border:none;border-radius:8px;font-family:sans-serif;font-size:13px;font-weight:600;cursor:pointer;background:var(--picker-tab-active-bg);color:var(--picker-tab-active-color);box-shadow:0 1px 4px rgba(0,0,0,0.08)">All</button>
-        <button class="picker-tab" id="ptab-out" onclick="setPickerFilter('out')" style="flex:1;padding:7px 0;border:none;border-radius:8px;font-family:sans-serif;font-size:13px;font-weight:600;cursor:pointer;background:transparent;color:#9a8a7a">Out</button>
-        <button class="picker-tab" id="ptab-in"  onclick="setPickerFilter('in')"  style="flex:1;padding:7px 0;border:none;border-radius:8px;font-family:sans-serif;font-size:13px;font-weight:600;cursor:pointer;background:transparent;color:#9a8a7a">In</button>
+      <!-- Filter toggle + search bar (mirrors Date Ideas screen) -->
+      <div id="picker-controlbar" style="display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-shrink:0">
+        <div id="picker-toggle" style="display:flex;background:var(--toggle-bg);border-radius:20px;padding:2px;gap:1px;flex-shrink:0">
+          <button id="ptab-all" onclick="setPickerFilter('all')" style="padding:4px 12px;border:none;border-radius:18px;font-family:sans-serif;font-size:12px;font-weight:600;cursor:pointer;background:var(--toggle-active-bg);color:var(--toggle-active-color);box-shadow:0 1px 3px rgba(0,0,0,0.10)">All</button>
+          <button id="ptab-out" onclick="setPickerFilter('out')" style="padding:4px 12px;border:none;border-radius:18px;font-family:sans-serif;font-size:12px;font-weight:600;cursor:pointer;background:transparent;color:#9a8a7a">Out</button>
+          <button id="ptab-in"  onclick="setPickerFilter('in')"  style="padding:4px 12px;border:none;border-radius:18px;font-family:sans-serif;font-size:12px;font-weight:600;cursor:pointer;background:transparent;color:#9a8a7a">In</button>
+          <button id="ptab-favs" onclick="setPickerFilter('favs')" style="padding:4px 10px;border:none;border-radius:18px;font-family:sans-serif;font-size:12px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:4px;background:transparent;color:#9a8a7a"><svg viewBox="0 0 24 24" width="13" height="13" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></button>
+        </div>
+        <div style="display:flex;align-items:center;background:var(--toggle-bg);border-radius:20px;padding:5px 10px;gap:6px;flex:1;min-width:0">
+          <svg viewBox="0 0 24 24" width="13" height="13" stroke="#9a8a7a" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input id="picker-search-input" type="text" oninput="setPickerSearch(this.value)" placeholder="" style="border:none;background:transparent;outline:none;font-size:16px;font-family:sans-serif;color:var(--text-primary);width:100%;line-height:1;padding:0;min-width:0">
+          <button id="picker-search-clear" onclick="setPickerSearch('');document.getElementById('picker-search-input').value=''" style="background:none;border:none;cursor:pointer;padding:0;display:none;flex-shrink:0;line-height:0"><svg viewBox="0 0 24 24" width="13" height="13" stroke="#9a8a7a" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+        </div>
       </div>
       <!-- Scrollable list -->
       <div id="ideas-picker-body" style="overflow-y:auto;flex:1;min-height:0"></div>
@@ -1004,86 +1056,106 @@
       <div style="flex:1;overflow-y:auto;padding:16px 20px 0;min-height:0">
 
         <!-- Activity -->
-        <div class="field-label">Activity</div>
-        <button id="ed-activity-btn" onclick="openIdeasPickerForEdit()"
-          style="width:100%;padding:11px 14px;background:var(--bg-input);border:1.5px solid var(--border);border-radius:10px;font-family:sans-serif;font-size:14px;color:#b0a090;text-align:left;cursor:pointer;display:flex;align-items:center;gap:10px;margin-bottom:16px">
-          <span id="ed-activity-icon"></span>
-          <span id="ed-activity-label" style="flex:1">Date ideas…</span>
-          <span id="ed-activity-edit-btn" onclick="edEditActivityIdea(event)" style="display:none;width:20px;height:20px;background:#c07a8a;border-radius:50%;flex-shrink:0;align-items:center;justify-content:center;cursor:pointer">
-            <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
-          </span>
-        </button>
-        <div id="ed-custom-wrap" style="display:none">
-          <input class="field-input" id="ed-custom-name" type="text" placeholder="Describe the activity…">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+          <svg viewBox="0 0 24 24" width="18" height="18" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0">
+            <path d="M8 22h8"/><path d="M12 15.8v6.2"/><path d="M5 3h14l-1.5 9a5 5 0 0 1-5 4h-1a5 5 0 0 1-5-4L5 3z"/>
+          </svg>
+          <button id="ed-activity-btn" onclick="openIdeasPickerForEdit()"
+            style="flex:1;padding:9px 14px;background:var(--bg-input);border:1.5px solid var(--border);border-radius:10px;font-family:sans-serif;color:var(--text-primary);text-align:left;cursor:pointer;display:flex;align-items:center;gap:10px;margin-bottom:0">
+            <span id="ed-activity-icon" style="display:none"></span>
+            <span id="ed-activity-label" style="flex:1;font-size:16px;color:var(--text-placeholder)">Date ideas…</span>
+            <span id="ed-activity-edit-btn" onclick="edEditActivityIdea(event)" style="display:none;width:20px;height:20px;background:#c07a8a;border-radius:50%;flex-shrink:0;align-items:center;justify-content:center;cursor:pointer">
+              <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+            </span>
+          </button>
+        </div>
+        <div id="ed-custom-wrap" style="display:none;align-items:center;gap:10px;margin-bottom:18px">
+          <div style="width:18px;flex-shrink:0"></div>
+          <input class="field-input" id="ed-custom-name" type="text" placeholder="Place / activity" style="flex:1;margin-bottom:0">
         </div>
 
-        <!-- Date -->
-        <div class="field-label">Date</div>
-        <div id="ed-picker-wrap" style="position:relative;margin-bottom:8px">
-          <div id="ed-picker-scroll" style="overflow-x:scroll;overflow-y:visible;scrollbar-width:none;-ms-overflow-style:none;border-radius:14px;border:1px solid var(--border);background:var(--popup-week-bg);scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch">
-            <div id="ed-picker-inner" style="display:flex;width:max-content"></div>
-          </div>
-          <div id="ed-picker-tooltip" class="picker-tooltip"></div>
-        </div>
-        <div style="position:relative;margin-bottom:16px">
-          <svg style="position:absolute;left:13px;top:50%;transform:translateY(-50%);pointer-events:none;z-index:1" viewBox="0 0 24 24" width="16" height="16" stroke="#c07a8a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+        <!-- Calendar icon + week picker on same row; date+time fields below -->
+        <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:16px">
+          <svg viewBox="0 0 24 24" width="18" height="18" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:10px">
             <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
           </svg>
-          <input class="field-input" id="ed-day-text" type="text" placeholder="e.g. 3/3, March 3, Mar 3" style="padding-left:38px;margin-bottom:0" onblur="finalizePickerText('ed')">
-          <input type="hidden" id="ed-day" value="">
-        </div>
-
-        <!-- Time -->
-        <div class="field-label">Time</div>
-        <div style="position:relative;margin-bottom:16px">
-          <svg style="position:absolute;left:13px;top:50%;transform:translateY(-50%);pointer-events:none;z-index:1" viewBox="0 0 24 24" width="16" height="16" stroke="#c07a8a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
-          </svg>
-          <input class="field-input" id="ed-time" type="text" placeholder="e.g. 730, 8, 11am" style="padding-left:38px;margin-bottom:0" oninput="formatTimeInput(this)" onblur="finalizeTime(this)">
+          <div style="flex:1;min-width:0">
+            <div id="ed-picker-wrap" style="position:relative;margin-bottom:8px">
+              <div id="ed-picker-scroll" style="overflow-x:scroll;overflow-y:visible;scrollbar-width:none;-ms-overflow-style:none;border-radius:14px;border:1px solid var(--border);background:var(--popup-week-bg);scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch">
+                <div id="ed-picker-inner" style="display:flex;width:max-content"></div>
+              </div>
+              <div id="ed-picker-tooltip" class="picker-tooltip"></div>
+            </div>
+            <div style="display:flex;gap:8px">
+              <div style="position:relative;flex:1">
+                <svg style="position:absolute;left:13px;top:50%;transform:translateY(-50%);pointer-events:none;z-index:1" viewBox="0 0 24 24" width="16" height="16" stroke="#c07a8a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+                </svg>
+                <input class="field-input" id="ed-day-text" type="text" placeholder="e.g. 3/3, March 3" style="padding-left:38px;margin-bottom:0" onblur="finalizePickerText('ed')">
+                <input type="hidden" id="ed-day" value="">
+              </div>
+              <div style="position:relative;flex:1">
+                <svg style="position:absolute;left:13px;top:50%;transform:translateY(-50%);pointer-events:none;z-index:1" viewBox="0 0 24 24" width="16" height="16" stroke="#c07a8a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+                </svg>
+                <input class="field-input" id="ed-time" type="text" placeholder="e.g. 8, 11am" style="padding-left:38px;margin-bottom:0" oninput="formatTimeInput(this)" onblur="finalizeTime(this)">
+              </div>
+            </div>
+          </div>
         </div>
 
         <!-- In-location (only for In activities) -->
-        <div id="ed-in-location-wrap" style="display:none">
-          <div class="field-label">Location</div>
-          <div style="position:relative;margin-bottom:16px">
-            <svg style="position:absolute;left:13px;top:50%;transform:translateY(-50%);pointer-events:none;z-index:1" viewBox="0 0 24 24" width="16" height="16" stroke="#c07a8a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-            <select class="field-input" id="ed-in-location-select" onchange="onEdInLocationChange()" style="padding-left:38px;margin-bottom:0">
+        <div id="ed-in-location-wrap" style="display:none;margin-top:18px">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+            <svg viewBox="0 0 24 24" width="18" height="18" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            <select class="field-input" id="ed-in-location-select" onchange="onEdInLocationChange()" style="flex:1;margin-bottom:0">
               <option value="my_place">My place</option>
               <option id="ed-in-partner-option" value="partner_place">Her place</option>
               <option value="other">Other</option>
             </select>
           </div>
-          <div id="ed-in-location-other-wrap" style="display:none;position:relative;margin-bottom:16px">
-            <svg style="position:absolute;left:13px;top:50%;transform:translateY(-50%);pointer-events:none;z-index:1" viewBox="0 0 24 24" width="16" height="16" stroke="#c07a8a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-            <input class="field-input" id="ed-in-location-other" type="text" placeholder="Address or place name" style="padding-left:38px;margin-bottom:0">
+          <div id="ed-in-location-other-wrap" style="display:none;align-items:center;gap:10px;margin-bottom:12px">
+            <svg viewBox="0 0 24 24" width="18" height="18" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            <input class="field-input" id="ed-in-location-other" type="text" placeholder="Address or place name" style="flex:1;margin-bottom:0">
           </div>
         </div>
 
         <!-- Location (only for Custom activity) -->
-        <div id="ed-location-wrap" style="display:none">
-          <div class="field-label">Location</div>
-          <div style="position:relative;margin-bottom:16px">
-            <svg style="position:absolute;left:13px;top:50%;transform:translateY(-50%);pointer-events:none;z-index:1" viewBox="0 0 24 24" width="16" height="16" stroke="#c07a8a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-            <input class="field-input" id="ed-location" type="text" placeholder="Address (e.g. 123 Metropolitan Ave, Brooklyn, NY)" style="padding-left:38px;margin-bottom:0">
+        <div id="ed-location-wrap" style="display:none;margin-top:18px">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+            <svg viewBox="0 0 24 24" width="18" height="18" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            <input class="field-input" id="ed-location" type="text" placeholder="Address (e.g. 123 Metropolitan Ave, Brooklyn, NY)" style="flex:1;margin-bottom:0">
           </div>
           <!-- Neighborhood -->
-          <div style="margin-bottom:16px">
-            <input class="field-input" id="ed-neighborhood" type="text" placeholder="Neighborhood (e.g. Williamsburg)" style="margin-bottom:0">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+            <svg viewBox="0 0 24 24" width="18" height="18" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/></svg>
+            <input class="field-input" id="ed-neighborhood" type="text" placeholder="Neighborhood (e.g. Williamsburg)" style="flex:1;margin-bottom:0">
           </div>
         </div>
 
         <!-- Note -->
-        <div class="field-label">Note</div>
-        <input class="field-input" id="ed-note" type="text" placeholder="">
+        <div style="display:flex;align-items:center;gap:10px;margin-top:16px;margin-bottom:16px">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" style="flex-shrink:0">
+            <line x1="4" y1="5" x2="20" y2="5" stroke="#9a8a7a" stroke-width="2" stroke-linecap="round"/>
+            <line x1="4" y1="10" x2="17" y2="10" stroke="#9a8a7a" stroke-width="2" stroke-linecap="round"/>
+            <line x1="4" y1="15" x2="20" y2="15" stroke="#9a8a7a" stroke-width="2" stroke-linecap="round"/>
+            <line x1="4" y1="20" x2="13" y2="20" stroke="#9a8a7a" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          <input class="field-input" id="ed-note" type="text" placeholder="Note…" style="flex:1;margin-bottom:0">
+        </div>
 
         <!-- Image Links -->
-        <div class="field-label">Images</div>
-        <div id="ed-images-wrap" style="margin-top:0;margin-bottom:4px">
-          <div id="ed-image-fields"></div>
+        <div id="ed-images-wrap" style="margin-bottom:0;display:flex;align-items:center;gap:10px">
+          <button id="ed-img-icon-btn" title="Search for photos" style="background:none;border:none;cursor:pointer;padding:0;display:flex;align-items:center;flex-shrink:0;line-height:0">
+            <svg viewBox="0 0 24 24" width="18" height="18" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          </button>
+          <button id="ed-img-count-box" onclick="openImagesPopup('ed-image-fields', _getEdImgsearchName)" style="flex:1;padding:9px 14px;font-size:16px;font-family:sans-serif;background:var(--bg-input);border:1.5px solid var(--border);border-radius:10px;text-align:left;cursor:pointer;color:var(--text-placeholder);margin-bottom:0">No images</button>
+          <div id="ed-image-fields" style="display:none"></div>
         </div>
-        <!-- Edit Date lock -->
-        <div style="display:flex;justify-content:center;padding:10px 0 4px">
-          <button id="ed-lock-btn" onclick="toggleEdPrivate()" type="button" style="background:none;border:none;cursor:pointer;padding:4px;display:flex;color:#9a8a7a" title="Mark as private"></button>
+        <!-- Privacy box -->
+        <div style="display:flex;align-items:center;gap:10px;margin-top:12px">
+          <button id="ed-lock-icon" onclick="toggleEdPrivate()" type="button" style="background:none;border:none;cursor:pointer;padding:0;display:flex;flex-shrink:0;color:#9a8a7a"></button>
+          <button id="ed-privacy-box" onclick="toggleEdPrivate()" style="flex:1;padding:9px 14px;font-size:16px;font-family:sans-serif;background:var(--bg-input);border:1.5px solid var(--border);border-radius:10px;text-align:left;cursor:pointer;color:var(--text-placeholder);margin-bottom:0">Not private</button>
         </div>
         <div style="height:8px"></div>
       </div>
@@ -1195,6 +1267,21 @@
     </div>
   </div>
 
+  <!-- IMAGES POPUP -->
+  <div id="images-popup-overlay" onclick="closeImagesPopup()" style="position:fixed;inset:0;background:rgba(30,20,20,0.45);z-index:600;display:none;align-items:center;justify-content:center;padding:20px">
+    <div onclick="event.stopPropagation()" style="width:100%;max-width:370px;background:var(--bg);border-radius:20px;padding:20px 20px 16px;box-shadow:0 12px 48px rgba(0,0,0,0.18);display:flex;flex-direction:column;gap:0">
+      <div style="display:flex;align-items:center;justify-content:flex-end;margin-bottom:12px;flex-shrink:0">
+        <button onclick="closeImagesPopup()" style="background:none;border:none;cursor:pointer;display:flex;padding:4px">
+          <svg viewBox="0 0 24 24" width="20" height="20" stroke="#888" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="icon-close"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div id="images-popup-fields" style="max-height:52vh;overflow-y:auto;padding-bottom:4px"></div>
+      <div style="margin-top:16px;display:flex;justify-content:center">
+        <button onclick="closeImagesPopup()" style="width:90px;padding:11px 0;background:#c07a8a;border:none;border-radius:10px;font-family:sans-serif;font-size:14px;font-weight:600;color:#fff;cursor:pointer">Done</button>
+      </div>
+    </div>
+  </div>
+
   <!-- ERASE CONFIRM POPUP -->
   <div id="erase-confirm-overlay" class="popup-overlay" onclick="closeEraseConfirm()" style="position:fixed;inset:0;background:rgba(30,20,20,0.5);z-index:500;display:none;align-items:center;justify-content:center;padding:24px">
     <div onclick="event.stopPropagation()" style="background:var(--bg);border-radius:18px;padding:24px 20px;box-shadow:0 12px 48px rgba(0,0,0,0.18);max-width:300px;width:100%">
@@ -1281,7 +1368,7 @@
       </div>
 
       <!-- Scrollable body -->
-      <div style="flex:1;overflow-y:auto;padding:16px 20px 0;min-height:0">
+      <div id="places-form-body" style="flex:1;overflow-y:auto;padding:16px 20px 0;min-height:0">
         <!-- Form fields -->
         <div id="places-form">
           <!-- Name -->
@@ -1314,11 +1401,12 @@
             </label>
           </div>
           <!-- Image URLs -->
-          <div id="pf-images-wrap" style="margin-bottom:12px;display:flex;align-items:flex-start;gap:10px">
-            <button id="pf-img-icon-btn" title="Search for photos" style="background:none;border:none;cursor:pointer;padding:0;display:flex;align-items:center;flex-shrink:0;line-height:0;height:38px;margin-top:1px">
+          <div id="pf-images-wrap" style="margin-bottom:12px;display:flex;align-items:center;gap:10px">
+            <button id="pf-img-icon-btn" title="Search for photos" style="background:none;border:none;cursor:pointer;padding:0;display:flex;align-items:center;flex-shrink:0;line-height:0">
               <svg viewBox="0 0 24 24" width="18" height="18" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
             </button>
-            <div id="pf-image-fields" style="flex:1;min-width:0"></div>
+            <button id="pf-img-count-box" onclick="openImagesPopup('pf-image-fields', _getPfImgsearchName)" style="flex:1;padding:9px 14px;font-size:16px;font-family:sans-serif;background:var(--bg-input);border:1.5px solid var(--border);border-radius:10px;text-align:left;cursor:pointer;color:var(--text-placeholder);margin-bottom:0">No images</button>
+            <div id="pf-image-fields" style="display:none"></div>
           </div>
           <!-- Cuisine (restaurants/cafes) or short description (other types) -->
           <div id="pf-cuisine-wrap" style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
@@ -1343,7 +1431,8 @@
             <input class="field-input" id="pf-address" type="text" placeholder="Address" oninput="markPlaceChanged()" style="flex:1;margin-bottom:0">
           </div>
           <!-- Neighborhood -->
-          <div id="pf-neighborhood-row" style="display:flex;align-items:center;gap:10px;margin-bottom:12px;padding-left:28px">
+          <div id="pf-neighborhood-row" style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+            <svg viewBox="0 0 24 24" width="18" height="18" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/></svg>
             <input class="field-input" id="pf-neighborhood" type="text" placeholder="Neighborhood (e.g. Williamsburg)" oninput="markPlaceChanged()" style="flex:1;margin-bottom:0">
           </div>
 
@@ -1351,11 +1440,11 @@
           <div id="pf-subway-row" style="margin-bottom:12px">
             <div style="display:flex;align-items:center;gap:10px">
               <button onclick="openTransitDirections()" title="Get transit directions" style="background:none;border:none;cursor:pointer;padding:0;display:flex;flex-shrink:0">
-                <svg viewBox="0 0 24 24" width="18" height="18" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 11h16"/><circle cx="8" cy="15" r="1" fill="#9a8a7a" stroke="none"/><circle cx="16" cy="15" r="1" fill="#9a8a7a" stroke="none"/><path d="M9 4v3"/><path d="M15 4v3"/></svg>
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#9a8a7a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><text x="12" y="16.5" text-anchor="middle" font-family="'Helvetica Neue','Arial Black',Arial,sans-serif" font-weight="900" font-size="13" fill="#9a8a7a" stroke="none">A</text></svg>
               </button>
-              <input class="field-input" id="pf-subway" type="text" placeholder="e.g. A C to 14th St 25min" oninput="markPlaceChanged();renderSubwayBadges()" style="flex:1;margin-bottom:0">
+              <input class="field-input" id="pf-subway" type="text" placeholder="Transit (e.g. A C to 14th St 25min)" oninput="markPlaceChanged();renderSubwayBadges()" style="flex:1;margin-bottom:0">
             </div>
-            <div id="pf-subway-badges" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:8px;margin-left:28px;min-height:0"></div>
+            <div id="pf-subway-badges" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:0;margin-left:28px;min-height:0"></div>
           </div>
 
           <!-- Commute: Walk/Drive -->
@@ -1364,16 +1453,16 @@
               <button onclick="openWalkingDirections()" title="Get walking directions" style="background:none;border:none;cursor:pointer;padding:0;display:flex;flex-shrink:0">
                 <svg viewBox="0 0 24 24" width="18" height="18" fill="#9a8a7a"><path d="M13.5 5.5c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zM9.8 8.9L7 23h2.1l1.8-8 2.1 2v6h2v-7.5l-2.1-2 .6-3C14.8 12 16.8 13 19 13v-2c-1.9 0-3.5-1-4.3-2.4l-1-1.6c-.4-.6-1-1-1.7-1-.3 0-.5.1-.8.1L6 8.3V13h2V9.6l1.8-.7"/></svg>
               </button>
-              <input class="field-input" id="pf-walkdrive" type="text" placeholder="e.g. 20min walk / 8min drive" oninput="markPlaceChanged();renderWalkDriveBadges()" style="flex:1;margin-bottom:0">
+              <input class="field-input" id="pf-walkdrive" type="text" placeholder="Walk / Drive (e.g. 20min walk / 8min drive)" oninput="markPlaceChanged();renderWalkDriveBadges()" style="flex:1;margin-bottom:0">
             </div>
-            <div id="pf-walkdrive-badges" style="display:flex;align-items:center;gap:8px;margin-top:8px;margin-left:28px;min-height:0"></div>
+            <div id="pf-walkdrive-badges" style="display:flex;align-items:center;gap:8px;margin-top:0;margin-left:28px;min-height:0"></div>
           </div>
 
           <!-- Reservation (restaurant/bar/livemusic/show) -->
           <div id="pf-reservation-wrap" style="margin-bottom:4px">
             <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
               <button onclick="openReservationLink()" title="Open reservation" style="background:none;border:none;cursor:pointer;padding:0;display:flex;flex-shrink:0">
-                <svg viewBox="0 0 24 24" width="18" height="18" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                <svg viewBox="0 0 24 24" width="18" height="18" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/><line x1="9" y1="9" x2="9" y2="15"/><line x1="12" y1="9" x2="12" y2="15"/><line x1="15" y1="9" x2="15" y2="15"/></svg>
               </button>
               <select class="field-input" id="pf-reservation" onchange="markPlaceChanged();onReservationChange()" style="flex:1;margin-bottom:0">
                 <option value="website">Website</option>
@@ -1457,7 +1546,8 @@
       <button id="ts-activity-btn" onclick="openIdeasPickerForTodo()"
         style="flex:1;padding:11px 14px;background:var(--bg-input);border:1.5px solid var(--border);border-radius:10px;font-family:sans-serif;font-size:14px;color:#b0a090;text-align:left;cursor:pointer;display:flex;align-items:center;gap:10px;margin-bottom:0">
         <span id="ts-activity-icon"></span>
-        <span id="ts-activity-label">Choose activity…</span>
+        <span id="ts-activity-label" style="flex:1">Choose activity…</span>
+        <span id="ts-activity-info-btn" onclick="openDetailFromActivity('ts-activity-info-btn',event)" style="display:none;width:20px;height:20px;background:#c07a8a;border-radius:50%;flex-shrink:0;align-items:center;justify-content:center;cursor:pointer"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
       </button>
     </div>
     <!-- Custom place name field (shown when Custom activity selected) -->
@@ -1488,9 +1578,10 @@
       <option value="low">Eventually</option>
     </select>
   </div>
-  <!-- Todo lock -->
-  <div style="display:flex;justify-content:center;padding:6px 0 20px">
-    <button id="ts-lock-btn" onclick="toggleTsPrivate()" type="button" style="background:none;border:none;cursor:pointer;padding:4px;display:flex;color:#9a8a7a" title="Mark as private"></button>
+  <!-- Privacy box -->
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px">
+    <button id="ts-lock-icon" onclick="toggleTsPrivate()" type="button" style="background:none;border:none;cursor:pointer;padding:0;display:flex;flex-shrink:0;color:#9a8a7a"></button>
+    <button id="ts-privacy-box" onclick="toggleTsPrivate()" style="flex:1;padding:9px 14px;font-size:16px;font-family:sans-serif;background:var(--bg-input);border:1.5px solid var(--border);border-radius:10px;text-align:left;cursor:pointer;color:var(--text-placeholder);margin-bottom:0">Not private</button>
   </div>
 </div>
 
@@ -1538,7 +1629,8 @@
         <button id="et-activity-btn" onclick="openIdeasPickerForEditTodo()"
           style="flex:1;padding:11px 14px;background:var(--bg-input);border:1.5px solid var(--border);border-radius:10px;font-family:sans-serif;font-size:14px;color:#b0a090;text-align:left;cursor:pointer;display:flex;align-items:center;gap:10px;margin-bottom:0">
           <span id="et-activity-icon"></span>
-          <span id="et-activity-label">Choose activity…</span>
+          <span id="et-activity-label" style="flex:1">Choose activity…</span>
+          <span id="et-activity-info-btn" onclick="openDetailFromActivity('et-activity-info-btn',event)" style="display:none;width:20px;height:20px;background:#c07a8a;border-radius:50%;flex-shrink:0;align-items:center;justify-content:center;cursor:pointer"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
         </button>
       </div>
       <div id="et-custom-wrap" style="display:none">
@@ -1568,9 +1660,10 @@
       </select>
     </div>
 
-    <!-- Lock -->
-    <div style="display:flex;justify-content:center;margin-top:18px;margin-bottom:-6px">
-      <button id="et-lock-btn" onclick="toggleEtPrivate()" type="button" style="background:none;border:none;cursor:pointer;padding:4px;display:flex;color:#9a8a7a" title="Mark as private"></button>
+    <!-- Privacy box -->
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+      <button id="et-lock-icon" onclick="toggleEtPrivate()" type="button" style="background:none;border:none;cursor:pointer;padding:0;display:flex;flex-shrink:0;color:#9a8a7a"></button>
+      <button id="et-privacy-box" onclick="toggleEtPrivate()" style="flex:1;padding:9px 14px;font-size:16px;font-family:sans-serif;background:var(--bg-input);border:1.5px solid var(--border);border-radius:10px;text-align:left;cursor:pointer;color:var(--text-placeholder);margin-bottom:0">Not private</button>
     </div>
     <!-- Buttons: Delete / Cancel / Save -->
     <div style="display:flex;align-items:center;justify-content:space-between;margin-top:24px;gap:8px">
@@ -2160,27 +2253,58 @@ function detailImgNav(itemId, dir, e) {
 
 // Collect image URL fields from new-idea sheet
 // ── Unified image field system ──
-// All rows are identical: [drag grip] [thumb?] [input] [×] [+]
+// All rows are identical: [drag grip] [thumb] [input] [×] [+]
 // The photo icon lives in static HTML to the left of the container.
 function _makeImgFieldRow(value, containerId) {
   const row = document.createElement('div');
   row.className = 'img-field-row';
-  // Drag grip
+
+  // Drag grip — always draggable
   const grip = document.createElement('span');
   grip.style.cssText = 'flex-shrink:0;display:flex;align-items:center;cursor:grab;line-height:0';
   grip.innerHTML = `<svg viewBox="0 0 24 24" width="14" height="14" fill="#c0b8b0" style="display:block"><circle cx="9" cy="7" r="1.3"/><circle cx="15" cy="7" r="1.3"/><circle cx="9" cy="12" r="1.3"/><circle cx="15" cy="12" r="1.3"/><circle cx="9" cy="17" r="1.3"/><circle cx="15" cy="17" r="1.3"/></svg>`;
   row.appendChild(grip);
 
-  // Thumb
+  // Thumb — always visible; 3 states: blank (mag glass), bad url (warning), good (image)
   const thumb = document.createElement('div');
   thumb.className = 'img-field-thumb';
-  thumb.style.cssText = 'width:26px;height:26px;border-radius:4px;overflow:hidden;flex-shrink:0;background:#ede9e2;display:none;border:1px solid #ddd8d0';
+  thumb.style.cssText = 'width:26px;height:26px;border-radius:4px;overflow:hidden;flex-shrink:0;background:var(--bg-card);display:flex;align-items:center;justify-content:center;border:1px solid var(--border);cursor:pointer;position:relative';
+
+  // Magnifying glass — shown when field is empty
+  const magIcon = document.createElement('span');
+  magIcon.innerHTML = `<svg viewBox="0 0 24 24" width="13" height="13" stroke="#9a8a7a" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round" style="display:block"><circle cx="11" cy="11" r="6"/><line x1="19" y1="19" x2="14.65" y2="14.65"/></svg>`;
+  magIcon.style.cssText = 'display:flex;align-items:center;justify-content:center;position:absolute;inset:0;pointer-events:none';
+  thumb.appendChild(magIcon);
+
+  // Warning icon — shown when text is present but not a valid/loadable image
+  const warnIcon = document.createElement('span');
+  warnIcon.innerHTML = `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" style="display:block"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" fill="#c07a8a"/><line x1="12" y1="9" x2="12" y2="13" stroke="#fff" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="16.5" r="1" fill="#fff"/></svg>`;
+  warnIcon.style.cssText = 'display:none;align-items:center;justify-content:center;position:absolute;inset:0;pointer-events:none';
+  thumb.appendChild(warnIcon);
+
   const thumbImg = document.createElement('img');
-  thumbImg.style.cssText = 'width:100%;height:100%;object-fit:cover;display:block';
+  thumbImg.style.cssText = 'width:100%;height:100%;object-fit:cover;display:none;position:relative;z-index:1';
   thumb.appendChild(thumbImg);
+
+  function _setThumbState(state) {
+    // state: 'empty' | 'warn' | 'image'
+    magIcon.style.display  = state === 'empty' ? 'flex' : 'none';
+    warnIcon.style.display = state === 'warn'  ? 'flex' : 'none';
+    thumbImg.style.display = state === 'image' ? 'block' : 'none';
+    thumb.style.cursor = (state === 'image') ? 'grab' : 'pointer';
+  }
+  _setThumbState('empty');
+
+  // Thumb click: search when empty or warn state
+  thumb.onclick = () => {
+    if (thumbImg.style.display === 'block') return; // has image, drag-only
+    const fn = window._imgsearchFns && window._imgsearchFns[containerId];
+    if (fn) fn();
+    inp.focus();
+  };
   row.appendChild(thumb);
 
-  // Input — .img-field-row .field-input CSS handles width:auto and margin-bottom:0
+  // Input
   const inp = document.createElement('input');
   inp.className = 'field-input';
   inp.type = 'text';
@@ -2188,7 +2312,7 @@ function _makeImgFieldRow(value, containerId) {
   inp.value = value || '';
   row.appendChild(inp);
 
-  // Clear (×) — .img-btn CSS handles sizing and centering
+  // Clear (×)
   const clearBtn = document.createElement('button');
   clearBtn.type = 'button';
   clearBtn.className = 'img-btn';
@@ -2196,63 +2320,108 @@ function _makeImgFieldRow(value, containerId) {
   clearBtn.innerHTML = `<svg viewBox="0 0 24 24" width="13" height="13" stroke="#9a8a7a" stroke-width="2.5" fill="none" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`;
   clearBtn.title = 'Clear';
   clearBtn.onclick = () => {
-    const container = document.getElementById(containerId);
-    const rows = container ? container.querySelectorAll('.img-field-row') : [];
-    if (!inp.value.trim() && rows.length > 1) {
+    // Use row's live parent (may be popup or hidden container)
+    const liveParent = row.parentNode;
+    const allRows = liveParent ? liveParent.querySelectorAll('.img-field-row') : [];
+    if (!inp.value.trim() && allRows.length > 1) {
       row.remove();
     } else {
       inp.value = '';
-      thumb.style.display = 'none';
+      _setThumbState('empty');
+      delete thumb.dataset.imgOk;
       clearBtn.style.opacity = '0.35';
+      _detachThumbDrag();
       inp.focus();
     }
   };
   row.appendChild(clearBtn);
 
-  // Plus (+) — SVG avoids all font metric/descent issues, .img-btn handles centering
+  // Plus (+)
   const plusBtn = document.createElement('button');
   plusBtn.type = 'button';
   plusBtn.className = 'img-btn';
   plusBtn.innerHTML = `<svg viewBox="0 0 24 24" width="13" height="13" stroke="#9a8a7a" stroke-width="2.5" fill="none" stroke-linecap="round"><line x1="12" y1="4" x2="12" y2="20"/><line x1="4" y1="12" x2="20" y2="12"/></svg>`;
-  plusBtn.onclick = () => _addImgFieldTo(containerId, row);
+  plusBtn.onclick = () => {
+    // Add to row's live parent
+    const liveParent = row.parentNode;
+    const newRow = _makeImgFieldRow('', containerId);
+    if (liveParent) {
+      row.insertAdjacentElement('afterend', newRow);
+      newRow.querySelector('input').focus();
+    }
+  };
   row.appendChild(plusBtn);
 
-  // Update thumb + clear on input
+  // Thumb drag state — only active when image is loaded
+  let _thumbDragCleanup = null;
+  function _detachThumbDrag() {
+    if (_thumbDragCleanup) { _thumbDragCleanup(); _thumbDragCleanup = null; }
+  }
+  function _attachThumbDrag() {
+    _detachThumbDrag();
+    _thumbDragCleanup = _attachImgRowDrag(thumb, row);
+  }
+
+  // Update thumb state on input change
   function _updateRow() {
     const v = inp.value.trim();
     clearBtn.style.opacity = v ? '1' : '0.35';
-    if (v && /^https?:\/\//i.test(v)) {
+    if (!v) {
+      _setThumbState('empty');
+      delete thumb.dataset.imgOk;
+      _detachThumbDrag();
+    } else if (/^https?:\/\//i.test(v)) {
       thumbImg.src = v;
-      thumbImg.onload = () => { thumb.style.display = 'block'; };
-      thumbImg.onerror = () => { thumb.style.display = 'none'; };
+      thumbImg.onload = () => {
+        _setThumbState('image');
+        thumb.dataset.imgOk = 'true';
+        _attachThumbDrag();
+      };
+      thumbImg.onerror = () => {
+        _setThumbState('warn');
+        delete thumb.dataset.imgOk;
+        _detachThumbDrag();
+      };
     } else {
-      thumb.style.display = 'none';
+      // Has text but not a URL
+      _setThumbState('warn');
+      delete thumb.dataset.imgOk;
+      _detachThumbDrag();
     }
   }
   inp.addEventListener('input', _updateRow);
   if (value) setTimeout(_updateRow, 0);
 
-  // Touch/mouse drag-to-reorder — works on mobile and desktop
-  // Drag handle: grip OR thumb
-  [grip, thumb].forEach(handle => _attachImgRowDrag(handle, row, containerId));
+  // Enter key: add new row at bottom of live parent
+  inp.addEventListener('keydown', e => {
+    if (e.key !== 'Enter') return;
+    e.preventDefault();
+    if (!inp.value.trim()) return; // don't add if field is empty
+    const liveParent = inp.closest('#images-popup-fields') || inp.closest('[id$="-image-fields"]');
+    if (!liveParent) return;
+    const allRows = liveParent.querySelectorAll('.img-field-row');
+    const lastRow = allRows[allRows.length - 1];
+    const newRow = _makeImgFieldRow('', containerId);
+    liveParent.appendChild(newRow);
+    newRow.querySelector('input').focus();
+  });
+
+  // Grip is always draggable
+  _attachImgRowDrag(grip, row);
 
   return row;
 }
 
-function _attachImgRowDrag(handle, row, containerId) {
-  let clone = null, startY = 0, offsetY = 0, dragging = false, scrollEl = null;
+function _attachImgRowDrag(handle, row) {
+  let clone = null, startY = 0, offsetY = 0, dragging = false;
 
-  function getContainer() { return document.getElementById(containerId); }
+  function getLiveParent() { return row.parentNode; }
 
   function startDrag(clientY) {
     dragging = true;
     const rect = row.getBoundingClientRect();
     startY = clientY;
     offsetY = clientY - rect.top;
-
-    // Find scrollable parent
-    scrollEl = row.closest('[style*="overflow-y:auto"], [style*="overflow-y: auto"], [style*="overflow-y:scroll"]');
-
     // Ghost clone
     clone = row.cloneNode(true);
     clone.style.cssText = `position:fixed;left:${rect.left}px;top:${rect.top}px;width:${rect.width}px;opacity:0.85;pointer-events:none;z-index:9999;background:var(--bg-card);border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,0.25);box-sizing:border-box`;
@@ -2263,17 +2432,15 @@ function _attachImgRowDrag(handle, row, containerId) {
   function moveDrag(clientY) {
     if (!dragging || !clone) return;
     clone.style.top = (clientY - offsetY) + 'px';
-
-    const container = getContainer();
-    if (!container) return;
-    const rows = [...container.querySelectorAll('.img-field-row')].filter(r => r !== row);
+    const parent = getLiveParent();
+    if (!parent) return;
+    const rows = [...parent.querySelectorAll('.img-field-row')].filter(r => r !== row);
     let target = null;
     for (const r of rows) {
       const rect = r.getBoundingClientRect();
       if (clientY < rect.top + rect.height / 2) { target = r; break; }
     }
-    // Visual placeholder: show insertion line
-    rows.forEach(r => r.style.borderTop = '');
+    rows.forEach(r => { r.style.borderTop = ''; r.style.borderBottom = ''; });
     if (target) target.style.borderTop = '2px solid #c07a8a';
     else if (rows.length) rows[rows.length - 1].style.borderBottom = '2px solid #c07a8a';
   }
@@ -2283,71 +2450,74 @@ function _attachImgRowDrag(handle, row, containerId) {
     dragging = false;
     if (clone) { clone.remove(); clone = null; }
     row.style.opacity = '';
-
-    const container = getContainer();
-    if (!container) return;
-    const rows = [...container.querySelectorAll('.img-field-row')].filter(r => r !== row);
+    const parent = getLiveParent();
+    if (!parent) return;
+    const rows = [...parent.querySelectorAll('.img-field-row')].filter(r => r !== row);
     rows.forEach(r => { r.style.borderTop = ''; r.style.borderBottom = ''; });
-
     let target = null;
     for (const r of rows) {
       const rect = r.getBoundingClientRect();
       if (clientY < rect.top + rect.height / 2) { target = r; break; }
     }
-    if (target) container.insertBefore(row, target);
-    else container.appendChild(row);
+    if (target) parent.insertBefore(row, target);
+    else parent.appendChild(row);
   }
 
   // Touch events
   handle.addEventListener('touchstart', e => {
     if (e.touches.length !== 1) return;
-    e.preventDefault(); // prevent scroll while dragging
+    e.preventDefault();
     startDrag(e.touches[0].clientY);
   }, { passive: false });
-
   handle.addEventListener('touchmove', e => {
     if (!dragging) return;
     e.preventDefault();
     moveDrag(e.touches[0].clientY);
   }, { passive: false });
-
   handle.addEventListener('touchend', e => {
     endDrag(e.changedTouches[0].clientY);
   }, { passive: true });
 
-  // Mouse events (desktop fallback)
+  // Mouse events
   handle.style.cursor = 'grab';
-  handle.addEventListener('mousedown', e => {
+  function onMouseDown(e) {
     if (e.button !== 0) return;
     e.preventDefault();
     startDrag(e.clientY);
     function onMove(e) { moveDrag(e.clientY); }
-    function onUp(e) {
-      endDrag(e.clientY);
-      window.removeEventListener('mousemove', onMove);
-      window.removeEventListener('mouseup', onUp);
-    }
+    function onUp(e) { endDrag(e.clientY); window.removeEventListener('mousemove', onMove); window.removeEventListener('mouseup', onUp); }
     window.addEventListener('mousemove', onMove);
     window.addEventListener('mouseup', onUp);
-  });
+  }
+  handle.addEventListener('mousedown', onMouseDown);
+
+  // Return cleanup function
+  return function cleanup() {
+    handle.removeEventListener('mousedown', onMouseDown);
+  };
 }
 
 function _addImgFieldTo(containerId, afterRow) {
-  const container = document.getElementById(containerId);
-  if (!container) return;
+  // Use afterRow's live parent if available (may be in popup), else hidden container
+  const parent = (afterRow && afterRow.parentNode) || document.getElementById(containerId);
+  if (!parent) return;
   const newRow = _makeImgFieldRow('', containerId);
-  if (afterRow && afterRow.parentNode === container) {
+  if (afterRow && afterRow.parentNode === parent) {
     afterRow.insertAdjacentElement('afterend', newRow);
   } else {
-    container.appendChild(newRow);
+    parent.appendChild(newRow);
   }
   newRow.querySelector('input').focus();
 }
 
 function _collectImgUrls(containerId) {
-  const container = document.getElementById(containerId);
-  if (!container) return [];
-  return [...container.querySelectorAll('.img-field-row input[type=text]')]
+  // Rows may be in the popup while it's open, or in the hidden container
+  const hidden = document.getElementById(containerId);
+  const popup = document.getElementById('images-popup-fields');
+  // If popup is open for this container, collect from popup
+  const source = (_imagesPopupContainerId === containerId && popup) ? popup : hidden;
+  if (!source) return [];
+  return [...source.querySelectorAll('.img-field-row input[type=text]')]
     .map(i => i.value.trim()).filter(Boolean);
 }
 
@@ -2372,17 +2542,140 @@ function _openExternal(url) {
   setTimeout(() => document.body.removeChild(a), 100);
 }
 
+// ── imgsearch: Brave image search, callable from multiple places ──
+function imgsearch(getNameFn) {
+  const n = getNameFn();
+  if (!n) {
+    _showNoNameToast();
+    return;
+  }
+  _openExternal('https://search.brave.com/images?q=' + encodeURIComponent(n));
+}
+
+// Toast: shown when imgsearch is triggered but no name is set
+function _showNoNameToast() {
+  let toast = document.getElementById('imgsearch-no-name-toast');
+  if (!toast) {
+    toast = document.createElement('div');
+    toast.id = 'imgsearch-no-name-toast';
+    toast.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:9999;background:#fff;border-radius:14px;padding:14px 18px;box-shadow:0 8px 32px rgba(0,0,0,0.18);display:flex;align-items:center;gap:10px;max-width:280px;pointer-events:none;opacity:0;transition:opacity 0.15s ease';
+    toast.innerHTML = `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" flex-shrink="0" style="flex-shrink:0"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" fill="#c07a8a" rx="3"/><line x1="12" y1="9" x2="12" y2="13" stroke="#fff" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="16.5" r="1" fill="#fff"/></svg><span style="font-size:13px;font-family:sans-serif;color:#281f1f;line-height:1.4">No activity or place named yet.</span>`;
+    document.body.appendChild(toast);
+  }
+  // Show then fade out
+  clearTimeout(toast._hideTimer);
+  toast.style.opacity = '1';
+  toast._hideTimer = setTimeout(() => { toast.style.opacity = '0'; }, 2200);
+}
+
+// Name getter functions for each context
+function _getIdeaImgsearchName() { return (document.getElementById('idea-name') || {value:''}).value.trim(); }
+function _getPfImgsearchName()   { return (document.getElementById('pf-name')   || {value:''}).value.trim(); }
+function _getEdImgsearchName()   {
+  if (edSelectedActivity && !edSelectedActivity.custom) return edSelectedActivity.name || '';
+  return (document.getElementById('ed-custom-name') || {value:''}).value.trim();
+}
+function _getDateImgsearchName() {
+  if (selectedActivity && !selectedActivity.custom && selectedActivity.name) return selectedActivity.name;
+  return (document.getElementById('date-custom-name') || {value:''}).value.trim();
+}
+
+// ── Images popup ──
+let _imagesPopupContainerId = null;
+window._imgsearchFns = window._imgsearchFns || {};
+
+function openImagesPopup(containerId, getNameFn) {
+  _imagesPopupContainerId = containerId;
+  // Store per-container so blank thumb clicks work
+  if (getNameFn) window._imgsearchFns[containerId] = () => imgsearch(getNameFn);
+  window._currentImgsearchFn = window._imgsearchFns[containerId] || null;
+
+  // Move the hidden fields container into the popup
+  const sourceContainer = document.getElementById(containerId);
+  const popupFields = document.getElementById('images-popup-fields');
+  if (sourceContainer && popupFields) {
+    popupFields.innerHTML = '';
+    // Ensure there's at least one row
+    if (!sourceContainer.querySelector('.img-field-row')) {
+      _populateImgContainer(containerId, []);
+    }
+    // Move rows into popup display area
+    [...sourceContainer.querySelectorAll('.img-field-row')].forEach(r => popupFields.appendChild(r));
+  }
+
+  document.getElementById('images-popup-overlay').style.display = 'flex';
+  document.body.classList.add('overlay-open');
+
+  // Auto-run imgsearch if no filled image urls yet
+  const existingUrls = _collectImgUrls(containerId);
+  if (existingUrls.length === 0 && window._currentImgsearchFn) {
+    window._currentImgsearchFn();
+  }
+  // Focus first input
+  const firstInput = popupFields ? popupFields.querySelector('input[type=text]') : null;
+  if (firstInput) setTimeout(() => firstInput.focus(), 80);
+}
+
+function closeImagesPopup() {
+  if (!_imagesPopupContainerId) return;
+  // Move rows back to source container
+  const sourceContainer = document.getElementById(_imagesPopupContainerId);
+  const popupFields = document.getElementById('images-popup-fields');
+  if (sourceContainer && popupFields) {
+    [...popupFields.querySelectorAll('.img-field-row')].forEach(r => sourceContainer.appendChild(r));
+  }
+  document.getElementById('images-popup-overlay').style.display = 'none';
+  document.body.classList.remove('overlay-open');
+  _imagesPopupContainerId = null;
+  window._currentImgsearchFn = null;
+  // Update count boxes
+  _updateImgCountBox('idea-image-fields', 'idea-img-count-box');
+  _updateImgCountBox('idea-image-fields', 'idea-img-count-box-in');
+  _updateImgCountBox('pf-image-fields',   'pf-img-count-box');
+  _updateImgCountBox('ed-image-fields',   'ed-img-count-box');
+  _updateImgCountBox('date-image-fields', 'date-img-count-box');
+}
+
+function _updateImgCountBox(containerId, boxId) {
+  const box = document.getElementById(boxId);
+  if (!box) return;
+  // Only count rows where the image loaded successfully (data-img-ok on thumb)
+  const popup = document.getElementById('images-popup-fields');
+  const source = (_imagesPopupContainerId === containerId && popup)
+    ? popup
+    : document.getElementById(containerId);
+  const n = source ? source.querySelectorAll('.img-field-thumb[data-img-ok]').length : 0;
+  if (n === 0) {
+    box.textContent = 'No images';
+    box.style.color = 'var(--text-placeholder)';
+  } else {
+    box.textContent = n === 1 ? '1 image' : n + ' images';
+    box.style.color = 'var(--text-primary)';
+  }
+}
+
 function _wireImgIconBtn(btnId, getNameFn) {
-  const btn = document.getElementById(btnId);
-  if (btn) btn.onclick = () => { const n = getNameFn(); if (n) _openExternal('https://search.brave.com/images?q='+encodeURIComponent(n)); };
+  // No-op: image icon buttons no longer trigger search directly
 }
 
 // Shims
 function collectNewIdeaImageUrls() { return _collectImgUrls('idea-image-fields'); }
 function collectPfImageUrls()      { return _collectImgUrls('pf-image-fields'); }
 function collectEdImageUrls()      { return _collectImgUrls('ed-image-fields'); }
-function populatePfImageFields(item) { _populateImgContainer('pf-image-fields', getImageUrls(item)); _wireImgIconBtn('pf-img-icon-btn', () => (document.getElementById('pf-name')||{value:''}).value.trim()); }
-function populateEdImageFields(urls) { _populateImgContainer('ed-image-fields', urls); }
+function collectDateImageUrls()    { return _collectImgUrls('date-image-fields'); }
+function populatePfImageFields(item) {
+  _populateImgContainer('pf-image-fields', getImageUrls(item));
+  _wireImgIconBtn('pf-img-icon-btn', () => (document.getElementById('pf-name')||{value:''}).value.trim());
+  _updateImgCountBox('pf-image-fields', 'pf-img-count-box');
+}
+function populateEdImageFields(urls) {
+  _populateImgContainer('ed-image-fields', urls);
+  _updateImgCountBox('ed-image-fields', 'ed-img-count-box');
+}
+function populateDateImageFields(urls) {
+  _populateImgContainer('date-image-fields', urls);
+  _updateImgCountBox('date-image-fields', 'date-img-count-box');
+}
 function addImageField(btn)   { _addImgFieldTo('idea-image-fields'); }
 function addPfImageField(btn) { _addImgFieldTo('pf-image-fields'); }
 function addEdImageField(btn) { _addImgFieldTo('ed-image-fields'); }
@@ -2812,11 +3105,15 @@ function openIdeasPickerForEditTodo() {
 
 function _applyActivityToTodo(item) {
   _todoSelectedActivity = item;
+  _tsIsPrivate = null;
   _updateActivityBtn('ts-activity-btn','ts-activity-icon','ts-activity-label','ts-custom-wrap', item);
+  _renderPrivacyBox('ts-lock-icon', 'ts-privacy-box', _effectivePrivate(_tsIsPrivate, _tsIdeaIsPrivate()), _tsIsPrivate === null && _tsIdeaIsPrivate());
 }
 function _applyActivityToEditTodo(item) {
   _editTodoSelectedActivity = item;
+  _etIsPrivate = null;
   _updateActivityBtn('et-activity-btn','et-activity-icon','et-activity-label','et-custom-wrap', item);
+  _renderPrivacyBox('et-lock-icon', 'et-privacy-box', _effectivePrivate(_etIsPrivate, _etIdeaIsPrivate()), _etIsPrivate === null && _etIdeaIsPrivate());
 }
 function _updateActivityBtn(btnId, iconId, labelId, customWrapId, item) {
   const btn = document.getElementById(btnId);
@@ -2824,12 +3121,16 @@ function _updateActivityBtn(btnId, iconId, labelId, customWrapId, item) {
   const labelEl = document.getElementById(labelId);
   const customWrap = document.getElementById(customWrapId);
   if (!btn || !iconEl || !labelEl) return;
+  // Info arrow button (ts, et, date contexts)
+  const infoBtnMap = {'ts-activity-btn':'ts-activity-info-btn','et-activity-btn':'et-activity-info-btn','date-activity-btn':'date-activity-info-btn'};
+  const infoBtn = infoBtnMap[btnId] ? document.getElementById(infoBtnMap[btnId]) : null;
   if (item && item.custom) {
     iconEl.innerHTML = '<svg viewBox="0 0 24 24" width="16" height="16" stroke="#9a8a7a" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>';
     labelEl.textContent = 'Custom';
     labelEl.style.color = '#9a8a7a';
     btn.style.borderColor = '#b0a090';
     if (customWrap) customWrap.style.display = 'block';
+    if (infoBtn) infoBtn.style.display = 'none';
   } else if (item) {
     const accent = accentColor(item.type);
     iconEl.innerHTML = ideaIcon(item, 16, accent);
@@ -2837,12 +3138,14 @@ function _updateActivityBtn(btnId, iconId, labelId, customWrapId, item) {
     labelEl.style.color = document.body.classList.contains('dark-mode') ? 'var(--text-primary)' : '#2a1f1f';
     btn.style.borderColor = '#c07a8a';
     if (customWrap) customWrap.style.display = 'none';
+    if (infoBtn) { infoBtn.style.display = 'flex'; infoBtn.dataset.ideaId = item.id; }
   } else {
     iconEl.innerHTML = '';
     labelEl.textContent = 'Choose activity…';
     labelEl.style.color = '#b0a090';
     btn.style.borderColor = document.body.classList.contains('dark-mode') ? 'var(--border)' : '#ede9e2';
     if (customWrap) customWrap.style.display = 'none';
+    if (infoBtn) infoBtn.style.display = 'none';
   }
 }
 
@@ -2920,11 +3223,11 @@ function saveTodoFromSheet() {
     activity: usesActivity ? _todoSelectedActivity : null,
     customPlace: (usesActivity && _todoSelectedActivity && _todoSelectedActivity.custom) ? customPlace : '',
     done: false, createdAt: Date.now(), id: String(Date.now()),
-    isPrivate: !!_tsIsPrivate
+    isPrivate: _tsIsPrivate  // null = inherit from idea
   };
   todos.unshift(todoObj);
-  _tsIsPrivate = false;
-  _renderLockBtn('ts-lock-btn', false);
+  _tsIsPrivate = null;
+  _renderPrivacyBox('ts-lock-icon', 'ts-privacy-box', false, false);
   saveTodos();
   closeTodoSheet();
   navigate('todo');
@@ -2945,8 +3248,8 @@ function openTodoEdit(id) {
 }
 
 function _populateEditTodo(t) {
-  _etIsPrivate = !!t.isPrivate;
-  _renderLockBtn('et-lock-btn', _etIsPrivate);
+  _etIsPrivate = t.isPrivate === true ? true : t.isPrivate === false ? false : null;
+  _renderPrivacyBox('et-lock-icon', 'et-privacy-box', _effectivePrivate(_etIsPrivate, _etIdeaIsPrivate()), _etIsPrivate === null && _etIdeaIsPrivate());
   document.getElementById('et-task').value = t.task || '';
   document.getElementById('et-priority').value = t.priority || 'normal';
   document.getElementById('et-note').value = t.note || '';
@@ -3005,13 +3308,12 @@ function saveEditTodo() {
   const note = ((document.getElementById('et-note') || {}).value || '').trim();
   const customPlace = ((document.getElementById('et-custom-place') || {}).value || '').trim();
   const usesActivity = task === 'Make a reservation' || task === 'Buy tickets';
-  const etIsPrivateFinal = !!_etIsPrivate;
   Object.assign(t, {
     task, priority,
     note: usesActivity ? '' : note,
     activity: usesActivity ? _editTodoSelectedActivity : null,
     customPlace: (usesActivity && _editTodoSelectedActivity && _editTodoSelectedActivity.custom) ? customPlace : '',
-    isPrivate: etIsPrivateFinal
+    isPrivate: _etIsPrivate  // null = inherit from idea
   });
   saveTodos();
   closeEditTodo();
@@ -3250,15 +3552,18 @@ function catLabel(cat, type) {
 
 function _isDateHiddenPrivate(date) {
   if (typeof hidePrivate === 'undefined' || !hidePrivate) return false;
-  if (date.isPrivate) return true;
-  // Also hide if the linked idea is private
+  // Explicit true = private; null = inherit from idea; explicit false = not private
+  if (date.isPrivate === true) return true;
+  if (date.isPrivate === false) return false;
+  // null: inherit from linked idea
   const idea = ideas.find(i => (date.ideaId && i.id === date.ideaId) || (i.name && date.venue && i.name.toLowerCase() === date.venue.toLowerCase()));
   return !!(idea && idea.isPrivate);
 }
 function _isTodoHiddenPrivate(t) {
   if (typeof hidePrivate === 'undefined' || !hidePrivate) return false;
-  if (t.isPrivate) return true;
-  // Also hide if the linked idea (by activity/place name) is private
+  if (t.isPrivate === true) return true;
+  if (t.isPrivate === false) return false;
+  // null: inherit from linked idea
   if (t.activity && typeof t.activity === 'string') {
     const tAct = t.activity.toLowerCase();
     const idea = ideas.find(i => i.name && typeof i.name === 'string' && i.name.toLowerCase() === tAct);
@@ -3268,15 +3573,84 @@ function _isTodoHiddenPrivate(t) {
 }
 
 // ── Date / Todo lock state ───────────────────────────────────────────────────
-let _dateIsPrivate = false;
-let _edIsPrivate   = false;
-let _tsIsPrivate   = false;
-let _etIsPrivate   = false;
+// null = inherit from linked idea; true/false = explicitly overridden
+let _dateIsPrivate = null;
+let _edIsPrivate   = null;
+let _tsIsPrivate   = null;
+let _etIsPrivate   = null;
 
-function toggleDatePrivate()  { _dateIsPrivate = !_dateIsPrivate; _renderLockBtn('date-lock-btn', _dateIsPrivate); }
-function toggleEdPrivate()    { _edIsPrivate   = !_edIsPrivate;   _renderLockBtn('ed-lock-btn',   _edIsPrivate);   }
-function toggleTsPrivate()    { _tsIsPrivate   = !_tsIsPrivate;   _renderLockBtn('ts-lock-btn',   _tsIsPrivate);   }
-function toggleEtPrivate()    { _etIsPrivate   = !_etIsPrivate;   _renderLockBtn('et-lock-btn',   _etIsPrivate);   }
+// Get the effective (display) private state: explicit value wins, else idea's isPrivate
+function _effectivePrivate(explicitVal, ideaIsPrivate) {
+  if (explicitVal !== null && explicitVal !== undefined) return !!explicitVal;
+  return !!ideaIsPrivate;
+}
+
+// Get the linked idea's isPrivate for each context
+function _dateIdeaIsPrivate() {
+  return !!(selectedActivity && !selectedActivity.custom && selectedActivity.isPrivate);
+}
+function _edIdeaIsPrivate() {
+  return !!(edSelectedActivity && !edSelectedActivity.custom && edSelectedActivity.isPrivate);
+}
+function _tsIdeaIsPrivate() {
+  return !!(_todoSelectedActivity && !_todoSelectedActivity.custom && _todoSelectedActivity.isPrivate);
+}
+function _etIdeaIsPrivate() {
+  return !!(_editTodoSelectedActivity && !_editTodoSelectedActivity.custom && _editTodoSelectedActivity.isPrivate);
+}
+
+function toggleDatePrivate() {
+  if (_dateIsPrivate === null && _dateIdeaIsPrivate()) return; // locked via idea, not changeable
+  const effective = _effectivePrivate(_dateIsPrivate, _dateIdeaIsPrivate());
+  _dateIsPrivate = !effective;
+  if (_dateIsPrivate === _dateIdeaIsPrivate()) _dateIsPrivate = null;
+  _renderPrivacyBox('date-lock-icon', 'date-privacy-box', _effectivePrivate(_dateIsPrivate, _dateIdeaIsPrivate()), _dateIsPrivate === null && _dateIdeaIsPrivate());
+}
+function toggleEdPrivate() {
+  if (_edIsPrivate === null && _edIdeaIsPrivate()) return;
+  const effective = _effectivePrivate(_edIsPrivate, _edIdeaIsPrivate());
+  _edIsPrivate = !effective;
+  if (_edIsPrivate === _edIdeaIsPrivate()) _edIsPrivate = null;
+  _renderPrivacyBox('ed-lock-icon', 'ed-privacy-box', _effectivePrivate(_edIsPrivate, _edIdeaIsPrivate()), _edIsPrivate === null && _edIdeaIsPrivate());
+}
+function toggleTsPrivate() {
+  if (_tsIsPrivate === null && _tsIdeaIsPrivate()) return;
+  const effective = _effectivePrivate(_tsIsPrivate, _tsIdeaIsPrivate());
+  _tsIsPrivate = !effective;
+  if (_tsIsPrivate === _tsIdeaIsPrivate()) _tsIsPrivate = null;
+  _renderPrivacyBox('ts-lock-icon', 'ts-privacy-box', _effectivePrivate(_tsIsPrivate, _tsIdeaIsPrivate()), _tsIsPrivate === null && _tsIdeaIsPrivate());
+}
+function toggleEtPrivate() {
+  if (_etIsPrivate === null && _etIdeaIsPrivate()) return;
+  const effective = _effectivePrivate(_etIsPrivate, _etIdeaIsPrivate());
+  _etIsPrivate = !effective;
+  if (_etIsPrivate === _etIdeaIsPrivate()) _etIsPrivate = null;
+  _renderPrivacyBox('et-lock-icon', 'et-privacy-box', _effectivePrivate(_etIsPrivate, _etIdeaIsPrivate()), _etIsPrivate === null && _etIdeaIsPrivate());
+}
+
+function _renderPrivacyBox(iconBtnId, boxBtnId, isPrivate, inheritedPrivate) {
+  const iconBtn = document.getElementById(iconBtnId);
+  const box = document.getElementById(boxBtnId);
+  const lockClosed = `<svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>`;
+  const lockOpen   = `<svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg>`;
+  if (iconBtn) {
+    iconBtn.innerHTML = isPrivate ? lockClosed : lockOpen;
+    // inherited private = gray (same as other icons); explicit private = rose; not private = gray
+    iconBtn.style.color = isPrivate && !inheritedPrivate ? '#c07a8a' : '#9a8a7a';
+    iconBtn.style.cursor = inheritedPrivate ? 'default' : 'pointer';
+  }
+  if (box) {
+    if (inheritedPrivate) {
+      // "Private" in normal text color + " (via date idea)" in gray
+      box.innerHTML = `<span style="color:var(--text-primary)">Private</span><span style="color:var(--text-placeholder)"> (via date idea)</span>`;
+    } else {
+      box.textContent = isPrivate ? 'Private' : 'Not private';
+      box.style.color = isPrivate ? 'var(--text-primary)' : 'var(--text-placeholder)';
+    }
+    box.style.cursor = inheritedPrivate ? 'default' : 'pointer';
+    box.disabled = !!inheritedPrivate;
+  }
+}
 
 // ── Tab-home toggle hide locked + toast ─────────────────────────────────────
 let _toastTimer = null;
@@ -4316,20 +4690,25 @@ function openSheet(type) {
   // type = 'out' | 'in' | 'date'
   if (type === 'date') {
     sheetMode = 'date';
-  _dateIsPrivate = false;
-  _renderLockBtn('date-lock-btn', false);
+  _dateIsPrivate = null;
+  _renderPrivacyBox('date-lock-icon', 'date-privacy-box', false, false);
     selectedActivity = null;
   } else {
     sheetMode = 'idea';
     ideaType = type || 'out';
     selectedCategory = catMemory[ideaType];
+    _ideaCustomIconKey = null;
     document.getElementById('idea-name').value = '';
   _populateImgContainer('idea-image-fields', []);
   _wireImgIconBtn('idea-img-icon-btn', () => (document.getElementById('idea-name')||{value:''}).value.trim());
+  _updateImgCountBox('idea-image-fields', 'idea-img-count-box');
+  _updateImgCountBox('idea-image-fields', 'idea-img-count-box-in');
     document.getElementById('idea-address').value = '';
     if (document.getElementById('idea-neighborhood')) document.getElementById('idea-neighborhood').value = '';
     document.getElementById('idea-note-short').value = '';
     document.getElementById('idea-note-long').value = '';
+    const inSd = document.getElementById('idea-in-shortdesc');
+    if (inSd) inSd.value = '';
   }
   renderSheetUI();
   document.getElementById('idea-sheet').style.display = 'flex';
@@ -4371,7 +4750,7 @@ function switchSheetContext(view) {
       _todoSelectedActivity = null;
       // Don't reset btn-new — we're about to re-open a sheet
     }
-    if (view === 'calendar') { sheetMode = 'date'; _dateIsPrivate = false; _renderLockBtn('date-lock-btn', false); }
+    if (view === 'calendar') { sheetMode = 'date'; _dateIsPrivate = null; _renderPrivacyBox('date-lock-icon', 'date-privacy-box', _effectivePrivate(_dateIsPrivate, _dateIdeaIsPrivate()), false); }
     else sheetMode = 'idea';
     // Ensure idea sheet is shown
     document.getElementById('sheet-overlay').style.display = 'block';
@@ -4472,7 +4851,13 @@ function renderSheetUI() {
   // Out/In only sections
   document.getElementById('out-fields-wrap').style.display = isOut ? 'block' : 'none';
   if (isOut) document.getElementById('idea-images-wrap').style.display = 'flex';
-  document.getElementById('idea-in-note-row').style.display = isOut ? 'none' : 'flex';
+  document.getElementById('in-fields-wrap').style.display = isOut ? 'none' : 'flex';
+  // idea-fields must stretch to fill body height so In textarea can expand
+  const ideaFields = document.getElementById('idea-fields');
+  ideaFields.style.display = 'flex';
+  ideaFields.style.flexDirection = 'column';
+  ideaFields.style.flex = isOut ? '' : '1';
+  ideaFields.style.minHeight = isOut ? '' : '0';
 
   // Rebuild category dropdown options from current OUT_CATS/IN_CATS
   _rebuildCatDropdown('out');
@@ -4486,6 +4871,13 @@ function renderSheetUI() {
   const catIds = cats.map(c => c.id);
   sel.value = catIds.includes(selectedCategory) ? selectedCategory : cats[0].id;
   selectedCategory = sel.value;
+
+  // Init showtype: Other → unchecked, else → checked
+  const showtypeId = isOut ? 'idea-showtype' : 'idea-showtype-in';
+  const showtypeEl = document.getElementById(showtypeId);
+  if (showtypeEl && !window._editingIdeaId) {
+    showtypeEl.checked = (selectedCategory || '').toLowerCase() !== 'other';
+  }
 
   updateIdeaCatIcon();
   if (isOut) onIdeaSheetCategoryChange();
@@ -4518,18 +4910,29 @@ function onIdeaCatSelectChange() {
   }
   selectedCategory = sel.value;
   catMemory[ideaType] = selectedCategory;
+  _ideaCustomIconKey = null; // clear custom icon when category changes
   updateIdeaCatIcon();
+  // Auto-manage showtype: Other → uncheck, else → check
+  const showtypeId = isOut ? 'idea-showtype' : 'idea-showtype-in';
+  const showtypeEl = document.getElementById(showtypeId);
+  if (showtypeEl) {
+    const isOther = (selectedCategory || '').toLowerCase() === 'other';
+    showtypeEl.checked = !isOther;
+  }
   if (isOut) onIdeaSheetCategoryChange();
 }
 
 function updateIdeaCatIcon() {
   const isOut = ideaType === 'out';
-  const iconEl = isOut
-    ? document.getElementById('idea-cat-icon')
-    : document.getElementById('idea-cat-icon-in');
+  const btnId = isOut ? 'idea-cat-icon-btn' : 'idea-cat-icon-in-btn';
+  const iconEl = document.getElementById(btnId);
   if (!iconEl) return;
-  const accent = '#9a8a7a';
-  iconEl.innerHTML = activityIcon(selectedCategory, 18, accent);
+  const defaultKey = _ideaDefaultIconKey(selectedCategory);
+  const isCustom = _ideaCustomIconKey && _ideaCustomIconKey !== defaultKey;
+  const iconKey = isCustom ? _ideaCustomIconKey : defaultKey;
+  const _dm = document.body.classList.contains('dark-mode');
+  const color = isCustom ? (_dm ? ROSE : BURGUNDY) : '#9a8a7a';
+  iconEl.innerHTML = ICONS[iconKey] ? ICONS[iconKey](18, color) : activityIcon(selectedCategory, 18, color);
 }
 
 function onIdeaSheetCategoryChange() {
@@ -4555,6 +4958,15 @@ function onIdeaReservationChange() {
   const v = el.value;
   document.getElementById('idea-website-wrap').style.display = v === 'website' ? 'block' : 'none';
   document.getElementById('idea-eventbrite-wrap').style.display = v === 'eventbrite' ? 'block' : 'none';
+  if (v === 'website' || v === 'eventbrite') {
+    const inputId = v === 'website' ? 'idea-website-url' : 'idea-eventbrite-url';
+    const inp = document.getElementById(inputId);
+    const scrollEl = document.getElementById('idea-sheet-body');
+    setTimeout(() => {
+      if (scrollEl) scrollEl.scrollTop = scrollEl.scrollHeight;
+      if (inp) { inp.focus(); inp.select(); }
+    }, 50);
+  }
 }
 
 function renderDateSheetUI() {
@@ -4565,18 +4977,19 @@ function renderDateSheetUI() {
   document.getElementById('date-fields').style.display = 'block';
   // Reset activity button
   document.getElementById('date-activity-icon').innerHTML = '';
+  document.getElementById('date-activity-icon').style.display = 'none';
   document.getElementById('date-activity-label').textContent = 'Date ideas…';
-  document.getElementById('date-activity-label').style.color = '#b0a090';
+  document.getElementById('date-activity-label').style.fontSize = '16px';
+  document.getElementById('date-activity-label').style.color = 'var(--text-placeholder)';
   document.getElementById('date-activity-btn').style.borderColor = document.body.classList.contains('dark-mode') ? 'var(--border)' : '#ede9e2';
   document.getElementById('date-custom-wrap').style.display = 'none';
+  const _daib3 = document.getElementById('date-activity-info-btn'); if (_daib3) _daib3.style.display = 'none';
   document.getElementById('date-custom-name').value = '';
   // Hide location until Custom is selected
-  document.getElementById('date-location-label').style.display = 'none';
   document.getElementById('date-location-text-wrap').style.display = 'none';
-  document.getElementById('date-location-select').style.display = 'none';
   document.getElementById('date-neighborhood-wrap').style.display = 'none';
   document.getElementById('date-note').value = '';
-  // Pre-fill selected calendar date (fall back to today if no day selected)
+  populateDateImageFields([]);
   const _fillDay = selectedCalDay || new Date().getDate();
   const _fillMonth = selectedCalDay ? currentCalMonth : new Date().getMonth();
   const _fillYear  = selectedCalDay ? currentCalYear  : new Date().getFullYear();
@@ -4596,14 +5009,14 @@ function renderIdeaSubwayBadges() {
   const val = document.getElementById('idea-subway').value;
   const wrap = document.getElementById('idea-subway-badges');
   if (!wrap) return;
-  if (!val.trim()) { wrap.innerHTML=''; return; }
+  if (!val.trim()) { wrap.innerHTML=''; wrap.style.marginTop='0'; return; }
   const toIdx = val.toLowerCase().indexOf(' to ');
   const linesPart = toIdx >= 0 ? val.substring(0, toIdx) : val;
   const lines = [...new Set((linesPart.match(/\b[1-7ACEGJLNQRSWBDFMZ]\b/gi)||[]).map(l=>l.toUpperCase()))];
   const buses = [...new Set((linesPart.match(/\b[BMQ]\d+\b/gi)||[]).map(b=>b.toUpperCase()))];
   const timeMatch = val.match(/~?\s*(\d+)\s*min/i);
   const stationMatch = val.match(/to\s+(.+?)\s*~?\s*\d+\s*min/i);
-  if (!lines.length && !buses.length) { wrap.innerHTML=''; return; }
+  if (!lines.length && !buses.length) { wrap.innerHTML=''; wrap.style.marginTop='0'; return; }
   let html = '';
   lines.forEach((line, i) => {
     const bg = MTA_COLORS[line]||'#808183';
@@ -4619,6 +5032,7 @@ function renderIdeaSubwayBadges() {
   const station = stationMatch?stationMatch[1].trim():null;
   const time = timeMatch?timeMatch[1]:null;
   if(station||time) html+=`<span style="color:#9a8a7a;font-size:12px;font-family:sans-serif">${station&&time?station+' · '+time+' min':station||time+' min'}</span>`;
+  wrap.style.marginTop='8px';
   wrap.innerHTML = html;
 }
 
@@ -4626,16 +5040,17 @@ function renderIdeaWalkDriveBadges() {
   const val = document.getElementById('idea-walkdrive').value;
   const wrap = document.getElementById('idea-walkdrive-badges');
   if (!wrap) return;
-  if (!val.trim()) { wrap.innerHTML=''; return; }
+  if (!val.trim()) { wrap.innerHTML=''; wrap.style.marginTop='0'; return; }
   const walkMatch = val.match(/(\d+)\s*min\s*walk/i);
   const driveMatch = val.match(/(\d+)\s*min\s*drive/i);
-  if (!walkMatch && !driveMatch) { wrap.innerHTML=''; return; }
+  if (!walkMatch && !driveMatch) { wrap.innerHTML=''; wrap.style.marginTop='0'; return; }
   const personSvg = `<svg viewBox="0 0 24 24" width="13" height="13" fill="#9a8a7a"><path d="M13.5 5.5c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zM9.8 8.9L7 23h2.1l1.8-8 2.1 2v6h2v-7.5l-2.1-2 .6-3C14.8 12 16.8 13 19 13v-2c-1.9 0-3.5-1-4.3-2.4l-1-1.6c-.4-.6-1-1-1.7-1-.3 0-.5.1-.8.1L6 8.3V13h2V9.6l1.8-.7"/></svg>`;
   const carSvg = `<svg viewBox="0 0 24 24" width="13" height="13" fill="#9a8a7a"><path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z"/></svg>`;
   let html = '';
   if(walkMatch) html+=`<span style="display:flex;align-items:center;gap:3px;font-size:12px;color:#9a8a7a;font-family:sans-serif">${personSvg}${walkMatch[1]} min</span>`;
   if(walkMatch&&driveMatch) html+=`<span style="color:#c8bfb6">/</span>`;
   if(driveMatch) html+=`<span style="display:flex;align-items:center;gap:3px;font-size:12px;color:#9a8a7a;font-family:sans-serif">${carSvg}${driveMatch[1]} min</span>`;
+  wrap.style.marginTop='8px';
   wrap.innerHTML = html;
 }
 
@@ -4644,14 +5059,14 @@ function renderSubwayBadges() {
   const val = (document.getElementById('pf-subway')||{}).value || '';
   const wrap = document.getElementById('pf-subway-badges');
   if (!wrap) return;
-  if (!val.trim()) { wrap.innerHTML=''; return; }
+  if (!val.trim()) { wrap.innerHTML=''; wrap.style.marginTop='0'; return; }
   const toIdx = val.toLowerCase().indexOf(' to ');
   const linesPart = toIdx >= 0 ? val.substring(0, toIdx) : val;
   const lines = [...new Set((linesPart.match(/\b[1-7ACEGJLNQRSWBDFMZ]\b/gi)||[]).map(l=>l.toUpperCase()))];
   const buses = [...new Set((linesPart.match(/\b[BMQ]\d+\b/gi)||[]).map(b=>b.toUpperCase()))];
   const timeMatch = val.match(/~?\s*(\d+)\s*min/i);
   const stationMatch = val.match(/to\s+(.+?)\s*~?\s*\d+\s*min/i);
-  if (!lines.length && !buses.length) { wrap.innerHTML=''; return; }
+  if (!lines.length && !buses.length) { wrap.innerHTML=''; wrap.style.marginTop='0'; return; }
   let html = '';
   lines.forEach((line, i) => {
     const bg = MTA_COLORS[line]||'#808183';
@@ -4667,6 +5082,7 @@ function renderSubwayBadges() {
   const station = stationMatch?stationMatch[1].trim():null;
   const time = timeMatch?timeMatch[1]:null;
   if(station||time) html+=`<span style="color:#9a8a7a;font-size:12px;font-family:sans-serif">${station&&time?station+' · '+time+' min':station||time+' min'}</span>`;
+  wrap.style.marginTop='8px';
   wrap.innerHTML = html;
 }
 
@@ -4674,16 +5090,17 @@ function renderWalkDriveBadges() {
   const val = (document.getElementById('pf-walkdrive')||{}).value || '';
   const wrap = document.getElementById('pf-walkdrive-badges');
   if (!wrap) return;
-  if (!val.trim()) { wrap.innerHTML=''; return; }
+  if (!val.trim()) { wrap.innerHTML=''; wrap.style.marginTop='0'; return; }
   const walkMatch = val.match(/(\d+)\s*min\s*walk/i);
   const driveMatch = val.match(/(\d+)\s*min\s*drive/i);
-  if (!walkMatch && !driveMatch) { wrap.innerHTML=''; return; }
+  if (!walkMatch && !driveMatch) { wrap.innerHTML=''; wrap.style.marginTop='0'; return; }
   const personSvg = `<svg viewBox="0 0 24 24" width="13" height="13" fill="#9a8a7a"><path d="M13.5 5.5c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zM9.8 8.9L7 23h2.1l1.8-8 2.1 2v6h2v-7.5l-2.1-2 .6-3C14.8 12 16.8 13 19 13v-2c-1.9 0-3.5-1-4.3-2.4l-1-1.6c-.4-.6-1-1-1.7-1-.3 0-.5.1-.8.1L6 8.3V13h2V9.6l1.8-.7"/></svg>`;
   const carSvg = `<svg viewBox="0 0 24 24" width="13" height="13" fill="#9a8a7a"><path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z"/></svg>`;
   let html = '';
   if(walkMatch) html+=`<span style="display:flex;align-items:center;gap:3px;font-size:12px;color:#9a8a7a;font-family:sans-serif">${personSvg}${walkMatch[1]} min</span>`;
   if(walkMatch&&driveMatch) html+=`<span style="color:#c8bfb6">/</span>`;
   if(driveMatch) html+=`<span style="display:flex;align-items:center;gap:3px;font-size:12px;color:#9a8a7a;font-family:sans-serif">${carSvg}${driveMatch[1]} min</span>`;
+  wrap.style.marginTop='8px';
   wrap.innerHTML = html;
 }
 
@@ -4749,6 +5166,15 @@ function onReservationChange() {
   if (webWrap) webWrap.style.display = res === 'website' ? 'block' : 'none';
   const wrap = document.getElementById('pf-eventbrite-wrap');
   if (wrap) wrap.style.display = res === 'eventbrite' ? 'block' : 'none';
+  if (res === 'website' || res === 'eventbrite') {
+    const inputId = res === 'website' ? 'pf-website-url' : 'pf-eventbrite-url';
+    const inp = document.getElementById(inputId);
+    const scrollEl = document.getElementById('places-form-body');
+    setTimeout(() => {
+      if (scrollEl) scrollEl.scrollTop = scrollEl.scrollHeight;
+      if (inp) { inp.focus(); inp.select(); }
+    }, 50);
+  }
 }
 
 function openPlaceMapsAddress() {
@@ -4790,13 +5216,22 @@ function saveNewIdea() {
   const address   = isOut ? document.getElementById('idea-address').value.trim() : '';
   const neighborhood = isOut ? (document.getElementById('idea-neighborhood') || {value:''}).value.trim() : '';
   const cuisine   = isOut ? document.getElementById('idea-cuisine').value.trim() : '';
-  const shortdesc = isOut ? (document.getElementById('idea-shortdesc') || {value:''}).value.trim() : '';
-  const showType  = isOut ? (document.getElementById('idea-showtype') || {checked:true}).checked : true;
+  const shortdesc = isOut
+    ? (document.getElementById('idea-shortdesc') || {value:''}).value.trim()
+    : (document.getElementById('idea-in-shortdesc') || {value:''}).value.trim();
+  const showType  = isOut
+    ? (document.getElementById('idea-showtype') || {checked:true}).checked
+    : (document.getElementById('idea-showtype-in') || {checked:true}).checked;
   const subway    = isOut ? document.getElementById('idea-subway').value.trim() : '';
   const walkdrive = isOut ? document.getElementById('idea-walkdrive').value.trim() : '';
   const about     = isOut
     ? document.getElementById('idea-about').value.trim()
     : document.getElementById('idea-note-long').value.trim();
+
+  // Custom icon key (from New Idea sheet icon picker)
+  const defaultIconKey = _ideaDefaultIconKey(selectedCategory);
+  const customIconKey = (_ideaCustomIconKey && _ideaCustomIconKey !== defaultIconKey) ? _ideaCustomIconKey : undefined;
+
   const resEl     = document.getElementById('idea-reservation');
   const reservation = (isOut && resEl) ? resEl.value : '';
   const eventbriteUrl = (isOut && reservation === 'eventbrite') ? document.getElementById('idea-eventbrite-url').value.trim() : '';
@@ -4809,11 +5244,11 @@ function saveNewIdea() {
   if (window._editingIdeaId) {
     const item = ideas.find(i=>i.id===window._editingIdeaId);
     const _editImgUrls = collectNewIdeaImageUrls();
-    if (item) Object.assign(item, { name, address, neighborhood, cuisine, shortdesc, showType, subwayRoute: subway, walkDriveTime: walkdrive, about, reservation, eventbriteUrl, websiteUrl, note, category: selectedCategory, saved: window._ideaSaved, imageUrls: _editImgUrls, isPrivate });
+    if (item) Object.assign(item, { name, address, neighborhood, cuisine, shortdesc, showType, subwayRoute: subway, walkDriveTime: walkdrive, about, reservation, eventbriteUrl, websiteUrl, note, category: selectedCategory, saved: window._ideaSaved, imageUrls: _editImgUrls, isPrivate, customIconKey });
     window._editingIdeaId = null;
   } else {
     const _newImgUrls = collectNewIdeaImageUrls();
-    ideas.unshift({ id: Date.now(), type: ideaType, category: selectedCategory, name, address, neighborhood, cuisine, shortdesc, showType, subwayRoute: subway, walkDriveTime: walkdrive, about, reservation, eventbriteUrl, websiteUrl, note, saved: !!window._ideaSaved, imageUrls: _newImgUrls, isPrivate });
+    ideas.unshift({ id: Date.now(), type: ideaType, category: selectedCategory, name, address, neighborhood, cuisine, shortdesc, showType, subwayRoute: subway, walkDriveTime: walkdrive, about, reservation, eventbriteUrl, websiteUrl, note, saved: !!window._ideaSaved, imageUrls: _newImgUrls, isPrivate, customIconKey });
   }
   saveIdeas(ideas);
   closeSheet();
@@ -4822,12 +5257,19 @@ function saveNewIdea() {
 
 let selectedActivity = null; // saved idea item, or { custom: true }, or null
 let pickerFilter = 'all';
+let pickerSearch = '';
 
 function openIdeasPicker() {
   pickerFilter = 'all';
+  pickerSearch = '';
   renderPickerBody();
   setPickerTabUI('all');
   document.getElementById('ideas-picker-overlay').style.display = 'flex';
+  // Clear search input if present
+  const si = document.getElementById('picker-search-input');
+  if (si) si.value = '';
+  const sc = document.getElementById('picker-search-clear');
+  if (sc) sc.style.display = 'none';
 }
 
 function closeIdeasPicker() {
@@ -4839,63 +5281,91 @@ function setPickerFilter(f) {
   setPickerTabUI(f);
   renderPickerBody();
 }
+function setPickerSearch(val) {
+  pickerSearch = val;
+  const sc = document.getElementById('picker-search-clear');
+  if (sc) sc.style.display = val ? 'flex' : 'none';
+  renderPickerBody();
+}
 
 function setPickerTabUI(active) {
   const _dm = document.body.classList.contains('dark-mode');
   const _activeBg = _dm ? '#9a8a7a' : '#fff';
   const _activeColor = _dm ? '#f0ede9' : '#2a1f1f';
-  ['all','out','in'].forEach(f => {
+  const heartSvg = (fill, stroke) => `<svg viewBox="0 0 24 24" width="13" height="13" stroke="${stroke}" stroke-width="2" fill="${fill}" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>`;
+  ['all','out','in','favs'].forEach(f => {
     const btn = document.getElementById('ptab-' + f);
+    if (!btn) return;
     if (f === active) {
       btn.style.background = _activeBg;
       btn.style.color = _activeColor;
-      btn.style.boxShadow = '0 1px 4px rgba(0,0,0,0.08)';
+      btn.style.boxShadow = '0 1px 3px rgba(0,0,0,0.10)';
+      if (f === 'favs') btn.innerHTML = heartSvg(_activeColor, _activeColor);
     } else {
       btn.style.background = 'transparent';
       btn.style.color = '#9a8a7a';
       btn.style.boxShadow = 'none';
+      if (f === 'favs') btn.innerHTML = heartSvg('none', '#9a8a7a');
     }
   });
 }
 
 function renderPickerBody() {
-  const showOut = pickerFilter !== 'in';
-  const showIn  = pickerFilter !== 'out';
+  const q = (pickerSearch || '').trim().toLowerCase();
+  const showOut = pickerFilter !== 'in' && pickerFilter !== 'favs' || pickerFilter === 'favs';
+  const showIn  = pickerFilter !== 'out' && pickerFilter !== 'favs' || pickerFilter === 'favs';
   const includeArchived = ideasPickerContext === 'editdate' && !!_editingMemory;
-  const pool = ideas.filter(i => includeArchived ? true : !i.archived);
-  const outIdeas = showOut ? pool.filter(i => i.type === 'out') : [];
-  const inIdeas  = showIn  ? pool.filter(i => i.type === 'in')  : [];
+  let pool = ideas.filter(i => includeArchived ? true : !i.archived);
+  if (pickerFilter === 'favs') pool = pool.filter(i => i.saved);
+  if (q) pool = pool.filter(i => i.name && i.name.toLowerCase().includes(q));
+  // Update clear button visibility
+  const sc = document.getElementById('picker-search-clear');
+  if (sc) sc.style.display = q ? 'flex' : 'none';
+  const outPool = pickerFilter === 'out' || pickerFilter === 'favs' || pickerFilter === 'all' ? pool.filter(i => i.type === 'out') : [];
+  const inPool  = pickerFilter === 'in'  || pickerFilter === 'favs' || pickerFilter === 'all' ? pool.filter(i => i.type === 'in')  : [];
+  const outIdeas = showOut ? outPool : [];
+  const inIdeas  = showIn  ? inPool  : [];
 
-  // Custom row (always at top)
+  // Custom row — same quick-row style as Date Ideas screen cards
   const customRow = `
-    <div onclick="selectCustomActivity()" style="display:flex;align-items:center;gap:12px;padding:11px 13px;background:var(--bg-card);border-radius:12px;border:1.5px dashed var(--border);cursor:pointer;margin-bottom:12px">
-      <div style="width:36px;height:36px;border-radius:10px;background:var(--bg-input);display:flex;align-items:center;justify-content:center;flex-shrink:0">
-        <svg viewBox="0 0 24 24" width="18" height="18" stroke="#b0a090" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-      </div>
-      <div style="flex:1">
-        <div style="font-size:14px;font-weight:600;color:#9a8a7a">Custom</div>
-        <div style="font-size:12px;color:#b0a090;font-family:sans-serif">Enter a one-off activity</div>
+    <div onclick="selectCustomActivity()" class="quick-row" style="cursor:pointer;overflow:hidden;border-style:dashed;margin-bottom:8px">
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;align-items:center;gap:7px">
+          <svg viewBox="0 0 24 24" width="14" height="14" stroke="#b0a090" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          <div class="quick-row-name">Custom</div>
+        </div>
+        <div class="quick-row-sub">Enter a one-off activity</div>
       </div>
     </div>`;
+
+  function pickerCard(item, type) {
+    const accent = accentColor(type);
+    const _subColor = subColor(type);
+    const sub = itemSubLine(item);
+    const urls = getImageUrls(item);
+    const imgPanel = urls.length
+      ? '<div style="width:120px;flex-shrink:0;margin:-12px -14px -12px 0;border-left:1px solid var(--img-sep);border-radius:0 14px 14px 0;overflow:hidden;align-self:stretch;background:#6b2340;position:relative"><img src="' + urls[0] + '" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center;display:block" onerror="this.parentNode.style.background=\'#6b2340\';this.style.display=\'none\'"></div>'
+      : '';
+    const subHtml = sub ? '<div class="quick-row-sub" style="color:' + _subColor + '">' + sub + '</div>' : '';
+    return '<div onclick="selectActivity(' + item.id + ')" class="quick-row" style="cursor:pointer;overflow:hidden;margin-bottom:8px">'
+      + '<div style="flex:1;min-width:0">'
+      + '<div style="display:flex;align-items:center;gap:7px;margin-bottom:' + (sub ? '4px' : '0') + '">'
+      + ideaIcon(item, 14, accent)
+      + '<div class="quick-row-name">' + item.name + '</div>'
+      + '</div>'
+      + subHtml
+      + '</div>'
+      + imgPanel
+      + '</div>';
+  }
 
   function section(items, type) {
     if (!items.length) return '';
     const accent = accentColor(type);
-    const accentBg = type === 'out' ? BURGUNDY_BG : ROSE_BG;
     const label = type === 'out' ? 'Going Out' : 'Staying In';
-    return `
-      <div style="font-size:11px;font-weight:700;color:${accent};letter-spacing:0.08em;text-transform:uppercase;font-family:sans-serif;margin:0 0 8px">${label}</div>
-      ${items.map(item => `
-        <div onclick="selectActivity(${item.id})" style="display:flex;align-items:center;gap:12px;padding:11px 13px;background:var(--bg-card);border-radius:12px;border:1px solid var(--border);cursor:pointer;margin-bottom:7px">
-          <div style="width:36px;height:36px;border-radius:10px;background:${accentBg};display:flex;align-items:center;justify-content:center;flex-shrink:0">
-            ${ideaIcon(item, 18, accent)}
-          </div>
-          <div style="flex:1;min-width:0">
-            <div style="font-size:15px;font-weight:700;color:var(--text-primary);letter-spacing:-0.01em;margin-bottom:2px">${item.name}</div>
-            <div style="font-size:12px;color:#9a8a7a;font-family:sans-serif">${toTitleCase(item.category)}${item.address ? ' · ' + item.address.split(',')[0] : ''}</div>
-          </div>
-        </div>`).join('')}
-      <div style="height:8px"></div>`;
+    return '<div style="font-size:11px;font-weight:700;color:' + accent + ';letter-spacing:0.08em;text-transform:uppercase;font-family:sans-serif;margin:0 0 8px">' + label + '</div>'
+      + items.map(function(item){ return pickerCard(item, type); }).join('')
+      + '<div style="height:8px"></div>';
   }
 
   document.getElementById('ideas-picker-body').innerHTML =
@@ -4921,10 +5391,11 @@ function selectCustomActivity() {
   if (ideasPickerContext === 'editdate') {
     edSelectedActivity = { custom: true };
     document.getElementById('ed-activity-icon').innerHTML = plusIcon;
+    document.getElementById('ed-activity-icon').style.display = '';
     document.getElementById('ed-activity-label').textContent = 'Custom';
     document.getElementById('ed-activity-label').style.color = '#9a8a7a';
     document.getElementById('ed-activity-btn').style.borderColor = '#b0a090';
-    document.getElementById('ed-custom-wrap').style.display = 'block';
+    document.getElementById('ed-custom-wrap').style.display = 'flex';
     document.getElementById('ed-custom-name').value = '';
     document.getElementById('ed-location-wrap').style.display = 'block';
     _updateInLocationVisibility('ed', false);
@@ -4936,15 +5407,16 @@ function selectCustomActivity() {
 
   selectedActivity = { custom: true };
   document.getElementById('date-activity-icon').innerHTML = plusIcon;
+  document.getElementById('date-activity-icon').style.display = '';
   document.getElementById('date-activity-label').textContent = 'Custom';
   document.getElementById('date-activity-label').style.color = '#9a8a7a';
   document.getElementById('date-activity-btn').style.borderColor = '#b0a090';
-  document.getElementById('date-custom-wrap').style.display = 'block';
+  const _daib2 = document.getElementById('date-activity-info-btn'); if (_daib2) _daib2.style.display = 'none';
+  document.getElementById('date-custom-wrap').style.display = 'flex';
   document.getElementById('date-custom-name').value = '';
   document.getElementById('date-custom-name').focus();
-  document.getElementById('date-location-label').style.display = 'block';
   showLocationText('');
-  document.getElementById('date-neighborhood-wrap').style.display = 'block';
+  document.getElementById('date-neighborhood-wrap').style.display = 'flex';
   document.getElementById('date-neighborhood').value = '';
   document.getElementById('date-note').value = '';
   _updateInLocationVisibility('date', false);
@@ -4971,46 +5443,54 @@ function selectActivity(id) {
 
   if (ideasPickerContext === 'editdate') {
     edSelectedActivity = item;
+    _edIsPrivate = null;
     document.getElementById('ed-activity-icon').innerHTML = ideaIcon(item, 16, accent);
+    document.getElementById('ed-activity-icon').style.display = '';
     document.getElementById('ed-activity-label').textContent = item.name;
+    document.getElementById('ed-activity-label').style.fontSize = '';
     document.getElementById('ed-activity-label').style.color = document.body.classList.contains('dark-mode') ? 'var(--text-primary)' : '#2a1f1f';
     document.getElementById('ed-activity-btn').style.borderColor = accent;
     document.getElementById('ed-custom-wrap').style.display = 'none';
     document.getElementById('ed-location-wrap').style.display = 'none';
     _updateInLocationVisibility('ed', item.type === 'in');
     _edUpdateActivityEditBtn(true);
+    // Refresh privacy box — reset explicit override, inherit from new idea
+    _renderPrivacyBox('ed-lock-icon', 'ed-privacy-box', _effectivePrivate(_edIsPrivate, _edIdeaIsPrivate()), _edIsPrivate === null && _edIdeaIsPrivate());
     closeIdeasPicker();
     ideasPickerContext = 'sheet';
     return;
   }
 
   selectedActivity = item;
+  _dateIsPrivate = null;
   document.getElementById('date-activity-icon').innerHTML = ideaIcon(item, 16, accent);
+  document.getElementById('date-activity-icon').style.display = '';
   document.getElementById('date-activity-label').textContent = item.name;
+  document.getElementById('date-activity-label').style.fontSize = '';
   document.getElementById('date-activity-label').style.color = document.body.classList.contains('dark-mode') ? 'var(--text-primary)' : '#2a1f1f';
   document.getElementById('date-activity-btn').style.borderColor = accent;
+  const _daib = document.getElementById('date-activity-info-btn');
+  if (_daib) { _daib.style.display = 'flex'; _daib.dataset.ideaId = item.id; }
   document.getElementById('date-custom-wrap').style.display = 'none';
   // Hide out/custom location fields
-  document.getElementById('date-location-label').style.display = 'none';
   document.getElementById('date-location-text-wrap').style.display = 'none';
-  document.getElementById('date-location-select').style.display = 'none';
   document.getElementById('date-neighborhood-wrap').style.display = 'none';
   // Show In-location for In activities
   _updateInLocationVisibility('date', item.type === 'in');
   // Never auto-fill note
   document.getElementById('date-note').value = '';
+  // Refresh privacy box — reset explicit override, inherit from new idea
+  _renderPrivacyBox('date-lock-icon', 'date-privacy-box', _effectivePrivate(_dateIsPrivate, _dateIdeaIsPrivate()), _dateIsPrivate === null && _dateIdeaIsPrivate());
   closeIdeasPicker();
 }
 
 function showLocationText(val) {
-  document.getElementById('date-location-text-wrap').style.display = 'block';
-  document.getElementById('date-location-select').style.display = 'none';
+  document.getElementById('date-location-text-wrap').style.display = 'flex';
   document.getElementById('date-location-text').value = val;
 }
 
 function showLocationSelect() {
   document.getElementById('date-location-text-wrap').style.display = 'none';
-  document.getElementById('date-location-select').style.display = 'block';
 }
 
 // Show/hide the In-location fields; prefix is 'date' or 'ed'
@@ -5034,13 +5514,13 @@ function _updateInLocationVisibility(prefix, show) {
 function onDateInLocationChange() {
   const sel = document.getElementById('date-in-location-select');
   const otherWrap = document.getElementById('date-in-location-other-wrap');
-  if (otherWrap) otherWrap.style.display = sel && sel.value === 'other' ? 'block' : 'none';
+  if (otherWrap) otherWrap.style.display = sel && sel.value === 'other' ? 'flex' : 'none';
 }
 
 function onEdInLocationChange() {
   const sel = document.getElementById('ed-in-location-select');
   const otherWrap = document.getElementById('ed-in-location-other-wrap');
-  if (otherWrap) otherWrap.style.display = sel && sel.value === 'other' ? 'block' : 'none';
+  if (otherWrap) otherWrap.style.display = sel && sel.value === 'other' ? 'flex' : 'none';
 }
 
 // Read ed in-location fields and apply to date object u
@@ -5145,16 +5625,20 @@ function saveNewDate() {
   // Note
   const note = document.getElementById('date-note').value.trim();
 
+  // Images
+  const imageUrls = collectDateImageUrls();
+
   // Build date object
   const newDate = {
     day: dd, month: monthName, year: yyyy,
     activity, venue, neighborhood,
     time: timeVal || '',
     note,
+    imageUrls: imageUrls.length ? imageUrls : undefined,
     inLocation: inLocation || undefined,
     inLocationOther: inLocationOther || undefined,
     isFeb,
-    isPrivate: !!_dateIsPrivate,
+    isPrivate: _dateIsPrivate,  // null = inherit from idea
     id: 'd_' + Date.now()
   };
 
@@ -5168,16 +5652,20 @@ function saveNewDate() {
   saveDates(UPCOMING_DATES);
   FUTURE_DATES = buildFutureDates();
   dateIdx = 0;
-  _dateIsPrivate = false;
-  _renderLockBtn('date-lock-btn', false);
+  _dateIsPrivate = null;
+  _renderPrivacyBox('date-lock-icon', 'date-privacy-box', false, false);
 
   // Reset form
   selectedActivity = null;
   document.getElementById('date-activity-label').textContent = 'Date ideas…';
-  document.getElementById('date-activity-label').style.color = '#b0a090';
+  document.getElementById('date-activity-label').style.fontSize = '16px';
+  document.getElementById('date-activity-label').style.color = 'var(--text-placeholder)';
   document.getElementById('date-activity-icon').innerHTML = '';
+  document.getElementById('date-activity-icon').style.display = 'none';
   document.getElementById('date-activity-btn').style.borderColor = document.body.classList.contains('dark-mode') ? 'var(--border)' : '#ede9e2';
   document.getElementById('date-custom-wrap').style.display = 'none';
+  const _daib4 = document.getElementById('date-activity-info-btn'); if (_daib4) _daib4.style.display = 'none';
+  populateDateImageFields([]);
   closeSheet();
   render();
 }
@@ -5366,7 +5854,13 @@ function openDetail(id, navContext) {
 }
 
 function closeDetail() {
-  document.getElementById('detail-overlay').style.display = 'none';
+  const overlay = document.getElementById('detail-overlay');
+  overlay.style.display = 'none';
+  // Restore z-index if opened from popup context
+  if (_detailFromPopup) {
+    overlay.style.zIndex = '200';
+    _detailFromPopup = false;
+  }
   document.body.classList.remove('overlay-open');
   detailItemId = null;
 }
@@ -5381,18 +5875,17 @@ function planDateFromIdea(ideaId) {
       selectedActivity = item;
       const accent = accentColor(item.type);
       document.getElementById('date-activity-icon').innerHTML = ideaIcon(item, 16, accent);
+      document.getElementById('date-activity-icon').style.display = '';
       document.getElementById('date-activity-label').textContent = item.name;
+      document.getElementById('date-activity-label').style.fontSize = '';
       document.getElementById('date-activity-label').style.color = document.body.classList.contains('dark-mode') ? 'var(--text-primary)' : '#2a1f1f';
-      document.getElementById('date-activity-btn').style.borderColor = accent;
       document.getElementById('date-custom-wrap').style.display = 'none';
-      document.getElementById('date-location-label').style.display = 'none';
       document.getElementById('date-location-text-wrap').style.display = 'none';
-      document.getElementById('date-location-select').style.display = 'none';
       document.getElementById('date-neighborhood-wrap').style.display = 'none';
     }
     sheetMode = 'date';
-  _dateIsPrivate = false;
-  _renderLockBtn('date-lock-btn', false);
+  _dateIsPrivate = null;
+  _renderPrivacyBox('date-lock-icon', 'date-privacy-box', _effectivePrivate(_dateIsPrivate, _dateIdeaIsPrivate()), _dateIsPrivate === null && _dateIdeaIsPrivate());
     sheetOpen = true;
     document.getElementById('idea-sheet').style.display = 'flex';
     document.getElementById('btn-new-circle').style.background = '#a05268';
@@ -5835,7 +6328,9 @@ function populateEditDateFields(u) {
     edSelectedActivity = matched;
     const accent = accentColor(matched.type);
     document.getElementById('ed-activity-icon').innerHTML = activityIcon(matched.category, 16, accent);
+    document.getElementById('ed-activity-icon').style.display = '';
     document.getElementById('ed-activity-label').textContent = matched.name;
+    document.getElementById('ed-activity-label').style.fontSize = '';
     document.getElementById('ed-activity-label').style.color = document.body.classList.contains('dark-mode') ? 'var(--text-primary)' : '#2a1f1f';
     document.getElementById('ed-activity-btn').style.borderColor = accent;
     document.getElementById('ed-custom-wrap').style.display = 'none';
@@ -5852,18 +6347,22 @@ function populateEditDateFields(u) {
   } else if (u.venue) {
     edSelectedActivity = { custom: true };
     document.getElementById('ed-activity-icon').innerHTML = '';
+    document.getElementById('ed-activity-icon').style.display = 'none';
     document.getElementById('ed-activity-label').textContent = u.venue;
+    document.getElementById('ed-activity-label').style.fontSize = '';
     document.getElementById('ed-activity-label').style.color = '#2a1f1f';
     document.getElementById('ed-custom-name').value = u.venue;
-    document.getElementById('ed-custom-wrap').style.display = 'block';
+    document.getElementById('ed-custom-wrap').style.display = 'flex';
     document.getElementById('ed-location-wrap').style.display = 'block';
     _updateInLocationVisibility('ed', false);
     _edUpdateActivityEditBtn(false);
   } else {
     edSelectedActivity = null;
     document.getElementById('ed-activity-label').textContent = 'Date ideas…';
-    document.getElementById('ed-activity-label').style.color = '#b0a090';
+    document.getElementById('ed-activity-label').style.fontSize = '16px';
+    document.getElementById('ed-activity-label').style.color = 'var(--text-placeholder)';
     document.getElementById('ed-activity-icon').innerHTML = '';
+    document.getElementById('ed-activity-icon').style.display = 'none';
     document.getElementById('ed-custom-wrap').style.display = 'none';
     document.getElementById('ed-location-wrap').style.display = 'none';
     _updateInLocationVisibility('ed', false);
@@ -5894,8 +6393,8 @@ function populateEditDateFields(u) {
   if (document.getElementById('ed-neighborhood')) {
     document.getElementById('ed-neighborhood').value = u.neighborhood || '';
   }
-  _edIsPrivate = !!u.isPrivate;
-  _renderLockBtn('ed-lock-btn', _edIsPrivate);
+  _edIsPrivate = u.isPrivate === true ? true : u.isPrivate === false ? false : null;
+  _renderPrivacyBox('ed-lock-icon', 'ed-privacy-box', _effectivePrivate(_edIsPrivate, _edIdeaIsPrivate()), _edIsPrivate === null && _edIdeaIsPrivate());
   document.getElementById('ed-note').value = u.note || '';
   populateEdImageFields(u.imageUrls || []);
 }
@@ -5919,6 +6418,20 @@ function edEditActivityIdea(e) {
   const overlay = document.getElementById('places-overlay');
   if (overlay) overlay.style.zIndex = '420';
   openEditIdeaModal(edSelectedActivity.id);
+}
+
+// Open Idea Info (detail) on top of a popup (New Date / New To Do / Edit To Do)
+let _detailFromPopup = false;
+function openDetailFromActivity(infoBtnId, e) {
+  if (e) e.stopPropagation();
+  const btn = document.getElementById(infoBtnId);
+  if (!btn) return;
+  const ideaId = parseInt(btn.dataset.ideaId);
+  if (!ideaId) return;
+  _detailFromPopup = true;
+  const overlay = document.getElementById('detail-overlay');
+  if (overlay) overlay.style.zIndex = '600';
+  openDetail(ideaId);
 }
 
 function closeEditDate() {
@@ -5995,7 +6508,7 @@ function saveEditDate() {
         if (cName) u.venue = cName;
         u.neighborhood = neighText || _neighborhoodFromAddress(locText) || locText;
       }
-      u.isPrivate = !!_edIsPrivate;
+      u.isPrivate = _edIsPrivate;  // null = inherit from idea
       saveDates(UPCOMING_DATES);
       FUTURE_DATES = buildFutureDates();
       if (dateIdx >= FUTURE_DATES.length) dateIdx = Math.max(0, FUTURE_DATES.length - 1);
@@ -6023,7 +6536,7 @@ function deleteEditDate() {
     // Upcoming date mode: remove by edDateIdx
     if (edDateIdx >= 0 && edDateIdx < UPCOMING_DATES.length) {
       UPCOMING_DATES.splice(edDateIdx, 1);
-      u.isPrivate = !!_edIsPrivate;
+      u.isPrivate = _edIsPrivate;  // null = inherit from idea
       saveDates(UPCOMING_DATES);
       FUTURE_DATES = buildFutureDates();
       if (dateIdx >= FUTURE_DATES.length) dateIdx = Math.max(0, FUTURE_DATES.length - 1);
@@ -6384,7 +6897,9 @@ function closePlaces() {
         edSelectedActivity = updated;
         const accent = accentColor(updated.type);
         document.getElementById('ed-activity-icon').innerHTML = activityIcon(updated.category, 16, accent);
+        document.getElementById('ed-activity-icon').style.display = '';
         document.getElementById('ed-activity-label').textContent = updated.name;
+        document.getElementById('ed-activity-label').style.fontSize = '';
         document.getElementById('ed-activity-label').style.color = '#2a1f1f';
         document.getElementById('ed-activity-btn').style.borderColor = accent;
       }
@@ -6465,7 +6980,9 @@ let _ecIconIdx = null;
 let _ecIconSelected = null;
 let _ecIconPrev = null;
 let _ideaIconMode = false; // true when icon picker opened from Edit Idea
-let _pfCustomIconKey = null; // temp custom icon key while editing an idea
+let _pfCustomIconKey = null; // temp custom icon key while editing an idea (Edit Idea modal)
+let _ideaCustomIconKey = null; // temp custom icon key for New Idea sheet
+let _ideaIconNewMode = false; // true when icon picker opened from New Idea sheet
 
 function openEditCategories(startType) {
   _ecOut = OUT_CATS.map(c => ({...c}));
@@ -6713,8 +7230,13 @@ function _ecSelectIcon(key) {
 }
 function closeIconPicker(save) {
   document.getElementById('iconpicker-overlay').style.display = 'none';
-  if (save && _ideaIconMode) {
-    // Idea-level custom icon
+  if (save && _ideaIconNewMode) {
+    // New Idea sheet custom icon
+    const defaultKey = _ideaDefaultIconKey(selectedCategory);
+    _ideaCustomIconKey = (_ecIconSelected && _ecIconSelected !== defaultKey) ? _ecIconSelected : null;
+    updateIdeaCatIcon();
+  } else if (save && _ideaIconMode) {
+    // Edit Idea modal custom icon
     const typeVal = (document.getElementById('pf-type')||{}).value || '';
     const defaultKey = _ideaDefaultIconKey(typeVal);
     _pfCustomIconKey = (_ecIconSelected && _ecIconSelected !== defaultKey) ? _ecIconSelected : null;
@@ -6729,7 +7251,35 @@ function closeIconPicker(save) {
   }
   _ecIconIdx = null;
   _ideaIconMode = false;
+  _ideaIconNewMode = false;
 }
+function openNewIdeaIconPicker() {
+  // Icon picker for the New Idea sheet (both Out and In)
+  const defaultKey = _ideaDefaultIconKey(selectedCategory);
+  const currentKey = _ideaCustomIconKey || defaultKey;
+  _ecIconIdx = null;
+  _ideaIconMode = false;
+  _ideaIconNewMode = true;
+  _ecIconSelected = currentKey;
+  _ecIconPrev = currentKey;
+  const grid = document.getElementById('iconpicker-grid');
+  if (!grid) return;
+  grid.innerHTML = ALL_ICON_KEYS.map(key => {
+    const sel = key === currentKey;
+    const prev = key === _ecIconPrev && !sel;
+    const _dm2 = document.body.classList.contains('dark-mode');
+    const _selC2 = _dm2 ? ROSE : BURGUNDY;
+    const iconColor = sel ? _selC2 : prev ? ROSE : '#b0a090';
+    const bg = sel ? (_dm2 ? 'rgba(192,122,138,0.12)' : 'rgba(139,58,82,0.08)') : 'transparent';
+    const border = sel ? _selC2 : 'transparent';
+    return `<button onclick="_ecSelectIcon('${key}')" id="iconpicker-btn-${key}"
+      style="display:flex;align-items:center;justify-content:center;aspect-ratio:1;background:${bg};border:2px solid ${border};border-radius:10px;cursor:pointer;padding:7px">
+      ${ICONS[key] ? ICONS[key](22, iconColor) : ''}
+    </button>`;
+  }).join('');
+  document.getElementById('iconpicker-overlay').style.display = 'flex';
+}
+
 function openIdeaIconPicker() {
   // Get the current icon for this idea (custom or category default)
   const typeVal = (document.getElementById('pf-type')||{}).value || '';
@@ -7013,8 +7563,8 @@ render();
 // Initialize lock buttons with unlocked state
 _renderLockBtn('idea-lock-btn', false);
 _renderLockBtn('pf-lock-btn', false);
-_renderLockBtn('date-lock-btn', false);
-_renderLockBtn('ts-lock-btn', false);
+_renderPrivacyBox('date-lock-icon', 'date-privacy-box', false, false);
+_renderPrivacyBox('ts-lock-icon', 'ts-privacy-box', false, false);
 </script>
 </body>
 </html>
