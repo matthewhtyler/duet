@@ -3066,9 +3066,9 @@ function _todoRow(t) {
   const col = PRIORITY_COLORS[t.priority] || '#9a8a7a';
 
   let mainHtml = '';
-  const textColor = t.done ? '#b0a090' : '#7a6e6e';
+  const textColor = t.done ? '#b0a090' : 'var(--text-primary)';
   const textDecor = t.done ? 'line-through' : 'none';
-  const baseStyle = `font-size:14px;font-family:sans-serif;line-height:1.4;color:${textColor};text-decoration:${textDecor}`;
+  const baseStyle = `font-size:14px;font-family:sans-serif;line-height:1.4;color:${col};text-decoration:${textDecor}`;
 
   // Resolve linked date and idea for all task types
   const _linkedDate = _findDateByKey(t.dateKey);
@@ -3130,43 +3130,36 @@ function _todoRow(t) {
     }
   } else if (t.task === 'Buy something') {
     const buying = t.note ? `${t.note}` : 'something';
-    if (_ideaLink) {
-      mainHtml = `<span style="${baseStyle}">Buy ${buying} for ${_ideaLink}</span>`;
-    } else {
-      mainHtml = `<span style="${baseStyle}">Buy ${buying}</span>`;
-    }
+    mainHtml = `<span style="${baseStyle}">Buy ${buying}</span>`;
   } else if (t.task === 'Plan a date') {
-    if (_ideaLink) {
-      mainHtml = `<span style="${baseStyle}">Make a plan for ${_ideaLink}</span>`;
-    } else {
-      mainHtml = `<span style="${baseStyle}">Plan a date</span>`;
-    }
+    mainHtml = `<span style="${baseStyle}">Plan a date</span>`;
   } else if (t.task === 'Message') {
-    if (_ideaLink) {
-      mainHtml = `<span style="${baseStyle}">Message ${partnerObj()} about ${_ideaLink}</span>`;
-    } else if (t.note) {
+    if (t.note) {
       mainHtml = `<span style="${baseStyle}">Message ${partnerObj()} about ${t.note}</span>`;
     } else {
       mainHtml = `<span style="${baseStyle}">Message ${partnerObj()}</span>`;
     }
   } else if (t.task === 'Other') {
-    if (_ideaLink && t.note) {
-      mainHtml = `<span style="${baseStyle}">${_ideaLink} ${t.note}</span>`;
-    } else if (_ideaLink) {
-      mainHtml = `<span style="${baseStyle}">${_ideaLink}</span>`;
-    } else if (t.note) {
-      mainHtml = `<span style="${baseStyle}">${t.note}</span>`;
-    } else {
-      mainHtml = `<span style="${baseStyle}">Other</span>`;
-    }
+    mainHtml = `<span style="${baseStyle}">${t.note || 'Other'}</span>`;
   } else {
     mainHtml = `<span style="${baseStyle}">${t.task}</span>`;
+  }
+
+  // Sub line: always show attachment title if present; never show priority
+  const _isResTickets = t.task === 'Make a reservation' || t.task === 'Buy tickets';
+  const _linkColor = t.done ? '#b0a090' : (document.body.classList.contains('dark-mode') ? '#dcd6ce' : '#2a1f1f');
+  let subHtml;
+  if (_ideaTitle && _ideaClick) {
+    const _subLink = `<a onclick="event.stopPropagation();${_ideaClick}" style="color:${t.done?'#b0a090':textColor};font-weight:500;cursor:pointer;text-decoration:none">${_ideaTitle}</a>`;
+    subHtml = `<div style="font-size:11px;margin-top:3px;font-family:sans-serif;font-weight:500;letter-spacing:0.03em">${_subLink}</div>`;
+  } else {
+    subHtml = '';
   }
 
   return `<div id="todo-row-${t.id}" onclick="openTodoEdit('${t.id}')" style="display:flex;align-items:flex-start;justify-content:space-between;padding:14px 0;border-bottom:1px solid var(--todo-divider);cursor:pointer;gap:12px;opacity:${t.done?'0.45':'1'}">
     <div style="flex:1;min-width:0">
       <div style="line-height:1.4">${mainHtml}</div>
-      <div style="font-size:11px;margin-top:3px;font-family:sans-serif;color:${t.done?'#c8bfb6':col};font-weight:500;letter-spacing:0.03em">${label}</div>
+      ${subHtml}
     </div>
     <button onclick="event.stopPropagation();toggleTodoDone('${t.id}')" style="width:20px;height:20px;flex-shrink:0;margin-top:2px;margin-left:-2px;border:1.5px solid ${t.done?'#c8bfb6':'#9a8a7a'};border-radius:4px;background:${t.done?'#c8bfb6':'var(--bg-input)'};cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0">
       ${t.done?'<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>':''}
