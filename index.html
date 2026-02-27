@@ -2594,7 +2594,7 @@ function _showNoNameToast() {
   if (!toast) {
     toast = document.createElement('div');
     toast.id = 'imgsearch-no-name-toast';
-    toast.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:9999;background:#fff;border-radius:14px;padding:14px 18px;box-shadow:0 8px 32px rgba(0,0,0,0.18);display:flex;align-items:center;gap:10px;max-width:280px;pointer-events:none;opacity:0;transition:opacity 0.15s ease';
+    toast.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:9999;background:#fff;border-radius:14px;padding:14px 18px;box-shadow:0 8px 32px rgba(0,0,0,0.18);display:flex;align-items:center;gap:10px;white-space:nowrap;pointer-events:none;opacity:0;transition:opacity 0.15s ease';
     toast.innerHTML = `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" flex-shrink="0" style="flex-shrink:0"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" fill="#c07a8a" rx="3"/><line x1="12" y1="9" x2="12" y2="13" stroke="#fff" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="16.5" r="1" fill="#fff"/></svg><span style="font-size:13px;font-family:sans-serif;color:#281f1f;line-height:1.4">No activity or place named yet.</span>`;
     document.body.appendChild(toast);
   }
@@ -5551,10 +5551,8 @@ function renderWalkDriveBadges() {
 }
 
 function ideaMapsAddress() {
-  const addr = document.getElementById('idea-address').value.trim();
   const name = document.getElementById('idea-name').value.trim();
-  const q = addr || name;
-  if (q) _openExternal(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(q)}`);
+  if (name) _openExternal(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(name + ' New York City')}`);
 }
 function ideaTransitDirections() {
   const dest = document.getElementById('idea-address').value.trim();
