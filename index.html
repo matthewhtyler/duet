@@ -3871,7 +3871,7 @@ function renderHome() {
     if (upcoming3.length === 0) return '';
     return '<div style="padding:0 20px 0">' +
       '<button onclick="navigate(\'calendar\')" style="background:none;border:none;cursor:pointer;padding:0;display:flex;align-items:center;gap:4px;margin-bottom:12px">' +
-        '<span class="section-label">Upcoming Dates</span>' +
+        '<span class="section-label">Upcoming</span>' +
         '<span style="font-size:11px;color:#9a8a7a;font-family:sans-serif;letter-spacing:0.05em;line-height:1">›</span>' +
       '</button>' +
       upcoming3.map(u => _buildUpcomingCardHtml(u, '')).join('') +
