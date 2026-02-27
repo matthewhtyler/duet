@@ -532,7 +532,7 @@
         <circle id="logo-circle-light" cx="11" cy="9" r="7.5" stroke="#c07a8a" stroke-width="2.8"/>
         <circle id="logo-circle-dark" cx="18" cy="9" r="7.5" stroke="#8b3a52" stroke-width="2.8"/>
       </svg>
-      <span style="color:blue">duet</span>
+      duet
     </button>
     <button id="nav-back" onclick="navigate('home')" style="display:none">
       <svg viewBox="0 0 24 24" width="20" height="20" stroke="#b0a090" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
@@ -1525,35 +1525,21 @@
       <option>Make a reservation</option>
       <option>Buy tickets</option>
       <option>Buy something</option>
+      <option>Plan a date</option>
       <option>Message</option>
-      <option>Find a day</option>
-      <option>Confirm day</option>
-      <option>Confirm time</option>
-      <option>Find a place</option>
-      <option>Find activities</option>
       <option>Other</option>
     </select>
   </div>
 
-  <!-- Activity picker (wine glass icon — shown for Make a reservation / Buy tickets) -->
+  <!-- Date picker (calendar icon — shown for Make a reservation / Buy tickets) -->
   <div id="ts-activity-wrap" style="display:none">
     <div class="idea-row">
-      <svg viewBox="0 0 24 24" width="18" height="18" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M8 22h8"/><path d="M12 15.8v6.2"/><path d="M5 3h14l-1.5 9a5 5 0 0 1-5 4h-1a5 5 0 0 1-5-4L5 3z"/></svg>
-      <button id="ts-activity-btn" onclick="openIdeasPickerForTodo()"
-        style="flex:1;padding:11px 14px;background:var(--bg-input);border:1.5px solid var(--border);border-radius:10px;font-family:sans-serif;font-size:14px;color:#b0a090;text-align:left;cursor:pointer;display:flex;align-items:center;gap:10px;margin-bottom:0">
-        <span id="ts-activity-icon"></span>
-        <span id="ts-activity-label" style="flex:1">Choose activity…</span>
-        <span id="ts-activity-info-btn" onclick="openDetailFromActivity('ts-activity-info-btn',event)" style="display:none;width:20px;height:20px;background:#c07a8a;border-radius:50%;flex-shrink:0;align-items:center;justify-content:center;cursor:pointer"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
+      <svg viewBox="0 0 24 24" width="18" height="18" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      <button id="ts-date-btn" onclick="openUpcomingDatesPicker('ts')"
+        style="flex:1;padding:9px 14px;background:var(--bg-input);border:1.5px solid var(--border);border-radius:10px;font-family:sans-serif;color:var(--text-primary);text-align:left;cursor:pointer;display:flex;align-items:center;gap:10px;margin-bottom:0">
+        <span id="ts-date-icon" style="display:none;flex-shrink:0"></span>
+        <span id="ts-date-label" style="flex:1;font-size:16px;color:var(--text-placeholder)">Select date…</span>
       </button>
-    </div>
-    <!-- Custom place name field (shown when Custom activity selected) -->
-    <div id="ts-custom-wrap" style="display:none">
-      <div class="idea-row">
-        <button onclick="ideaMapsAddress()" style="background:none;border:none;cursor:pointer;padding:0;display:flex;flex-shrink:0">
-          <svg viewBox="0 0 24 24" width="18" height="18" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-        </button>
-        <input id="ts-custom-place" type="text" class="field-input" placeholder="Place name…" style="flex:1;margin-bottom:0">
-      </div>
     </div>
   </div>
 
@@ -1561,7 +1547,7 @@
   <div id="ts-note-wrap" style="display:none">
     <div class="idea-row">
       <svg viewBox="0 0 24 24" width="18" height="18" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><line x1="17" y1="10" x2="3" y2="10"/><line x1="21" y1="6" x2="3" y2="6"/><line x1="21" y1="14" x2="3" y2="14"/><line x1="17" y1="18" x2="3" y2="18"/></svg>
-      <textarea id="ts-note" class="field-input" placeholder="" style="flex:1;margin-bottom:0;resize:none;height:36px;line-height:1.5;padding-top:8px;padding-bottom:8px"></textarea>
+      <input id="ts-note" type="text" class="field-input" placeholder="" style="flex:1;margin-bottom:0;padding:9px 14px;font-size:16px;height:auto">
     </div>
   </div>
 
@@ -1578,6 +1564,21 @@
   <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px">
     <button id="ts-lock-icon" onclick="toggleTsPrivate()" type="button" style="background:none;border:none;cursor:pointer;padding:0;display:flex;flex-shrink:0;color:#9a8a7a"></button>
     <button id="ts-privacy-box" onclick="toggleTsPrivate()" style="flex:1;padding:9px 14px;font-size:16px;font-family:sans-serif;background:var(--bg-input);border:1.5px solid var(--border);border-radius:10px;text-align:left;cursor:pointer;color:var(--text-placeholder);margin-bottom:0">Not private</button>
+  </div>
+</div>
+
+<!-- UPCOMING DATES PICKER POPUP -->
+<div id="upcoming-dates-picker-overlay" onclick="closeUpcomingDatesPicker()" style="position:fixed;inset:0;background:rgba(30,20,20,0.5);z-index:500;display:none;align-items:center;justify-content:center;padding:20px">
+  <div onclick="event.stopPropagation()" style="width:100%;max-width:370px;background:var(--bg);border-radius:20px;padding:20px 20px 24px;max-height:76vh;display:flex;flex-direction:column;box-shadow:0 12px 48px rgba(0,0,0,0.18)">
+    <!-- Header: title + X -->
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-shrink:0">
+      <div style="font-size:17px;font-weight:700;color:var(--popup-title)">Upcoming Dates</div>
+      <button onclick="closeUpcomingDatesPicker()" style="background:none;border:none;display:flex;cursor:pointer">
+        <svg viewBox="0 0 24 24" width="20" height="20" stroke="#888" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="icon-close"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <!-- List -->
+    <div id="upcoming-dates-picker-list" style="flex:1;overflow-y:auto"></div>
   </div>
 </div>
 
@@ -1608,33 +1609,21 @@
       <option>Make a reservation</option>
       <option>Buy tickets</option>
       <option>Buy something</option>
+      <option>Plan a date</option>
       <option>Message</option>
-      <option>Find a day</option>
-      <option>Confirm day</option>
-      <option>Confirm time</option>
-      <option>Find a place</option>
-      <option>Find activities</option>
       <option>Other</option>
       </select>
     </div>
 
-    <!-- Activity picker -->
+    <!-- Date picker -->
     <div id="et-activity-wrap" style="display:none">
-      <div class="idea-row">
-        <svg viewBox="0 0 24 24" width="18" height="18" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M8 22h8"/><path d="M12 15.8v6.2"/><path d="M5 3h14l-1.5 9a5 5 0 0 1-5 4h-1a5 5 0 0 1-5-4L5 3z"/></svg>
-        <button id="et-activity-btn" onclick="openIdeasPickerForEditTodo()"
-          style="flex:1;padding:11px 14px;background:var(--bg-input);border:1.5px solid var(--border);border-radius:10px;font-family:sans-serif;font-size:14px;color:#b0a090;text-align:left;cursor:pointer;display:flex;align-items:center;gap:10px;margin-bottom:0">
-          <span id="et-activity-icon"></span>
-          <span id="et-activity-label" style="flex:1">Choose activity…</span>
-          <span id="et-activity-info-btn" onclick="openDetailFromActivity('et-activity-info-btn',event)" style="display:none;width:20px;height:20px;background:#c07a8a;border-radius:50%;flex-shrink:0;align-items:center;justify-content:center;cursor:pointer"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
+      <div class="idea-row" style="margin-bottom:14px">
+        <svg viewBox="0 0 24 24" width="18" height="18" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        <button id="et-date-btn" onclick="openUpcomingDatesPicker('et')"
+          style="flex:1;padding:9px 14px;background:var(--bg-input);border:1.5px solid var(--border);border-radius:10px;font-family:sans-serif;color:var(--text-primary);text-align:left;cursor:pointer;display:flex;align-items:center;gap:10px;margin-bottom:0">
+          <span id="et-date-icon" style="display:none"></span>
+          <span id="et-date-label" style="flex:1;font-size:16px;color:var(--text-placeholder)">Select date…</span>
         </button>
-      </div>
-      <div id="et-custom-wrap" style="display:none">
-        <div class="field-label">Place name</div>
-        <div style="position:relative;margin-bottom:16px">
-          <svg style="position:absolute;left:13px;top:50%;transform:translateY(-50%);pointer-events:none;z-index:1" viewBox="0 0 24 24" width="16" height="16" stroke="#c07a8a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-          <input class="field-input" id="et-custom-place" type="text" placeholder="Place name…" style="padding-left:38px;margin-bottom:0">
-        </div>
       </div>
     </div>
 
@@ -1642,7 +1631,7 @@
     <div id="et-note-wrap" style="display:none">
       <div class="idea-row" style="margin-bottom:14px;align-items:flex-start">
         <svg viewBox="0 0 24 24" width="18" height="18" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:9px"><line x1="17" y1="10" x2="3" y2="10"/><line x1="21" y1="6" x2="3" y2="6"/><line x1="21" y1="14" x2="3" y2="14"/><line x1="17" y1="18" x2="3" y2="18"/></svg>
-        <textarea class="field-input" id="et-note" placeholder="" style="flex:1;margin-bottom:0;resize:none;height:36px;line-height:1.5;padding-top:8px;padding-bottom:8px"></textarea>
+        <input type="text" class="field-input" id="et-note" placeholder="" style="flex:1;margin-bottom:0;padding:9px 14px;font-size:16px;height:auto">
       </div>
     </div>
 
@@ -2050,8 +2039,9 @@ function ideaIcon(item, size, color) {
 function render() {
   // Keep partner place label in sync
   const _ppl = partnerPlaceLabel();
-  document.querySelectorAll('option').forEach(opt => {
-    if (opt.value === 'Her place' || (opt.value.endsWith(' place') && opt.value !== 'My place')) {
+  // Only update partner-place options in location dropdowns, not task selects
+  document.querySelectorAll('#date-location-select option, #ed-location-select option, #date-in-partner-option, #ed-in-partner-option').forEach(opt => {
+    if (opt.id === 'date-in-partner-option' || opt.id === 'ed-in-partner-option' || opt.value === 'Her place' || (opt.value.endsWith(' place') && opt.value !== 'My place')) {
       opt.value = _ppl; opt.textContent = _ppl;
     }
   });
@@ -2990,7 +2980,7 @@ function _todoDateStr(u) {
   // Convert u.day (number) + u.month (e.g. 'Feb') to YYYY-MM-DD
   const months = {Jan:1,Feb:2,Mar:3,Apr:4,May:5,Jun:6,Jul:7,Aug:8,Sep:9,Oct:10,Nov:11,Dec:12};
   const m = months[u.month] || 1;
-  const yr = new Date().getFullYear();
+  const yr = u.year || new Date().getFullYear();
   return `${yr}-${String(m).padStart(2,'0')}-${String(u.day).padStart(2,'0')}`;
 }
 function _todoTimeStr(timeStr) {
@@ -3005,14 +2995,21 @@ function _todoTimeStr(timeStr) {
 }
 function _buildResUrl(name, res, dateStr, timeStr, eventbriteUrl, websiteUrl) {
   const slug = name.toLowerCase().replace(/[^a-z0-9\s]/g,'').replace(/\s+/g,'-');
-  const q = encodeURIComponent(name + ' New York City');
-  if (res === 'opentable') return `https://www.opentable.com/s?term=${encodeURIComponent(name)}&covers=2&dateTime=${dateStr}T${timeStr}`;
+  if (res === 'opentable') {
+    let url = `https://www.opentable.com/s?term=${encodeURIComponent(name)}&covers=2`;
+    if (dateStr) url += `&dateTime=${dateStr}${timeStr ? 'T'+timeStr : ''}`;
+    return url;
+  }
   if (res === 'eventbrite') return eventbriteUrl || `https://www.google.com/search?q=${encodeURIComponent(name+' eventbrite')}`;
   if (res === 'website') {
     if (!websiteUrl) return '';
     return /^https?:\/\//i.test(websiteUrl) ? websiteUrl : 'https://' + websiteUrl;
   }
-  return `https://resy.com/cities/new-york-ny/venues/${slug}?query=`;
+  // Resy: ?date=YYYY-MM-DD&seats=2&time=HHMM (4-digit 24h, no colon)
+  let url = `https://resy.com/cities/new-york-ny/venues/${slug}?seats=2`;
+  if (dateStr) url += `&date=${dateStr}`;
+  if (timeStr) url += `&time=${timeStr.replace(':','')}`;
+  return url;
 }
 
 function _todoRow(t) {
@@ -3029,18 +3026,26 @@ function _todoRow(t) {
   if (t.task === 'Make a reservation') {
     let placeName = '';
     let resUrl = '';
-    if (t.activity && !t.activity.custom) {
+    // New format: resolve venue dynamically from the linked upcoming date
+    const _linkedDate = _findDateByKey(t.dateKey);
+    if (_linkedDate) {
+      placeName = _linkedDate.venue || '';
+      const idea = ideas.find(i => i.name && i.name.toLowerCase() === placeName.toLowerCase());
+      const res = idea ? (idea.reservation || 'resy') : 'resy';
+      resUrl = _buildResUrl(placeName, res, _todoDateStr(_linkedDate), _todoTimeStr(_linkedDate.time),
+        idea ? idea.eventbriteUrl : '', idea ? idea.websiteUrl : '');
+    } else if (t.activity && !t.activity.custom) {
+      // Legacy: activity-based todo
       const idea = ideas.find(i => i.id === t.activity.id);
       placeName = idea ? idea.name : (t.activity.name || '');
-      const scheduled = UPCOMING_DATES.find(u => u.venue === placeName);
+      const scheduled = UPCOMING_DATES.find(u => u.venue && u.venue.toLowerCase() === placeName.toLowerCase());
       const dateStr = scheduled ? _todoDateStr(scheduled) : new Date().toISOString().split('T')[0];
       const timeStr = scheduled ? _todoTimeStr(scheduled.time) : '19:00';
       const res = idea ? (idea.reservation || 'resy') : 'resy';
       resUrl = _buildResUrl(placeName, res, dateStr, timeStr, idea ? idea.eventbriteUrl : '', idea ? idea.websiteUrl : '');
     } else if (t.activity && t.activity.custom && t.customPlace) {
       placeName = t.customPlace;
-      const dateStr = new Date().toISOString().split('T')[0];
-      resUrl = _buildResUrl(placeName, 'resy', dateStr, '19:00', '');
+      resUrl = _buildResUrl(placeName, 'resy', new Date().toISOString().split('T')[0], '19:00', '');
     }
     if (placeName) {
       mainHtml = `<span style="${baseStyle}">Make a reservation at <a onclick="event.stopPropagation();_openExternal('${resUrl}')" class="todo-link${t.done?' done':''}">${placeName}</a></span>`;
@@ -3049,7 +3054,10 @@ function _todoRow(t) {
     }
   } else if (t.task === 'Buy tickets') {
     let actName = '';
-    if (t.activity && !t.activity.custom) {
+    const _linkedDateTix = _findDateByKey(t.dateKey);
+    if (_linkedDateTix) {
+      actName = _linkedDateTix.venue || '';
+    } else if (t.activity && !t.activity.custom) {
       const idea = ideas.find(i => i.id === t.activity.id);
       actName = idea ? idea.name : (t.activity.name || '');
     } else if (t.activity && t.activity.custom && t.customPlace) {
@@ -3125,9 +3133,130 @@ function _scheduleTodoDelete(id) {
 
 
 // ── Todo activity selection ─────────────────────────
-let _todoSelectedActivity = null;
-let _editTodoSelectedActivity = null;
+let _todoSelectedActivity = null;     // kept for legacy compat, not used for new todos
+let _editTodoSelectedActivity = null; // kept for legacy compat
+let _todoSelectedDateKey = null;      // NEW: {day, month, year} key for selected upcoming date
+let _editTodoSelectedDateKey = null;  // NEW: for edit todo
 let _editTodoIdx = 0;
+let _upcomingPickerContext = null;    // 'ts' or 'et'
+
+// ── Upcoming Dates Picker ──────────────────────────────
+function _dateObjKey(u) {
+  // Returns a stable string key for an upcoming date object
+  return `${u.year||2026}-${u.month}-${u.day}`;
+}
+function _findDateByKey(key) {
+  if (!key) return null;
+  return UPCOMING_DATES.find(u => _dateObjKey(u) === key) || null;
+}
+
+function openUpcomingDatesPicker(context) {
+  _upcomingPickerContext = context;
+  const list = document.getElementById('upcoming-dates-picker-list');
+  if (!list) return;
+
+  const now = new Date(); now.setHours(0,0,0,0);
+  const upcoming = UPCOMING_DATES
+    .filter(u => {
+      const dt = new Date((u.year||2026), MONTH_NUMS[u.month]||0, u.day);
+      dt.setHours(0,0,0,0);
+      return dt >= now;
+    })
+    .filter(u => !_isDateHiddenPrivate(u))
+    .sort((a,b) => new Date((a.year||2026),MONTH_NUMS[a.month]||0,a.day) - new Date((b.year||2026),MONTH_NUMS[b.month]||0,b.day));
+
+  if (upcoming.length === 0) {
+    list.innerHTML = '<div style="padding:40px 0;text-align:center;color:#b0a090;font-size:14px;font-style:italic;font-family:sans-serif">No upcoming dates</div>';
+  } else {
+    list.innerHTML = upcoming.map(u => {
+      const key = _dateObjKey(u);
+      const currentKey = context === 'ts' ? _todoSelectedDateKey : _editTodoSelectedDateKey;
+      const isSelected = currentKey === key;
+      const borderStyle = isSelected ? `border-color:${ROSE};` : '';
+      return `<div class="upcoming-item" onclick="selectUpcomingDate('${key}')" style="${borderStyle}cursor:pointer">
+        <div class="upcoming-date-badge">
+          <span class="upcoming-month">${u.month}</span>
+          <span class="upcoming-day-num">${u.day}</span>
+        </div>
+        <div class="upcoming-divider"></div>
+        <div class="upcoming-info">
+          <div class="upcoming-venue-row">
+            ${activityIcon(u.activity, 14, ROSE)}
+            <span class="upcoming-venue">${u.venue}</span>
+          </div>
+          <span class="upcoming-sub">${u.time ? u.time + ((_dateLocationLabel(u) || u.neighborhood) ? ' · ' + (_dateLocationLabel(u) || u.neighborhood) : '') : (_dateLocationLabel(u) || u.neighborhood || '')}</span>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  document.getElementById('upcoming-dates-picker-overlay').style.display = 'flex';
+}
+
+function closeUpcomingDatesPicker() {
+  document.getElementById('upcoming-dates-picker-overlay').style.display = 'none';
+  _upcomingPickerContext = null;
+}
+
+function selectUpcomingDate(key) {
+  const u = _findDateByKey(key);
+  if (!u) return;
+  const ctx = _upcomingPickerContext;
+  if (ctx === 'ts') {
+    _todoSelectedDateKey = key;
+    _updateTodoDateBtn('ts-date-btn', 'ts-date-icon', 'ts-date-label', u);
+    // Update privacy from linked idea
+    _tsIsPrivate = null;
+    _renderPrivacyBox('ts-lock-icon', 'ts-privacy-box', _effectivePrivate(_tsIsPrivate, _tsIdeaIsPrivate()), _tsIsPrivate === null && _tsIdeaIsPrivate());
+  } else if (ctx === 'et') {
+    _editTodoSelectedDateKey = key;
+    _updateTodoDateBtn('et-date-btn', 'et-date-icon', 'et-date-label', u);
+    _etIsPrivate = null;
+    _renderPrivacyBox('et-lock-icon', 'et-privacy-box', _effectivePrivate(_etIsPrivate, _etIdeaIsPrivate()), _etIsPrivate === null && _etIdeaIsPrivate());
+  }
+  closeUpcomingDatesPicker();
+}
+
+function _updateTodoDateBtn(btnId, iconId, labelId, u) {
+  const btn = document.getElementById(btnId);
+  const iconEl = document.getElementById(iconId);
+  const labelEl = document.getElementById(labelId);
+  if (!btn || !labelEl) return;
+  if (!u) {
+    if (iconEl) { iconEl.innerHTML = ''; iconEl.style.display = 'none'; }
+    labelEl.textContent = 'Select date…';
+    labelEl.style.fontSize = '16px';
+    labelEl.style.color = 'var(--text-placeholder)';
+    btn.style.borderColor = 'var(--border)';
+  } else {
+    // Show month+day badge as icon
+    const matchedIdea = ideas.find(i => i.name && u.venue && i.name.toLowerCase() === u.venue.toLowerCase());
+    const accent = matchedIdea ? accentColor(matchedIdea.type) : ROSE;
+    if (iconEl) {
+      iconEl.innerHTML = `<span style="font-size:11px;font-weight:700;font-family:sans-serif;color:${accent};line-height:1;white-space:nowrap">${u.month} ${u.day}</span>`;
+      iconEl.style.display = 'flex';
+      iconEl.style.alignItems = 'center';
+    }
+    labelEl.textContent = u.venue;
+    labelEl.style.fontSize = '';
+    labelEl.style.color = document.body.classList.contains('dark-mode') ? 'var(--text-primary)' : '#2a1f1f';
+    btn.style.borderColor = accent;
+  }
+}
+
+// ── Privacy helpers for ts/et that use dateKey ─────────
+function _tsIdeaIsPrivate() {
+  const u = _findDateByKey(_todoSelectedDateKey);
+  if (!u) return false;
+  const idea = ideas.find(i => i.name && u.venue && i.name.toLowerCase() === u.venue.toLowerCase());
+  return !!(idea && idea.isPrivate);
+}
+function _etIdeaIsPrivate() {
+  const u = _findDateByKey(_editTodoSelectedDateKey);
+  if (!u) return false;
+  const idea = ideas.find(i => i.name && u.venue && i.name.toLowerCase() === u.venue.toLowerCase());
+  return !!(idea && idea.isPrivate);
+}
 
 function openIdeasPickerForTodo() {
   ideasPickerContext = 'todo';
@@ -3190,13 +3319,13 @@ let _todoEditId = null;
 function openTodoAdd() {
   _todoEditId = null;
   _todoSelectedActivity = null;
+  _todoSelectedDateKey = null;
   const ts = document.getElementById('todo-sheet');
   if (!ts) return;
   document.getElementById('ts-task').value = '';
   document.getElementById('ts-priority').value = 'normal';
   document.getElementById('ts-note').value = '';
-  if (document.getElementById('ts-custom-place')) document.getElementById('ts-custom-place').value = '';
-  _applyActivityToTodo(null);
+  _updateTodoDateBtn('ts-date-btn', 'ts-date-icon', 'ts-date-label', null);
   onTodoTaskChange();
   ts.style.display = 'block';
   document.getElementById('btn-new-circle').style.background = '#a05268';
@@ -3216,6 +3345,7 @@ function closeTodoSheet() {
   }
   _todoEditId = null;
   _todoSelectedActivity = null;
+  _todoSelectedDateKey = null;
   document.getElementById('btn-new-circle').style.background = ROSE;
   document.getElementById('btn-new-icon-plus').style.display = 'block';
   document.getElementById('btn-new-icon-check').style.display = 'none';
@@ -3228,37 +3358,39 @@ function onTodoTaskChange() {
   const noteInp = document.getElementById('ts-note');
   const usesActivity = task === 'Make a reservation' || task === 'Buy tickets';
   const noteConfig = {
-    'Buy tickets':'Event name', 'Buy something':'Buy what?',
-    'Message':'What about?', 'Find a day':'Around when?',
-    'Confirm day':'Day / date', 'Confirm time':'Time',
-    'Find a place':'Neighborhood or area', 'Find activities':'What kind?',
+    'Buy something':'Buy what?',
+    'Message':'What about?',
+    'Plan a date':'For when? For what?',
     'Other':'Describe the to do'
   };
-  const usesActivity2 = task === 'Make a reservation' || task === 'Buy tickets';
-  if (actWrap) actWrap.style.display = usesActivity2 ? 'block' : 'none';
+  if (actWrap) actWrap.style.display = usesActivity ? 'block' : 'none';
   if (noteWrap) noteWrap.style.display = (task in noteConfig) ? 'block' : 'none';
   if (noteInp) {
     noteInp.placeholder = noteConfig[task] || '';
-    if (noteInp.tagName === 'TEXTAREA') noteInp.style.height = task === 'Go shopping' ? '100px' : '36px';
+    if (noteInp.tagName === 'TEXTAREA') noteInp.style.height = '36px';
   }
-  if (usesActivity2 && noteInp) noteInp.value = '';
-  if (!usesActivity2) { _todoSelectedActivity = null; }
+  if (usesActivity && noteInp) noteInp.value = '';
+  if (!usesActivity) {
+    _todoSelectedActivity = null;
+    _todoSelectedDateKey = null;
+    _updateTodoDateBtn('ts-date-btn', 'ts-date-icon', 'ts-date-label', null);
+  }
 }
 
 function saveTodoFromSheet() {
   const task = (document.getElementById('ts-task') || {}).value || '';
   const priority = (document.getElementById('ts-priority') || {}).value || 'normal';
   const note = ((document.getElementById('ts-note') || {}).value || '').trim();
-  const customPlace = ((document.getElementById('ts-custom-place') || {}).value || '').trim();
   if (!task) return;
-  const usesActivity = task === 'Make a reservation' || task === 'Buy tickets';
+  const usesDate = task === 'Make a reservation' || task === 'Buy tickets';
   const todoObj = {
     task, priority,
-    note: usesActivity ? '' : note,
-    activity: usesActivity ? _todoSelectedActivity : null,
-    customPlace: (usesActivity && _todoSelectedActivity && _todoSelectedActivity.custom) ? customPlace : '',
+    note: usesDate ? '' : note,
+    dateKey: usesDate ? (_todoSelectedDateKey || null) : null,
+    activity: null,  // legacy field cleared
+    customPlace: '',
     done: false, createdAt: Date.now(), id: String(Date.now()),
-    isPrivate: _tsIsPrivate  // null = inherit from idea
+    isPrivate: _tsIsPrivate
   };
   todos.unshift(todoObj);
   _tsIsPrivate = null;
@@ -3284,13 +3416,23 @@ function openTodoEdit(id) {
 
 function _populateEditTodo(t) {
   _etIsPrivate = t.isPrivate === true ? true : t.isPrivate === false ? false : null;
-  _renderPrivacyBox('et-lock-icon', 'et-privacy-box', _effectivePrivate(_etIsPrivate, _etIdeaIsPrivate()), _etIsPrivate === null && _etIdeaIsPrivate());
   document.getElementById('et-task').value = t.task || '';
   document.getElementById('et-priority').value = t.priority || 'normal';
   document.getElementById('et-note').value = t.note || '';
-  if (document.getElementById('et-custom-place')) document.getElementById('et-custom-place').value = t.customPlace || '';
-  _editTodoSelectedActivity = t.activity || null;
-  _updateActivityBtn('et-activity-btn','et-activity-icon','et-activity-label','et-custom-wrap', t.activity || null);
+  // Restore dateKey (new format) or migrate legacy activity — MUST happen before privacy render
+  _editTodoSelectedDateKey = t.dateKey || null;
+  if (!_editTodoSelectedDateKey && t.activity && !t.activity.custom) {
+    const idea = ideas.find(i => i.id === t.activity.id);
+    const name = idea ? idea.name : (t.activity.name || '');
+    if (name) {
+      const matched = UPCOMING_DATES.find(u => u.venue && u.venue.toLowerCase() === name.toLowerCase());
+      if (matched) _editTodoSelectedDateKey = _dateObjKey(matched);
+    }
+  }
+  // Now _etIdeaIsPrivate() can correctly resolve via _editTodoSelectedDateKey
+  _renderPrivacyBox('et-lock-icon', 'et-privacy-box', _effectivePrivate(_etIsPrivate, _etIdeaIsPrivate()), _etIsPrivate === null && _etIdeaIsPrivate());
+  const u = _findDateByKey(_editTodoSelectedDateKey);
+  _updateTodoDateBtn('et-date-btn', 'et-date-icon', 'et-date-label', u);
   onEditTodoTaskChange();
 }
 
@@ -3302,17 +3444,20 @@ function onEditTodoTaskChange() {
   const usesActivity = task === 'Make a reservation' || task === 'Buy tickets';
   const noteConfig = {
     'Buy something':'Buy what?',
-    'Message':'What about?', 'Find a day':'Around when?',
-    'Confirm day':'Day / date', 'Confirm time':'Time',
-    'Find a place':'Neighborhood or area', 'Find activities':'What kind?',
+    'Message':'What about?',
+    'Plan a date':'For when? For what?',
     'Other':'Describe the to do'
   };
-  const usesActivity2 = task === 'Make a reservation' || task === 'Buy tickets';
-  if (actWrap) actWrap.style.display = usesActivity2 ? 'block' : 'none';
+  if (actWrap) actWrap.style.display = usesActivity ? 'block' : 'none';
   if (noteWrap) noteWrap.style.display = (task in noteConfig) ? 'block' : 'none';
   if (noteLabel && noteConfig[task]) noteLabel.textContent = noteConfig[task];
   const etNoteEl = document.getElementById('et-note');
-  if (etNoteEl && etNoteEl.tagName === 'TEXTAREA') etNoteEl.style.height = task === 'Go shopping' ? '100px' : '36px';
+  if (etNoteEl && etNoteEl.tagName === 'TEXTAREA') etNoteEl.style.height = '36px';
+  if (!usesActivity) {
+    _editTodoSelectedActivity = null;
+    _editTodoSelectedDateKey = null;
+    _updateTodoDateBtn('et-date-btn', 'et-date-icon', 'et-date-label', null);
+  }
 }
 
 function updateEditTodoNav() {
@@ -3333,6 +3478,7 @@ function editTodoNav(dir) {
 function closeEditTodo() {
   document.getElementById('edit-todo-overlay').style.display = 'none';
   _editTodoSelectedActivity = null;
+  _editTodoSelectedDateKey = null;
 }
 
 function saveEditTodo() {
@@ -3341,14 +3487,14 @@ function saveEditTodo() {
   const task = (document.getElementById('et-task') || {}).value || t.task;
   const priority = (document.getElementById('et-priority') || {}).value || t.priority;
   const note = ((document.getElementById('et-note') || {}).value || '').trim();
-  const customPlace = ((document.getElementById('et-custom-place') || {}).value || '').trim();
-  const usesActivity = task === 'Make a reservation' || task === 'Buy tickets';
+  const usesDate = task === 'Make a reservation' || task === 'Buy tickets';
   Object.assign(t, {
     task, priority,
-    note: usesActivity ? '' : note,
-    activity: usesActivity ? _editTodoSelectedActivity : null,
-    customPlace: (usesActivity && _editTodoSelectedActivity && _editTodoSelectedActivity.custom) ? customPlace : '',
-    isPrivate: _etIsPrivate  // null = inherit from idea
+    note: usesDate ? '' : note,
+    dateKey: usesDate ? (_editTodoSelectedDateKey || null) : null,
+    activity: null,
+    customPlace: '',
+    isPrivate: _etIsPrivate
   });
   saveTodos();
   closeEditTodo();
@@ -3598,10 +3744,18 @@ function _isTodoHiddenPrivate(t) {
   if (typeof hidePrivate === 'undefined' || !hidePrivate) return false;
   if (t.isPrivate === true) return true;
   if (t.isPrivate === false) return false;
-  // null: inherit from linked idea
-  if (t.activity && typeof t.activity === 'string') {
-    const tAct = t.activity.toLowerCase();
-    const idea = ideas.find(i => i.name && typeof i.name === 'string' && i.name.toLowerCase() === tAct);
+  // null: inherit from linked idea via dateKey (new format)
+  if (t.dateKey) {
+    const u = _findDateByKey(t.dateKey);
+    if (u) {
+      const idea = ideas.find(i => i.name && u.venue && i.name.toLowerCase() === u.venue.toLowerCase());
+      if (idea && idea.isPrivate) return true;
+    }
+    return false;
+  }
+  // Legacy: activity object {id, name}
+  if (t.activity && !t.activity.custom && t.activity.id) {
+    const idea = ideas.find(i => i.id === t.activity.id);
     if (idea && idea.isPrivate) return true;
   }
   return false;
@@ -3627,12 +3781,7 @@ function _dateIdeaIsPrivate() {
 function _edIdeaIsPrivate() {
   return !!(edSelectedActivity && !edSelectedActivity.custom && edSelectedActivity.isPrivate);
 }
-function _tsIdeaIsPrivate() {
-  return !!(_todoSelectedActivity && !_todoSelectedActivity.custom && _todoSelectedActivity.isPrivate);
-}
-function _etIdeaIsPrivate() {
-  return !!(_editTodoSelectedActivity && !_editTodoSelectedActivity.custom && _editTodoSelectedActivity.isPrivate);
-}
+
 
 function toggleDatePrivate() {
   if (_dateIsPrivate === null && _dateIdeaIsPrivate()) return; // locked via idea, not changeable
@@ -5410,19 +5559,6 @@ function renderPickerBody() {
 function selectCustomActivity() {
   const plusIcon = `<svg viewBox="0 0 24 24" width="16" height="16" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>`;
 
-  if (ideasPickerContext === 'todo') {
-    ideasPickerContext = 'sheet';
-    closeIdeasPicker();
-    _applyActivityToTodo({ custom: true });
-    return;
-  }
-  if (ideasPickerContext === 'edittodo') {
-    ideasPickerContext = 'sheet';
-    closeIdeasPicker();
-    _applyActivityToEditTodo({ custom: true });
-    return;
-  }
-
   if (ideasPickerContext === 'editdate') {
     edSelectedActivity = { custom: true };
     document.getElementById('ed-activity-icon').innerHTML = plusIcon;
@@ -5462,19 +5598,6 @@ function selectActivity(id) {
   const item = ideas.find(i => i.id === id);
   if (!item) return;
   const accent = accentColor(item.type);
-
-  if (ideasPickerContext === 'todo') {
-    ideasPickerContext = 'sheet';
-    closeIdeasPicker();
-    _applyActivityToTodo(item);
-    return;
-  }
-  if (ideasPickerContext === 'edittodo') {
-    ideasPickerContext = 'sheet';
-    closeIdeasPicker();
-    _applyActivityToEditTodo(item);
-    return;
-  }
 
   if (ideasPickerContext === 'editdate') {
     edSelectedActivity = item;
@@ -5849,16 +5972,17 @@ function openDetail(id, navContext) {
   } else if (isOut || hasReservation || _detailFromPopup) {
     const calIcon = `<svg viewBox="0 0 24 24" width="14" height="14" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="display:block;flex-shrink:0;vertical-align:middle;position:relative;top:-1px"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>`;
     const resIcon = `<svg viewBox="0 0 24 24" width="14" height="14" stroke="#c07a8a" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-linejoin="round" style="display:block;flex-shrink:0"><polyline points="20 6 9 17 4 12"/></svg>`;
-    const resUrls = {
-      resy: `https://resy.com/cities/ny?query=${encodeURIComponent(item.name)}&party_size=2`,
-      opentable: `https://www.opentable.com/s?term=${encodeURIComponent(item.name)}&covers=2`,
-      eventbrite: item.eventbriteUrl || `https://www.eventbrite.com/d/online/${encodeURIComponent(item.name)}/`,
-      website: item.websiteUrl ? (/^https?:\/\//i.test(item.websiteUrl) ? item.websiteUrl : 'https://' + item.websiteUrl) : ''
-    };
+    // Look up any upcoming date for this idea to include date/time in reservation URL
+    const _ideaUpcoming = UPCOMING_DATES.find(u =>
+      (u.ideaId && u.ideaId === item.id) ||
+      (u.venue && item.name && u.venue.toLowerCase() === item.name.toLowerCase())
+    );
+    const _ideaDateStr = _ideaUpcoming ? _todoDateStr(_ideaUpcoming) : '';
+    const _ideaTimeStr = _ideaUpcoming ? _todoTimeStr(_ideaUpcoming.time) : '';
 
     let leftBtn = '';
     if (hasReservation) {
-      const resUrl = resUrls[item.reservation] || '';
+      const resUrl = _buildResUrl(item.name, item.reservation, _ideaDateStr, _ideaTimeStr, item.eventbriteUrl, item.websiteUrl);
       const isWebsite = item.reservation === 'website';
       if (isWebsite && !resUrl) {
         // website with no URL — no button
@@ -6263,32 +6387,9 @@ function openDateInfo(u, memoryMode) {
 
   let leftBtnDi = '';
   if (hasRes) {
-    let resDateParam = '';
-    if (u.day && u.month) {
-      const monthNums2 = {Jan:'01',Feb:'02',Mar:'03',Apr:'04',May:'05',Jun:'06',Jul:'07',Aug:'08',Sep:'09',Oct:'10',Nov:'11',Dec:'12'};
-      const yr = new Date().getFullYear();
-      resDateParam = `${yr}-${monthNums2[u.month]||'01'}-${String(u.day).padStart(2,'0')}`;
-    }
-    let resTimeParam = '';
-    if (u.time) {
-      const tm = u.time.match(/(\d+):(\d+)\s*(AM|PM)/i);
-      if (tm) {
-        let hr = parseInt(tm[1]); const mn = tm[2]; const ap = tm[3].toUpperCase();
-        if (ap==='PM' && hr!==12) hr+=12; if (ap==='AM' && hr===12) hr=0;
-        resTimeParam = `${String(hr).padStart(2,'0')}:${mn}`;
-      }
-    }
-    const resySlug = u.venue.toLowerCase().replace(/[^a-z0-9\s]/g,'').replace(/\s+/g,'-');
-    let resyUrl = `https://resy.com/cities/new-york-ny/venues/${resySlug}?query=`;
-    let otUrl = `https://www.opentable.com/s?term=${encodeURIComponent(u.venue)}&covers=2`;
-    if (resDateParam) otUrl += `&datetime=${resDateParam}${resTimeParam ? 'T'+resTimeParam : ''}`;
-    const resUrls = {
-      resy: resyUrl,
-      opentable: otUrl,
-      eventbrite: matchedIdea.eventbriteUrl || `https://www.eventbrite.com/d/online/${encodeURIComponent(u.venue)}/`,
-      website: matchedIdea.websiteUrl ? (/^https?:\/\//i.test(matchedIdea.websiteUrl) ? matchedIdea.websiteUrl : 'https://' + matchedIdea.websiteUrl) : ''
-    };
-    const resUrl2 = resUrls[matchedIdea.reservation] || '';
+    const resDateParam = (u.day && u.month) ? _todoDateStr(u) : '';
+    const resTimeParam = u.time ? _todoTimeStr(u.time) : '';
+    const resUrl2 = _buildResUrl(u.venue, matchedIdea.reservation, resDateParam, resTimeParam, matchedIdea.eventbriteUrl, matchedIdea.websiteUrl);
     if (matchedIdea.reservation !== 'website' || resUrl2) {
       const _dk = _dateKey(u);
       const _alreadyReserved = _reservedDateKeys.has(_dk);
