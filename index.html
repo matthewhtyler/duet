@@ -533,6 +533,19 @@
   textarea.idea-sheet-area { flex: 1; padding: 8px 14px; font-size: 16px; border: 1.5px solid var(--border); border-radius: 10px; background: var(--bg-input); color: var(--text-primary); outline: none; font-family: sans-serif; resize: none; line-height: 1.5; margin-bottom: 0; }
   textarea.idea-sheet-area:focus { border-color: #c07a8a; }
 
+  /* Clearable field wrapper */
+  .clearable-wrap { position:relative; flex:1; display:flex; min-width:0; }
+  .clearable-wrap .field-input,
+  .clearable-wrap .idea-sheet-area { flex:1; min-width:0; padding-right:30px !important; }
+  .clearable-wrap .field-clear-btn {
+    position:absolute; right:8px; top:50%; transform:translateY(-50%);
+    background:none; border:none; cursor:pointer; padding:2px; display:none;
+    align-items:center; justify-content:center; line-height:0; color:#b0a090;
+    flex-shrink:0; z-index:1;
+  }
+  .clearable-wrap .field-clear-btn:hover { color:#7a6060; }
+  .clearable-wrap .idea-sheet-area ~ .field-clear-btn { top:12px; transform:none; }
+
   /* scrollbar hide */
   ::-webkit-scrollbar { display: none; }
 
@@ -1762,6 +1775,61 @@ function _applyFirstCap(inp) {
   if (fc !== v) { inp.value = fc; inp.setSelectionRange(start, end); }
 }
 
+// ── Clearable fields ─────────────────────────────────────────────────────────
+// Wraps a field in a .clearable-wrap and appends a small × button.
+// Safe to call multiple times on the same element (idempotent).
+const _CLEARABLE_IDS = [
+  // New Idea
+  'idea-name','idea-cuisine','idea-shortdesc','idea-about',
+  'idea-address','idea-neighborhood','idea-subway','idea-walkdrive',
+  'idea-website-url','idea-eventbrite-url','idea-in-shortdesc','idea-note-long',
+  // Edit Idea
+  'pf-name','pf-cuisine','pf-shortdesc','pf-about',
+  'pf-address','pf-neighborhood','pf-subway','pf-walkdrive',
+  'pf-website-url','pf-eventbrite-url',
+  // New/Edit Date note
+  'date-note','ed-note',
+  // New/Edit Todo note
+  'ts-note','et-note',
+];
+function _makeClearable(id) {
+  const el = document.getElementById(id);
+  if (!el || el.parentNode.classList.contains('clearable-wrap')) return;
+  const wrap = document.createElement('div');
+  wrap.className = 'clearable-wrap';
+  if (el.style.flex) { wrap.style.flex = el.style.flex; el.style.flex = '1'; }
+  else { wrap.style.flex = '1'; }
+  el.parentNode.insertBefore(wrap, el);
+  wrap.appendChild(el);
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'field-clear-btn';
+  btn.innerHTML = '<svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
+  const _sync = () => { btn.style.display = el.value ? 'flex' : 'none'; };
+  btn.addEventListener('mousedown', e => {
+    e.preventDefault();
+    el.value = '';
+    el.dispatchEvent(new Event('input', { bubbles: true }));
+    el.focus();
+    btn.style.display = 'none';
+  });
+  el.addEventListener('input', _sync);
+  el.addEventListener('change', _sync);
+  wrap.appendChild(btn);
+  _sync(); // initial state
+}
+function _initClearableFields() {
+  _CLEARABLE_IDS.forEach(_makeClearable);
+}
+function _syncAllClearable() {
+  _CLEARABLE_IDS.forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const btn = el.parentNode.classList.contains('clearable-wrap') ? el.parentNode.querySelector('.field-clear-btn') : null;
+    if (btn) btn.style.display = el.value ? 'flex' : 'none';
+  });
+}
+
 
 // ─────────────────────────────────────────────────────────────────────────────
 // TESTCOLOR — developer override for the "duet" logo text color in the top nav.
@@ -1784,6 +1852,7 @@ function _applyTestcolor() {
   else { el.style.color = ''; }
 }
 document.addEventListener('DOMContentLoaded', _applyTestcolor);
+document.addEventListener('DOMContentLoaded', _initClearableFields);
 
 function accentColor(type) {
   if (document.body.classList.contains('dark-mode')) return ROSE;
@@ -3720,6 +3789,7 @@ function openTodoAdd() {
   document.getElementById('btn-new-icon-check').style.display = 'block';
   // Defer overlay so the current click event doesn't immediately close it
   setTimeout(() => { document.getElementById('sheet-overlay').style.display = 'block'; }, 0);
+  _syncAllClearable();
 }
 
 function closeTodoSheet() {
@@ -3795,6 +3865,7 @@ function openTodoEdit(id) {
   _populateEditTodo(todos[idx]);
   updateEditTodoNav();
   document.getElementById('edit-todo-overlay').style.display = 'flex';
+  _syncAllClearable();
 }
 
 function _populateEditTodo(t) {
@@ -5475,6 +5546,7 @@ function openSheet(type) {
   document.getElementById('btn-new-icon-plus').style.display = 'none';
   document.getElementById('btn-new-icon-check').style.display = 'block';
   setTimeout(() => { document.getElementById('sheet-overlay').style.display = 'block'; }, 0);
+  _syncAllClearable();
 }
 
 function switchSheetType(type) {
@@ -7305,6 +7377,7 @@ function openEditDateModal(u) {
 
   populateEditDateFields(u);
   document.getElementById('edit-date-overlay').style.display = 'flex';
+  _syncAllClearable();
 }
 
 function updateEditDateNav() {
@@ -7584,6 +7657,7 @@ function openEditIdeaModal(id) {
   populateEditModal(item);
   updateEditModalNav();
   document.getElementById('places-overlay').style.display = 'flex';
+  _syncAllClearable();
 }
 
 function populateEditModal(item) {
