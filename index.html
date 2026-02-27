@@ -1727,7 +1727,7 @@ const ROSE = '#c07a8a', BURGUNDY = '#8b3a52';
 // every renderNav() so it survives re-renders. When null/false, the override is
 // removed and the element falls back to its normal CSS (color:var(--text-primary)).
 // ─────────────────────────────────────────────────────────────────────────────
-const testcolor = 'red';
+const testcolor = null;
 function _applyTestcolor() {
   const el = document.getElementById('duet-logo-text');
   if (!el) return;
@@ -7691,6 +7691,7 @@ async function exportAllData() {
     staticPastDates: STATIC_PAST_DATES,
     memoryNotes: (() => { try { return JSON.parse(localStorage.getItem('ll_memories') || '{}'); } catch(e) { return {}; } })(),
     todos: todos,
+    categories: { out: OUT_CATS, in: IN_CATS },
     settings: {
       homeAddress: homeAddress,
       partnerAddress: partnerAddress,
@@ -7767,7 +7768,11 @@ function _flushEcNames() {
   const cats = _ecCats();
   cats.forEach((c, i) => {
     const inp = document.getElementById(`ec-name-${i}`);
-    if (inp) c.label = inp.value.trim() || c.label;
+    if (inp) {
+      const newLabel = inp.value.trim() || c.label;
+      if (newLabel !== c.label) window._ecLastSavedId = c.id;
+      c.label = newLabel;
+    }
   });
 }
 function _renderEcToggle() {
@@ -7831,6 +7836,7 @@ function _ecAddNew() {
   _flushEcNames();
   const cats = _ecCats();
   const newId = 'cat_' + Date.now();
+  window._ecLastSavedId = newId;
   cats.push({id: newId, label: 'New category', iconKey: 'wine'});
   _ecSetCats(cats);
   _renderEcList();
@@ -8004,6 +8010,7 @@ function closeIconPicker(save) {
     const cats = _ecCats();
     if (cats[_ecIconIdx]) {
       cats[_ecIconIdx].iconKey = _ecIconSelected;
+      window._ecLastSavedId = cats[_ecIconIdx].id;
       _ecSetCats(cats);
       _renderEcList();
     }
@@ -8129,6 +8136,17 @@ function saveEditCategories() {
   saveIdeas && saveIdeas();
   saveDates && saveDates();
   _rebuildAllCatDropdowns();
+  // Select the last added/edited category in the idea popup dropdown
+  if (window._ecLastSavedId) {
+    const selOut = document.getElementById('idea-cat-select');
+    const selIn  = document.getElementById('idea-cat-select-in');
+    [selOut, selIn].forEach(sel => {
+      if (sel && [...sel.options].find(o => o.value === window._ecLastSavedId)) {
+        sel.value = window._ecLastSavedId;
+      }
+    });
+    window._ecLastSavedId = null;
+  }
   closeEditCategories();
   render();
 }
@@ -8280,6 +8298,21 @@ function handleImportFile(e) {
           if (match) { _mergeFields(match, imp); } else { todos.push(imp); }
         });
         localStorage.setItem('lovelife_todos', JSON.stringify(todos));
+      }
+      // Restore categories (imported order wins; local-only cats appended at end)
+      if (data.categories) {
+        const _mergeCats = (existing, imported) => {
+          if (!Array.isArray(imported)) return existing;
+          // Build map of local-only cats (not in imported)
+          const importedIds = new Set(imported.map(c => c.id));
+          const localOnly = existing.filter(c => !importedIds.has(c.id));
+          // Use imported order, merge in any local-only cats at end
+          return [...imported, ...localOnly];
+        };
+        OUT_CATS = _mergeCats(OUT_CATS, data.categories.out);
+        IN_CATS  = _mergeCats(IN_CATS,  data.categories.in);
+        saveCats();
+        _rebuildAllCatDropdowns();
       }
       // Restore settings
       const s = data.settings || {};
