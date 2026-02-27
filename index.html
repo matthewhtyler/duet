@@ -113,6 +113,12 @@
     padding: 0 20px 12px;
   }
   #app.ideas-nav { padding-top: 107px; }
+  #top-nav-todo-row {
+    display: none;
+    padding: 0 20px 10px;
+    justify-content: center;
+  }
+  #app.todo-nav { padding-top: 107px; }
   #nav-logo { display: flex; align-items: center; gap: 8px; background: none; border: none; outline: none; cursor: pointer; }
   #nav-logo span { font-size: 17px; font-weight: 600; letter-spacing: 0.02em; color: var(--text-primary); }
   body.dark-mode #logo-circle-dark { stroke: #845764; }
@@ -591,6 +597,7 @@
     </div>
   </div><!-- /top-nav-main-row -->
   <div id="top-nav-ideas-row"></div>
+  <div id="top-nav-todo-row"></div>
   </div>
   </div>
 
@@ -892,12 +899,7 @@
         <input class="field-input" id="date-neighborhood" type="text" placeholder="Neighborhood (e.g. Williamsburg)" style="flex:1;margin-bottom:0">
       </div>
       <div style="display:flex;align-items:center;gap:10px;margin-top:12px;margin-bottom:12px">
-        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" style="flex-shrink:0">
-          <line x1="4" y1="5" x2="20" y2="5" stroke="#9a8a7a" stroke-width="2" stroke-linecap="round"/>
-          <line x1="4" y1="10" x2="17" y2="10" stroke="#9a8a7a" stroke-width="2" stroke-linecap="round"/>
-          <line x1="4" y1="15" x2="20" y2="15" stroke="#9a8a7a" stroke-width="2" stroke-linecap="round"/>
-          <line x1="4" y1="20" x2="13" y2="20" stroke="#9a8a7a" stroke-width="2" stroke-linecap="round"/>
-        </svg>
+<svg viewBox="0 0 24 24" width="18" height="18" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><line x1="17" y1="10" x2="3" y2="10"/><line x1="21" y1="6" x2="3" y2="6"/><line x1="21" y1="14" x2="3" y2="14"/><line x1="17" y1="18" x2="3" y2="18"/></svg>
         <input class="field-input" id="date-note" type="text" placeholder="Note…" style="flex:1;margin-bottom:0">
       </div>
       <!-- Images -->
@@ -1150,12 +1152,7 @@
 
         <!-- Note -->
         <div style="display:flex;align-items:center;gap:10px;margin-top:12px;margin-bottom:12px">
-          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" style="flex-shrink:0">
-            <line x1="4" y1="5" x2="20" y2="5" stroke="#9a8a7a" stroke-width="2" stroke-linecap="round"/>
-            <line x1="4" y1="10" x2="17" y2="10" stroke="#9a8a7a" stroke-width="2" stroke-linecap="round"/>
-            <line x1="4" y1="15" x2="20" y2="15" stroke="#9a8a7a" stroke-width="2" stroke-linecap="round"/>
-            <line x1="4" y1="20" x2="13" y2="20" stroke="#9a8a7a" stroke-width="2" stroke-linecap="round"/>
-          </svg>
+          <svg viewBox="0 0 24 24" width="18" height="18" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><line x1="17" y1="10" x2="3" y2="10"/><line x1="21" y1="6" x2="3" y2="6"/><line x1="21" y1="14" x2="3" y2="14"/><line x1="17" y1="18" x2="3" y2="18"/></svg>
           <input class="field-input" id="ed-note" type="text" placeholder="Note…" style="flex:1;margin-bottom:0">
         </div>
 
@@ -2110,6 +2107,13 @@ function render() {
   }
 }
 
+function setTodoGroupBy(mode) {
+  _todoGroupBy = mode;
+  renderNav();
+  const main = document.getElementById('main-content');
+  if (main && currentView === 'todo') main.innerHTML = renderTodo();
+}
+
 function renderNav() {
   const logo = document.getElementById('nav-logo');
   const back = document.getElementById('nav-back');
@@ -2128,6 +2132,26 @@ function renderNav() {
     }
   }
 
+  // Show/hide todo nav row
+  const _todoRow2 = document.getElementById('top-nav-todo-row');
+  const _appEl2 = document.getElementById('app');
+  if (_todoRow2) {
+    if (currentView === 'todo') {
+      const _priActive = _todoGroupBy === 'priority';
+      const _isDark = document.body.classList.contains('dark-mode');
+      const _activeBg = _isDark ? '#9a8a7a' : '#fff';
+      const _activeColor = _isDark ? '#f0ede9' : '#2a1f1f';
+      const _bs = (on) => `padding:4px 14px;border:none;border-radius:18px;font-family:sans-serif;font-size:12px;font-weight:600;cursor:pointer;background:${on?_activeBg:'transparent'};color:${on?_activeColor:'#9a8a7a'};${on?'box-shadow:0 1px 3px rgba(0,0,0,0.10)':''}`;
+      _todoRow2.innerHTML = `<div style="display:flex;background:var(--toggle-bg);border-radius:20px;padding:2px;gap:1px"><button onclick="setTodoGroupBy('priority')" style="${_bs(_priActive)}">Priority</button><button onclick="setTodoGroupBy('idea')" style="${_bs(!_priActive)}">Group</button></div>`;
+      _todoRow2.style.display = 'flex';
+      if (_appEl2) _appEl2.classList.add('todo-nav');
+    } else {
+      _todoRow2.style.display = 'none';
+      _todoRow2.innerHTML = '';
+      if (_appEl2) _appEl2.classList.remove('todo-nav');
+    }
+  }
+
   const tabs = ['home','ideas','calendar','todo'];
   tabs.forEach(t => {
     const icon = document.getElementById('icon-'+t);
@@ -2138,6 +2162,7 @@ function renderNav() {
 
 // ── Double-tap for todo tab → toggle hide locked ────────────────────────────
 let _todoTabLastTap = 0;
+let _todoGroupBy = 'priority'; // 'priority' | 'idea'
 function handleTodoTabTap() {
   const now = Date.now();
   const delta = now - _todoTabLastTap;
@@ -3059,7 +3084,7 @@ function _soonestUpcomingDate(ideaName, ideaId) {
     .sort((a,b) => new Date((a.year||2026),MONTH_NUMS[a.month]||0,a.day) - new Date((b.year||2026),MONTH_NUMS[b.month]||0,b.day))[0] || null;
 }
 
-function _todoRow(t) {
+function _todoRow(t, noDivider) {
   const PRIORITY_LABELS = { high: 'Next', normal: 'Soon', low: 'Eventually' };
   const PRIORITY_COLORS = { high: '#9a8a7a', normal: '#9a8a7a', low: '#9a8a7a' };
   const label = PRIORITY_LABELS[t.priority] || 'Soon';
@@ -3156,7 +3181,7 @@ function _todoRow(t) {
     subHtml = '';
   }
 
-  return `<div id="todo-row-${t.id}" onclick="openTodoEdit('${t.id}')" style="display:flex;align-items:flex-start;justify-content:space-between;padding:14px 0;border-bottom:1px solid var(--todo-divider);cursor:pointer;gap:12px;opacity:${t.done?'0.45':'1'}">
+  return `<div id="todo-row-${t.id}" onclick="openTodoEdit('${t.id}')" style="display:flex;align-items:flex-start;justify-content:space-between;padding:14px 0;${noDivider ? 'border-bottom:none' : 'border-bottom:1px solid var(--todo-divider)'};cursor:pointer;gap:12px;opacity:${t.done?'0.45':'1'}">
     <div style="flex:1;min-width:0">
       <div style="line-height:1.4">${mainHtml}</div>
       ${subHtml}
@@ -3169,21 +3194,54 @@ function _todoRow(t) {
 
 function renderTodo() {
   const priorityOrder = { high: 0, normal: 1, low: 2 };
-  const sorted = [...todos].sort((a, b) => {
+  const byPriority = (a, b) => {
     if (a.done !== b.done) return a.done ? 1 : -1;
     const pa = priorityOrder[a.priority ?? 'normal'] ?? 1;
     const pb = priorityOrder[b.priority ?? 'normal'] ?? 1;
     if (pa !== pb) return pa - pb;
     return (a.createdAt || 0) - (b.createdAt || 0);
-  });
+  };
+  const filtered = [...todos].filter(t => !_isTodoHiddenPrivate(t));
 
-  function todoRow(t) { return _todoRow(t); }
+  if (_todoGroupBy === 'idea') {
+    // Group by resolved idea name; todos with no attachment go in an "Other" group at the end
+    const groups = {};
+    const UNGROUPED = ' ungrouped';
+    filtered.forEach(t => {
+      const linkedDate = _findDateByKey(t.dateKey);
+      const linkedIdea = t.ideaId ? ideas.find(i => i.id === t.ideaId) : null;
+      const resolvedIdea = linkedIdea || (linkedDate ? ideas.find(i => i.name && linkedDate.venue && i.name.toLowerCase() === linkedDate.venue.toLowerCase()) : null);
+      const key = resolvedIdea ? resolvedIdea.name : (linkedDate ? linkedDate.venue : UNGROUPED);
+      if (!groups[key]) groups[key] = [];
+      groups[key].push(t);
+    });
+    // Sort each group by priority
+    Object.values(groups).forEach(arr => arr.sort(byPriority));
+    // Build group keys: named groups alphabetically, ungrouped last
+    const groupKeys = Object.keys(groups).filter(k => k !== UNGROUPED).sort();
+    if (groups[UNGROUPED]) groupKeys.push(UNGROUPED);
 
-  const filtered = sorted.filter(t => !_isTodoHiddenPrivate(t));
-  const listHtml = filtered.length
-    ? filtered.map(todoRow).join('')
+    if (groupKeys.length === 0) {
+      return `<div style="padding:20px 20px 80px"><div style="padding:0 10px"><div style="padding:60px 20px;text-align:center;color:#b0a090;font-size:15px;font-style:italic">Nothing to do…</div></div></div>`;
+    }
+    const listHtml = groupKeys.map((key, gi) => {
+      const label = key === UNGROUPED ? 'Other' : key;
+      const rows = groups[key].map(t => _todoRow(t, true)).join('');
+      const divider = gi > 0 ? `<div style="border-top:1px solid var(--todo-divider);margin-bottom:20px"></div>` : '';
+      return divider +
+        `<div style="margin-bottom:4px">` +
+        `<div class="section-label" style="margin-bottom:8px;padding-left:0">${label}</div>` +
+        `<div>${rows}</div>` +
+        `</div>`;
+    }).join('');
+    return `<div style="padding:20px 20px 80px"><div style="padding:0 10px">${listHtml}</div></div>`;
+  }
+
+  // Default: sort by priority
+  const sorted = filtered.sort(byPriority);
+  const listHtml = sorted.length
+    ? sorted.map(t => _todoRow(t)).join('')
     : `<div style="padding:60px 20px;text-align:center;color:#b0a090;font-size:15px;font-style:italic">Nothing to do…</div>`;
-
   return `<div style="padding:20px 20px 80px"><div style="padding:0 10px">${listHtml}</div></div>`;
 }
 
