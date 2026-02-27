@@ -115,7 +115,7 @@
   #app.ideas-nav { padding-top: 107px; }
   #top-nav-todo-row {
     display: none;
-    padding: 0 20px 10px;
+    padding: 0 20px 14px;
     justify-content: center;
   }
   #app.todo-nav { padding-top: 107px; }
@@ -2141,7 +2141,7 @@ function renderNav() {
       const _isDark = document.body.classList.contains('dark-mode');
       const _activeBg = _isDark ? '#9a8a7a' : '#fff';
       const _activeColor = _isDark ? '#f0ede9' : '#2a1f1f';
-      const _bs = (on) => `padding:4px 14px;border:none;border-radius:18px;font-family:sans-serif;font-size:12px;font-weight:600;cursor:pointer;background:${on?_activeBg:'transparent'};color:${on?_activeColor:'#9a8a7a'};${on?'box-shadow:0 1px 3px rgba(0,0,0,0.10)':''}`;
+      const _bs = (on) => `padding:4px 12px;border:none;border-radius:18px;font-family:sans-serif;font-size:12px;font-weight:600;cursor:pointer;background:${on?_activeBg:'transparent'};color:${on?_activeColor:'#9a8a7a'};${on?'box-shadow:0 1px 3px rgba(0,0,0,0.10)':''}`;
       _todoRow2.innerHTML = `<div style="display:flex;background:var(--toggle-bg);border-radius:20px;padding:2px;gap:1px"><button onclick="setTodoGroupBy('priority')" style="${_bs(_priActive)}">Priority</button><button onclick="setTodoGroupBy('idea')" style="${_bs(!_priActive)}">Group</button></div>`;
       _todoRow2.style.display = 'flex';
       if (_appEl2) _appEl2.classList.add('todo-nav');
