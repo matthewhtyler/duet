@@ -532,7 +532,7 @@
         <circle id="logo-circle-light" cx="11" cy="9" r="7.5" stroke="#c07a8a" stroke-width="2.8"/>
         <circle id="logo-circle-dark" cx="18" cy="9" r="7.5" stroke="#8b3a52" stroke-width="2.8"/>
       </svg>
-      <span style="color:orange">duet</span>
+      <span style="color:green">duet</span>
     </button>
     <button id="nav-back" onclick="navigate('home')" style="display:none">
       <svg viewBox="0 0 24 24" width="20" height="20" stroke="#b0a090" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
@@ -2646,11 +2646,10 @@ function _updateImgCountBox(containerId, boxId) {
     box.innerHTML = '';
     box.textContent = 'No images';
     box.style.color = 'var(--text-placeholder)';
-    box.style.cssText = box.style.cssText.replace(/display:[^;]+;?/, '');
-    box.style.removeProperty('display');
-    box.style.removeProperty('align-items');
-    box.style.removeProperty('gap');
-    box.style.removeProperty('padding');
+    box.style.display = '';
+    box.style.alignItems = '';
+    box.style.gap = '';
+    box.style.padding = '9px 14px';
   } else {
     // Build mini thumbnails + count label
     const countLabel = n === 1 ? '1 image' : n + ' images';
@@ -2681,18 +2680,37 @@ function collectNewIdeaImageUrls() { return _collectImgUrls('idea-image-fields')
 function collectPfImageUrls()      { return _collectImgUrls('pf-image-fields'); }
 function collectEdImageUrls()      { return _collectImgUrls('ed-image-fields'); }
 function collectDateImageUrls()    { return _collectImgUrls('date-image-fields'); }
+// After populating a container, images load async. Re-run _updateImgCountBox
+// each time a thumbImg settles (load or error) so the count box stays accurate.
+function _scheduleImgCountBoxUpdate(containerId, boxId) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  container.querySelectorAll('.img-field-thumb img').forEach(img => {
+    if (img.complete) {
+      // Already resolved (cached) — update immediately
+      _updateImgCountBox(containerId, boxId);
+    } else {
+      img.addEventListener('load',  () => _updateImgCountBox(containerId, boxId), { once: true });
+      img.addEventListener('error', () => _updateImgCountBox(containerId, boxId), { once: true });
+    }
+  });
+}
+
 function populatePfImageFields(item) {
   _populateImgContainer('pf-image-fields', getImageUrls(item));
   _wireImgIconBtn('pf-img-icon-btn', () => (document.getElementById('pf-name')||{value:''}).value.trim());
   _updateImgCountBox('pf-image-fields', 'pf-img-count-box');
+  _scheduleImgCountBoxUpdate('pf-image-fields', 'pf-img-count-box');
 }
 function populateEdImageFields(urls) {
   _populateImgContainer('ed-image-fields', urls);
   _updateImgCountBox('ed-image-fields', 'ed-img-count-box');
+  _scheduleImgCountBoxUpdate('ed-image-fields', 'ed-img-count-box');
 }
 function populateDateImageFields(urls) {
   _populateImgContainer('date-image-fields', urls);
   _updateImgCountBox('date-image-fields', 'date-img-count-box');
+  _scheduleImgCountBoxUpdate('date-image-fields', 'date-img-count-box');
 }
 function addImageField(btn)   { _addImgFieldTo('idea-image-fields'); }
 function addPfImageField(btn) { _addImgFieldTo('pf-image-fields'); }
