@@ -3155,7 +3155,7 @@ let todos = JSON.parse(localStorage.getItem('lovelife_todos') || '[]');
 let _reservedDateKeys = new Set(JSON.parse(localStorage.getItem('duet_reserved') || '[]'));
 function _saveReserved() { localStorage.setItem('duet_reserved', JSON.stringify([..._reservedDateKeys])); }
 function _dateKey(u) { return `${u.month}-${u.day}-${u.year||2026}`; }
-function saveTodos() { localStorage.setItem('lovelife_todos', JSON.stringify(todos)); }
+function saveTodos() { localStorage.setItem('lovelife_todos', JSON.stringify(todos.filter(t => !t.done))); }
 
 // Track auto-delete timers keyed by todo id
 const _todoDeleteTimers = {};
@@ -7781,8 +7781,9 @@ async function exportAllData() {
     upcomingDates: UPCOMING_DATES,
     staticPastDates: STATIC_PAST_DATES,
     memoryNotes: (() => { try { return JSON.parse(localStorage.getItem('ll_memories') || '{}'); } catch(e) { return {}; } })(),
-    todos: todos,
+    todos: todos.filter(t => !t.done),
     categories: { out: OUT_CATS, in: IN_CATS },
+    reservedDateKeys: [..._reservedDateKeys],
     settings: {
       homeAddress: homeAddress,
       partnerAddress: partnerAddress,
@@ -8387,6 +8388,14 @@ function handleImportFile(e) {
           if (match) { _mergeFields(match, imp); } else { UPCOMING_DATES.push(imp); }
         });
         saveDates(UPCOMING_DATES);
+      }
+      // Merge reserved date keys: only promote to "done" — never demote
+      // If the import says a date is reserved and local doesn't, add it. Never remove.
+      if (Array.isArray(data.reservedDateKeys)) {
+        data.reservedDateKeys.forEach(dk => {
+          if (!_reservedDateKeys.has(dk)) _reservedDateKeys.add(dk);
+        });
+        _saveReserved();
       }
       // Merge todos: patch existing matches, add new ones
       if (Array.isArray(data.todos)) {
