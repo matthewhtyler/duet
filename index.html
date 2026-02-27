@@ -678,7 +678,7 @@
       <!-- Name -->
       <div class="idea-row">
         <button id="idea-heart-btn" onclick="toggleIdeaHeart()" style="background:none;border:none;cursor:pointer;padding:0;display:flex;flex-shrink:0"></button>
-        <input class="field-input" id="idea-name" type="text" placeholder="Place / activity" oninput="_applyTitleCase(this)" style="flex:1;margin-bottom:0">
+        <input class="field-input" id="idea-name" type="text" placeholder="Place / activity" oninput="ideaType==='in'?_applyFirstCap(this):_applyTitleCase(this)" style="flex:1;margin-bottom:0">
         <button id="idea-lock-btn" onclick="toggleIdeaPrivate()" type="button" style="background:none;border:none;cursor:pointer;padding:2px;display:flex;flex-shrink:0;color:#9a8a7a" title="Mark as private"></button>
       </div>
 
@@ -884,16 +884,23 @@
       <!-- In-location (only for In activities) -->
       <div id="date-in-location-wrap" style="display:none;margin-top:18px">
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
-          <svg viewBox="0 0 24 24" width="18" height="18" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          <svg id="date-in-location-pin" viewBox="0 0 24 24" width="18" height="18" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          <div id="date-in-location-pin-spacer" style="display:none;width:18px;flex-shrink:0"></div>
           <select class="field-input" id="date-in-location-select" onchange="onDateInLocationChange()" style="margin-bottom:0;flex:1">
             <option value="my_place">My place</option>
             <option id="date-in-partner-option" value="partner_place">Her place</option>
             <option value="other">Other</option>
           </select>
         </div>
-        <div id="date-in-location-other-wrap" style="display:none;align-items:center;gap:10px;margin-bottom:12px">
-          <svg viewBox="0 0 24 24" width="18" height="18" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-          <input class="field-input" id="date-in-location-other" type="text" placeholder="Address or place name" style="flex:1;margin-bottom:0">
+        <div id="date-in-location-other-wrap" style="display:none;flex-direction:column;gap:10px;margin-bottom:12px">
+          <div style="display:flex;align-items:center;gap:10px">
+            <svg viewBox="0 0 24 24" width="18" height="18" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/></svg>
+            <input class="field-input" id="date-in-location-other-name" type="text" placeholder="Place name" style="flex:1;margin-bottom:0">
+          </div>
+          <div style="display:flex;align-items:center;gap:10px">
+            <svg viewBox="0 0 24 24" width="18" height="18" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            <input class="field-input" id="date-in-location-other" type="text" placeholder="Address" style="flex:1;margin-bottom:0">
+          </div>
         </div>
       </div>
       <!-- Location: text input for Out/Custom -->
@@ -1026,12 +1033,23 @@
             <svg viewBox="0 0 24 24" width="18" height="18" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
             <span id="di-time" style="font-size:14px;font-family:sans-serif;color:#9a8a7a"></span>
           </div>
+          <!-- In-other location rows (place name + address, shown when inLocation === 'other') -->
+          <div id="di-in-other-name-row" style="display:none;align-items:center;gap:10px;margin-bottom:14px">
+            <svg style="flex-shrink:0" viewBox="0 0 24 24" width="18" height="18" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/></svg>
+            <span id="di-in-other-name" style="font-size:14px;font-family:sans-serif;color:#9a8a7a"></span>
+          </div>
+          <div id="di-in-other-addr-row" style="display:none;align-items:center;gap:10px;margin-bottom:14px">
+            <span id="di-in-other-addr-pin-link" style="display:flex;flex-shrink:0;cursor:pointer">
+              <svg viewBox="0 0 24 24" width="18" height="18" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            </span>
+            <span id="di-in-other-addr" style="font-size:14px;font-family:sans-serif;color:#9a8a7a;cursor:pointer"></span>
+          </div>
           <!-- Address row -->
           <div id="di-address-row" style="display:none;align-items:center;gap:10px;margin-bottom:14px">
-            <a id="di-address-pin-link" href="#" target="_blank" rel="noopener" style="display:flex;flex-shrink:0">
+            <span id="di-address-pin-link" style="display:flex;flex-shrink:0;cursor:pointer">
               <svg viewBox="0 0 24 24" width="18" height="18" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-            </a>
-            <a id="di-address" href="#" target="_blank" rel="noopener" style="font-size:14px;font-family:sans-serif;color:#9a8a7a;text-decoration:none"></a>
+            </span>
+            <span id="di-address" style="font-size:14px;font-family:sans-serif;color:#9a8a7a;text-decoration:none;cursor:pointer"></span>
           </div>
           <!-- Subway row -->
           <!-- Commute row (subway + walk/drive on same line, centered, clickable) -->
@@ -1131,18 +1149,25 @@
 
         <!-- In-location (only for In activities) -->
         <div id="ed-in-location-wrap" style="display:none;margin-top:18px">
-          <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
-            <svg viewBox="0 0 24 24" width="18" height="18" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-            <select class="field-input" id="ed-in-location-select" onchange="onEdInLocationChange()" style="flex:1;margin-bottom:0">
-              <option value="my_place">My place</option>
-              <option id="ed-in-partner-option" value="partner_place">Her place</option>
-              <option value="other">Other</option>
-            </select>
-          </div>
-          <div id="ed-in-location-other-wrap" style="display:none;align-items:center;gap:10px;margin-bottom:12px">
-            <svg viewBox="0 0 24 24" width="18" height="18" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-            <input class="field-input" id="ed-in-location-other" type="text" placeholder="Address or place name" style="flex:1;margin-bottom:0">
-          </div>
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+              <svg id="ed-in-location-pin" viewBox="0 0 24 24" width="18" height="18" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              <div id="ed-in-location-pin-spacer" style="display:none;width:18px;flex-shrink:0"></div>
+              <select class="field-input" id="ed-in-location-select" onchange="onEdInLocationChange()" style="flex:1;margin-bottom:0">
+                <option value="my_place">My place</option>
+                <option id="ed-in-partner-option" value="partner_place">Her place</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+            <div id="ed-in-location-other-wrap" style="display:none;flex-direction:column;gap:10px;margin-bottom:12px">
+              <div style="display:flex;align-items:center;gap:10px">
+                <svg viewBox="0 0 24 24" width="18" height="18" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/></svg>
+                <input class="field-input" id="ed-in-location-other-name" type="text" placeholder="Place name" style="flex:1;margin-bottom:0">
+              </div>
+              <div style="display:flex;align-items:center;gap:10px">
+                <svg viewBox="0 0 24 24" width="18" height="18" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                <input class="field-input" id="ed-in-location-other" type="text" placeholder="Address" style="flex:1;margin-bottom:0">
+              </div>
+            </div>
         </div>
 
         <!-- Location (only for Custom activity) -->
@@ -1395,7 +1420,7 @@
           <!-- Name -->
           <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
             <button id="places-heart-btn" onclick="togglePlaceTopChoice()" style="background:none;border:none;cursor:pointer;padding:0;display:flex;flex-shrink:0;width:18px;align-items:center;justify-content:center"></button>
-            <input class="field-input" id="pf-name" type="text" placeholder="Place / activity" oninput="markPlaceChanged();_applyTitleCase(this)" style="flex:1;margin-bottom:0">
+            <input class="field-input" id="pf-name" type="text" placeholder="Place / activity" oninput="markPlaceChanged();(document.getElementById('pf-type')&&document.getElementById('pf-type').value==='in')?_applyFirstCap(this):_applyTitleCase(this)" style="flex:1;margin-bottom:0">
             <button id="pf-lock-btn" onclick="togglePfPrivate()" type="button" style="background:none;border:none;cursor:pointer;padding:2px;display:flex;flex-shrink:0;color:#9a8a7a" title="Mark as private"></button>
           </div>
           <!-- Type -->
@@ -1751,7 +1776,7 @@ function _applyFirstCap(inp) {
 // every renderNav() so it survives re-renders. When null/false, the override is
 // removed and the element falls back to its normal CSS (color:var(--text-primary)).
 // ─────────────────────────────────────────────────────────────────────────────
-const testcolor = 'gray';
+const testcolor = null;
 function _applyTestcolor() {
   const el = document.getElementById('duet-logo-text');
   if (!el) return;
@@ -1895,42 +1920,17 @@ function buildFutureDates() {
         time: u.time,
         inLocation: u.inLocation,
         inLocationOther: u.inLocationOther,
+        inLocationOtherName: u.inLocationOtherName,
         _ref: u
       };
     });
 }
 let FUTURE_DATES = [];
 
-// ── Neighborhood helpers ──────────────────────────────
-// Parse approximate neighborhood from an address string
-function _neighborhoodFromAddress(addr) {
-  if (!addr) return '';
-  // Split by comma, strip empties
-  const parts = addr.split(',').map(s => s.trim()).filter(Boolean);
-  // Work backwards, skipping state abbreviations, zip codes, country
-  for (let i = parts.length - 1; i >= 0; i--) {
-    const p = parts[i];
-    // Skip zip codes (standalone or combined "NY 11201")
-    if (/^\d{5}(-\d{4})?$/.test(p)) continue;
-    // Skip "State ZIP" combos like "NY 11201"
-    if (/^[A-Z]{2}\s+\d{4,5}$/.test(p)) continue;
-    // Skip standalone state abbreviation
-    if (/^[A-Z]{2}$/.test(p)) continue;
-    // Skip country
-    if (/^(USA|US|United States)$/i.test(p)) continue;
-    // Manhattan normalisations
-    const lower = p.toLowerCase().replace(/\s+/g,' ');
-    if (['new york', 'new york city', 'nyc', 'manhattan'].includes(lower)) return 'Manhattan';
-    return p;
-  }
-  return '';
-}
-
-// Get display neighborhood for an idea: explicit field wins, else parse address
+// Get display neighborhood for an idea: explicit field only
 function _ideaNeighborhood(idea) {
   if (!idea) return '';
-  if (idea.neighborhood && idea.neighborhood.trim()) return idea.neighborhood.trim();
-  return _neighborhoodFromAddress(idea.address || '');
+  return (idea.neighborhood && idea.neighborhood.trim()) ? idea.neighborhood.trim() : '';
 }
 
 const DEFAULT_IDEAS = [];
@@ -2016,9 +2016,13 @@ function partnerPlaceLabel() {
 // Returns the location string to show on date cards for In activities
 function _dateLocationLabel(d) {
   if (!d.inLocation) return null;
+  // Only show in-location if the linked idea is still an In idea
+  const _dIdea = d.ideaId ? ideas.find(i => i.id === d.ideaId) : ideas.find(i => i.name && d.venue && i.name.toLowerCase() === d.venue.toLowerCase());
+  // If no idea found, or idea is not In type, don't show stale label
+  if (!_dIdea || _dIdea.type !== 'in') return null;
   if (d.inLocation === 'my_place') return 'My place';
   if (d.inLocation === 'partner_place') return partnerPlaceLabel();
-  if (d.inLocation === 'other') return d.inLocationOther || 'Other';
+  if (d.inLocation === 'other') return d.inLocationOtherName || d.inLocationOther || 'Other';
   return null;
 }
 
@@ -3505,7 +3509,7 @@ function openUpcomingDatesPicker(context) {
             ${activityIcon(u.activity, 14, ROSE)}
             <span class="upcoming-venue">${u.venue}</span>
           </div>
-          <span class="upcoming-sub">${u.time ? u.time + (_dateCardSubNote(u) ? ' · ' + _dateCardSubNote(u) : '') : _dateCardSubNote(u) || _dateLocationLabel(u) || u.neighborhood || ''}</span>
+          <span class="upcoming-sub">${u.time ? u.time + (_dateCardSubNote(u) ? ' · ' + _dateCardSubNote(u) : '') : _dateCardSubNote(u) || _dateLocationLabel(u) || ''}</span>
         </div>
       </div>`;
     }).join('');
@@ -3913,7 +3917,6 @@ function _dateCardSubNote(u) {
   if (note) return note;
   const idea = u.ideaId ? ideas.find(i => i.id === u.ideaId) : ideas.find(i => i.name && u.venue && i.name.toLowerCase() === u.venue.toLowerCase());
   if (idea && idea.shortdesc && idea.shortdesc.trim()) return idea.shortdesc.trim();
-  if (idea && idea.neighborhood && idea.neighborhood.trim()) return idea.neighborhood.trim();
   return '';
 }
 
@@ -3923,7 +3926,7 @@ function _buildDateCardHtml(fd, idx) {
   const cs = isFirstCard ? '0 2px 12px rgba(139,58,82,0.3)' : '0 2px 12px rgba(192,122,138,0.3)';
   const [dm, dd] = fd.dayShort.split(' ');
   const commute = _nextDateCommuteHtml(fd, cc);
-  const locLabel = _dateLocationLabel(fd) || fd.neighborhood;
+  const locLabel = _dateLocationLabel(fd);
   const timePart = fd.time ? _shortTime(fd.time) : '';
   // Note/desc/neighborhood priority chain
   const _u = fd._ref || fd;
@@ -3976,7 +3979,7 @@ function _buildUpcomingCardHtml(u, extraStyle, directOpen) {
           ${activityIcon(u.activity,14,ROSE)}
           <span class="upcoming-venue">${u.venue}</span>
         </div>
-        <span class="upcoming-sub">${u.time ? u.time + (_dateCardSubNote(u) ? ' · ' + _dateCardSubNote(u) : '') : _dateCardSubNote(u) || _dateLocationLabel(u) || u.neighborhood || ''}</span>
+        <span class="upcoming-sub">${u.time ? u.time + (_dateCardSubNote(u) ? ' · ' + _dateCardSubNote(u) : '') : _dateCardSubNote(u) || _dateLocationLabel(u) || ''}</span>
       </div>
       ${_calResBtn ? `<div id="cal-res-${_calDk}" style="display:flex;align-items:center;padding-left:8px">${_calResBtn}</div>` : ''}
     </div>`;
@@ -4401,7 +4404,7 @@ function renderPastDates() {
   const rows = memories.map(d => {
     const sub = d.note
       ? d.note
-      : (d.time && (_dateLocationLabel(d) || d.neighborhood) ? d.time + ' · ' + (_dateLocationLabel(d) || d.neighborhood) : d.time || _dateLocationLabel(d) || d.neighborhood || d.label || '');
+      : (d.time && _dateLocationLabel(d) ? d.time + ' · ' + _dateLocationLabel(d) : d.time || _dateLocationLabel(d) || d.label || '');
     const safeId = String(d.id).replace(/'/g,"\\'");
     const imgUrls = _getMemoryImageUrls(d);
     const hasImg = imgUrls.length > 0;
@@ -4534,7 +4537,7 @@ function renderCalendar() {
       const timePart = u.time ? _shortTime(u.time) : '';
       const _subNoteText = _dateCardSubNote(u);
       const subNote = _subNoteText ? (timePart ? ' · ' : '') + _subNoteText : '';
-      const locLabel = _dateLocationLabel(u) || u.neighborhood || '';
+      const locLabel = _dateLocationLabel(u) || '';
       const subLine = timePart + (subNote || (locLabel ? (timePart ? ' · ' : '') + locLabel : ''));
       return `<div class="date-card-slide cal-day-card-slide" onclick="openDateInfo(UPCOMING_DATES.find(d=>String(d.id)==='${u.id}'))">
         <div style="background:${cc};padding:12px 14px;min-height:70px;box-sizing:border-box;display:flex;align-items:center">
@@ -4632,7 +4635,7 @@ function renderCalendar() {
       const rows = past3.map(d => {
         const sub = d.note
           ? d.note
-          : (d.time && (_dateLocationLabel(d) || d.neighborhood) ? d.time + ' · ' + (_dateLocationLabel(d) || d.neighborhood) : d.time || _dateLocationLabel(d) || d.neighborhood || d.label || '');
+          : (d.time && _dateLocationLabel(d) ? d.time + ' · ' + _dateLocationLabel(d) : d.time || _dateLocationLabel(d) || d.label || '');
         return `<div class="upcoming-item" onclick="openMemoryInfo('${String(d.id).replace(/'/g,"\\'")}')">
           <div class="upcoming-date-badge">
             <span class="upcoming-month" style="color:${BROWN}">${d.month}</span>
@@ -6286,34 +6289,57 @@ function _updateInLocationVisibility(prefix, show) {
     // Reset to default if switching to In
     const sel = document.getElementById(prefix + '-in-location-select');
     if (sel && sel.value === '') sel.value = 'my_place';
-    // Sync Other address field visibility
+    // Sync Other fields visibility and pin icon
+    const isOther = sel && sel.value === 'other';
     const otherWrap = document.getElementById(prefix + '-in-location-other-wrap');
-    if (otherWrap) otherWrap.style.display = (sel && sel.value === 'other') ? 'block' : 'none';
+    if (otherWrap) otherWrap.style.display = isOther ? 'flex' : 'none';
+    const pin = document.getElementById(prefix + '-in-location-pin');
+    const spacer = document.getElementById(prefix + '-in-location-pin-spacer');
+    if (pin) pin.style.display = isOther ? 'none' : '';
+    if (spacer) spacer.style.display = isOther ? '' : 'none';
   }
 }
 
 function onDateInLocationChange() {
   const sel = document.getElementById('date-in-location-select');
+  const isOther = sel && sel.value === 'other';
   const otherWrap = document.getElementById('date-in-location-other-wrap');
-  if (otherWrap) otherWrap.style.display = sel && sel.value === 'other' ? 'flex' : 'none';
+  if (otherWrap) otherWrap.style.display = isOther ? 'flex' : 'none';
+  const pin = document.getElementById('date-in-location-pin');
+  const spacer = document.getElementById('date-in-location-pin-spacer');
+  if (pin) pin.style.display = isOther ? 'none' : '';
+  if (spacer) spacer.style.display = isOther ? '' : 'none';
 }
 
 function onEdInLocationChange() {
   const sel = document.getElementById('ed-in-location-select');
+  const isOther = sel && sel.value === 'other';
   const otherWrap = document.getElementById('ed-in-location-other-wrap');
-  if (otherWrap) otherWrap.style.display = sel && sel.value === 'other' ? 'flex' : 'none';
+  if (otherWrap) otherWrap.style.display = isOther ? 'flex' : 'none';
+  const pin = document.getElementById('ed-in-location-pin');
+  const spacer = document.getElementById('ed-in-location-pin-spacer');
+  if (pin) pin.style.display = isOther ? 'none' : '';
+  if (spacer) spacer.style.display = isOther ? '' : 'none';
 }
 
 // Read ed in-location fields and apply to date object u
 function _applyEdInLocation(u) {
   const wrap = document.getElementById('ed-in-location-wrap');
-  if (!wrap || wrap.style.display === 'none') return;
+  if (!wrap || wrap.style.display === 'none') {
+    // New idea is not an In idea — clear any stale inLocation from a previous In idea
+    delete u.inLocation;
+    delete u.inLocationOther;
+    delete u.inLocationOtherName;
+    return;
+  }
   const sel = document.getElementById('ed-in-location-select');
   if (!sel) return;
   u.inLocation = sel.value;
   if (sel.value === 'other') {
+    u.inLocationOtherName = (document.getElementById('ed-in-location-other-name') || {}).value?.trim() || '';
     u.inLocationOther = (document.getElementById('ed-in-location-other') || {}).value?.trim() || '';
   } else {
+    u.inLocationOtherName = '';
     u.inLocationOther = '';
   }
 }
@@ -6372,7 +6398,7 @@ function saveNewDate() {
     const locSel = document.getElementById('date-location-select');
     const locVal = locText || (locSel && locSel.style.display === 'block' ? locSel.value : '') || '';
     // Use explicit neighborhood if entered, else parse from address
-    neighborhood = neighText || _neighborhoodFromAddress(locVal) || locVal;
+    neighborhood = neighText || locVal;
   } else {
     venue = selectedActivity.name || '';
     activity = selectedActivity.category || 'Other';
@@ -6380,13 +6406,14 @@ function saveNewDate() {
   }
 
   // In-activity location
-  let inLocation = '', inLocationOther = '';
+  let inLocation = '', inLocationOther = '', inLocationOtherName = '';
   if (selectedActivity && !selectedActivity.custom) {
     const idea = ideas.find(i => i.id === selectedActivity.id);
     if (idea && idea.type === 'in') {
       const sel = document.getElementById('date-in-location-select');
       inLocation = sel ? sel.value : 'my_place';
       if (inLocation === 'other') {
+        inLocationOtherName = (document.getElementById('date-in-location-other-name') || {}).value?.trim() || '';
         inLocationOther = (document.getElementById('date-in-location-other') || {}).value?.trim() || '';
       }
     }
@@ -6419,6 +6446,7 @@ function saveNewDate() {
     imgSearchTerm: window._imgsPopupPendingSearchTerm || undefined,
     inLocation: inLocation || undefined,
     inLocationOther: inLocationOther || undefined,
+    inLocationOtherName: inLocationOtherName || undefined,
     isFeb,
     isPrivate: _dateIsPrivate,  // null = inherit from idea
     id: 'd_' + Date.now()
@@ -6547,8 +6575,8 @@ function openDetail(id, navContext) {
     };
   } else {
     titleEl.href = mapsSearchUrl;
-    titleEl.style.cursor = '';
-    titleEl.onclick = null;
+    titleEl.style.cursor = 'pointer';
+    titleEl.onclick = (e) => { e.preventDefault(); window.open(mapsSearchUrl, '_blank'); };
   }
 
   // Heart — gray outline when not saved, rose when saved (both In and Out)
@@ -6580,10 +6608,9 @@ function openDetail(id, navContext) {
   // Seed 3-dot menu fav icon state
   updateDetailMenuFav();
 
-  // Directions URL from home address
-  const origin = encodeURIComponent(homeAddress || '');
+  // Maps URL — just open the destination address
   const dest = encodeURIComponent(item.address || item.name);
-  const directionsUrl = `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${dest}&travelmode=transit`;
+  const directionsUrl = `https://www.google.com/maps/search/?api=1&query=${dest}`;
 
   const plainRowTop = (iconHtml, content) =>
     `<div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:14px">
@@ -6609,8 +6636,8 @@ function openDetail(id, navContext) {
   // Address — pin + text both link to directions from home
   if (isOut && item.address) {
     body += `<div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;margin-top:20px">
-      <a href="${directionsUrl}" target="_blank" rel="noopener" style="display:flex;flex-shrink:0">${pinIcon}</a>
-      <a href="${directionsUrl}" target="_blank" rel="noopener" style="font-size:14px;font-family:sans-serif;color:#9a8a7a;text-decoration:none">${item.address}</a>
+      <span onclick="_openExternal('${directionsUrl.replace(/'/g,"\\'")}')" style="display:flex;flex-shrink:0;cursor:pointer">${pinIcon}</span>
+      <span onclick="_openExternal('${directionsUrl.replace(/'/g,"\\'")}')" style="font-size:14px;font-family:sans-serif;color:#9a8a7a;cursor:pointer">${item.address}</span>
     </div>`;
   }
 
@@ -7053,17 +7080,42 @@ function openDateInfo(u, memoryMode) {
     timeRow.style.display = 'flex';
   } else { timeRow.style.display = 'none'; }
 
-  // Address — links to directions from home
-  const addrVal = u.address || u.neighborhood || '';
+  // In-other location (place name + address when Other is selected on an In idea)
+  const _inOtherIdea = ideas.find(i => i.name && u.venue && i.name.toLowerCase() === u.venue.toLowerCase());
+  const _isOtherLoc = u.inLocation === 'other' && _inOtherIdea && _inOtherIdea.type === 'in';
+  const diInOtherNameRow = document.getElementById('di-in-other-name-row');
+  const diInOtherAddrRow = document.getElementById('di-in-other-addr-row');
+  if (_isOtherLoc && u.inLocationOtherName) {
+    document.getElementById('di-in-other-name').textContent = u.inLocationOtherName;
+    diInOtherNameRow.style.display = 'flex';
+  } else {
+    if (diInOtherNameRow) diInOtherNameRow.style.display = 'none';
+  }
+  if (_isOtherLoc && u.inLocationOther) {
+    const _otherDest = encodeURIComponent(u.inLocationOther);
+    const _otherDirUrl = `https://www.google.com/maps/search/?api=1&query=${_otherDest}`;
+    const _otherClick = () => _openExternal(_otherDirUrl);
+    const _otherPin = document.getElementById('di-in-other-addr-pin-link');
+    const _otherAddrSpan = document.getElementById('di-in-other-addr');
+    if (_otherPin) _otherPin.onclick = _otherClick;
+    if (_otherAddrSpan) { _otherAddrSpan.textContent = u.inLocationOther; _otherAddrSpan.onclick = _otherClick; }
+    diInOtherAddrRow.style.display = 'flex';
+  } else {
+    if (diInOtherAddrRow) diInOtherAddrRow.style.display = 'none';
+  }
+
+  // Address — opens in Google Maps
+  const _addrIdea = ideas.find(i => i.name && u.venue && i.name.toLowerCase() === u.venue.toLowerCase());
+  const addrVal = (_addrIdea && _addrIdea.address && _addrIdea.address.trim()) ? _addrIdea.address.trim() : (u.address || '');
   const addrRow = document.getElementById('di-address-row');
   if (addrVal) {
-    const origin = encodeURIComponent(homeAddress || '');
     const dest = encodeURIComponent(addrVal);
-    const dirUrl = `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${dest}&travelmode=transit`;
-    document.getElementById('di-address-pin-link').href = dirUrl;
+    const dirUrl = `https://www.google.com/maps/search/?api=1&query=${dest}`;
+    const _addrClick = () => _openExternal(dirUrl);
+    const addrPin = document.getElementById('di-address-pin-link');
     const addrLink = document.getElementById('di-address');
-    addrLink.textContent = addrVal;
-    addrLink.href = dirUrl;
+    if (addrPin) addrPin.onclick = _addrClick;
+    if (addrLink) { addrLink.textContent = addrVal; addrLink.onclick = _addrClick; }
     addrRow.style.display = 'flex';
   } else { addrRow.style.display = 'none'; }
 
@@ -7107,7 +7159,7 @@ function openDateInfo(u, memoryMode) {
       const walkUrl = _mapsUrl('walking'), driveUrl = _mapsUrl('driving');
       const wc = dest ? `onclick="event.stopPropagation();_openExternal('${walkUrl}')" style="display:flex;align-items:center;gap:3px;font-size:12px;color:#9a8a7a;font-family:sans-serif;cursor:pointer"` : `style="display:flex;align-items:center;gap:3px;font-size:12px;color:#9a8a7a;font-family:sans-serif"`;
       const dc = dest ? `onclick="event.stopPropagation();_openExternal('${driveUrl}')" style="display:flex;align-items:center;gap:3px;font-size:12px;color:#9a8a7a;font-family:sans-serif;cursor:pointer"` : `style="display:flex;align-items:center;gap:3px;font-size:12px;color:#9a8a7a;font-family:sans-serif"`;
-      commuteHtml += `<span ${wc}>${personSvg}${wm[1]} min</span><span style="color:#c8bfb6;font-size:12px">/</span><span ${dc}>${carSvg}${dm[1]} min</span>`;
+      commuteHtml += `<span ${wc}>${personSvg}${wm[1]} min</span><span style="color:#9a8a7a;font-size:12px;font-family:sans-serif">/</span><span ${dc}>${carSvg}${dm[1]} min</span>`;
     } else if (wm) {
       const walkUrl = _mapsUrl('walking');
       const wc = dest ? `onclick="event.stopPropagation();_openExternal('${walkUrl}')" style="display:flex;align-items:center;gap:3px;font-size:12px;color:#9a8a7a;font-family:sans-serif;cursor:pointer"` : `style="display:flex;align-items:center;gap:3px;font-size:12px;color:#9a8a7a;font-family:sans-serif"`;
@@ -7296,6 +7348,8 @@ function populateEditDateFields(u) {
       onEdInLocationChange();
       const otherInp = document.getElementById('ed-in-location-other');
       if (otherInp) otherInp.value = u.inLocationOther || '';
+      const otherNameInp = document.getElementById('ed-in-location-other-name');
+      if (otherNameInp) otherNameInp.value = u.inLocationOtherName || '';
     }
     _edUpdateActivityEditBtn(true);
   } else if (u.venue) {
@@ -7430,7 +7484,7 @@ function saveEditDate() {
         const locText = ((document.getElementById('ed-location') || {}).value || '').trim();
         const neighText = ((document.getElementById('ed-neighborhood') || {}).value || '').trim();
         if (cName) u.venue = cName;
-        u.neighborhood = neighText || _neighborhoodFromAddress(locText) || locText;
+        u.neighborhood = neighText || locText;
       }
       saveDates(UPCOMING_DATES);
       FUTURE_DATES = buildFutureDates();
@@ -7458,7 +7512,7 @@ function saveEditDate() {
         const locText = ((document.getElementById('ed-location') || {}).value || '').trim();
         const neighText = ((document.getElementById('ed-neighborhood') || {}).value || '').trim();
         if (cName) u.venue = cName;
-        u.neighborhood = neighText || _neighborhoodFromAddress(locText) || locText;
+        u.neighborhood = neighText || locText;
       }
       u.isPrivate = _edIsPrivate;  // null = inherit from idea
       saveDates(UPCOMING_DATES);
