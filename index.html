@@ -962,10 +962,10 @@
       <div id="detail-padded" style="background:var(--bg)">
       <div id="detail-header">
         <!-- Title row: title + heart, then 3-dot + X on right -->
-        <div style="display:flex;align-items:center;gap:8px;flex:1;min-width:0">
+        <div style="display:flex;align-items:center;flex:1;min-width:0">
           <div style="min-width:0;flex:1">
             <div style="display:flex;align-items:center;gap:0">
-              <a id="detail-title" style="font-size:17px;font-weight:700;text-decoration:none;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;outline:none" target="_blank" rel="noopener"></a>
+              <a id="detail-title" style="font-size:17px;font-weight:700;text-decoration:none;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;outline:none;min-width:0" target="_blank" rel="noopener"></a>
               <button id="detail-heart-btn" onclick="toggleSavedCurrent()" style="background:none;border:none;display:flex;padding:1px;margin-left:6px;cursor:pointer;flex-shrink:0;line-height:0"></button>
               <div style="flex:1"></div>
               <button onclick="editIdea(detailItemId)" style="background:none;border:none;display:flex;padding:4px 2px;cursor:pointer;align-items:center;flex-shrink:0">
@@ -1007,7 +1007,6 @@
                 <button id="di-close-btn" onclick="closeDateInfo()" style="background:none;border:none;display:flex;padding:4px 2px;cursor:pointer;align-items:center;flex-shrink:0">
                   <svg viewBox="0 0 24 24" width="18" height="18" stroke="var(--popup-title)" stroke-width="2" fill="none" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                 </button>
-n>
               </div>
               <div id="di-subtitle" style="font-size:13px;color:#b0a090;font-style:italic;margin-top:6px;display:none"></div>
             </div>
@@ -1715,8 +1714,20 @@ n>
 // ═══════════════════════════════════════════════════════
 const ROSE = '#c07a8a', BURGUNDY = '#8b3a52';
 
-// ── testcolor: override duet logo text color. Set to a CSS color string or null/false to disable. ──
-const testcolor = 'orange';
+// ─────────────────────────────────────────────────────────────────────────────
+// TESTCOLOR — developer override for the "duet" logo text color in the top nav.
+//
+// Usage (just tell Claude):
+//   "set testcolor orange"   → sets testcolor = 'orange'
+//   "set testcolor #ff6600"  → sets testcolor = '#ff6600'  (any valid CSS color)
+//   "set testcolor off"      → sets testcolor = null  (restores default CSS color)
+//
+// How it works: _applyTestcolor() reads this variable and overrides the inline
+// color style on #duet-logo-text. It's called on DOMContentLoaded and after
+// every renderNav() so it survives re-renders. When null/false, the override is
+// removed and the element falls back to its normal CSS (color:var(--text-primary)).
+// ─────────────────────────────────────────────────────────────────────────────
+const testcolor = 'red';
 function _applyTestcolor() {
   const el = document.getElementById('duet-logo-text');
   if (!el) return;
@@ -2468,6 +2479,7 @@ function _makeImgFieldRow(value, containerId) {
     if (liveParent) {
       row.insertAdjacentElement('afterend', newRow);
       newRow.querySelector('input').focus();
+      if (window._currentImgsearchFn) window._currentImgsearchFn();
     }
   };
   row.appendChild(plusBtn);
@@ -3878,7 +3890,7 @@ function _buildDateCardHtml(fd, idx) {
   const inner = commute
     ? `<div style="display:flex;align-items:baseline;gap:7px;margin-bottom:2px"><div style="display:flex;align-items:center;gap:5px;min-width:0;flex-shrink:1;overflow:hidden">${activityIcon(fd.activity,14,'#fff')}<span style="font-size:15px;font-weight:700;color:#fff;letter-spacing:-0.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${fd.venue}</span></div>${timePart ? `<span style="font-size:12px;color:rgba(255,255,255,0.65);font-family:sans-serif;white-space:nowrap;flex-shrink:0;position:relative;bottom:2px">${timePart}</span>` : ''}</div>${commute}`
     : `<div style="display:flex;align-items:center;gap:7px;margin-bottom:2px">${activityIcon(fd.activity,14,'#fff')}<span style="font-size:15px;font-weight:700;color:#fff;letter-spacing:-0.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${fd.venue}</span></div><span style="font-size:12px;color:rgba(255,255,255,0.65);font-family:sans-serif">${timePart}${locLabel ? (timePart ? ' · ' : '') + locLabel : ''}</span>`;
-  return `<div class="date-card-slide" onclick="openDateInfo(FUTURE_DATES[${idx}])">
+  return `<div class="date-card-slide" onclick="openDateInfo(FUTURE_DATES[${idx}]?._ref || FUTURE_DATES[${idx}])">
     <div style="background:${cc};box-shadow:none;padding:12px 14px;min-height:70px;box-sizing:border-box;display:flex;align-items:center">
       <div style="display:flex;align-items:center;gap:14px;width:100%">
         <div style="width:40px;flex-shrink:0;display:flex;flex-direction:column;align-items:center">
@@ -3908,7 +3920,7 @@ function _buildUpcomingCardHtml(u, extraStyle) {
     }
   }
   return `
-    <div class="upcoming-item" onclick="_calCardClick(${u.day},'${u.month}',${u.year||2026})" style="${extraStyle || ''}">
+    <div class="upcoming-item" onclick="_calCardClick(${u.day},'${u.month}',${u.year||2026},'${u.id||''}')" style="${extraStyle || ''}">
       <div class="upcoming-date-badge">
         <span class="upcoming-month">${u.month}</span>
         <span class="upcoming-day-num">${u.day}</span>
@@ -4607,12 +4619,14 @@ function selectCalDay(day) {
   render();
 }
 
-function _calCardClick(day, month, year) {
+function _calCardClick(day, month, year, dateId) {
   const MONTH_NUMS = {Jan:0,Feb:1,Mar:2,Apr:3,May:4,Jun:5,Jul:6,Aug:7,Sep:8,Oct:9,Nov:10,Dec:11};
   const mNum = MONTH_NUMS[month] ?? 0;
   // If this card is already selected, open Date Info
   if (selectedCalDay === day && currentCalMonth === mNum && currentCalYear === year) {
-    const u = UPCOMING_DATES.find(u => u.month === month && (u.year||2026) === year && u.day === day);
+    const u = dateId
+      ? (UPCOMING_DATES.find(u => u.id === dateId) || UPCOMING_DATES.find(u => u.month === month && (u.year||2026) === year && u.day === day))
+      : UPCOMING_DATES.find(u => u.month === month && (u.year||2026) === year && u.day === day);
     if (u) openDateInfo(u);
     return;
   }
@@ -6362,7 +6376,8 @@ function openDetail(id, navContext) {
 
   // Heart — gray outline when not saved, rose when saved (both In and Out)
   const heartBtn = document.getElementById('detail-heart-btn');
-  const heartColor = item.saved ? ROSE : (document.body.classList.contains('dark-mode') ? '#524e4c' : '#ddd8d0');
+  const heartColor = item.saved ? ROSE : (document.body.classList.contains('dark-mode') ? '#ddd6cd' : '#2a1f1f');
+  heartBtn.style.opacity = item.saved ? '1' : '0.4';
   heartBtn.innerHTML = ICONS.heart(15, heartColor, false);
   const _dot3 = document.getElementById('detail-3dot');
   if (_dot3) { const _titleColor = document.body.classList.contains('dark-mode') ? '#ddd6cd' : '#2a1f1f'; _dot3.setAttribute('fill', _titleColor); }
@@ -6410,6 +6425,8 @@ function openDetail(id, navContext) {
   const bannerHtml = detailImageBanner(item);
   bannerSlot.innerHTML = bannerHtml;
   bannerSlot.style.display = bannerHtml ? 'block' : 'none';
+  const _detailCloseBtn = document.getElementById('detail-close-btn');
+  if (_detailCloseBtn) _detailCloseBtn.style.display = bannerHtml ? 'none' : 'flex';
   // Hide/show header buttons depending on whether image overlay has them
 
 
@@ -6431,7 +6448,7 @@ function openDetail(id, navContext) {
     body += `<div style="margin-top:40px;display:flex;align-items:center;justify-content:center;gap:10px">
       <button onclick="unarchiveIdeaFromDetail(${item.id})" style="display:flex;align-items:center;gap:7px;padding:7px 16px;border:1.5px solid #c07a8a;border-radius:7px;font-family:sans-serif;font-size:13px;font-weight:600;color:#c07a8a;background:none;cursor:pointer;line-height:1">${arrowIcon}Unarchive</button>
     </div>`;
-  } else if (isOut || hasReservation || _detailFromPopup) {
+  } else {  // show buttons for all non-archived ideas (In and Out)
     const calIcon = `<svg viewBox="0 0 24 24" width="14" height="14" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="display:block;flex-shrink:0;vertical-align:middle;position:relative;top:-1px"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>`;
     const resIcon = `<svg viewBox="0 0 24 24" width="14" height="14" stroke="#c07a8a" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-linejoin="round" style="display:block;flex-shrink:0"><polyline points="20 6 9 17 4 12"/></svg>`;
     // Look up any upcoming date for this idea to include date/time in reservation URL
@@ -6718,7 +6735,8 @@ function unreserveIdeaDate(dateKey, ideaId) {
 function openDateInfo(u, memoryMode) {
   if (!u) return;
   // Normalize: if object uses dayShort:"Feb 28" instead of day/month, extract them
-  if (!u.day && u.dayShort) {
+  if (u._ref) u = u._ref;  // unwrap FUTURE_DATES mapped object to raw date
+  else if (!u.day && u.dayShort) {
     const parts = u.dayShort.split(' ');
     u = Object.assign({}, u, { month: parts[0], day: parseInt(parts[1]) });
   }
@@ -6988,7 +7006,7 @@ function toggleSavedCurrent() {
   if (!item) return;
   item.saved = !item.saved;
   saveIdeas(ideas);
-  const heartColor = item.saved ? ROSE : (document.body.classList.contains('dark-mode') ? '#524e4c' : '#ddd8d0');
+  const heartColor = item.saved ? ROSE : (document.body.classList.contains('dark-mode') ? '#ddd6cd' : '#2a1f1f');
   const heartBtn = document.getElementById('detail-heart-btn');
   if (heartBtn) heartBtn.innerHTML = ICONS.heart(15, heartColor, false);
   if (currentView === 'ideas') _renderIdeasBody();
@@ -8290,7 +8308,6 @@ function handleImportFile(e) {
       FUTURE_DATES = buildFutureDates();
       closeMoreMenu();
       render();
-      alert('Import complete!');
     } catch(err) {
       alert('Could not read file. Make sure it\'s a valid duet export.');
     }
