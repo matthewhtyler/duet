@@ -354,6 +354,7 @@
     display: flex; font-size: 0;
   }
   #date-cards-scroll::-webkit-scrollbar { display: none; }
+  #cal-day-cards-scroll::-webkit-scrollbar { display: none; }
   #date-cards-inner { display: flex; width: max-content; font-size: 0; }
   .date-card-slide {
     flex-shrink: 0; scroll-snap-align: start; scroll-snap-stop: always;
@@ -1168,7 +1169,7 @@
           <button id="ed-img-icon-btn" title="Search for photos" style="background:none;border:none;cursor:pointer;padding:0;display:flex;align-items:center;flex-shrink:0;line-height:0">
             <svg viewBox="0 0 24 24" width="18" height="18" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
           </button>
-          <button id="ed-img-count-box" onclick="openImagesPopup('ed-image-fields', _getEdImgsearchName, () => UPCOMING_DATES[edDateIdx])" style="flex:1;padding:9px 14px;font-size:16px;font-family:sans-serif;background:var(--bg-input);border:1.5px solid var(--border);border-radius:10px;text-align:left;cursor:pointer;color:var(--text-placeholder);margin-bottom:0">No images</button>
+          <button id="ed-img-count-box" onclick="openImagesPopup('ed-image-fields', _getEdImgsearchName, () => edDateId != null ? UPCOMING_DATES.find(d => d.id === edDateId) : UPCOMING_DATES[edDateIdx])" style="flex:1;padding:9px 14px;font-size:16px;font-family:sans-serif;background:var(--bg-input);border:1.5px solid var(--border);border-radius:10px;text-align:left;cursor:pointer;color:var(--text-placeholder);margin-bottom:0">No images</button>
           <div id="ed-image-fields" style="display:none"></div>
         </div>
         <!-- Privacy box -->
@@ -1383,7 +1384,6 @@
 
         <!-- Place selector -->
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
-          <button id="places-heart-btn" onclick="togglePlaceTopChoice()" style="background:none;border:none;cursor:pointer;padding:2px;display:flex;flex-shrink:0"></button>
           <select id="places-select" onchange="handlePlaceSelect(this.value)" class="field-input" style="flex:1;margin-bottom:0"></select>
         </div>
       </div>
@@ -1394,7 +1394,7 @@
         <div id="places-form">
           <!-- Name -->
           <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
-            <span id="pf-name-icon" style="width:18px;flex-shrink:0;display:flex;align-items:center;justify-content:center"></span>
+            <button id="places-heart-btn" onclick="togglePlaceTopChoice()" style="background:none;border:none;cursor:pointer;padding:0;display:flex;flex-shrink:0;width:18px;align-items:center;justify-content:center"></button>
             <input class="field-input" id="pf-name" type="text" placeholder="Place / activity" oninput="markPlaceChanged();_applyTitleCase(this)" style="flex:1;margin-bottom:0">
             <button id="pf-lock-btn" onclick="togglePfPrivate()" type="button" style="background:none;border:none;cursor:pointer;padding:2px;display:flex;flex-shrink:0;color:#9a8a7a" title="Mark as private"></button>
           </div>
@@ -1729,6 +1729,14 @@ function _applyTitleCase(inp) {
   if (tc !== v) { inp.value = tc; inp.setSelectionRange(start, end); }
 }
 
+function _applyFirstCap(inp) {
+  const v = inp.value;
+  if (!v) return;
+  const start = inp.selectionStart, end = inp.selectionEnd;
+  const fc = v.charAt(0).toUpperCase() + v.slice(1);
+  if (fc !== v) { inp.value = fc; inp.setSelectionRange(start, end); }
+}
+
 
 // ─────────────────────────────────────────────────────────────────────────────
 // TESTCOLOR — developer override for the "duet" logo text color in the top nav.
@@ -1743,7 +1751,7 @@ function _applyTitleCase(inp) {
 // every renderNav() so it survives re-renders. When null/false, the override is
 // removed and the element falls back to its normal CSS (color:var(--text-primary)).
 // ─────────────────────────────────────────────────────────────────────────────
-const testcolor = null;
+const testcolor = 'gray';
 function _applyTestcolor() {
   const el = document.getElementById('duet-logo-text');
   if (!el) return;
@@ -2135,7 +2143,7 @@ function render() {
     setTimeout(() => { _initDateCardsScroll(); _initWeekStrip(); }, 0);
   }
   if (currentView === 'calendar') {
-    setTimeout(_initCalSwipe, 0);
+    setTimeout(() => { _initCalSwipe(); _initCalDayCards(); }, 0);
   }
 }
 
@@ -2883,6 +2891,11 @@ function populateDateImageFields(urls) {
   _populateImgContainer('date-image-fields', urls);
   _updateImgCountBox('date-image-fields', 'date-img-count-box');
   _scheduleImgCountBoxUpdate('date-image-fields', 'date-img-count-box');
+}
+function populateIdeaImageFields(urls) {
+  _populateImgContainer('idea-image-fields', urls);
+  _updateImgCountBox('idea-image-fields', 'idea-img-count-box');
+  _scheduleImgCountBoxUpdate('idea-image-fields', 'idea-img-count-box');
 }
 function addImageField(btn)   { _addImgFieldTo('idea-image-fields'); }
 function addPfImageField(btn) { _addImgFieldTo('pf-image-fields'); }
@@ -4343,7 +4356,7 @@ function _rebuildCatDropdown(type) {
 
 function itemSubLine(item) {
   const cat = (item.category || '').toLowerCase();
-  const label = catLabel(item.category || '');
+  const label = catLabel(item.category || '', item.type);
   const showType = item.showType !== false; // default true
   if (cat === 'restaurant' || cat === 'cafe') {
     const base = item.cuisine ? `${item.cuisine} ${label}` : label;
@@ -4502,41 +4515,65 @@ function renderCalendar() {
       </button>`;
   }
 
-  // Selected date detail card
-  const selDate = UPCOMING_DATES.find(u => u.month === monthAbbr && (u.year||2026) === currentCalYear && u.day === selectedCalDay);
+  // Selected date detail cards — all dates on this day, carousel style
+  const _selDayDates = selectedCalDay ? UPCOMING_DATES.filter(u => u.month === monthAbbr && (u.year||2026) === currentCalYear && u.day === selectedCalDay) : [];
+  const _selDayVisible = _selDayDates.filter(u => !_isDateHiddenPrivate(u));
+  const _selDayAllPrivate = _selDayDates.length > 0 && _selDayVisible.length === 0;
+  const _selDayObj = selectedCalDay ? new Date(currentCalYear, currentCalMonth, selectedCalDay) : null;
+  if (_selDayObj) _selDayObj.setHours(0,0,0,0);
+  const _selIsPast = _selDayObj && _selDayObj < _now;
+
   let selectedCardHTML = '';
-  if (selDate && !_isDateHiddenPrivate(selDate)) {
-    const selDateObj = new Date(currentCalYear, currentCalMonth, selectedCalDay); selDateObj.setHours(0,0,0,0);
-    const isPastSel = selDateObj < _now;
-    const cardColor = isPastSel ? '#9a8a7a' : ROSE;
-    const cardShadow = isPastSel ? '0 2px 12px rgba(154,138,122,0.3)' : '0 2px 12px rgba(192,122,138,0.3)';
-    selectedCardHTML = `
-      <div onclick="openDateInfo(UPCOMING_DATES.find(u=>u.month==='${monthAbbr}'&&(u.year||2026)===${currentCalYear}&&u.day===${selDate.day}))" style="display:flex;align-items:center;gap:14px;padding:12px 14px;min-height:64px;box-sizing:border-box;background:${cardColor};border-radius:14px;box-shadow:${cardShadow};margin-top:20px;cursor:pointer">
-        <div style="width:40px;flex-shrink:0;display:flex;flex-direction:column;align-items:center">
-          <span style="font-size:10px;font-family:sans-serif;font-weight:600;color:rgba(255,255,255,0.7);letter-spacing:0.06em;text-transform:uppercase">${selDate.month}</span>
-          <span style="font-size:22px;font-weight:700;color:#fff;line-height:1.1">${selDate.day}</span>
-        </div>
-        <div style="width:1px;height:36px;background:rgba(255,255,255,0.25);flex-shrink:0"></div>
-        <div style="flex:1;min-width:0">
-          <div style="display:flex;align-items:center;gap:7px;margin-bottom:2px">
-            ${activityIcon(selDate.activity,14,'#fff')}
-            <span style="font-size:15px;font-weight:700;color:#fff;letter-spacing:-0.01em">${selDate.venue}</span>
+  if (_selDayVisible.length > 0) {
+    const _calCardColor = u => {
+      const d = new Date((u.year||2026), MONTH_NUMS[u.month]||0, u.day); d.setHours(0,0,0,0);
+      return d < _now ? '#9a8a7a' : ROSE;
+    };
+    const _slides = _selDayVisible.map((u, i) => {
+      const cc = _calCardColor(u);
+      const timePart = u.time ? _shortTime(u.time) : '';
+      const _subNoteText = _dateCardSubNote(u);
+      const subNote = _subNoteText ? (timePart ? ' · ' : '') + _subNoteText : '';
+      const locLabel = _dateLocationLabel(u) || u.neighborhood || '';
+      const subLine = timePart + (subNote || (locLabel ? (timePart ? ' · ' : '') + locLabel : ''));
+      return `<div class="date-card-slide cal-day-card-slide" onclick="openDateInfo(UPCOMING_DATES.find(d=>String(d.id)==='${u.id}'))">
+        <div style="background:${cc};padding:12px 14px;min-height:70px;box-sizing:border-box;display:flex;align-items:center">
+          <div style="display:flex;align-items:center;gap:14px;width:100%">
+            <div style="width:40px;flex-shrink:0;display:flex;flex-direction:column;align-items:center">
+              <span style="font-size:10px;font-family:sans-serif;font-weight:600;color:rgba(255,255,255,0.7);letter-spacing:0.06em;text-transform:uppercase">${u.month}</span>
+              <span style="font-size:22px;font-weight:700;color:#fff;line-height:1.1">${u.day}</span>
+            </div>
+            <div style="width:1px;height:36px;background:rgba(255,255,255,0.25);flex-shrink:0"></div>
+            <div style="flex:1;min-width:0;padding-right:52px">
+              <div style="display:flex;align-items:center;gap:7px;margin-bottom:2px">${activityIcon(u.activity,14,'#fff')}<span style="font-size:15px;font-weight:700;color:#fff;letter-spacing:-0.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${u.venue}</span></div>
+              <span style="font-size:12px;color:rgba(255,255,255,0.65);font-family:sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${subLine}</span>
+            </div>
           </div>
-          <span style="font-size:12px;color:rgba(255,255,255,0.65);font-family:sans-serif">${selDate.time}${(_dateLocationLabel(selDate) || selDate.neighborhood) ? ' · ' + (_dateLocationLabel(selDate) || selDate.neighborhood) : ''}</span>
         </div>
-        ${ICONS.chevRight(15,'rgba(255,255,255,0.7)')}
       </div>`;
-  } else if (selDate && _isDateHiddenPrivate(selDate)) {
-    const _selObj = new Date(currentCalYear, currentCalMonth, selectedCalDay); _selObj.setHours(0,0,0,0);
-    const _tomorrow = new Date(_now); _tomorrow.setDate(_now.getDate() + 1);
-    const _endOfWeek = new Date(_now); _endOfWeek.setDate(_now.getDate() + (7 - _now.getDay()) % 7 || 7);
-    const _DAY_NAMES = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
-    const _privDateLabel = _selObj.getTime() === _now.getTime() ? 'today'
-      : _selObj.getTime() === _tomorrow.getTime() ? 'tomorrow'
-      : (_selObj > _tomorrow && _selObj <= _endOfWeek) ? _DAY_NAMES[_selObj.getDay()]
-      : _calDayLabel(selectedCalDay, currentCalMonth, currentCalYear);
+    }).join('');
+    const _firstColor = _calCardColor(_selDayVisible[0]);
+    const _lastColor = _calCardColor(_selDayVisible[_selDayVisible.length - 1]);
+    const _shadowColor = _selIsPast ? 'rgba(154,138,122,0.45)' : 'rgba(139,58,82,0.45)';
+    const _gradBg = _selDayVisible.length > 1 ? `linear-gradient(to right, ${_firstColor} 50%, ${_lastColor} 50%)` : _firstColor;
     selectedCardHTML = `
-      <div style="margin-top:20px;min-height:64px;box-sizing:border-box;padding:12px 16px;border-radius:14px;display:flex;align-items:center;justify-content:center;color:#b0a090;font-size:14px;font-style:italic">
+      <div id="cal-day-cards-outer" style="margin-top:20px;border-radius:14px;overflow:hidden;position:relative;min-height:70px;box-sizing:border-box;box-shadow:0 4px 20px ${_shadowColor};background:${_gradBg}">
+        <div id="cal-day-cards-scroll" style="overflow-x:scroll;overflow-y:hidden;scrollbar-width:none;-ms-overflow-style:none;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;display:flex;font-size:0;">
+          ${_slides}
+        </div>
+        ${_selDayVisible.length > 1 ? `<div style="position:absolute;right:0;top:0;bottom:0;display:flex;align-items:center;gap:0;pointer-events:none">
+          <button id="cal-day-btn-prev" onclick="event.stopPropagation();_calDayPrev()" style="pointer-events:all;background:none;border:none;padding:4px 6px;display:flex;align-items:center;cursor:pointer;opacity:0.3">
+            <svg viewBox="0 0 24 24" width="16" height="16" stroke="#fff" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+          </button>
+          <button id="cal-day-btn-next" onclick="event.stopPropagation();_calDayNext()" style="pointer-events:all;background:none;border:none;padding:4px 6px;margin-right:11px;display:flex;align-items:center;cursor:pointer;opacity:1">
+            <svg viewBox="0 0 24 24" width="16" height="16" stroke="#fff" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+          </button>
+        </div>` : ''}
+      </div>`;
+  } else if (_selDayAllPrivate) {
+    const _privDateLabel = _calDayLabel(selectedCalDay, currentCalMonth, currentCalYear);
+    selectedCardHTML = `
+      <div style="margin-top:20px;height:70px;box-sizing:border-box;padding:12px 16px;border-radius:14px;display:flex;align-items:center;justify-content:center;color:#b0a090;font-size:14px;font-style:italic">
         Private date ${_privDateLabel}
       </div>`;
   } else if (selectedCalDay) {
@@ -4550,7 +4587,7 @@ function renderCalendar() {
       : (_selObj > _tomorrow && _selObj <= _endOfWeek) ? _DAY_NAMES[_selObj.getDay()]
       : _calDayLabel(selectedCalDay, currentCalMonth, currentCalYear);
     selectedCardHTML = `
-      <div style="margin-top:20px;min-height:64px;box-sizing:border-box;padding:12px 16px;border-radius:14px;display:flex;align-items:center;justify-content:center;color:#b0a090;font-size:14px;font-style:italic">
+      <div style="margin-top:20px;height:70px;box-sizing:border-box;padding:12px 16px;border-radius:14px;display:flex;align-items:center;justify-content:center;color:#b0a090;font-size:14px;font-style:italic">
         No date ${_noDateLabel} · <span style="color:${ROSE};cursor:pointer" onclick="openNewDateFromCal(${selectedCalDay}, currentCalMonth, currentCalYear)">&nbsp;Plan one ›</span>
       </div>`;
   }
@@ -4680,6 +4717,83 @@ function _calCardClick(day, month, year, dateId) {
   currentCalYear = year;
   selectedCalDay = day;
   render();
+}
+
+let _calDayCardIdx = 0;
+
+function _initCalDayCards() {
+  const outer = document.getElementById('cal-day-cards-outer');
+  const scroll = document.getElementById('cal-day-cards-scroll');
+  if (!scroll || !outer) return;
+  const w = outer.offsetWidth;
+  if (!w) return;
+  scroll.querySelectorAll('.cal-day-card-slide').forEach(s => { s.style.width = w + 'px'; });
+  _calDayCardIdx = 0;
+  scroll.style.scrollSnapType = 'none';
+  scroll.scrollLeft = 0;
+  requestAnimationFrame(() => {
+    scroll.style.scrollSnapType = 'x mandatory';
+  });
+  _updateCalDayCardUI();
+  // Swipe support
+  if (scroll._calDayScrollHandler) scroll.removeEventListener('scroll', scroll._calDayScrollHandler);
+  let _cTimer = null;
+  scroll._calDayScrollHandler = () => {
+    clearTimeout(_cTimer);
+    _cTimer = setTimeout(() => {
+      const newIdx = Math.round(scroll.scrollLeft / w);
+      const total = scroll.querySelectorAll('.cal-day-card-slide').length;
+      if (newIdx !== _calDayCardIdx && newIdx >= 0 && newIdx < total) {
+        _calDayCardIdx = newIdx;
+        _updateCalDayCardUI();
+      }
+    }, 80);
+  };
+  scroll.addEventListener('scroll', scroll._calDayScrollHandler, { passive: true });
+}
+
+function _updateCalDayCardUI() {
+  const scroll = document.getElementById('cal-day-cards-scroll');
+  const total = scroll ? scroll.querySelectorAll('.cal-day-card-slide').length : 0;
+  const prev = document.getElementById('cal-day-btn-prev');
+  const next = document.getElementById('cal-day-btn-next');
+  if (prev) prev.style.opacity = _calDayCardIdx > 0 ? '1' : '0.3';
+  if (next) next.style.opacity = _calDayCardIdx < total - 1 ? '1' : '0.3';
+}
+
+function _calDayPrev() {
+  const scroll = document.getElementById('cal-day-cards-scroll');
+  if (!scroll || _calDayCardIdx <= 0) return;
+  _calDayCardIdx--;
+  const w = document.getElementById('cal-day-cards-outer').offsetWidth;
+  scroll.style.scrollSnapType = 'none';
+  const start = scroll.scrollLeft, end = _calDayCardIdx * w, dur = 200, t0 = performance.now();
+  const ease = t => t < 0.5 ? 2*t*t : -1+(4-2*t)*t;
+  (function step(now) {
+    const t = Math.min((now - t0) / dur, 1);
+    scroll.scrollLeft = start + (end - start) * ease(t);
+    if (t < 1) requestAnimationFrame(step);
+    else { scroll.scrollLeft = end; requestAnimationFrame(() => { scroll.style.scrollSnapType = 'x mandatory'; }); }
+  })(performance.now());
+  _updateCalDayCardUI();
+}
+
+function _calDayNext() {
+  const scroll = document.getElementById('cal-day-cards-scroll');
+  const total = scroll ? scroll.querySelectorAll('.cal-day-card-slide').length : 0;
+  if (!scroll || _calDayCardIdx >= total - 1) return;
+  _calDayCardIdx++;
+  const w = document.getElementById('cal-day-cards-outer').offsetWidth;
+  scroll.style.scrollSnapType = 'none';
+  const start = scroll.scrollLeft, end = _calDayCardIdx * w, dur = 200, t0 = performance.now();
+  const ease = t => t < 0.5 ? 2*t*t : -1+(4-2*t)*t;
+  (function step(now) {
+    const t = Math.min((now - t0) / dur, 1);
+    scroll.scrollLeft = start + (end - start) * ease(t);
+    if (t < 1) requestAnimationFrame(step);
+    else { scroll.scrollLeft = end; requestAnimationFrame(() => { scroll.style.scrollSnapType = 'x mandatory'; }); }
+  })(performance.now());
+  _updateCalDayCardUI();
 }
 
 // ── Short time formatter (9:00 pm → 9 pm, 9:30 pm → 9:30 pm) ──
@@ -6450,9 +6564,8 @@ function openDetail(id, navContext) {
   // Subtitle
   const subtitle = document.getElementById('detail-subtitle');
   const cat = (item.category || '').toLowerCase();
-  const label = catLabel(item.category || '');
-  const showType = item.showType !== false;
-  let subtitleText = '';
+  const label = catLabel(item.category || '', item.type);
+  const showType = item.showType !== false; // default true
   if (cat === 'restaurant' || cat === 'cafe') {
     const base = item.cuisine ? `${item.cuisine} ${label}` : label;
     subtitleText = item.shortdesc ? `${base} • ${item.shortdesc}` : base;
@@ -7119,6 +7232,7 @@ function deleteIdea(id) {
 let edSelectedActivity = null;
 let ideasPickerContext = 'sheet'; // 'sheet' or 'editdate'
 let edDateIdx = 0;
+let edDateId = null;
 
 function editDateFromInfo() {
   if (!currentDateInfo) return;
@@ -7130,9 +7244,11 @@ function editDateFromInfo() {
 function openEditDateModal(u) {
   edSelectedActivity = null;
 
-  // Find index in UPCOMING_DATES
-  edDateIdx = UPCOMING_DATES.findIndex(d => d.day === u.day && d.month === u.month);
+  // Find index in UPCOMING_DATES — match by id first, then by full day/month/year/venue
+  edDateIdx = u.id !== undefined ? UPCOMING_DATES.findIndex(d => d.id === u.id) : -1;
+  if (edDateIdx < 0) edDateIdx = UPCOMING_DATES.findIndex(d => d.day === u.day && d.month === u.month && (d.year||2026) === (u.year||2026) && (d.venue||'').toLowerCase() === (u.venue||'').toLowerCase());
   if (edDateIdx < 0) edDateIdx = 0;
+  edDateId = UPCOMING_DATES[edDateIdx] ? UPCOMING_DATES[edDateIdx].id : null;
   updateEditDateNav();
 
   populateEditDateFields(u);
@@ -7153,6 +7269,7 @@ function editDateNav(dir) {
   const newIdx = edDateIdx + dir;
   if (newIdx < 0 || newIdx >= UPCOMING_DATES.length) return;
   edDateIdx = newIdx;
+  edDateId = UPCOMING_DATES[edDateIdx] ? UPCOMING_DATES[edDateIdx].id : null;
   updateEditDateNav();
   populateEditDateFields(UPCOMING_DATES[edDateIdx]);
 }
@@ -7319,8 +7436,8 @@ function saveEditDate() {
       FUTURE_DATES = buildFutureDates();
     }
   } else {
-    // Future/upcoming date mode — update via edDateIdx
-    const u = UPCOMING_DATES[edDateIdx];
+    // Future/upcoming date mode — update by id (fallback to index)
+    const u = (edDateId != null ? UPCOMING_DATES.find(d => d.id === edDateId) : null) || UPCOMING_DATES[edDateIdx];
     if (u) {
       if (timeVal) u.time = timeVal;
       if (note !== undefined) u.note = note;
@@ -7381,9 +7498,10 @@ function deleteEditDate() {
       }
     }
   } else {
-    // Upcoming date mode: remove by edDateIdx
-    if (edDateIdx >= 0 && edDateIdx < UPCOMING_DATES.length) {
-      UPCOMING_DATES.splice(edDateIdx, 1);
+    // Upcoming date mode: remove by id (fallback to index)
+    const _delIdx = edDateId != null ? UPCOMING_DATES.findIndex(d => d.id === edDateId) : edDateIdx;
+    if (_delIdx >= 0 && _delIdx < UPCOMING_DATES.length) {
+      UPCOMING_DATES.splice(_delIdx, 1);
       saveDates(UPCOMING_DATES);
       FUTURE_DATES = buildFutureDates();
       if (dateIdx >= FUTURE_DATES.length) dateIdx = Math.max(0, FUTURE_DATES.length - 1);
@@ -7419,8 +7537,9 @@ function populateEditModal(item) {
   // Title
   document.getElementById('places-modal-title').textContent = 'Edit Idea';
 
-  // Heart
-  document.getElementById('places-heart-btn').innerHTML = ICONS.heart(18, ROSE, item.saved);
+  // Heart — outlined style: accent color when saved, muted when not (no fill)
+  const _heartColor = item.saved ? ROSE : '#9a8a7a';
+  document.getElementById('places-heart-btn').innerHTML = ICONS.heart(18, _heartColor, false);
 
   // Selector — show all ideas of same type
   const sel = document.getElementById('places-select');
@@ -7447,8 +7566,6 @@ function populateEditModal(item) {
 
   // Name field: update placeholder based on type
   document.getElementById('pf-name').placeholder = isOut ? 'Place / activity' : 'Activity';
-  const pfNameIcon = document.getElementById('pf-name-icon');
-  if (pfNameIcon) pfNameIcon.innerHTML = isOut ? ICONS.building(18,'#9a8a7a') : ICONS.sofa(18,'#9a8a7a');
 
   // Form fields
   _pfIsPrivate = !!item.isPrivate;
@@ -7542,7 +7659,8 @@ function togglePlaceTopChoice() {
   if (!item) return;
   item.saved = !item.saved;
   saveIdeas(ideas);
-  document.getElementById('places-heart-btn').innerHTML = ICONS.heart(18, ROSE, item.saved);
+  const _hColor = item.saved ? ROSE : '#9a8a7a';
+  document.getElementById('places-heart-btn').innerHTML = ICONS.heart(18, _hColor, false);
   // Refresh selector label
   const sel = document.getElementById('places-select');
   const opt = sel.querySelector(`option[value="${id}"]`);
