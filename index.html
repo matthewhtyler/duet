@@ -1951,10 +1951,12 @@ const DEFAULT_UPCOMING_DATES = [];
 function loadDates() {
   try {
     const s = localStorage.getItem('ll_dates');
-    return s ? JSON.parse(s) : DEFAULT_UPCOMING_DATES.map(d => ({...d}));
+    if (!s || s === 'undefined' || s === 'null') return DEFAULT_UPCOMING_DATES.map(d => ({...d}));
+    return JSON.parse(s);
   } catch(e) { return DEFAULT_UPCOMING_DATES.map(d => ({...d})); }
 }
 function saveDates(arr) {
+  if (!Array.isArray(arr)) return; // guard against accidental no-arg call
   try { localStorage.setItem('ll_dates', JSON.stringify(arr)); } catch(e) {}
 }
 
@@ -2041,10 +2043,12 @@ function _computeMemories() {
 function loadIdeas() {
   try {
     const s = localStorage.getItem('ll_ideas');
-    return s ? JSON.parse(s) : DEFAULT_IDEAS.map(i => ({...i}));
+    if (!s || s === 'undefined' || s === 'null') return DEFAULT_IDEAS.map(i => ({...i}));
+    return JSON.parse(s);
   } catch(e) { return DEFAULT_IDEAS.map(i => ({...i})); }
 }
 function saveIdeas(arr) {
+  if (!Array.isArray(arr)) return; // guard against accidental no-arg call
   try { localStorage.setItem('ll_ideas', JSON.stringify(arr)); } catch(e) {}
 }
 let ideas = loadIdeas();
@@ -2681,6 +2685,7 @@ function _attachImgRowDrag(handle, row) {
     }
     if (target) parent.insertBefore(row, target);
     else parent.appendChild(row);
+    if (document.getElementById('images-popup-banner')) { _ipImgIdx = 0; refreshImgsPopupBanner(); }
   }
 
   // Touch events
@@ -4684,7 +4689,7 @@ function renderCalendar() {
     const _privDateLabel = _calDayLabel(selectedCalDay, currentCalMonth, currentCalYear);
     selectedCardHTML = `
       <div style="margin-top:20px;height:70px;box-sizing:border-box;padding:12px 16px;border-radius:14px;display:flex;align-items:center;justify-content:center;color:#b0a090;font-size:14px;font-style:italic">
-        Private date ${_privDateLabel}
+        Locked date ${_privDateLabel}
       </div>`;
   } else if (selectedCalDay) {
     const _selObj = new Date(currentCalYear, currentCalMonth, selectedCalDay); _selObj.setHours(0,0,0,0);
@@ -8507,8 +8512,8 @@ function saveEditCategories() {
     else if (inOldLabelToNew[u.activity]) u.activity = inOldLabelToNew[u.activity];
   });
 
-  saveIdeas && saveIdeas();
-  saveDates && saveDates();
+  saveIdeas && saveIdeas(ideas);
+  saveDates && saveDates(UPCOMING_DATES);
   // Select the last added/edited category in the idea popup dropdown
   if (window._ecLastSavedId) {
     // Update selectedCategory so render() keeps the right selection
