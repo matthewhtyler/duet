@@ -820,6 +820,12 @@
           <div id="idea-eventbrite-wrap" style="display:none;margin-left:28px;margin-bottom:12px">
             <input class="field-input" id="idea-eventbrite-url" type="text" placeholder="Eventbrite URL" style="margin-bottom:0">
           </div>
+          <div id="idea-opentable-wrap" style="display:none;margin-left:28px;margin-bottom:12px">
+            <input class="field-input" id="idea-opentable-url" type="text" placeholder="OpenTable URL (optional)" style="margin-bottom:0">
+          </div>
+          <div id="idea-resy-wrap" style="display:none;margin-left:28px;margin-bottom:12px">
+            <input class="field-input" id="idea-resy-url" type="text" placeholder="Resy URL (optional)" style="margin-bottom:0">
+          </div>
         </div>
       </div><!-- /out-fields-wrap -->
       <input type="hidden" id="idea-note-short" value="">
@@ -838,10 +844,18 @@
           <svg viewBox="0 0 24 24" width="18" height="18" style="flex-shrink:0" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="17" x2="12" y2="11"/><circle cx="12" cy="7" r="1.2" fill="#9a8a7a" stroke="none"/></svg>
           <input class="field-input" id="idea-in-shortdesc" type="text" placeholder="Short description…" oninput="_applyFirstCap(this)" style="flex:1;margin-bottom:0">
         </div>
+        <!-- Web app -->
+        <div class="idea-row" id="idea-webapp-label-row">
+          <button onclick="openNewIdeaWebappIconPicker()" title="Change web app icon" id="idea-webapp-icon-btn" style="width:18px;flex-shrink:0;background:none;border:none;cursor:pointer;padding:0;display:flex;align-items:center;justify-content:center;color:#9a8a7a"></button>
+          <input class="field-input" id="idea-webapp-label" type="text" placeholder="Web app label (optional)…" oninput="_applyFirstCap(this)" style="flex:1;margin-bottom:0">
+        </div>
+        <div class="idea-row" id="idea-webapp-url-row" style="margin-left:28px">
+          <input class="field-input" id="idea-webapp-url" type="text" placeholder="Web app URL…" style="flex:1;margin-bottom:0">
+        </div>
         <!-- About (long description) -->
-        <div class="idea-row-top" id="idea-in-note-row" style="flex:1;min-height:0;display:flex">
+        <div class="idea-row-top" id="idea-in-note-row" style="min-height:0;display:flex">
           <div style="width:18px;flex-shrink:0;margin-top:10px"></div>
-          <textarea class="idea-sheet-area" id="idea-note-long" placeholder="Long description…" oninput="_applyFirstCap(this)" style="flex:1;height:100%;min-height:120px;resize:none"></textarea>
+          <textarea class="idea-sheet-area" id="idea-note-long" placeholder="Long description…" oninput="_applyFirstCap(this)" style="flex:1;height:80px;min-height:60px;resize:none"></textarea>
         </div>
       </div>
 
@@ -1483,6 +1497,14 @@
             <div style="width:18px;flex-shrink:0"></div>
             <textarea class="field-input" id="pf-about" rows="2" placeholder="Long description (ambience, etc)…" oninput="markPlaceChanged();_applyFirstCap(this)" style="flex:1;resize:none;font-family:sans-serif;margin-bottom:0"></textarea>
           </div>
+          <!-- Web app (In-only) -->
+          <div id="pf-webapp-label-wrap" style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+            <button onclick="openIdeaWebappIconPicker()" title="Change web app icon" id="pf-webapp-icon-btn" style="width:18px;flex-shrink:0;background:none;border:none;cursor:pointer;padding:0;display:flex;align-items:center;justify-content:center;color:#9a8a7a"></button>
+            <input class="field-input" id="pf-webapp-label" type="text" placeholder="Web app label (optional)…" oninput="markPlaceChanged();_applyFirstCap(this)" style="flex:1;margin-bottom:0">
+          </div>
+          <div id="pf-webapp-url-wrap" style="display:flex;align-items:center;gap:10px;margin-bottom:12px;margin-left:28px">
+            <input class="field-input" id="pf-webapp-url" type="text" placeholder="Web app URL…" oninput="markPlaceChanged()" style="flex:1;margin-bottom:0">
+          </div>
           <!-- Address -->
           <div id="pf-address-row" style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
             <button onclick="openPlaceMapsAddress()" title="Open in Google Maps" style="background:none;border:none;cursor:pointer;padding:0;display:flex;flex-shrink:0">
@@ -1537,6 +1559,12 @@
             </div>
             <div id="pf-eventbrite-wrap" style="display:none;margin-left:28px;margin-bottom:12px">
               <input class="field-input" id="pf-eventbrite-url" type="text" placeholder="Eventbrite URL" oninput="markPlaceChanged()">
+            </div>
+            <div id="pf-opentable-wrap" style="display:none;margin-left:28px;margin-bottom:12px">
+              <input class="field-input" id="pf-opentable-url" type="text" placeholder="OpenTable URL (optional)" oninput="markPlaceChanged()" style="margin-bottom:0">
+            </div>
+            <div id="pf-resy-wrap" style="display:none;margin-left:28px;margin-bottom:12px">
+              <input class="field-input" id="pf-resy-url" type="text" placeholder="Resy URL (optional)" oninput="markPlaceChanged()" style="margin-bottom:0">
             </div>
           </div>
 
@@ -1783,11 +1811,13 @@ const _CLEARABLE_IDS = [
   // New Idea
   'idea-name','idea-cuisine','idea-shortdesc','idea-about',
   'idea-address','idea-neighborhood','idea-subway','idea-walkdrive',
-  'idea-website-url','idea-eventbrite-url','idea-in-shortdesc','idea-note-long',
+  'idea-website-url','idea-eventbrite-url','idea-opentable-url','idea-resy-url',
+  'idea-in-shortdesc','idea-note-long','idea-webapp-label','idea-webapp-url',
   // Edit Idea
   'pf-name','pf-cuisine','pf-shortdesc','pf-about',
   'pf-address','pf-neighborhood','pf-subway','pf-walkdrive',
-  'pf-website-url','pf-eventbrite-url',
+  'pf-website-url','pf-eventbrite-url','pf-opentable-url','pf-resy-url',
+  'pf-webapp-label','pf-webapp-url',
   // New/Edit Date note
   'date-note','ed-note',
   // New/Edit Todo note
@@ -2147,6 +2177,7 @@ const ICONS = {
   bowling: (s,c) => `<svg viewBox="0 0 24 24" width="${s}" height="${s}"><path fill-rule="evenodd" d="M12 2a10 10 0 1 1 0 20A10 10 0 0 1 12 2zm-4.5 4.7a1.8 1.8 0 1 0 0 3.6 1.8 1.8 0 0 0 0-3.6zm6 0a1.8 1.8 0 1 0 0 3.6 1.8 1.8 0 0 0 0-3.6zm-3 5a1.8 1.8 0 1 0 0 3.6 1.8 1.8 0 0 0 0-3.6z" fill="${c}"/></svg>`,
   videogame: (s,c) => `<svg viewBox="0 0 409.31 338.63" width="${s}" height="${s}" fill="${c}" stroke="${c}" stroke-width="8" stroke-linejoin="round"><path d="M253.89,266.83c-11.96-17.1-52.03-13.53-72.03-12.74-15.32.6-26.81,10.3-34.52,22.13l-17.76,27.24c-17.03,26.12-46.26,40.71-77.18,32.89C24.2,329.23-.02,303.59,0,272.1l.05-93.9c.03-62.53,50.61-119.77,113.25-120.66l76.41-1.09.45-42.03c.09-8.64,5.85-13.54,13.58-14.36,6.25-.66,14.37,4.58,14.5,12.86l.68,43.61,76.35,1.04c61.07.83,109.4,55.93,112.95,117.24,1.92,33.06.89,64.56.26,97.42-.55,28.98-20.32,52.68-45.01,61.82-27.61,10.22-60.22,3.39-77.07-20.71l-32.5-46.49ZM285.99,262.54l16.47,25.43c10.38,16.02,26.06,25.52,46.03,21.13,15.37-3.38,31.6-17.99,31.58-36.69l-.11-94.68c-.06-47.65-41.23-90.49-90.13-92.03-57.47-1.81-111.94-1.42-169.45-.18-48.74,1.05-91.44,42.7-91.74,90.39l-.59,93.19c-.12,19.26,13.8,35.51,30.59,39.73,19.66,4.95,36.55-4.24,47.2-20.64l18.37-28.31c11.61-17.88,30.81-32.31,53.09-33.4,18.09-.89,35.83-.83,53.71,0,23.96,1.12,42.4,16.64,54.98,36.07Z"/><path d="M108.01,120.17c28.56-2.65,51.43,18.82,53.56,44.63,2.29,27.7-17.63,51.34-45.07,53.48-26.4,2.06-49.92-16.85-52.85-43.2-3-26.97,15.61-52.25,44.36-54.91ZM105.91,149.16c-12.09,3.64-16.64,16.82-13,27.16,3.89,11.06,15.04,16.55,26.06,13.07,10.93-3.45,17.37-14.93,13.76-25.84-3.61-10.92-13.82-18.3-26.82-14.38Z"/><path d="M309.24,207.58c-.24,6.28-6.93,10.25-11.46,10.6s-14.25-1.8-14.59-8.09l-1.38-26.08-22-.85c-8.47-.33-13.53-7.88-13.08-14.69.58-8.76,7.26-13.42,16.26-13.59l18.97-.35.86-24.97c.22-6.32,9.42-9.97,14.58-9.56,7.07.56,12.35,6.78,12.53,14.33l.49,20.4,20.14.39c9.2.18,14.85,6.94,14.48,14.95-.39,8.5-7.16,13.2-16.25,13.41l-18.64.45-.91,23.66Z"/></svg>`,
   mask: (s,c) => `<svg viewBox="-20 -10 459.9 299.81" width="${s}" height="${s}" fill="none" overflow="visible" stroke="${c}" stroke-width="35" stroke-linecap="round" stroke-linejoin="round"><path d="M418.97,65.7c1.54,24.87,1.28,57.72-1.64,82.55-4.01,34.04-15.4,63.1-37.28,89.44-6.22,7.49-12.91,13.64-20.68,19.46-22.29,16.69-47.52,24.62-75.5,22.25-14.16-1.19-27.29-5.77-39.35-13.15l-13.71-8.38c-13.83-8.46-30.92-7.46-44.68,1.01l-11.46,7.05c-11.8,7.26-24.58,11.81-38.49,13.27-14.73,1.55-28.98,0-42.96-4.86-20.04-6.98-37.65-19.16-51.7-35.06-17.13-19.39-28.92-42.52-34.89-67.7C.99,147.79.11,122.36,0,97.9-.11,70.83,2.15,32.69,11.47,7.41c.9-2.44,2.45-4.76,4.43-6.31,2.2-1.72,4.98-1.33,6.85.53l10.17,10.11c17.65,17.54,43.67,31.65,67.81,37.59l25.92,6.38c11.56,2.84,22.82,5.05,34.24,8.45s21.24,7.39,31.06,13.15l13.2,7.74c3.09,1.81,6.7,1.43,9.64-.3l11.7-6.89c39.14-23.07,86.77-19.31,131.09-43.89,14.78-8.2,27.34-18.99,38.45-31.59,2.31-2.62,5.85-3.3,8.4-.7,1.75,1.78,3.08,4.21,4.02,6.64,6.56,16.95,9.39,39.21,10.52,57.38ZM167.81,188.66c8.06-1.32,2.56-13.73.53-18.22-7.53-16.65-21.83-28.87-39.33-34.34-12.01-3.75-24.35-4.42-36.93-3.08-8.55.91-16.68,1.21-25.14-.15-2.71-.44-5.41-.79-8.18-.76s-4.47,2.88-4.05,5.33c.34,1.98.81,3.82,1.61,5.62,4.92,11.12,12.47,20.44,22.15,27.8,19.37,14.73,44.52,19.57,68.48,19.37,7.09-.06,13.69-.39,20.86-1.56ZM251.42,188.33c7.65,1.83,14.85,1.8,22.47,1.86,14.01.11,27.5-1.45,40.88-5.53,22.27-6.78,41.44-21.63,49.8-43.79.7-1.86.93-4.08.45-5.94-.98-3.78-7.32-2.8-10.57-2.27-20.49,3.3-28.12-1.55-46.1.1-10.31.95-20.04,3.41-29.17,8.24-15.74,8.33-27.39,22.72-31.38,40.05-.66,2.88.71,6.59,3.62,7.29Z"/></svg>`,
+  webapp: (s,c) => svgIcon('<rect x="3" y="3" width="18" height="18" rx="4" ry="4"/>',s,c),
 };
 
 function activityIcon(cat, size, color, type) {
@@ -2808,7 +2839,8 @@ function _getDateImgsearchName() {
 
 // ── Images popup ──
 let _imagesPopupContainerId = null;
-let _imagesPopupSnapshot = null; // [{value, imgSearchTerm}] captured on open for cancel
+let _imagesPopupSnapshot = null;
+let _imgSearchTermOverrides = {}; // containerId -> user-typed search term override
 window._imgsearchFns = window._imgsearchFns || {};
 
 function _snapshotImgRows(containerId) {
@@ -2858,21 +2890,22 @@ function openImagesPopup(containerId, getNameFn, getItemFn) {
   const _stInput = document.getElementById('img-popup-search-term');
   if (_stInput) {
     const _item = window._imgsPopupGetItemFn ? window._imgsPopupGetItemFn() : null;
+    // Priority: user-typed override > saved item term > idea/date name
+    const _override = _imgSearchTermOverrides[containerId];
     const _savedTerm = _item && _item.imgSearchTerm ? _item.imgSearchTerm : '';
-    _stInput.value = _savedTerm || (getNameFn ? getNameFn() : '');
+    _stInput.value = _override !== undefined ? _override : (_savedTerm || (getNameFn ? getNameFn() : ''));
     _stInput.oninput = () => {
+      // Persist the custom term for this container across popup opens
+      _imgSearchTermOverrides[containerId] = _stInput.value;
       window._imgsPopupPendingSearchTerm = _stInput.value;
       const _itm = window._imgsPopupGetItemFn ? window._imgsPopupGetItemFn() : null;
       if (_itm) {
         _itm.imgSearchTerm = _stInput.value;
-        // Determine which save to call based on container
         if (_imagesPopupContainerId === 'ed-image-fields') { saveDates && saveDates(UPCOMING_DATES); }
         else if (_imagesPopupContainerId === 'idea-image-fields') { saveIdeas && saveIdeas(ideas); }
       }
     };
-    // Init pending term for new items
     window._imgsPopupPendingSearchTerm = _stInput.value;
-    // Update snapshot search term after populating
     _imagesPopupSnapshot.searchTerm = _stInput.value;
   }
 
@@ -3305,9 +3338,18 @@ function _todoTimeStr(timeStr) {
   if (ampm === 'AM' && h === 12) h = 0;
   return `${String(h).padStart(2,'0')}:${min}`;
 }
-function _buildResUrl(name, res, dateStr, timeStr, eventbriteUrl, websiteUrl) {
+function _buildResUrl(name, res, dateStr, timeStr, eventbriteUrl, websiteUrl, opentableUrl, resyUrl) {
   const slug = name.toLowerCase().replace(/[^a-z0-9\s]/g,'').replace(/\s+/g,'-');
   if (res === 'opentable') {
+    if (opentableUrl) {
+      // Use custom URL as base, append date/time params if present
+      let url = /^https?:\/\//i.test(opentableUrl) ? opentableUrl : 'https://' + opentableUrl;
+      if (dateStr || timeStr) {
+        const sep = url.includes('?') ? '&' : '?';
+        if (dateStr) url += sep + 'datetime=' + dateStr + (timeStr ? 'T' + timeStr : '');
+      }
+      return url;
+    }
     let url = `https://www.opentable.com/s?term=${encodeURIComponent(name)}&covers=2`;
     if (dateStr) url += `&dateTime=${dateStr}${timeStr ? 'T'+timeStr : ''}`;
     return url;
@@ -3316,6 +3358,22 @@ function _buildResUrl(name, res, dateStr, timeStr, eventbriteUrl, websiteUrl) {
   if (res === 'website') {
     if (!websiteUrl) return '';
     return /^https?:\/\//i.test(websiteUrl) ? websiteUrl : 'https://' + websiteUrl;
+  }
+  // Resy (default)
+  if (resyUrl) {
+    let url = /^https?:\/\//i.test(resyUrl) ? resyUrl : 'https://' + resyUrl;
+    const sep = url.includes('?') ? '&' : '?';
+    if (dateStr) url += sep + 'date=' + dateStr;
+    if (timeStr) {
+      const _tm = timeStr.match(/(\d+):(\d+)\s*(AM|PM)/i);
+      if (_tm) {
+        let _h = parseInt(_tm[1]); const _m = _tm[2];
+        if (_tm[3].toUpperCase() === 'PM' && _h < 12) _h += 12;
+        if (_tm[3].toUpperCase() === 'AM' && _h === 12) _h = 0;
+        url += (dateStr ? '&' : sep) + 'time=' + String(_h).padStart(2,'0') + ':' + _m;
+      }
+    }
+    return url;
   }
   let url = `https://resy.com/cities/new-york-ny/venues/${slug}?seats=2`;
   if (dateStr) url += `&date=${dateStr}`;
@@ -3383,7 +3441,7 @@ function _todoRow(t, noDivider) {
       const idea = _resolvedIdea;
       const res = idea ? (idea.reservation || 'resy') : 'resy';
       resUrl = _buildResUrl(placeName, res, _todoDateStr(_linkedDate), _todoTimeStr(_linkedDate.time),
-        idea ? idea.eventbriteUrl : '', idea ? idea.websiteUrl : '');
+        idea ? idea.eventbriteUrl : '', idea ? idea.websiteUrl : '', idea ? idea.opentableUrl : '', idea ? idea.resyUrl : '');
     } else if (t.activity && !t.activity.custom) {
       const idea = ideas.find(i => i.id === t.activity.id);
       placeName = idea ? idea.name : (t.activity.name || '');
@@ -3391,7 +3449,7 @@ function _todoRow(t, noDivider) {
       const dateStr = scheduled ? _todoDateStr(scheduled) : new Date().toISOString().split('T')[0];
       const timeStr = scheduled ? _todoTimeStr(scheduled.time) : '19:00';
       const res = idea ? (idea.reservation || 'resy') : 'resy';
-      resUrl = _buildResUrl(placeName, res, dateStr, timeStr, idea ? idea.eventbriteUrl : '', idea ? idea.websiteUrl : '');
+      resUrl = _buildResUrl(placeName, res, dateStr, timeStr, idea ? idea.eventbriteUrl : '', idea ? idea.websiteUrl : '', idea ? idea.opentableUrl : '', idea ? idea.resyUrl : '');
     } else if (t.activity && t.activity.custom && t.customPlace) {
       placeName = t.customPlace;
       resUrl = _buildResUrl(placeName, 'resy', new Date().toISOString().split('T')[0], '19:00', '');
@@ -4069,7 +4127,7 @@ function _buildUpcomingCardHtml(u, extraStyle, directOpen) {
   if (_calIdea && _calIdea.reservation && _calIdea.reservation !== 'none') {
     _calDk = _dateKey(u);
     if (!_reservedDateKeys.has(_calDk)) {
-      const _calResUrl = _buildResUrl(u.venue, _calIdea.reservation, _todoDateStr(u), _todoTimeStr(u.time), _calIdea.eventbriteUrl, _calIdea.websiteUrl);
+      const _calResUrl = _buildResUrl(u.venue, _calIdea.reservation, _todoDateStr(u), _todoTimeStr(u.time), _calIdea.eventbriteUrl, _calIdea.websiteUrl, _calIdea.opentableUrl, _calIdea.resyUrl);
       if (_calIdea.reservation !== 'website' || _calResUrl) {
         const _calLabel = (_calIdea.reservation === 'resy' || _calIdea.reservation === 'opentable') ? 'Reserve' : 'Tickets';
         _calResBtn = `<button class="cal-res-btn" style="border:1.5px solid ${ROSE};color:${ROSE}" onclick="event.stopPropagation();openReserveLinkFromCal('${_calResUrl.replace(/'/g,"\'")}','${_calDk}')">${_calLabel}</button>`;
@@ -4508,7 +4566,7 @@ function renderCatalog(type) { return renderIdeas(); }
 let _editingMemory = null;
 
 function renderPastDates() {
-  const memories = _computeMemories();
+  const memories = _computeMemories().filter(d => !_isDateHiddenPrivate(d));
   const BROWN = '#9a8a7a';
   if (memories.length === 0) {
     return `<div style="position:fixed;top:calc(50% - 60px);left:50%;transform:translateX(-50%);text-align:center;color:#b0a090;font-size:15px;font-style:italic;pointer-events:none;width:80%;z-index:1">No past dates.</div>`;
@@ -4741,7 +4799,7 @@ function renderCalendar() {
       ${upcomingHTML}
     </div>
     ${(() => {
-      const past3 = _computeMemories().slice(0, 3);
+      const past3 = _computeMemories().filter(d => !_isDateHiddenPrivate(d)).slice(0, 3);
       if (past3.length === 0) return '';
       const BROWN = '#9a8a7a';
       const rows = past3.map(d => {
@@ -5036,9 +5094,19 @@ function _scrollDateCards(animate) {
       else {
         scroll.scrollLeft = end;
         requestAnimationFrame(() => { scroll.style.scrollSnapType = 'x mandatory'; });
-        // Animate week strip to correct page
+        // Animate week strip only if date is within the 4-week window
         const ws = document.getElementById('week-strip');
-        if (ws) { _weekStripAnimate = true; ws.outerHTML = renderWeekStrip(); setTimeout(_initWeekStrip, 0); }
+        if (ws) {
+          const _fd = FUTURE_DATES[dateIdx];
+          const _inRange = _fd && (() => {
+            const today = new Date(); today.setHours(0,0,0,0);
+            const sun = new Date(today); sun.setDate(today.getDate() - today.getDay());
+            const end4 = new Date(sun); end4.setDate(sun.getDate() + 28);
+            const dt = new Date((_fd._ref.year||new Date().getFullYear()), MONTH_NUMS[_fd._ref.month]||0, _fd._ref.day);
+            return dt >= sun && dt < end4;
+          })();
+          if (_inRange) { _weekStripAnimate = true; ws.outerHTML = renderWeekStrip(); setTimeout(_initWeekStrip, 0); }
+        }
       }
     }
     requestAnimationFrame(step);
@@ -5083,12 +5151,22 @@ function _initDateCardsScroll() {
       if (newIdx !== dateIdx && newIdx >= 0 && newIdx < FUTURE_DATES.length) {
         dateIdx = newIdx;
         _updateDateCardsUI();
-        // Re-render week strip in place without full page re-render
+        // Re-render week strip only if the new date is within the 4-week window
         const ws = document.getElementById('week-strip');
         if (ws) {
-          _weekStripAnimate = true;
-          ws.outerHTML = renderWeekStrip();
-          setTimeout(_initWeekStrip, 0);
+          const _fd = FUTURE_DATES[dateIdx];
+          const _inRange = _fd && (() => {
+            const today = new Date(); today.setHours(0,0,0,0);
+            const sun = new Date(today); sun.setDate(today.getDate() - today.getDay());
+            const end4 = new Date(sun); end4.setDate(sun.getDate() + 28);
+            const dt = new Date((_fd._ref.year||new Date().getFullYear()), MONTH_NUMS[_fd._ref.month]||0, _fd._ref.day);
+            return dt >= sun && dt < end4;
+          })();
+          if (_inRange) {
+            _weekStripAnimate = true;
+            ws.outerHTML = renderWeekStrip();
+            setTimeout(_initWeekStrip, 0);
+          }
         }
       }
     }, 80);
@@ -5568,6 +5646,8 @@ function openSheet(type) {
     ideaType = type || 'out';
     selectedCategory = catMemory[ideaType];
     _ideaCustomIconKey = null;
+    _webappIconKey = 'webapp';
+    setTimeout(() => _renderWebappIconBtn('idea-webapp-icon-btn', _webappIconKey), 0);
     document.getElementById('idea-name').value = '';
   _populateImgContainer('idea-image-fields', []);
   _wireImgIconBtn('idea-img-icon-btn', () => (document.getElementById('idea-name')||{value:''}).value.trim());
@@ -5583,6 +5663,11 @@ function openSheet(type) {
   renderSheetUI();
   document.getElementById('idea-sheet').style.display = 'flex';
   sheetOpen = true;
+  // Scroll to top for New Idea
+  if (type !== 'date') {
+    const _sb = document.getElementById('idea-sheet-body');
+    if (_sb) _sb.scrollTop = 0;
+  }
   document.getElementById('btn-new-circle').style.background = '#a05268';
   document.getElementById('btn-new-icon-plus').style.display = 'none';
   document.getElementById('btn-new-icon-check').style.display = 'block';
@@ -5841,8 +5926,10 @@ function onIdeaReservationChange(manual) {
   const v = el.value;
   document.getElementById('idea-website-wrap').style.display = v === 'website' ? 'block' : 'none';
   document.getElementById('idea-eventbrite-wrap').style.display = v === 'eventbrite' ? 'block' : 'none';
-  if (manual && (v === 'website' || v === 'eventbrite')) {
-    const inputId = v === 'website' ? 'idea-website-url' : 'idea-eventbrite-url';
+  document.getElementById('idea-opentable-wrap').style.display = v === 'opentable' ? 'block' : 'none';
+  document.getElementById('idea-resy-wrap').style.display = v === 'resy' ? 'block' : 'none';
+  if (manual && (v === 'website' || v === 'eventbrite' || v === 'opentable' || v === 'resy')) {
+    const inputId = v === 'website' ? 'idea-website-url' : v === 'eventbrite' ? 'idea-eventbrite-url' : v === 'opentable' ? 'idea-opentable-url' : 'idea-resy-url';
     const inp = document.getElementById(inputId);
     const scrollEl = document.getElementById('idea-sheet-body');
     setTimeout(() => {
@@ -6055,8 +6142,12 @@ function onReservationChange(manual) {
   if (webWrap) webWrap.style.display = res === 'website' ? 'block' : 'none';
   const wrap = document.getElementById('pf-eventbrite-wrap');
   if (wrap) wrap.style.display = res === 'eventbrite' ? 'block' : 'none';
-  if (manual && (res === 'website' || res === 'eventbrite')) {
-    const inputId = res === 'website' ? 'pf-website-url' : 'pf-eventbrite-url';
+  const otWrap = document.getElementById('pf-opentable-wrap');
+  if (otWrap) otWrap.style.display = res === 'opentable' ? 'block' : 'none';
+  const resyWrap = document.getElementById('pf-resy-wrap');
+  if (resyWrap) resyWrap.style.display = res === 'resy' ? 'block' : 'none';
+  if (manual && (res === 'website' || res === 'eventbrite' || res === 'opentable' || res === 'resy')) {
+    const inputId = res === 'website' ? 'pf-website-url' : res === 'eventbrite' ? 'pf-eventbrite-url' : res === 'opentable' ? 'pf-opentable-url' : 'pf-resy-url';
     const inp = document.getElementById(inputId);
     const scrollEl = document.getElementById('places-form-body');
     setTimeout(() => {
@@ -6090,12 +6181,18 @@ function openReservationLink() {
   if (!name) return;
   const res = (document.getElementById('pf-reservation')||{}).value;
   const date = new Date().toISOString().split('T')[0];
-  const slug = name.toLowerCase().replace(/[^a-z0-9\s]/g,'').replace(/\s+/g,'-');
-  const q = encodeURIComponent(name+' New York City');
-  if (res==='opentable') _openExternal(`https://www.opentable.com/s?term=${encodeURIComponent(name)}&covers=2&dateTime=${date}T19:00`);
-  else if (res==='eventbrite') { const url=(document.getElementById('pf-eventbrite-url')||{}).value||''; _openExternal(url||`https://www.google.com/search?q=${encodeURIComponent(name+' eventbrite')}`); }
-  else if (res==='website') _openExternal(`https://www.google.com/search?q=${encodeURIComponent(name)}`);
-  else _openExternal(`https://resy.com/cities/new-york-ny/venues/${slug}?query=${q}&date=${date}&seats=2`);
+  const otUrl = (document.getElementById('pf-opentable-url')||{}).value?.trim() || '';
+  const rsUrl = (document.getElementById('pf-resy-url')||{}).value?.trim() || '';
+  const resUrl = _buildResUrl(name, res, date, '19:00',
+    (document.getElementById('pf-eventbrite-url')||{}).value?.trim() || '',
+    (document.getElementById('pf-website-url')||{}).value?.trim() || '',
+    otUrl, rsUrl);
+  if (resUrl) _openExternal(resUrl);
+  else {
+    const slug = name.toLowerCase().replace(/[^a-z0-9\s]/g,'').replace(/\s+/g,'-');
+    const q = encodeURIComponent(name+' New York City');
+    _openExternal(`https://resy.com/cities/new-york-ny/venues/${slug}?query=${q}&date=${date}&seats=2`);
+  }
 }
 
 function saveNewIdea() {
@@ -6125,31 +6222,39 @@ function saveNewIdea() {
   const reservation = (isOut && resEl) ? resEl.value : '';
   const eventbriteUrl = (isOut && reservation === 'eventbrite') ? document.getElementById('idea-eventbrite-url').value.trim() : '';
   const websiteUrl = (isOut && reservation === 'website') ? document.getElementById('idea-website-url').value.trim() : '';
+  const opentableUrl = (isOut && reservation === 'opentable') ? document.getElementById('idea-opentable-url').value.trim() : '';
+  const resyUrl = (isOut && reservation === 'resy') ? document.getElementById('idea-resy-url').value.trim() : '';
   const note = isOut
     ? document.getElementById('idea-note-short').value.trim()
     : '';
+  const webappUrl = !isOut ? (document.getElementById('idea-webapp-url')||{value:''}).value.trim() : '';
+  const webappLabel = !isOut ? (document.getElementById('idea-webapp-label')||{value:''}).value.trim() : '';
+  const webappIconKey = (!isOut && _webappIconKey !== 'webapp') ? _webappIconKey : undefined;
 
   const isPrivate = !!_ideaIsPrivate;
   if (window._editingIdeaId) {
     const item = ideas.find(i=>i.id===window._editingIdeaId);
     const _editImgUrls = collectNewIdeaImageUrls();
-    if (item) Object.assign(item, { name, address, neighborhood, cuisine, shortdesc, showType, subwayRoute: subway, walkDriveTime: walkdrive, about, reservation, eventbriteUrl, websiteUrl, note, category: selectedCategory, saved: window._ideaSaved, imageUrls: _editImgUrls, isPrivate, customIconKey });
+    if (item) Object.assign(item, { name, address, neighborhood, cuisine, shortdesc, showType, subwayRoute: subway, walkDriveTime: walkdrive, about, reservation, eventbriteUrl, websiteUrl, opentableUrl, resyUrl, webappUrl, webappLabel, webappIconKey, note, category: selectedCategory, saved: window._ideaSaved, imageUrls: _editImgUrls, isPrivate, customIconKey });
     window._editingIdeaId = null;
   } else {
     const _newImgUrls = collectNewIdeaImageUrls();
-    ideas.unshift({ id: Date.now(), type: ideaType, category: selectedCategory, name, address, neighborhood, cuisine, shortdesc, showType, subwayRoute: subway, walkDriveTime: walkdrive, about, reservation, eventbriteUrl, websiteUrl, note, saved: !!window._ideaSaved, imageUrls: _newImgUrls, isPrivate, customIconKey, imgSearchTerm: window._imgsPopupPendingSearchTerm || undefined });
+    ideas.unshift({ id: Date.now(), type: ideaType, category: selectedCategory, name, address, neighborhood, cuisine, shortdesc, showType, subwayRoute: subway, walkDriveTime: walkdrive, about, reservation, eventbriteUrl, websiteUrl, opentableUrl, resyUrl, webappUrl, webappLabel, webappIconKey, note, saved: !!window._ideaSaved, imageUrls: _newImgUrls, isPrivate, customIconKey, imgSearchTerm: window._imgsPopupPendingSearchTerm || undefined });
   }
   saveIdeas(ideas);
   if (!window._editingIdeaId) {
     // Reset form for next entry
-    ['idea-name','idea-address','idea-neighborhood','idea-cuisine','idea-shortdesc','idea-subway','idea-walkdrive','idea-about','idea-note-short','idea-in-shortdesc','idea-note-long'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+    ['idea-name','idea-address','idea-neighborhood','idea-cuisine','idea-shortdesc','idea-subway','idea-walkdrive','idea-about','idea-note-short','idea-in-shortdesc','idea-note-long','idea-website-url','idea-eventbrite-url','idea-opentable-url','idea-resy-url','idea-webapp-url','idea-webapp-label'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
     const catSel = document.getElementById('idea-cat-select'); if (catSel) catSel.value = 'restaurant';
     const catSelIn = document.getElementById('idea-cat-select-in'); if (catSelIn) catSelIn.value = 'restaurant';
     window._ideaSaved = false; renderIdeaHeartBtn();
     window._ideaIsPrivate = false; _renderLockBtn('idea-lock-btn', false);
     _ideaCustomIconKey = null;
+    _webappIconKey = 'webapp';
+    _renderWebappIconBtn('idea-webapp-icon-btn', 'webapp');
     _newImgUrls = []; _editImgUrls = [];
     populateIdeaImageFields([]);
+    delete _imgSearchTermOverrides['idea-image-fields'];
     selectedCategory = 'restaurant';
     onIdeaCatSelectChange();
   }
@@ -6773,8 +6878,15 @@ function openDetail(id, navContext) {
     const _ideaTimeStr = _ideaUpcoming ? _todoTimeStr(_ideaUpcoming.time) : '';
 
     let leftBtn = '';
-    if (hasReservation) {
-      const resUrl = _buildResUrl(item.name, item.reservation, _ideaDateStr, _ideaTimeStr, item.eventbriteUrl, item.websiteUrl);
+    // Webapp button for In ideas
+    if (item.type === 'in' && item.webappUrl) {
+      const _waUrl = /^https?:\/\//i.test(item.webappUrl) ? item.webappUrl : 'https://' + item.webappUrl;
+      const _waIconKey = item.webappIconKey || 'webapp';
+      const _waIconSvg = ICONS[_waIconKey] ? ICONS[_waIconKey](14, '#c07a8a') : ICONS.webapp(14, '#c07a8a');
+      const _waLabel = item.webappLabel ? `<span>${item.webappLabel}</span>` : '';
+      leftBtn = `<button onclick="_openExternal('${_waUrl.replace(/'/g,"\\'")}') " style="display:flex;align-items:center;gap:7px;height:34px;padding:0 16px;border:1.5px solid #c07a8a;border-radius:17px;font-family:sans-serif;font-size:13px;font-weight:600;color:#c07a8a;background:none;cursor:pointer;line-height:1">${_waIconSvg}${_waLabel}</button>`;
+    } else if (hasReservation) {
+      const resUrl = _buildResUrl(item.name, item.reservation, _ideaDateStr, _ideaTimeStr, item.eventbriteUrl, item.websiteUrl, item.opentableUrl, item.resyUrl);
       const isWebsite = item.reservation === 'website';
       if (isWebsite && !resUrl) {
         // website with no URL — no button
@@ -7330,10 +7442,17 @@ function openDateInfo(u, memoryMode) {
   const calIconDi = `<svg viewBox="0 0 24 24" width="14" height="14" stroke="white" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="display:block;flex-shrink:0;vertical-align:middle;position:relative;top:-1px"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>`;
 
   let leftBtnDi = '';
-  if (hasRes) {
+  // Webapp button for In ideas
+  if (matchedIdea && matchedIdea.type === 'in' && matchedIdea.webappUrl) {
+    const _waUrl = /^https?:\/\//i.test(matchedIdea.webappUrl) ? matchedIdea.webappUrl : 'https://' + matchedIdea.webappUrl;
+    const _waIconKey = matchedIdea.webappIconKey || 'webapp';
+    const _waIconSvg = ICONS[_waIconKey] ? ICONS[_waIconKey](14, '#fff') : ICONS.webapp(14, '#fff');
+    const _waLabel = matchedIdea.webappLabel ? `<span>${matchedIdea.webappLabel}</span>` : '';
+    leftBtnDi = `<button onclick="_openExternal('${_waUrl.replace(/'/g,"\\'")}') " style="display:flex;align-items:center;gap:7px;height:34px;padding:0 16px;border:none;border-radius:17px;font-family:sans-serif;font-size:13px;font-weight:600;color:#fff;background:#c07a8a;cursor:pointer;line-height:1">${_waIconSvg}${_waLabel}</button>`;
+  } else if (hasRes) {
     const resDateParam = (u.day && u.month) ? _todoDateStr(u) : '';
     const resTimeParam = u.time ? _todoTimeStr(u.time) : '';
-    const resUrl2 = _buildResUrl(u.venue, matchedIdea.reservation, resDateParam, resTimeParam, matchedIdea.eventbriteUrl, matchedIdea.websiteUrl);
+    const resUrl2 = _buildResUrl(u.venue, matchedIdea.reservation, resDateParam, resTimeParam, matchedIdea.eventbriteUrl, matchedIdea.websiteUrl, matchedIdea.opentableUrl, matchedIdea.resyUrl);
     if (matchedIdea.reservation !== 'website' || resUrl2) {
       const _dk = _dateKey(u);
       const _alreadyReserved = _reservedDateKeys.has(_dk);
@@ -7746,12 +7865,31 @@ function populateEditModal(item) {
   document.getElementById('pf-subway').value = item.subwayRoute || '';
   document.getElementById('pf-walkdrive').value = item.walkDriveTime || '';
   document.getElementById('pf-about').value = item.about || '';
+  // Webapp fields (In only)
+  const pfWaLabel = document.getElementById('pf-webapp-label');
+  if (pfWaLabel) pfWaLabel.value = item.webappLabel || '';
+  const pfWaUrl = document.getElementById('pf-webapp-url');
+  if (pfWaUrl) pfWaUrl.value = item.webappUrl || '';
+  _pfWebappIconKey = item.webappIconKey || 'webapp';
+  _renderWebappIconBtn('pf-webapp-icon-btn', _pfWebappIconKey);
+  const pfWaLabelWrap = document.getElementById('pf-webapp-label-wrap');
+  const pfWaUrlWrap = document.getElementById('pf-webapp-url-wrap');
+  if (pfWaLabelWrap) pfWaLabelWrap.style.display = isOut ? 'none' : 'flex';
+  if (pfWaUrlWrap) pfWaUrlWrap.style.display = isOut ? 'none' : 'flex';
   document.getElementById('pf-reservation').value = item.reservation || 'resy';
   document.getElementById('pf-eventbrite-url').value = item.eventbriteUrl || '';
   const pfWebUrl = document.getElementById('pf-website-url');
   if (pfWebUrl) { pfWebUrl.value = item.websiteUrl || ''; }
   const pfWebWrap = document.getElementById('pf-website-wrap');
   if (pfWebWrap) pfWebWrap.style.display = (item.reservation === 'website') ? 'block' : 'none';
+  const pfOtUrl = document.getElementById('pf-opentable-url');
+  if (pfOtUrl) pfOtUrl.value = item.opentableUrl || '';
+  const pfOtWrap = document.getElementById('pf-opentable-wrap');
+  if (pfOtWrap) pfOtWrap.style.display = (item.reservation === 'opentable') ? 'block' : 'none';
+  const pfResyUrl = document.getElementById('pf-resy-url');
+  if (pfResyUrl) pfResyUrl.value = item.resyUrl || '';
+  const pfResyWrap = document.getElementById('pf-resy-wrap');
+  if (pfResyWrap) pfResyWrap.style.display = (item.reservation === 'resy') ? 'block' : 'none';
 
   // Show/hide Out-only fields
   if (document.getElementById('pf-shortdesc')) document.getElementById('pf-shortdesc').value = item.shortdesc || '';
@@ -7863,6 +8001,8 @@ function savePlace() {
     item.reservation  = document.getElementById('pf-reservation').value;
     item.eventbriteUrl= document.getElementById('pf-eventbrite-url').value.trim();
     item.websiteUrl   = item.reservation === 'website' ? (document.getElementById('pf-website-url')||{value:''}).value.trim() : '';
+    item.opentableUrl = item.reservation === 'opentable' ? (document.getElementById('pf-opentable-url')||{value:''}).value.trim() : '';
+    item.resyUrl      = item.reservation === 'resy' ? (document.getElementById('pf-resy-url')||{value:''}).value.trim() : '';
 
     // Sync address/name/neighborhood change to any UPCOMING_DATES referencing this idea
     if (addrChanged || item.name !== oldName) {
@@ -7878,6 +8018,12 @@ function savePlace() {
   }
   item.isPrivate = !!_pfIsPrivate;
   item.imageUrls = collectPfImageUrls();
+  // Webapp fields
+  if (item.type === 'in') {
+    item.webappUrl   = (document.getElementById('pf-webapp-url')||{value:''}).value.trim();
+    item.webappLabel = (document.getElementById('pf-webapp-label')||{value:''}).value.trim();
+    item.webappIconKey = (_pfWebappIconKey && _pfWebappIconKey !== 'webapp') ? _pfWebappIconKey : undefined;
+  }
   saveIdeas(ideas);
   const savedId = id;
   const fromEditDate = !!window._editIdeaFromEditDate;
@@ -8122,6 +8268,16 @@ let _ideaIconMode = false; // true when icon picker opened from Edit Idea
 let _pfCustomIconKey = null; // temp custom icon key while editing an idea (Edit Idea modal)
 let _ideaCustomIconKey = null; // temp custom icon key for New Idea sheet
 let _ideaIconNewMode = false; // true when icon picker opened from New Idea sheet
+let _webappIconKey = 'webapp'; // icon key for New Idea webapp icon
+let _pfWebappIconKey = 'webapp'; // icon key for Edit Idea webapp icon
+let _webappIconPickerMode = null; // 'new' | 'edit' — tracks which popup opened icon picker
+
+function _renderWebappIconBtn(btnId, iconKey) {
+  const btn = document.getElementById(btnId);
+  if (!btn) return;
+  const k = iconKey || 'webapp';
+  btn.innerHTML = ICONS[k] ? ICONS[k](18, '#9a8a7a') : ICONS.webapp(18, '#9a8a7a');
+}
 
 function openEditCategories(startType) {
   _ecOut = OUT_CATS.map(c => ({...c}));
@@ -8397,7 +8553,38 @@ function closeIconPicker(save) {
   _ecIconIdx = null;
   _ideaIconMode = false;
   _ideaIconNewMode = false;
+  if (save && _webappIconPickerMode === 'new') {
+    _webappIconKey = _ecIconSelected || 'webapp';
+    _renderWebappIconBtn('idea-webapp-icon-btn', _webappIconKey);
+  } else if (save && _webappIconPickerMode === 'edit') {
+    _pfWebappIconKey = _ecIconSelected || 'webapp';
+    _renderWebappIconBtn('pf-webapp-icon-btn', _pfWebappIconKey);
+  }
+  _webappIconPickerMode = null;
 }
+function _openWebappIconPicker(mode, currentKey) {
+  _webappIconPickerMode = mode;
+  _ecIconIdx = null; _ideaIconMode = false; _ideaIconNewMode = false;
+  _ecIconSelected = currentKey || 'webapp';
+  _ecIconPrev = _ecIconSelected;
+  const grid = document.getElementById('iconpicker-grid');
+  if (!grid) return;
+  const _dm = document.body.classList.contains('dark-mode');
+  const _selC = _dm ? ROSE : BURGUNDY;
+  grid.innerHTML = ALL_ICON_KEYS.map(key => {
+    const sel = key === _ecIconSelected;
+    const iconColor = sel ? _selC : '#b0a090';
+    const bg = sel ? (_dm ? 'rgba(192,122,138,0.12)' : 'rgba(139,58,82,0.08)') : 'transparent';
+    const border = sel ? _selC : 'transparent';
+    return `<button onclick="_ecSelectIcon('${key}')" id="iconpicker-btn-${key}"
+      style="display:flex;align-items:center;justify-content:center;aspect-ratio:1;background:${bg};border:2px solid ${border};border-radius:10px;cursor:pointer;padding:7px">
+      ${ICONS[key] ? ICONS[key](22, iconColor) : ''}
+    </button>`;
+  }).join('');
+  document.getElementById('iconpicker-overlay').style.display = 'flex';
+}
+function openNewIdeaWebappIconPicker() { _openWebappIconPicker('new', _webappIconKey); }
+function openIdeaWebappIconPicker() { _openWebappIconPicker('edit', _pfWebappIconKey); }
 function openNewIdeaIconPicker() {
   // Icon picker for the New Idea sheet (both Out and In)
   const defaultKey = _ideaDefaultIconKey(selectedCategory);
