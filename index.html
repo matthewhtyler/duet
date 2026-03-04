@@ -355,6 +355,7 @@
   }
   #date-cards-scroll::-webkit-scrollbar { display: none; }
   #cal-day-cards-scroll::-webkit-scrollbar { display: none; }
+  #home-dates-carousel::-webkit-scrollbar { display: none; }
   #date-cards-inner { display: flex; width: max-content; font-size: 0; }
   .date-card-slide {
     flex-shrink: 0; scroll-snap-align: start; scroll-snap-stop: always;
@@ -1284,7 +1285,7 @@
         Appearance
       </div>
       <div style="display:flex;align-items:center;gap:16px;margin-top:6px;margin-bottom:46px;justify-content:space-between">
-        <div style="display:flex;gap:16px">
+        <div style="display:flex;gap:16px;align-items:center">
           <label onclick="setAppearance('light')" style="display:flex;align-items:center;gap:8px;cursor:pointer;font-family:sans-serif;font-size:14px;color:var(--text-primary)">
             <span id="radio-light" onclick="setAppearance('light')" style="width:18px;height:18px;border-radius:50%;border:2px solid #c07a8a;background:#c07a8a;display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer">
               <span style="width:6px;height:6px;border-radius:50%;background:#fff;display:block"></span>
@@ -1297,8 +1298,12 @@
             </span>
             Dark
           </label>
+          <select id="settings-home-layout" class="field-input" style="width:auto;padding:6px 10px;font-size:13px;margin-bottom:0">
+            <option value="full">Full</option>
+            <option value="compact">Compact</option>
+          </select>
         </div>
-        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;margin-right:15px">
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;margin-right:15px;flex-shrink:0;white-space:nowrap">
           <input type="checkbox" id="settings-hide-private" class="showtype-check">
           <span style="font-size:14px;font-family:sans-serif;color:var(--text-primary)">Safe mode</span>
         </label>
@@ -1913,8 +1918,11 @@ let ideaType = 'out';
 let ideasFilter = 'all';
 let ideasSearch = '';
 let _favScrollIdx = 0;
+let _homeCarouselIdx = 0;
 let selectedCategory = 'restaurant';
 let selectedCalDay = null;
+let _calBannerIdx = 0; // index within _selDayVisible for the Full banner card
+let _calInfoPanelIdx = 0; // which swipeable info panel is active
 let currentCalMonth = new Date().getMonth();
 let currentCalYear = new Date().getFullYear();
 let dateIdx = 0;
@@ -2091,6 +2099,7 @@ function saveSettings(obj) {
 }
 let appSettings = loadSettings();
 let homeAddress = appSettings.homeAddress || '';
+let homeLayout  = appSettings.homeLayout  || 'full';
 let partnerAddress = appSettings.partnerAddress || '';
 let partnerPronouns = appSettings.partnerPronouns || 'she/her';
 let partnerPronounsCustom = appSettings.partnerPronounsCustom || '';
@@ -2249,10 +2258,10 @@ function render() {
   renderNav();
   // Initialize scroll positions after DOM update
   if (currentView === 'home') {
-    setTimeout(() => { _initDateCardsScroll(); _initWeekStrip(); }, 0);
+    setTimeout(() => { _initDateCardsScroll(); _initWeekStrip(); _initHomeCarousel(); }, 0);
   }
   if (currentView === 'calendar') {
-    setTimeout(() => { _initCalSwipe(); _initCalDayCards(); }, 0);
+    setTimeout(() => { _initCalSwipe(); _initCalDayCards(); _initCalInfoScroll(); }, 0);
   }
 }
 
@@ -3060,6 +3069,53 @@ function _getMemoryImageUrls(d) {
 
 
 
+// ── Banner card: image-top card used in home carousel and calendar selected-date view ──
+// opts: { onClickExpr, hasPrev, hasNext, onPrev, onNext, noArrows }
+function _buildBannerCard(u, opts) {
+  opts = opts || {};
+  const idea = u.ideaId
+    ? ideas.find(i => i.id === u.ideaId)
+    : ideas.find(i => i.name && u.venue && i.name.toLowerCase() === u.venue.toLowerCase());
+  const urls = (u.imageUrls && u.imageUrls.filter(Boolean).length)
+    ? u.imageUrls.filter(Boolean)
+    : (idea ? (idea.imageUrls || []).filter(Boolean) : []);
+  const timePart = u.time ? _shortTime(u.time) : '';
+  const subNote = _dateCardSubNote(u);
+  const subLine = [timePart, subNote].filter(Boolean).join(' · ');
+  const accent = idea ? accentColor(idea.type || 'out') : ROSE;
+  const month = u.month || '';
+  const day = u.day || '';
+  const dateBadge = `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;width:40px">
+    <span style="font-size:10px;font-family:sans-serif;font-weight:600;color:#b0a090;letter-spacing:0.06em;text-transform:uppercase">${month}</span>
+    <span style="font-size:22px;font-weight:700;color:var(--text-primary);line-height:1.1">${day}</span>
+  </div>
+  <div style="width:1px;height:32px;background:var(--border);flex-shrink:0"></div>`;
+  const chevStyle = 'background:none;border:none;cursor:pointer;padding:2px;display:flex;flex-shrink:0;line-height:0';
+  const navArrows = (!opts.noArrows && (opts.onPrev || opts.onNext)) ? `<div style="display:flex;gap:0;flex-shrink:0;align-items:center">
+    <button onclick="event.stopPropagation();${opts.onPrev||''}" style="${chevStyle};opacity:${opts.hasPrev?1:0.25}">
+      <svg viewBox="0 0 24 24" width="15" height="15" stroke="#b0a090" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+    <button onclick="event.stopPropagation();${opts.onNext||''}" style="${chevStyle};opacity:${opts.hasNext?1:0.25}">
+      <svg viewBox="0 0 24 24" width="15" height="15" stroke="#b0a090" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+    </button>
+  </div>` : '';
+  const clickExpr = opts.onClickExpr || '';
+  return `<div ${clickExpr ? `onclick="${clickExpr}"` : ''} class="quick-row" style="cursor:pointer;flex-direction:column;align-items:stretch;padding:0;overflow:hidden;width:100%">
+    <div style="height:100px;background:#6b2340;border-radius:13px 13px 0 0;flex-shrink:0;overflow:hidden;position:relative">${urls.length ? `<img src="${urls[0]}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center;display:block" onerror="this.parentNode.style.background='#6b2340';this.style.display='none'">` : ''}</div>
+    <div style="display:flex;align-items:center;gap:12px;padding:0 14px 12px">
+      ${dateBadge}
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;align-items:center;gap:7px;margin-bottom:${subLine?'3px':'0'}">
+          ${ideaIcon(idea, 14, accent)}
+          <div class="quick-row-name" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${u.venue||''}</div>
+        </div>
+        ${subLine ? `<div class="quick-row-sub" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${subLine}</div>` : ''}
+      </div>
+      ${navArrows}
+    </div>
+  </div>`;
+}
+
 function ideaMatchesSearch(item, q) {
   if (!q) return true;
   const s = q.toLowerCase();
@@ -3300,6 +3356,51 @@ function scrollFavs(dir) {
   if (!scroll) return;
   const cards = scroll.children;
   if (cards[_favScrollIdx]) cards[_favScrollIdx].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function scrollHomeCarousel(dir) {
+  const scroll = document.getElementById('home-dates-carousel');
+  if (!scroll) return;
+  const total = scroll.children.length;
+  _homeCarouselIdx = Math.max(0, Math.min(total - 1, _homeCarouselIdx + dir));
+  const cards = scroll.children;
+  if (cards[_homeCarouselIdx]) cards[_homeCarouselIdx].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  // Sync dateIdx and week strip
+  if (dateIdx !== _homeCarouselIdx) {
+    dateIdx = _homeCarouselIdx;
+    const ws = document.getElementById('week-strip');
+    if (ws) { _weekStripAnimate = true; ws.outerHTML = renderWeekStrip(); setTimeout(_initWeekStrip, 0); }
+  }
+}
+
+function _initHomeCarousel() {
+  const scroll = document.getElementById('home-dates-carousel');
+  if (!scroll || scroll._carouselScrollHandler) return;
+  let _scrollTimer = null;
+  scroll._carouselScrollHandler = function() {
+    if (_scrollTimer) clearTimeout(_scrollTimer);
+    _scrollTimer = setTimeout(() => {
+      const w = scroll.clientWidth + 10; // card width + gap
+      const newIdx = Math.round(scroll.scrollLeft / w);
+      if (newIdx !== _homeCarouselIdx && newIdx >= 0 && newIdx < scroll.children.length) {
+        _homeCarouselIdx = newIdx;
+        if (dateIdx !== _homeCarouselIdx) {
+          dateIdx = _homeCarouselIdx;
+          const _fd = FUTURE_DATES[dateIdx];
+          const today = new Date(); today.setHours(0,0,0,0);
+          const sun = new Date(today); sun.setDate(today.getDate() - today.getDay());
+          const end4 = new Date(sun); end4.setDate(sun.getDate() + 28);
+          const inRange = _fd && (() => {
+            const dt = new Date((_fd._ref||_fd).year||new Date().getFullYear(), MONTH_NUMS[(_fd._ref||_fd).month]||0, (_fd._ref||_fd).day);
+            return dt >= sun && dt < end4;
+          })();
+          const ws = document.getElementById('week-strip');
+          if (ws && inRange) { _weekStripAnimate = true; ws.outerHTML = renderWeekStrip(); setTimeout(_initWeekStrip, 0); }
+        }
+      }
+    }, 80);
+  };
+  scroll.addEventListener('scroll', scroll._carouselScrollHandler, { passive: true });
 }
 
 function clearIdeasSearch() {
@@ -3580,7 +3681,7 @@ function _scheduleTodoDelete(id) {
         if (main) { main.innerHTML = renderTodo(); todos.filter(t=>t.done).forEach(t=>_scheduleTodoDelete(t.id)); }
       } else if (currentView === 'home') {
         const main = document.getElementById('main-content');
-        if (main) { main.innerHTML = renderHome(); setTimeout(_initWeekStrip, 0); }
+        if (main) { main.innerHTML = renderHome(); setTimeout(() => { _initWeekStrip(); _initHomeCarousel(); }, 0); }
       }
     }
   }, 5000);
@@ -4159,33 +4260,66 @@ function renderHome() {
   const savedIdeas = ideas.filter(i => !i.archived && !_isHiddenPrivate(i)).slice(0, 5);
 
   const visibleDates = FUTURE_DATES.filter(fd => !_isDateHiddenPrivate(fd._ref || fd));
-  const dateBubbleHTML = visibleDates.length > 0 ? `
-  <div id="date-cards-outer">
-    <div id="date-cards-scroll">
-      <div id="date-cards-inner">
-        ${visibleDates.map((fd, i) => _buildDateCardHtml(fd, i)).join('')}
+
+  // ── Upcoming dates carousel (above the date bubble) ──
+  let homeCarouselHtml = '';
+  if (visibleDates.length > 0) {
+    const cards = visibleDates.map((fd, idx) => {
+      const u = fd._ref || fd;
+      const hasPrev = idx > 0;
+      const hasNext = idx < visibleDates.length - 1;
+      const card = _buildBannerCard(u, {
+        onClickExpr: `openDateInfo(FUTURE_DATES[${idx}]?._ref || FUTURE_DATES[${idx}])`,
+        hasPrev, hasNext,
+        onPrev: 'scrollHomeCarousel(-1)',
+        onNext: 'scrollHomeCarousel(1)'
+      });
+      return `<div style="flex-shrink:0;width:calc(100vw - 40px);max-width:362px;scroll-snap-align:start">${card}</div>`;
+    }).join('');
+    homeCarouselHtml = `<div style="padding:22px 20px 0">
+      <div id="home-dates-carousel" style="display:flex;flex-direction:row;gap:10px;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch">
+        ${cards}
       </div>
-    </div>
-    <div id="date-cards-arrows">
-      <button id="date-btn-prev" onclick="event.stopPropagation();prevDate()">
-        <svg viewBox="0 0 24 24" width="16" height="16" stroke="#fff" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
-      </button>
-      <button id="date-btn-next" onclick="event.stopPropagation();nextDate()">
-        <svg viewBox="0 0 24 24" width="16" height="16" stroke="#fff" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
-      </button>
-    </div>
-  </div>
-  ${renderWeekStrip()}` : `<div style="padding:22px 20px 8px">
-    <div id="next-date-card" style="background:${ROSE};box-shadow:0 2px 12px rgba(192,122,138,0.3)">
-      <div style="display:flex;align-items:center;gap:14px;cursor:pointer" onclick="navigate('calendar')">
-        <div style="flex:1;min-width:0">
-          <span style="font-size:15px;font-weight:700;color:#fff">No upcoming dates</span><br>
-          <span style="font-size:12px;color:rgba(255,255,255,0.75);font-family:sans-serif">Tap to plan one →</span>
+    </div>`;
+  }
+
+  const isCompact = (homeLayout === 'compact');
+  let topSectionHtml;
+  if (visibleDates.length === 0) {
+    topSectionHtml = `<div style="padding:22px 20px 8px">
+      <div id="next-date-card" style="background:${ROSE};box-shadow:0 2px 12px rgba(192,122,138,0.3)">
+        <div style="display:flex;align-items:center;gap:14px;cursor:pointer" onclick="navigate('calendar')">
+          <div style="flex:1;min-width:0">
+            <span style="font-size:15px;font-weight:700;color:#fff">No upcoming dates</span><br>
+            <span style="font-size:12px;color:rgba(255,255,255,0.75);font-family:sans-serif">Plan one →</span>
+          </div>
         </div>
       </div>
     </div>
-  </div>
-  ${renderWeekStrip()}`;
+    ${renderWeekStrip()}`;
+  } else if (isCompact) {
+    topSectionHtml = `
+    <div id="date-cards-outer">
+      <div id="date-cards-scroll">
+        <div id="date-cards-inner">
+          ${visibleDates.map((fd, i) => _buildDateCardHtml(fd, i)).join('')}
+        </div>
+      </div>
+      <div id="date-cards-arrows">
+        <button id="date-btn-prev" onclick="event.stopPropagation();prevDate()">
+          <svg viewBox="0 0 24 24" width="16" height="16" stroke="#fff" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        </button>
+        <button id="date-btn-next" onclick="event.stopPropagation();nextDate()">
+          <svg viewBox="0 0 24 24" width="16" height="16" stroke="#fff" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+        </button>
+      </div>
+    </div>
+    ${renderWeekStrip()}`;
+  } else {
+    topSectionHtml = `${homeCarouselHtml}${renderWeekStrip()}`;
+  }
+
+  const dateBubbleHTML = topSectionHtml;
 
   return `
   ${dateBubbleHTML}
@@ -4698,50 +4832,153 @@ function renderCalendar() {
 
   let selectedCardHTML = '';
   if (_selDayVisible.length > 0) {
-    const _calCardColor = u => {
-      const d = new Date((u.year||2026), MONTH_NUMS[u.month]||0, u.day); d.setHours(0,0,0,0);
-      return d < _now ? '#9a8a7a' : ROSE;
-    };
-    const _slides = _selDayVisible.map((u, i) => {
-      const cc = _calCardColor(u);
-      const timePart = u.time ? _shortTime(u.time) : '';
-      const _subNoteText = _dateCardSubNote(u);
-      const subNote = _subNoteText ? (timePart ? ' · ' : '') + _subNoteText : '';
-      const locLabel = _dateLocationLabel(u) || '';
-      const subLine = timePart + (subNote || (locLabel ? (timePart ? ' · ' : '') + locLabel : ''));
-      return `<div class="date-card-slide cal-day-card-slide" onclick="openDateInfo(UPCOMING_DATES.find(d=>String(d.id)==='${u.id}'))">
-        <div style="background:${cc};padding:12px 14px;min-height:70px;box-sizing:border-box;display:flex;align-items:center">
-          <div style="display:flex;align-items:center;gap:14px;width:100%">
-            <div style="width:40px;flex-shrink:0;display:flex;flex-direction:column;align-items:center">
-              <span style="font-size:10px;font-family:sans-serif;font-weight:600;color:rgba(255,255,255,0.7);letter-spacing:0.06em;text-transform:uppercase">${u.month}</span>
-              <span style="font-size:22px;font-weight:700;color:#fff;line-height:1.1">${u.day}</span>
-            </div>
-            <div style="width:1px;height:36px;background:rgba(255,255,255,0.25);flex-shrink:0"></div>
-            <div style="flex:1;min-width:0;padding-right:52px">
-              <div style="display:flex;align-items:center;gap:7px;margin-bottom:2px">${activityIcon(u.activity,14,'#fff')}<span style="font-size:15px;font-weight:700;color:#fff;letter-spacing:-0.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${u.venue}</span></div>
-              <span style="font-size:12px;color:rgba(255,255,255,0.65);font-family:sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${subLine}</span>
-            </div>
-          </div>
-        </div>
-      </div>`;
-    }).join('');
-    const _firstColor = _calCardColor(_selDayVisible[0]);
-    const _lastColor = _calCardColor(_selDayVisible[_selDayVisible.length - 1]);
-    const _shadowColor = _selIsPast ? 'rgba(154,138,122,0.45)' : 'rgba(139,58,82,0.45)';
-    const _gradBg = _selDayVisible.length > 1 ? `linear-gradient(to right, ${_firstColor} 50%, ${_lastColor} 50%)` : _firstColor;
+    // ── Hidden legacy cards (kept for potential restoration) ──
+    const _legacyCompact = ''; // was: compact date card
+    const _legacyBanner  = ''; // was: banner card
+
+    // ── New: Info panel ──
+    _calBannerIdx = Math.min(_calBannerIdx, _selDayVisible.length - 1);
+    const u = _selDayVisible[_calBannerIdx];
+    const _ipIdea = u.ideaId
+      ? ideas.find(i => i.id === u.ideaId)
+      : ideas.find(i => i.name && u.venue && i.name.toLowerCase() === u.venue.toLowerCase());
+    const _ipAccent = accentColor(_ipIdea ? _ipIdea.type : 'out');
+
+    // Build panels array — only add panels that have content
+    const _ipPanels = [];
+
+    // Panel: Reservation / Tickets — only show if not yet reserved
+    const _ipHasRes = _ipIdea && _ipIdea.reservation && _ipIdea.reservation !== 'none';
+    if (_ipHasRes) {
+      const _ipDk = _dateKey(u);
+      const _ipAlreadyReserved = _reservedDateKeys.has(_ipDk);
+      const _ipResUrl = _buildResUrl(u.venue, _ipIdea.reservation, _todoDateStr(u), _todoTimeStr(u.time), _ipIdea.eventbriteUrl, _ipIdea.websiteUrl, _ipIdea.opentableUrl, _ipIdea.resyUrl);
+      const _ipLabel = (_ipIdea.reservation === 'resy' || _ipIdea.reservation === 'opentable') ? 'Reserve' : 'Tickets';
+      if (!_ipAlreadyReserved && (_ipIdea.reservation !== 'website' || _ipResUrl)) {
+        const _ipResText = _ipLabel === 'Reserve' ? 'Make a reservation' : 'Purchase tickets';
+        const _ipCircleBtn = `<button id="cal-details-res-${_ipDk}" onclick="openReserveLink('${_ipResUrl.replace(/'/g,"\\'")}','${_ipDk}')" style="display:flex;align-items:center;gap:6px;height:24px;padding:0 12px;border:none;border-radius:12px;font-family:sans-serif;font-size:12px;font-weight:600;color:#fff;background:${ROSE};cursor:pointer;flex-shrink:0"><svg viewBox="0 0 24 24" width="10" height="10" stroke="#fff" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>${_ipLabel}</button>`;
+        _ipPanels.push(`<div style="display:flex;align-items:center;justify-content:center;gap:8px"><span style="font-size:13px;color:var(--text-secondary);font-family:sans-serif">${_ipResText}</span>${_ipCircleBtn}</div>`);
+      }
+    }
+
+    // Panel: Subway commute — use shared buildSubwayBadgesHtml (MTA colors, station, time)
+    const _ipSubway = _ipIdea && _ipIdea.subwayRoute ? _ipIdea.subwayRoute.trim() : '';
+    if (_ipSubway && !(u.inLocation === 'my_place') && !(_ipIdea && _ipIdea.type === 'in' && !u.inLocation)) {
+      const _ipDest = _ipIdea && _ipIdea.address ? _ipIdea.address.trim() : u.venue;
+      const _ipSubwayOnclick = (homeAddress && _ipDest)
+        ? `_openExternal('https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(homeAddress)}&destination=${encodeURIComponent(_ipDest)}&travelmode=transit')`
+        : '';
+      const timeMatch = _ipSubway.match(/~?\s*(\d+)\s*min/i);
+      const commuteMin = timeMatch ? parseInt(timeMatch[1]) : null;
+      const badgesHtml = buildSubwayBadgesHtml(_ipSubway);
+      // Leave by
+      let leaveByHtml = '';
+      if (commuteMin && u.time) {
+        const parsed = parseTimeInput(u.time);
+        const m = parsed.match(/(\d+):(\d+)\s*(am|pm)/i);
+        if (m) {
+          let h = parseInt(m[1]), mn = parseInt(m[2]);
+          const isPm = m[3].toLowerCase() === 'pm';
+          if (isPm && h !== 12) h += 12; if (!isPm && h === 12) h = 0;
+          const totalMin = h * 60 + mn - commuteMin - 10;
+          const lh = Math.floor(((totalMin%1440)+1440)%1440/60);
+          const lm = ((totalMin%1440)+1440)%1440%60;
+          const suf = lh >= 12 ? 'pm' : 'am';
+          const lh12 = lh===0?12:lh>12?lh-12:lh;
+          const leaveTimeStr = lm===0?`${lh12} ${suf}`:`${lh12}:${String(lm).padStart(2,'0')} ${suf}`;
+          leaveByHtml = `<span style="font-size:11px;color:var(--text-secondary);font-family:sans-serif">Leave by ${leaveTimeStr}</span>`;
+        }
+      }
+      const subwayPanelContent = `<div style="display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap;${_ipSubwayOnclick?'cursor:pointer':''}" ${_ipSubwayOnclick?`onclick="${_ipSubwayOnclick}"`:''}>${badgesHtml}${leaveByHtml?`<span style="color:#b0a090;font-size:11px">·</span>${leaveByHtml}`:''}</div>`;
+      _ipPanels.push(subwayPanelContent);
+    }
+
+    // Panel: Walk / Drive — brown text, leave-by
+    const _ipWalkdrive = _ipIdea && _ipIdea.walkDriveTime ? _ipIdea.walkDriveTime.trim() : '';
+    if (_ipWalkdrive && !(u.inLocation === 'my_place') && !(_ipIdea && _ipIdea.type === 'in' && !u.inLocation)) {
+      const _ipDest2 = _ipIdea && _ipIdea.address ? _ipIdea.address.trim() : u.venue;
+      const walkMatch = _ipWalkdrive.match(/(\d+)\s*min\s*walk/i);
+      const driveMatch = _ipWalkdrive.match(/(\d+)\s*min\s*drive/i);
+      if (walkMatch || driveMatch) {
+        const personSvg = `<svg viewBox="0 0 24 24" width="13" height="13" fill="#b0a090"><path d="M13.5 5.5c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zM9.8 8.9L7 23h2.1l1.8-8 2.1 2v6h2v-7.5l-2.1-2 .6-3C14.8 12 16.8 13 19 13v-2c-1.9 0-3.5-1-4.3-2.4l-1-1.6c-.4-.6-1-1-1.7-1-.3 0-.5.1-.8.1L6 8.3V13h2V9.6l1.8-.7"/></svg>`;
+        const carSvg = `<svg viewBox="0 0 24 24" width="13" height="13" fill="#b0a090"><path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z"/></svg>`;
+        // Leave by — use the faster of walk/drive for calculation
+        const wdCommuteMin = walkMatch ? parseInt(walkMatch[1]) : (driveMatch ? parseInt(driveMatch[1]) : null);
+        let wdLeaveByHtml = '';
+        if (wdCommuteMin && u.time) {
+          const parsed = parseTimeInput(u.time);
+          const m = parsed.match(/(\d+):(\d+)\s*(am|pm)/i);
+          if (m) {
+            let h = parseInt(m[1]), mn = parseInt(m[2]);
+            const isPm = m[3].toLowerCase() === 'pm';
+            if (isPm && h !== 12) h += 12; if (!isPm && h === 12) h = 0;
+            const totalMin = h * 60 + mn - wdCommuteMin - 10;
+            const lh = Math.floor(((totalMin%1440)+1440)%1440/60);
+            const lm = ((totalMin%1440)+1440)%1440%60;
+            const suf = lh >= 12 ? 'pm' : 'am';
+            const lh12 = lh===0?12:lh>12?lh-12:lh;
+            const leaveTimeStr = lm===0?`${lh12} ${suf}`:`${lh12}:${String(lm).padStart(2,'0')} ${suf}`;
+            wdLeaveByHtml = `<span style="font-size:11px;color:var(--text-secondary);font-family:sans-serif">Leave by ${leaveTimeStr}</span>`;
+          }
+        }
+        let wdHtml = '<div style="display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap">';
+        if (walkMatch) {
+          const _walkOnclick = (homeAddress && _ipDest2) ? `_openExternal('https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(homeAddress)}&destination=${encodeURIComponent(_ipDest2)}&travelmode=walking')` : '';
+          wdHtml += `<span style="display:flex;align-items:center;gap:4px;font-size:13px;font-family:sans-serif;color:#b0a090;${_walkOnclick?'cursor:pointer':''}" ${_walkOnclick?`onclick="${_walkOnclick}"`:''}>${personSvg}${walkMatch[1]} min</span>`;
+        }
+        if (walkMatch && driveMatch) wdHtml += `<span style="color:#b0a090;font-size:13px">/</span>`;
+        if (driveMatch) {
+          const _driveOnclick = (homeAddress && _ipDest2) ? `_openExternal('https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(homeAddress)}&destination=${encodeURIComponent(_ipDest2)}&travelmode=driving')` : '';
+          wdHtml += `<span style="display:flex;align-items:center;gap:4px;font-size:13px;font-family:sans-serif;color:#b0a090;${_driveOnclick?'cursor:pointer':''}" ${_driveOnclick?`onclick="${_driveOnclick}"`:''}>${carSvg}${driveMatch[1]} min</span>`;
+        }
+        if (wdLeaveByHtml) wdHtml += `<span style="color:#b0a090;font-size:11px">·</span>${wdLeaveByHtml}`;
+        wdHtml += '</div>';
+        _ipPanels.push(wdHtml);
+      }
+    }
+
+    // Panel: Address
+    const _ipAddress = _ipIdea && _ipIdea.address ? _ipIdea.address.trim() : '';
+    if (_ipAddress) {
+      // Strip city, state, zip — keep only street part (before first comma)
+      const _ipStreet = _ipAddress.split(',')[0].trim();
+      const _ipAddrOnclick = `_openExternal('https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(_ipAddress)}')`;
+      const _ipPinSvg = `<svg viewBox="0 0 24 24" width="13" height="13" fill="${_ipAccent}" style="flex-shrink:0"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>`;
+      _ipPanels.push(`<div style="display:flex;align-items:center;justify-content:center;gap:5px;cursor:pointer" onclick="${_ipAddrOnclick}">${_ipPinSvg}<span style="font-size:12px;font-family:sans-serif;color:#b0a090;text-align:center">${_ipStreet}</span></div>`);
+    }
+
+    _calInfoPanelIdx = Math.min(_calInfoPanelIdx, Math.max(_ipPanels.length - 1, 0));
+
+    // Header line: [icon] venue  ·  date · time  (fixed, doesn't swipe)
+    const _ipIcon = ideaIcon(_ipIdea, 13, _ipAccent);
+    const _ipMonthAbbr = new Date(currentCalYear, currentCalMonth, selectedCalDay).toLocaleString('en-US',{month:'short'});
+    const _ipTime = u.time ? _shortTime(u.time) : '';
+    const _ipDateTimeParts = [`${_ipMonthAbbr} ${selectedCalDay}`, _ipTime].filter(Boolean);
+    const _ipDateTimeStr = _ipDateTimeParts.join(' · ');
+    const _ipHeader = `<div style="display:flex;align-items:flex-end;justify-content:center;gap:5px;padding:0 28px;margin-bottom:6px;overflow:hidden">
+      ${_ipIcon ? `<span style="display:flex;align-items:center;flex-shrink:0;padding-bottom:1px">${_ipIcon}</span>` : ''}
+      <span style="font-size:13px;font-weight:600;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:-0.01em;line-height:1.2">${u.venue}</span>
+      ${_ipDateTimeStr ? `<span style="font-size:12px;font-family:sans-serif;color:var(--text-secondary);white-space:nowrap;flex-shrink:0;line-height:1.2"> · ${_ipDateTimeStr}</span>` : ''}
+    </div>`;
+
+    // Snap-scroll panel container — all panels rendered, JS scrolls to active
+    const chevStyle = 'background:none;border:none;cursor:pointer;padding:4px;display:flex;align-items:center;flex-shrink:0;line-height:0';
+    const hasPrevPanel = _calInfoPanelIdx > 0;
+    const hasNextPanel = _calInfoPanelIdx < _ipPanels.length - 1;
+    const _ipContent = _ipPanels.length > 0
+      ? `<div id="cal-info-scroll" style="display:flex;overflow:hidden;scroll-snap-type:x mandatory;width:100%">${
+          _ipPanels.map((p,i) => `<div class="cal-info-panel" style="flex-shrink:0;width:100%;scroll-snap-align:start;display:flex;align-items:center;justify-content:center">${p}</div>`).join('')
+        }</div>`
+      : `<div style="width:100%;display:flex;justify-content:center"><span style="font-size:14px;font-style:italic;color:#b0a090;cursor:pointer" onclick="event.stopPropagation();openDateInfo(UPCOMING_DATES.find(d=>String(d.id)==='${u.id}'))">More info <span style="color:#b0a090">→</span></span></div>`;
+
     selectedCardHTML = `
-      <div id="cal-day-cards-outer" style="margin-top:20px;border-radius:14px;overflow:hidden;position:relative;min-height:70px;box-sizing:border-box;box-shadow:0 4px 20px ${_shadowColor};background:${_gradBg}">
-        <div id="cal-day-cards-scroll" style="overflow-x:scroll;overflow-y:hidden;scrollbar-width:none;-ms-overflow-style:none;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;display:flex;font-size:0;">
-          ${_slides}
+      <div style="margin-top:20px;min-height:70px;box-sizing:border-box;padding:10px 0 10px;display:flex;flex-direction:column;align-items:stretch;justify-content:center" onclick="openDateInfo(UPCOMING_DATES.find(d=>String(d.id)==='${u.id}'))">
+        ${_ipHeader}
+        <div style="display:flex;align-items:center;gap:2px">
+          <div style="width:22px;flex-shrink:0">${_ipPanels.length > 1 ? `<button id="cal-info-prev-btn" onclick="event.stopPropagation();_calInfoPrev()" style="${chevStyle};opacity:${hasPrevPanel?1:0.2}"><svg viewBox="0 0 24 24" width="14" height="14" stroke="#b0a090" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>` : ''}</div>
+          <div style="flex:1;min-width:0;overflow:hidden" onclick="event.stopPropagation();openDateInfo(UPCOMING_DATES.find(d=>String(d.id)==='${u.id}'))">${_ipContent}</div>
+          <div style="width:22px;flex-shrink:0;display:flex;justify-content:flex-end">${_ipPanels.length > 1 ? `<button id="cal-info-next-btn" onclick="event.stopPropagation();_calInfoNext()" style="${chevStyle};opacity:${hasNextPanel?1:0.2}"><svg viewBox="0 0 24 24" width="14" height="14" stroke="#b0a090" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></button>` : ''}</div>
         </div>
-        ${_selDayVisible.length > 1 ? `<div style="position:absolute;right:0;top:0;bottom:0;display:flex;align-items:center;gap:0;pointer-events:none">
-          <button id="cal-day-btn-prev" onclick="event.stopPropagation();_calDayPrev()" style="pointer-events:all;background:none;border:none;padding:4px 6px;display:flex;align-items:center;cursor:pointer;opacity:0.3">
-            <svg viewBox="0 0 24 24" width="16" height="16" stroke="#fff" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
-          </button>
-          <button id="cal-day-btn-next" onclick="event.stopPropagation();_calDayNext()" style="pointer-events:all;background:none;border:none;padding:4px 6px;margin-right:11px;display:flex;align-items:center;cursor:pointer;opacity:1">
-            <svg viewBox="0 0 24 24" width="16" height="16" stroke="#fff" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
-          </button>
-        </div>` : ''}
       </div>`;
   } else if (_selDayAllPrivate) {
     const _privDateLabel = _calDayLabel(selectedCalDay, currentCalMonth, currentCalYear);
@@ -4871,6 +5108,8 @@ function openNewDateFromCal(day, month, year) {
 
 function selectCalDay(day) {
   selectedCalDay = day;
+  _calBannerIdx = 0;
+  _calInfoPanelIdx = 0;
   render();
 }
 
@@ -4889,6 +5128,8 @@ function _calCardClick(day, month, year, dateId) {
   currentCalMonth = mNum;
   currentCalYear = year;
   selectedCalDay = day;
+  _calBannerIdx = 0;
+  _calInfoPanelIdx = 0;
   render();
 }
 
@@ -4973,6 +5214,76 @@ function _calDayNext() {
 function _shortTime(t) {
   if (!t) return t;
   return t.replace(/^(\d+):00\s*(am|pm)$/i, '$1 $2');
+}
+
+function _calBannerPrev() {
+  if (_calBannerIdx <= 0) return;
+  _calBannerIdx--;
+  _calInfoPanelIdx = 0;
+  _refreshCalBanner();
+}
+function _calBannerNext() {
+  const monthAbbr = new Date(currentCalYear, currentCalMonth, 1).toLocaleString('en-US', {month:'short'});
+  const _visible = UPCOMING_DATES.filter(u => u.month === monthAbbr && (u.year||2026) === currentCalYear && u.day === selectedCalDay && !_isDateHiddenPrivate(u));
+  if (_calBannerIdx >= _visible.length - 1) return;
+  _calBannerIdx++;
+  _calInfoPanelIdx = 0;
+  _refreshCalBanner();
+}
+
+function _calInfoPrev() {
+  if (_calInfoPanelIdx <= 0) return;
+  _calInfoPanelIdx--;
+  _scrollCalInfoPanel();
+}
+function _calInfoNext() {
+  const scroll = document.getElementById('cal-info-scroll');
+  const total = scroll ? scroll.querySelectorAll('.cal-info-panel').length : 0;
+  if (_calInfoPanelIdx >= total - 1) return;
+  _calInfoPanelIdx++;
+  _scrollCalInfoPanel();
+}
+function _scrollCalInfoPanel() {
+  const scroll = document.getElementById('cal-info-scroll');
+  if (!scroll) return;
+  const panels = scroll.querySelectorAll('.cal-info-panel');
+  if (panels[_calInfoPanelIdx]) {
+    panels[_calInfoPanelIdx].scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' });
+  }
+  const total = panels.length;
+  const prevBtn = document.getElementById('cal-info-prev-btn');
+  const nextBtn = document.getElementById('cal-info-next-btn');
+  if (prevBtn) prevBtn.style.opacity = _calInfoPanelIdx > 0 ? '1' : '0.2';
+  if (nextBtn) nextBtn.style.opacity = _calInfoPanelIdx < total - 1 ? '1' : '0.2';
+}
+function _initCalInfoScroll() {
+  const scroll = document.getElementById('cal-info-scroll');
+  if (!scroll) return;
+  const panels = scroll.querySelectorAll('.cal-info-panel');
+  if (!panels.length) return;
+  // Instantly position to current panel (no animation on initial load)
+  const idx = Math.min(_calInfoPanelIdx, panels.length - 1);
+  if (idx > 0 && panels[idx]) {
+    scroll.style.scrollBehavior = 'auto';
+    panels[idx].scrollIntoView({ block: 'nearest', inline: 'start' });
+    requestAnimationFrame(() => { scroll.style.scrollBehavior = ''; });
+  }
+}
+function _refreshCalBanner() {
+  const wrap = document.getElementById('cal-banner-card');
+  if (!wrap) return;
+  const monthAbbr = new Date(currentCalYear, currentCalMonth, 1).toLocaleString('en-US', {month:'short'});
+  const _visible = UPCOMING_DATES.filter(u => u.month === monthAbbr && (u.year||2026) === currentCalYear && u.day === selectedCalDay && !_isDateHiddenPrivate(u));
+  if (!_visible.length) return;
+  _calBannerIdx = Math.min(_calBannerIdx, _visible.length - 1);
+  const u = _visible[_calBannerIdx];
+  wrap.innerHTML = _buildBannerCard(u, {
+    onClickExpr: `openDateInfo(UPCOMING_DATES.find(d=>String(d.id)==='${u.id}'))`,
+    hasPrev: _calBannerIdx > 0,
+    hasNext: _calBannerIdx < _visible.length - 1,
+    onPrev: '_calBannerPrev()',
+    onNext: '_calBannerNext()'
+  });
 }
 
 // ── Next date bubble commute helper ──────────────────
@@ -5256,10 +5567,37 @@ function selectWeekDate(idx) {
   closeWeekTooltip();
   if (idx < 0 || idx >= FUTURE_DATES.length) return;
   dateIdx = idx;
+  _homeCarouselIdx = idx;
+
+  // In full layout, scroll the carousel to the selected date without touching the week strip
+  // (the user just clicked the strip — no need to re-render it; it's already on the right page)
+  if (homeLayout !== 'compact') {
+    const carousel = document.getElementById('home-dates-carousel');
+    if (carousel && carousel.children[idx]) {
+      carousel.children[idx].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      // Re-render strip only to update the selection highlight, with no page animation
+      const ws = document.getElementById('week-strip');
+      if (ws) {
+        _weekStripAnimate = false;
+        const newHtml = renderWeekStrip();
+        // Preserve current scroll position by reading it before swap
+        const stripScroll = document.getElementById('week-strip-scroll');
+        const curScrollLeft = stripScroll ? stripScroll.scrollLeft : 0;
+        ws.outerHTML = newHtml;
+        // Immediately restore scroll position so there's no jump
+        requestAnimationFrame(() => {
+          const s = document.getElementById('week-strip-scroll');
+          if (s) { s.style.scrollSnapType = 'none'; s.scrollLeft = curScrollLeft; requestAnimationFrame(() => { s.style.scrollSnapType = 'x mandatory'; _initWeekStrip(); }); }
+        });
+      }
+      return;
+    }
+  }
+  // Compact or carousel not found — full re-render
   const main = document.getElementById('main-content');
   if (main) {
     main.innerHTML = renderHome();
-    setTimeout(() => { _initDateCardsScroll(); _initWeekStrip(); }, 0);
+    setTimeout(() => { _initDateCardsScroll(); _initWeekStrip(); _initHomeCarousel(); }, 0);
   }
 }
 
@@ -7132,6 +7470,9 @@ function openReserveLinkFromCal(url, dateKey) {
   }
   // If Date Info popup is open for this date, refresh it too
   if (currentDateInfo && _dateKey(currentDateInfo) === dateKey) openDateInfo(currentDateInfo);
+  // Morph details-area button
+  const _calDetBtn = document.getElementById('cal-details-res-' + dateKey);
+  if (_calDetBtn) _calDetBtn.outerHTML = `<button id="cal-details-res-${dateKey}" onclick="unreserveFromCal('${dateKey}')" style="display:flex;align-items:center;justify-content:center;width:20px;height:20px;border:none;border-radius:50%;background:#c07a8a;cursor:pointer;flex-shrink:0"><svg viewBox="0 0 24 24" width="10" height="10" stroke="#fff" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-linejoin="round" style="display:block"><polyline points="20 6 9 17 4 12"/></svg></button>`;
   _openExternal(url);
 }
 
@@ -7153,7 +7494,7 @@ function openReserveLink(url, dateKey) {
   // Morph the di-reserve-btn to checkmark
   const btn = document.getElementById('di-reserve-btn');
   if (btn) {
-    btn.outerHTML = `<button id="di-reserve-btn" onclick="unreserveDate('${dateKey}')" style="display:flex;align-items:center;justify-content:center;width:26px;height:26px;border:1.5px solid #c07a8a;border-radius:50%;background:none;cursor:pointer"><svg viewBox="0 0 24 24" width="11" height="11" stroke="#c07a8a" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-linejoin="round" style="display:block"><polyline points="20 6 9 17 4 12"/></svg></button>`;
+    btn.outerHTML = `<button id="di-reserve-btn" onclick="unreserveFromCal('${dateKey}')" style="display:flex;align-items:center;justify-content:center;width:26px;height:26px;border:1.5px solid #c07a8a;border-radius:50%;background:none;cursor:pointer"><svg viewBox="0 0 24 24" width="11" height="11" stroke="#c07a8a" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-linejoin="round" style="display:block"><polyline points="20 6 9 17 4 12"/></svg></button>`;
   }
   // Morph the matching card button in-place (home / calendar screen)
   const chkSvg = `<svg viewBox="0 0 24 24" width="10" height="10" stroke="#c07a8a" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-linejoin="round" style="display:block"><polyline points="20 6 9 17 4 12"/></svg>`;
@@ -7161,14 +7502,12 @@ function openReserveLink(url, dateKey) {
   if (cardWrap) {
     cardWrap.innerHTML = `<button class="cal-res-chk" style="border:1.5px solid #c07a8a" onclick="event.stopPropagation();unreserveFromCal('${dateKey}')">${chkSvg}</button>`;
   }
+  // Morph the details-area button to filled checkmark circle
+  const detailsBtn = document.getElementById('cal-details-res-' + dateKey);
+  if (detailsBtn) {
+    detailsBtn.outerHTML = `<button id="cal-details-res-${dateKey}" onclick="unreserveFromCal('${dateKey}')" style="display:flex;align-items:center;justify-content:center;width:20px;height:20px;border:none;border-radius:50%;background:#c07a8a;cursor:pointer;flex-shrink:0"><svg viewBox="0 0 24 24" width="10" height="10" stroke="#fff" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-linejoin="round" style="display:block"><polyline points="20 6 9 17 4 12"/></svg></button>`;
+  }
   _openExternal(url);
-}
-
-function unreserveDate(dateKey) {
-  _reservedDateKeys.delete(dateKey);
-  _saveReserved();
-  if (currentDateInfo) openDateInfo(currentDateInfo);
-  render(); // restore Reserve btn on calendar card
 }
 
 function openReserveLinkFromIdea(url, dateKey, ideaId) {
@@ -7177,6 +7516,9 @@ function openReserveLinkFromIdea(url, dateKey, ideaId) {
   _saveReserved();
   // Refresh Idea Info popup to show checkmark state
   if (detailItemId === ideaId) openDetail(ideaId);
+  // Morph details-area button
+  const _ideaDetBtn = document.getElementById('cal-details-res-' + dateKey);
+  if (_ideaDetBtn) _ideaDetBtn.outerHTML = `<button id="cal-details-res-${dateKey}" onclick="unreserveFromCal('${dateKey}')" style="display:flex;align-items:center;justify-content:center;width:20px;height:20px;border:none;border-radius:50%;background:#c07a8a;cursor:pointer;flex-shrink:0"><svg viewBox="0 0 24 24" width="10" height="10" stroke="#fff" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-linejoin="round" style="display:block"><polyline points="20 6 9 17 4 12"/></svg></button>`;
 }
 
 function unreserveIdeaDate(dateKey, ideaId) {
@@ -7458,7 +7800,7 @@ function openDateInfo(u, memoryMode) {
       const _alreadyReserved = _reservedDateKeys.has(_dk);
       const _diLabel = (matchedIdea.reservation === 'resy' || matchedIdea.reservation === 'opentable') ? 'Reserve' : 'Tickets';
       leftBtnDi = _alreadyReserved
-        ? `<button id="di-reserve-btn" onclick="unreserveDate('${_dk}')" style="display:flex;align-items:center;justify-content:center;width:26px;height:26px;border:1.5px solid #c07a8a;border-radius:50%;background:none;cursor:pointer"><svg viewBox="0 0 24 24" width="11" height="11" stroke="#c07a8a" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></button>`
+        ? `<button id="di-reserve-btn" onclick="unreserveFromCal('${_dk}')" style="display:flex;align-items:center;justify-content:center;width:26px;height:26px;border:1.5px solid #c07a8a;border-radius:50%;background:none;cursor:pointer"><svg viewBox="0 0 24 24" width="11" height="11" stroke="#c07a8a" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></button>`
         : `<button id="di-reserve-btn" onclick="openReserveLink('${resUrl2.replace(/'/g,"'")}','${_dk}')" style="display:flex;align-items:center;gap:7px;height:34px;padding:0 16px;border:none;border-radius:17px;font-family:sans-serif;font-size:13px;font-weight:600;color:#fff;background:#c07a8a;cursor:pointer;line-height:1"><svg viewBox="0 0 24 24" width="14" height="14" stroke="#fff" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-linejoin="round" style="display:block;flex-shrink:0"><polyline points="20 6 9 17 4 12"/></svg>${_diLabel}</button>`;
     }
   }
@@ -8121,6 +8463,8 @@ function openSettings() {
   const customWrap = document.getElementById('settings-pronouns-custom-wrap');
   if (customWrap) customWrap.style.display = partnerPronouns === 'other' ? 'block' : 'none';
   if (partnerPronouns === 'other') document.getElementById('settings-pronouns-custom').value = partnerPronounsCustom;
+  const layoutSel = document.getElementById('settings-home-layout');
+  if (layoutSel) layoutSel.value = homeLayout || 'full';
   document.getElementById('settings-overlay').style.display = 'flex';
   // Sync radio buttons to current appearance
   setTimeout(() => _applyAppearance(_appearance), 0);
@@ -8146,12 +8490,15 @@ function saveSettingsData() {
   }
   const hpEl = document.getElementById('settings-hide-private');
   if (hpEl) { hidePrivate = hpEl.checked; appSettings.hidePrivate = hidePrivate; }
+  const layoutEl = document.getElementById('settings-home-layout');
+  if (layoutEl) { homeLayout = layoutEl.value; appSettings.homeLayout = homeLayout; }
   // Save appearance
   localStorage.setItem('duet_appearance', _appearance);
   saveSettings(appSettings);
   // Update "Her place" option label in location dropdowns
   _updatePartnerPlaceOptions();
   closeSettings();
+  if (currentView === 'home') render();
 }
 function _updatePartnerPlaceOptions() {
   const label = partnerPlaceLabel();
