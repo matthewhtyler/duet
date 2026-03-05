@@ -1327,6 +1327,10 @@
   <!-- MORE MENU POPUP -->
   <div id="more-menu-overlay" class="popup-overlay" onclick="closeMoreMenu()" style="position:fixed;inset:0;background:rgba(30,20,20,0.45);z-index:450;display:none;align-items:center;justify-content:center;padding:20px">
     <div onclick="event.stopPropagation()" style="background:var(--bg);border-radius:18px;padding:16px;box-shadow:0 12px 48px rgba(0,0,0,0.18);display:flex;flex-direction:column;gap:8px;min-width:220px">
+      <button onclick="closeMoreMenu();openEditCategories()" style="display:flex;align-items:center;gap:10px;padding:11px 14px;background:none;border:1.5px solid #ede9e2;border-radius:10px;font-family:sans-serif;font-size:13px;font-weight:600;color:#9a8a7a;cursor:pointer;text-align:left;width:100%" class="btn-outline">
+        <svg viewBox="0 0 24 24" width="15" height="15" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>
+        Edit Categories
+      </button>
       <button onclick="openCopyPlaces()" style="display:flex;align-items:center;gap:10px;padding:11px 14px;background:none;border:1.5px solid #ede9e2;border-radius:10px;font-family:sans-serif;font-size:13px;font-weight:600;color:#9a8a7a;cursor:pointer;text-align:left;width:100%" class="btn-outline">
         <svg viewBox="0 0 24 24" width="15" height="15" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
         Copy Places
@@ -1342,10 +1346,6 @@
       <button onclick="openEraseConfirm()" style="display:flex;align-items:center;gap:10px;padding:11px 14px;background:none;border:1.5px solid #ede9e2;border-radius:10px;font-family:sans-serif;font-size:13px;font-weight:600;color:#9a8a7a;cursor:pointer;text-align:left;width:100%" class="btn-outline">
         <svg viewBox="0 0 24 24" width="15" height="15" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
         Erase Data
-      </button>
-      <button onclick="closeMoreMenu();openEditCategories()" style="display:flex;align-items:center;gap:10px;padding:11px 14px;background:none;border:1.5px solid #ede9e2;border-radius:10px;font-family:sans-serif;font-size:13px;font-weight:600;color:#9a8a7a;cursor:pointer;text-align:left;width:100%" class="btn-outline">
-        <svg viewBox="0 0 24 24" width="15" height="15" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>
-        Edit Categories
       </button>
       <div style="margin-top:12px">
         <button onclick="closeMoreMenu()" style="display:flex;align-items:center;justify-content:center;width:100%;padding:11px 14px;background:#c07a8a;border:none;border-radius:10px;font-family:sans-serif;font-size:14px;font-weight:600;color:#fff;cursor:pointer">Done</button>
@@ -1930,6 +1930,10 @@ let sheetOpen = false;
 let ideaType = 'out';
 let ideasFilter = 'all';
 let ideasSearch = '';
+let catTabFilter = 'all'; // active pill in the Categories tab: 'all' | 'favs' | <catId>
+// Sort key: strip leading "The " for alphabetical ordering
+function _sortKey(name) { return (name||'').replace(/^the\s+/i, '').trim(); }
+const byName = (a,b) => _sortKey(a.name).localeCompare(_sortKey(b.name));
 let _favScrollIdx = 0;
 let _homeCarouselIdx = 0;
 let selectedCategory = 'restaurant';
@@ -1966,19 +1970,22 @@ const DEFAULT_IN_CATS = [
   {id:'otherin',    label:'Other',     iconKey:'sofa'},
 ];
 
+const DEFAULT_SELECTED_CAT_IDS = ['restaurant','bar','cafe','museum','livecomedy','livejazz','theatre'];
+
 function loadCats() {
   try {
     const s = localStorage.getItem('ll_cats');
-    if (s) { const p = JSON.parse(s); return {out: p.out||DEFAULT_OUT_CATS, in: p.in||DEFAULT_IN_CATS}; }
+    if (s) { const p = JSON.parse(s); return {out: p.out||DEFAULT_OUT_CATS, in: p.in||DEFAULT_IN_CATS, selectedCats: p.selectedCats||DEFAULT_SELECTED_CAT_IDS}; }
   } catch(e) {}
-  return {out: DEFAULT_OUT_CATS.map(c=>({...c})), in: DEFAULT_IN_CATS.map(c=>({...c}))};
+  return {out: DEFAULT_OUT_CATS.map(c=>({...c})), in: DEFAULT_IN_CATS.map(c=>({...c})), selectedCats: [...DEFAULT_SELECTED_CAT_IDS]};
 }
 function saveCats() {
-  try { localStorage.setItem('ll_cats', JSON.stringify({out: OUT_CATS, in: IN_CATS})); } catch(e) {}
+  try { localStorage.setItem('ll_cats', JSON.stringify({out: OUT_CATS, in: IN_CATS, selectedCats: [...SELECTED_CATS]})); } catch(e) {}
 }
 const _loadedCats = loadCats();
 let OUT_CATS = _loadedCats.out;
 let IN_CATS  = _loadedCats.in;
+let SELECTED_CATS = new Set(_loadedCats.selectedCats || DEFAULT_SELECTED_CAT_IDS);
 
 // Lookup by id or label (for backward compat with old string-based data)
 function findCat(val, type) {
@@ -2402,9 +2409,26 @@ function navigate(view) {
 function setIdeasFilter(f) {
   ideasFilter = f;
   _favScrollIdx = 0;
+  if (f !== 'favs') catTabFilter = 'all'; // reset cat tab pill when leaving categories tab
   // Full re-render needed so controlbar toggle styles update correctly
   const main = document.getElementById('main-content');
   if (main) main.innerHTML = renderIdeas();
+}
+function setCatTabFilter(f) {
+  catTabFilter = f;
+  const body = document.getElementById('ideas-body');
+  if (body) body.innerHTML = _buildCatTabBody();
+  // Scroll active pill into view within the strip only — no page scroll
+  requestAnimationFrame(() => {
+    const strip = document.getElementById('cat-tab-strip');
+    if (!strip) return;
+    const active = strip.querySelector('.cat-pill-active');
+    if (!active) return;
+    const stripRect = strip.getBoundingClientRect();
+    const pillRect = active.getBoundingClientRect();
+    const pillCenter = pillRect.left - stripRect.left + strip.scrollLeft + pillRect.width / 2;
+    strip.scrollLeft = pillCenter - strip.clientWidth / 2;
+  });
 }
 function setIdeasSearch(q) {
   ideasSearch = q;
@@ -3163,7 +3187,6 @@ function renderIdeas() {
   if (ideasFilter === 'in')   pool = pool.filter(i => i.type === 'in');
   if (ideasFilter === 'favs') pool = pool.filter(i => i.saved);
 
-  const byName = (a,b) => a.name.localeCompare(b.name);
 
   // ── Heart SVG for toggle button
   const heartSvg = (active) => `<svg viewBox="0 0 24 24" width="13" height="13" stroke="${active?_toggleActiveColor:'#9a8a7a'}" stroke-width="2" fill="${active?_toggleActiveColor:'none'}" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>`;
@@ -3194,6 +3217,9 @@ function renderIdeas() {
     if (row) { row.innerHTML = controlBar; row.style.display = 'flex'; row.style.alignItems = 'center'; row.style.justifyContent = 'space-between'; }
     document.getElementById('app').classList.add('ideas-nav');
   }, 0);
+    if (isFavFilter) {
+    return `<div id="ideas-body">${_buildCatTabBody()}</div>`;
+  }
   return `<div id="ideas-body">${_buildIdeasBody(pool, q, byName, isFavFilter)}</div>`;
 }
 
@@ -3257,22 +3283,12 @@ function _buildIdeasBody(pool, q, byName, isFavFilter) {
     return `<div style="position:fixed;top:calc(50% - 60px);left:50%;transform:translateX(-50%);text-align:center;color:#b0a090;font-size:15px;font-style:italic;pointer-events:none;width:80%;z-index:1">${_emptyText}</div>`;
   }
 
-  // ── Favs filter view: vertical list split by Going Out / Staying In
+  // ── Categories tab (heart button)
   if (isFavFilter) {
-    const favOut = pool.filter(i => i.type === 'out').sort(byName);
-    const favIn  = pool.filter(i => i.type === 'in').sort(byName);
-    const favOutHtml = favOut.length ? `<div style="margin-bottom:20px">
-      <div class="section-label" style="margin-bottom:8px">Going Out</div>
-      <div style="display:flex;flex-direction:column;gap:8px">${favOut.map(i => smallCard(i, accentColor('out'), 'out')).join('')}</div>
-    </div>` : '';
-    const favInHtml = favIn.length ? `<div>
-      <div class="section-label" style="margin-bottom:8px">Staying In</div>
-      <div style="display:flex;flex-direction:column;gap:8px">${favIn.map(i => smallCard(i, accentColor('in'), 'in')).join('')}</div>
-    </div>` : '';
-    return `<div style="padding:12px 20px 80px">${favOutHtml}${favInHtml}</div>`;
+    return _buildCatTabBody();
   }
 
-  // ── All / Out / In view: Favorites carousel + sections
+  // ── All / Out / In view: Featured carousel + grouped by category
   const favsOut = ideas.filter(i => !i.archived && !_isHiddenPrivate(i) && i.saved && i.type === 'out').sort(byName);
   const favsIn  = ideas.filter(i => !i.archived && !_isHiddenPrivate(i) && i.saved && i.type === 'in').sort(byName);
 
@@ -3310,18 +3326,137 @@ function _buildIdeasBody(pool, q, byName, isFavFilter) {
     </div>`;
   }
 
-  const out = pool.filter(i => i.type === 'out').sort(byName);
-  const inIdeas = pool.filter(i => i.type === 'in').sort(byName);
-  const outHtml = (out.length && ideasFilter !== 'in') ? `<div style="margin-bottom:20px">
-    <div class="section-label" style="margin-bottom:8px">Going Out</div>
-    <div style="display:flex;flex-direction:column;gap:8px">${out.map(i => smallCard(i, accentColor('out'), 'out')).join('')}</div>
-  </div>` : '';
-  const inHtml = (inIdeas.length && ideasFilter !== 'out') ? `<div>
-    <div class="section-label" style="margin-bottom:8px">Staying In</div>
-    <div style="display:flex;flex-direction:column;gap:8px">${inIdeas.map(i => smallCard(i, accentColor('in'), 'in')).join('')}</div>
-  </div>` : '';
+    // Flat Going Out / Staying In sections
+  const outIdeas = pool.filter(i => i.type === 'out' && ideasFilter !== 'in').sort(byName);
+  const inIdeas  = pool.filter(i => i.type === 'in'  && ideasFilter !== 'out').sort(byName);
 
-  return `<div style="padding:12px 20px 80px">${favsHtml}${outHtml}${inHtml}</div>`;
+  let sectionsHtml = '';
+  if (outIdeas.length) {
+    sectionsHtml += `<div style="margin-bottom:20px">
+      <div class="section-label" style="margin-bottom:8px">Going Out</div>
+      <div style="display:flex;flex-direction:column;gap:8px">${outIdeas.map(i => smallCard(i, accentColor('out'), 'out')).join('')}</div>
+    </div>`;
+  }
+  if (inIdeas.length) {
+    sectionsHtml += `<div style="margin-bottom:20px">
+      <div class="section-label" style="margin-bottom:8px">Staying In</div>
+      <div style="display:flex;flex-direction:column;gap:8px">${inIdeas.map(i => smallCard(i, accentColor('in'), 'in')).join('')}</div>
+    </div>`;
+  }
+
+  return `<div style="padding:12px 20px 80px">${favsHtml}${sectionsHtml}</div>`;
+}
+
+// ── Categories Tab builder (used when ideasFilter === 'favs')
+function _buildCatTabBody() {
+  const q = (ideasSearch || '').trim();
+  const accent = accentColor('out');
+  const isDark = document.body.classList.contains('dark-mode');
+  const pillActiveColor = isDark ? '#c07a8a' : BURGUNDY;
+  const pillInactiveColor = '#9a8a7a';
+
+  // Build the ordered pill list: All, Favorites, then selected out cats, then selected in cats
+  const selOut = OUT_CATS.filter(c => SELECTED_CATS.has(c.id));
+  const selIn  = IN_CATS.filter(c => SELECTED_CATS.has(c.id));
+  const pills = [
+    { id: 'all',  label: 'All',       iconKey: null, type: null },
+    { id: 'favs', label: 'Favorites', iconKey: 'heart', type: null },
+    ...selOut.map(c => ({id: c.id, label: c.label, iconKey: c.iconKey, type: 'out'})),
+    ...selIn.map(c  => ({id: c.id, label: c.label, iconKey: c.iconKey, type: 'in'})),
+  ];
+
+  function pillHtml(p) {
+    const active = catTabFilter === p.id;
+    const color = active ? pillActiveColor : pillInactiveColor;
+    const iconSvg = p.iconKey && ICONS[p.iconKey]
+      ? (p.iconKey === 'heart'
+          ? `<svg viewBox="0 0 24 24" width="13" height="13" stroke="${color}" stroke-width="2" fill="${active ? color : 'none'}" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>`
+          : ICONS[p.iconKey](14, color))
+      : '';
+    const fw = active ? '700' : '500';
+    return `<button class="${active ? 'cat-pill-active' : ''}" onclick="setCatTabFilter('${p.id}')" style="display:flex;align-items:center;gap:5px;white-space:nowrap;background:none;border:none;cursor:pointer;padding:6px 4px;font-family:sans-serif;font-size:13px;font-weight:${fw};color:${color};flex-shrink:0;line-height:1">${iconSvg}${p.label}</button>`;
+  }
+
+  const stripHtml = `<div id="cat-tab-strip" style="display:flex;align-items:center;gap:10px;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none;-webkit-overflow-scrolling:touch;padding:0 20px 10px;border-bottom:1px solid var(--border);margin-bottom:0">${pills.map(pillHtml).join('<span style="color:var(--border);font-size:16px;flex-shrink:0">·</span>')}</div>`;
+
+  // Build content based on active pill
+
+  function smallCard(item) {
+    const sub = itemSubLine(item);
+    const ac = accentColor(item.type);
+    const _subColor = subColor(item.type);
+    const urls = getImageUrls(item);
+    const imgPanel = urls.length
+      ? `<div style="width:120px;flex-shrink:0;margin:-12px -14px -12px 0;border-left:1px solid var(--img-sep);border-radius:0 14px 14px 0;overflow:hidden;align-self:stretch;background:#6b2340;position:relative"><img src="${urls[0]}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center;display:block" onerror="this.parentNode.style.background='#6b2340';this.style.display='none'"></div>`
+      : '';
+    const navCtx = item.type === 'in' ? 'in' : 'out';
+    return `<div class="quick-row" onclick="openDetail(${item.id},'${navCtx}')" style="cursor:pointer;overflow:hidden">
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;align-items:center;gap:7px;margin-bottom:${sub?'4px':'0'}">
+          ${ideaIcon(item, 14, ac)}
+          <div class="quick-row-name">${item.name}</div>
+        </div>
+        ${sub ? `<div class="quick-row-sub" style="color:${_subColor}">${sub}</div>` : ''}
+      </div>
+      ${imgPanel}
+    </div>`;
+  }
+
+  function catSection(catId, items, type) {
+    const label = catLabelForId(catId, type);
+    return `<div style="margin-bottom:20px">
+      <div class="section-label" style="margin-bottom:8px">${label}</div>
+      <div style="display:flex;flex-direction:column;gap:8px">${items.map(smallCard).join('')}</div>
+    </div>`;
+  }
+
+  let allIdeas = ideas.filter(i => !i.archived && !_isHiddenPrivate(i) && ideaMatchesSearch(i, q));
+  let contentHtml = '';
+
+  if (catTabFilter === 'all') {
+    // All out ideas grouped by category, then Staying In grouped by category
+    const outAll = allIdeas.filter(i => i.type === 'out').sort(byName);
+    const inAll  = allIdeas.filter(i => i.type === 'in').sort(byName);
+    const outMap = new Map();
+    outAll.forEach(i => { const cid = i.category||'other'; if(!outMap.has(cid)) outMap.set(cid,[]); outMap.get(cid).push(i); });
+    outMap.forEach((items, catId) => { contentHtml += catSection(catId, items, 'out'); });
+    if (inAll.length) {
+      contentHtml += `<div style="margin-bottom:20px"><div class="section-label" style="margin-bottom:8px">Staying In</div><div style="display:flex;flex-direction:column;gap:8px">${inAll.map(smallCard).join('')}</div></div>`;
+    }
+  } else if (catTabFilter === 'favs') {
+    // Favorites grouped by category
+    const favs = allIdeas.filter(i => i.saved).sort(byName);
+    const outFavs = favs.filter(i => i.type === 'out');
+    const inFavs  = favs.filter(i => i.type === 'in');
+    const outMap = new Map();
+    outFavs.forEach(i => { const cid = i.category||'other'; if(!outMap.has(cid)) outMap.set(cid,[]); outMap.get(cid).push(i); });
+    outMap.forEach((items, catId) => { contentHtml += catSection(catId, items, 'out'); });
+    if (inFavs.length) {
+      contentHtml += `<div style="margin-bottom:20px"><div class="section-label" style="margin-bottom:8px">Staying In</div><div style="display:flex;flex-direction:column;gap:8px">${inFavs.map(smallCard).join('')}</div></div>`;
+    }
+    if (!favs.length) contentHtml = `<div style="color:#b0a090;font-size:15px;font-style:italic;text-align:center;padding:40px 0">No favorites yet.</div>`;
+  } else {
+    // Single category selected
+    const pill = pills.find(p => p.id === catTabFilter);
+    const type = pill ? pill.type : null;
+    let items;
+    if (type === 'in') {
+      items = allIdeas.filter(i => i.type === 'in' && (i.category||'otherin') === catTabFilter).sort(byName);
+    } else {
+      items = allIdeas.filter(i => i.type === 'out' && (i.category||'other') === catTabFilter).sort(byName);
+    }
+    const label = catLabelForId(catTabFilter, type||'out');
+    if (items.length) {
+      contentHtml = `<div style="margin-bottom:20px">
+        <div class="section-label" style="margin-bottom:8px">${label}</div>
+        <div style="display:flex;flex-direction:column;gap:8px">${items.map(smallCard).join('')}</div>
+      </div>`;
+    } else {
+      contentHtml = `<div style="color:#b0a090;font-size:15px;font-style:italic;text-align:center;padding:40px 0">No ideas in this category.</div>`;
+    }
+  }
+
+  return `${stripHtml}<div style="padding:12px 20px 80px">${contentHtml}</div>`;
 }
 
 // Called on keystrokes and filter changes — re-renders body + updates controlbar toggle styles
@@ -3332,7 +3467,6 @@ function _renderIdeasBody() {
   if (ideasFilter === 'out')  pool = pool.filter(i => i.type === 'out');
   if (ideasFilter === 'in')   pool = pool.filter(i => i.type === 'in');
   if (ideasFilter === 'favs') pool = pool.filter(i => i.saved);
-  const byName = (a,b) => a.name.localeCompare(b.name);
 
   // Update clear button
   const inp = document.getElementById('ideas-search-input');
@@ -3367,12 +3501,12 @@ function _renderIdeasBody() {
   }
 
   const body = document.getElementById('ideas-body');
-  if (body) body.innerHTML = _buildIdeasBody(pool, q, byName, isFavFilter);
+  if (body) body.innerHTML = isFavFilter ? _buildCatTabBody() : _buildIdeasBody(pool, q, byName, isFavFilter);
 }
 
 // scrollFavs: scrolls the favorites list by showing next/prev card
 function scrollFavs(dir) {
-  const favs = ideas.filter(i => i.saved).sort((a,b) => a.name.localeCompare(b.name));
+  const favs = ideas.filter(i => i.saved).sort(byName);
   if (!favs.length) return;
   _favScrollIdx = Math.max(0, Math.min(favs.length - 1, _favScrollIdx + dir));
   const scroll = document.getElementById('favs-scroll');
@@ -5014,11 +5148,11 @@ function renderCalendar() {
       : `<div style="width:100%;display:flex;justify-content:center"><span style="font-size:14px;font-style:italic;color:#b0a090;cursor:pointer" onclick="event.stopPropagation();openDateInfo(UPCOMING_DATES.find(d=>String(d.id)==='${u.id}'))">More info <span style="color:#b0a090">→</span></span></div>`;
 
     selectedCardHTML = `
-      <div style="margin-top:20px;min-height:70px;box-sizing:border-box;padding:10px 0 10px;display:flex;flex-direction:column;align-items:stretch;justify-content:center" onclick="openDateInfo(UPCOMING_DATES.find(d=>String(d.id)==='${u.id}'))">
-        ${_ipHeader}
+      <div style="margin-top:20px;min-height:70px;box-sizing:border-box;padding:10px 0 10px;display:flex;flex-direction:column;align-items:stretch;justify-content:center">
+        <div style="cursor:pointer" onclick="openDateInfo(UPCOMING_DATES.find(d=>String(d.id)==='${u.id}'))">${_ipHeader}</div>
         <div style="display:flex;align-items:center;gap:2px">
           <div style="width:22px;flex-shrink:0">${_ipPanels.length > 1 ? `<button id="cal-info-prev-btn" onclick="event.stopPropagation();_calInfoPrev()" style="${chevStyle};opacity:${hasPrevPanel?1:0.2}"><svg viewBox="0 0 24 24" width="14" height="14" stroke="#b0a090" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>` : ''}</div>
-          <div style="flex:1;min-width:0;overflow:hidden" onclick="event.stopPropagation();openDateInfo(UPCOMING_DATES.find(d=>String(d.id)==='${u.id}'))">${_ipContent}</div>
+          <div style="flex:1;min-width:0;overflow:hidden">${_ipContent}</div>
           <div style="width:22px;flex-shrink:0;display:flex;justify-content:flex-end">${_ipPanels.length > 1 ? `<button id="cal-info-next-btn" onclick="event.stopPropagation();_calInfoNext()" style="${chevStyle};opacity:${hasNextPanel?1:0.2}"><svg viewBox="0 0 24 24" width="14" height="14" stroke="#b0a090" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></button>` : ''}</div>
         </div>
       </div>`;
@@ -6461,6 +6595,10 @@ function _resetIdeaForm() {
   selectedCategory = 'restaurant';
   onIdeaCatSelectChange();
   const resSel = document.getElementById('idea-reservation'); if (resSel) { resSel.value = 'none'; onIdeaReservationChange(false); }
+  const _sbw = document.getElementById('pf-subway-badges');
+  if (_sbw) { _sbw.innerHTML = ''; _sbw.style.marginTop = '0'; }
+  const _wdw = document.getElementById('pf-walkdrive-badges');
+  if (_wdw) { _wdw.innerHTML = ''; _wdw.style.marginTop = '0'; }
   if (ideaType !== 'out') { switchSheetType('out'); }
 }
 
@@ -6468,6 +6606,11 @@ function closeSheet() {
   document.getElementById('sheet-overlay').style.display = 'none';
   document.getElementById('idea-sheet').style.display = 'none';
   sheetOpen = false;
+  // Always clear commute badge areas
+  ['idea-subway-badges','idea-walkdrive-badges','pf-subway-badges','pf-walkdrive-badges'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) { el.innerHTML = ''; el.style.marginTop = '0'; el.style.cursor = ''; el.onclick = null; }
+  });
   if (sheetMode === 'date') {
     _resetDateForm();
   } else if (!window._editingIdeaId) {
@@ -6733,18 +6876,16 @@ function renderDateSheetUI() {
 }
 
 
-function renderIdeaSubwayBadges() {
-  const val = document.getElementById('idea-subway').value;
-  const wrap = document.getElementById('idea-subway-badges');
-  if (!wrap) return;
-  if (!val.trim()) { wrap.innerHTML=''; wrap.style.marginTop='0'; return; }
-  const toIdx = val.toLowerCase().indexOf(' to ');
-  const linesPart = toIdx >= 0 ? val.substring(0, toIdx) : val;
+function _buildSubwayBadgeHtml(val) {
+  const cleanVal = val.replace(/\s*\?\s*$/, '');
+  const hasQ = /\?\s*$/.test(val.trim());
+  const toIdx = cleanVal.toLowerCase().indexOf(' to ');
+  const linesPart = toIdx >= 0 ? cleanVal.substring(0, toIdx) : cleanVal;
   const lines = [...new Set((linesPart.match(/\b[1-7ACEGJLNQRSWBDFMZ]\b/gi)||[]).map(l=>l.toUpperCase()))];
   const buses = [...new Set((linesPart.match(/\b[BMQ]\d+\b/gi)||[]).map(b=>b.toUpperCase()))];
-  const timeMatch = val.match(/~?\s*(\d+)\s*min/i);
-  const stationMatch = val.match(/to\s+(.+?)\s*~?\s*\d+\s*min/i);
-  if (!lines.length && !buses.length) { wrap.innerHTML=''; wrap.style.marginTop='0'; return; }
+  const timeMatch = cleanVal.match(/~?\s*(\d+)\s*min/i);
+  const stationMatch = cleanVal.match(/to\s+(.+?)\s*~?\s*\d+\s*min/i);
+  if (!lines.length && !buses.length) return null;
   let html = '';
   lines.forEach((line, i) => {
     const bg = MTA_COLORS[line]||'#808183';
@@ -6760,26 +6901,63 @@ function renderIdeaSubwayBadges() {
   const station = stationMatch?stationMatch[1].trim():null;
   const time = timeMatch?timeMatch[1]:null;
   if(station||time) html+=`<span style="color:#9a8a7a;font-size:12px;font-family:sans-serif">${station&&time?station+' · '+time+' min':station||time+' min'}</span>`;
-  wrap.style.marginTop='8px';
-  wrap.innerHTML = html;
+  if(hasQ) html+=`<span style="display:inline-flex;align-items:center;justify-content:center;width:15px;height:15px;border-radius:50%;border:1.5px solid #9a8a7a;color:#9a8a7a;font-size:9px;font-weight:700;font-family:sans-serif;flex-shrink:0;margin-left:2px">?</span>`;
+  return html;
 }
 
-function renderIdeaWalkDriveBadges() {
-  const val = document.getElementById('idea-walkdrive').value;
-  const wrap = document.getElementById('idea-walkdrive-badges');
-  if (!wrap) return;
-  if (!val.trim()) { wrap.innerHTML=''; wrap.style.marginTop='0'; return; }
-  const walkMatch = val.match(/(\d+)\s*min\s*walk/i);
-  const driveMatch = val.match(/(\d+)\s*min\s*drive/i);
-  if (!walkMatch && !driveMatch) { wrap.innerHTML=''; wrap.style.marginTop='0'; return; }
+function _buildWalkDriveBadgeHtml(val) {
+  const cleanVal = val.replace(/\s*\?\s*$/, '');
+  const hasQ = /\?\s*$/.test(val.trim());
+  const walkMatch = cleanVal.match(/(\d+)\s*min\s*walk/i);
+  const driveMatch = cleanVal.match(/(\d+)\s*min\s*drive/i);
+  if (!walkMatch && !driveMatch) return null;
   const personSvg = `<svg viewBox="0 0 24 24" width="13" height="13" fill="#9a8a7a"><path d="M13.5 5.5c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zM9.8 8.9L7 23h2.1l1.8-8 2.1 2v6h2v-7.5l-2.1-2 .6-3C14.8 12 16.8 13 19 13v-2c-1.9 0-3.5-1-4.3-2.4l-1-1.6c-.4-.6-1-1-1.7-1-.3 0-.5.1-.8.1L6 8.3V13h2V9.6l1.8-.7"/></svg>`;
   const carSvg = `<svg viewBox="0 0 24 24" width="13" height="13" fill="#9a8a7a"><path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z"/></svg>`;
   let html = '';
   if(walkMatch) html+=`<span style="display:flex;align-items:center;gap:3px;font-size:12px;color:#9a8a7a;font-family:sans-serif">${personSvg}${walkMatch[1]} min</span>`;
   if(walkMatch&&driveMatch) html+=`<span style="color:#c8bfb6">/</span>`;
   if(driveMatch) html+=`<span style="display:flex;align-items:center;gap:3px;font-size:12px;color:#9a8a7a;font-family:sans-serif">${carSvg}${driveMatch[1]} min</span>`;
+  if(hasQ) html+=`<span style="display:inline-flex;align-items:center;justify-content:center;width:15px;height:15px;border-radius:50%;border:1.5px solid #9a8a7a;color:#9a8a7a;font-size:9px;font-weight:700;font-family:sans-serif;flex-shrink:0;margin-left:2px">?</span>`;
+  return html;
+}
+
+function _applyCommuteClickable(wrap, val, mapsUrl) {
+  const hasQ = /\?\s*$/.test(val.trim());
+  if (hasQ) {
+    wrap.style.cursor = 'pointer';
+    wrap.onclick = (e) => { e.stopPropagation(); _openEditCommute(mapsUrl); };
+  } else {
+    wrap.style.cursor = '';
+    wrap.onclick = null;
+  }
+}
+
+function renderIdeaSubwayBadges() {
+  const val = document.getElementById('idea-subway').value;
+  const wrap = document.getElementById('idea-subway-badges');
+  if (!wrap) return;
+  if (!val.trim()) { wrap.innerHTML=''; wrap.style.marginTop='0'; wrap.style.cursor=''; wrap.onclick=null; return; }
+  const html = _buildSubwayBadgeHtml(val);
+  if (!html) { wrap.innerHTML=''; wrap.style.marginTop='0'; wrap.style.cursor=''; wrap.onclick=null; return; }
   wrap.style.marginTop='8px';
   wrap.innerHTML = html;
+  const dest = (document.getElementById('idea-address')||{}).value || (document.getElementById('idea-name')||{}).value || '';
+  const mapsUrl = dest ? `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(dest)}&travelmode=transit` : '';
+  _applyCommuteClickable(wrap, val, mapsUrl);
+}
+
+function renderIdeaWalkDriveBadges() {
+  const val = document.getElementById('idea-walkdrive').value;
+  const wrap = document.getElementById('idea-walkdrive-badges');
+  if (!wrap) return;
+  if (!val.trim()) { wrap.innerHTML=''; wrap.style.marginTop='0'; wrap.style.cursor=''; wrap.onclick=null; return; }
+  const html = _buildWalkDriveBadgeHtml(val);
+  if (!html) { wrap.innerHTML=''; wrap.style.marginTop='0'; wrap.style.cursor=''; wrap.onclick=null; return; }
+  wrap.style.marginTop='8px';
+  wrap.innerHTML = html;
+  const dest = (document.getElementById('idea-address')||{}).value || (document.getElementById('idea-name')||{}).value || '';
+  const mapsUrl = dest ? `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(dest)}&travelmode=driving` : '';
+  _applyCommuteClickable(wrap, val, mapsUrl);
 }
 
 // Edit Idea modal badge renderers (pf- fields)
@@ -6787,49 +6965,107 @@ function renderSubwayBadges() {
   const val = (document.getElementById('pf-subway')||{}).value || '';
   const wrap = document.getElementById('pf-subway-badges');
   if (!wrap) return;
-  if (!val.trim()) { wrap.innerHTML=''; wrap.style.marginTop='0'; return; }
-  const toIdx = val.toLowerCase().indexOf(' to ');
-  const linesPart = toIdx >= 0 ? val.substring(0, toIdx) : val;
-  const lines = [...new Set((linesPart.match(/\b[1-7ACEGJLNQRSWBDFMZ]\b/gi)||[]).map(l=>l.toUpperCase()))];
-  const buses = [...new Set((linesPart.match(/\b[BMQ]\d+\b/gi)||[]).map(b=>b.toUpperCase()))];
-  const timeMatch = val.match(/~?\s*(\d+)\s*min/i);
-  const stationMatch = val.match(/to\s+(.+?)\s*~?\s*\d+\s*min/i);
-  if (!lines.length && !buses.length) { wrap.innerHTML=''; wrap.style.marginTop='0'; return; }
-  let html = '';
-  lines.forEach((line, i) => {
-    const bg = MTA_COLORS[line]||'#808183';
-    const tc = ['N','Q','R','W'].includes(line)?'#1F2937':'#fff';
-    if(i>0) html+=`<span style="color:#b0a090;font-size:11px">›</span>`;
-    html+=`<div style="width:20px;height:20px;border-radius:50%;background:${bg};display:flex;align-items:center;justify-content:center;color:${tc};font-size:11px;font-weight:700;font-family:sans-serif">${line}</div>`;
-  });
-  if(lines.length&&buses.length) html+=`<span style="color:#b0a090;font-size:11px">›</span>`;
-  buses.forEach((bus,i)=>{
-    if(i>0) html+=`<span style="color:#b0a090;font-size:11px">›</span>`;
-    html+=`<div style="padding:2px 6px;border-radius:3px;background:#2e58ad;color:#fff;font-size:11px;font-weight:700;font-family:sans-serif">${bus}</div>`;
-  });
-  const station = stationMatch?stationMatch[1].trim():null;
-  const time = timeMatch?timeMatch[1]:null;
-  if(station||time) html+=`<span style="color:#9a8a7a;font-size:12px;font-family:sans-serif">${station&&time?station+' · '+time+' min':station||time+' min'}</span>`;
+  if (!val.trim()) { wrap.innerHTML=''; wrap.style.marginTop='0'; wrap.style.cursor=''; wrap.onclick=null; return; }
+  const html = _buildSubwayBadgeHtml(val);
+  if (!html) { wrap.innerHTML=''; wrap.style.marginTop='0'; wrap.style.cursor=''; wrap.onclick=null; return; }
   wrap.style.marginTop='8px';
   wrap.innerHTML = html;
+  const dest = (document.getElementById('pf-address')||{}).value || (document.getElementById('pf-name')||{}).value || '';
+  const mapsUrl = dest ? `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(dest)}&travelmode=transit` : '';
+  _applyCommuteClickable(wrap, val, mapsUrl);
 }
 
 function renderWalkDriveBadges() {
   const val = (document.getElementById('pf-walkdrive')||{}).value || '';
   const wrap = document.getElementById('pf-walkdrive-badges');
   if (!wrap) return;
-  if (!val.trim()) { wrap.innerHTML=''; wrap.style.marginTop='0'; return; }
-  const walkMatch = val.match(/(\d+)\s*min\s*walk/i);
-  const driveMatch = val.match(/(\d+)\s*min\s*drive/i);
-  if (!walkMatch && !driveMatch) { wrap.innerHTML=''; wrap.style.marginTop='0'; return; }
-  const personSvg = `<svg viewBox="0 0 24 24" width="13" height="13" fill="#9a8a7a"><path d="M13.5 5.5c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zM9.8 8.9L7 23h2.1l1.8-8 2.1 2v6h2v-7.5l-2.1-2 .6-3C14.8 12 16.8 13 19 13v-2c-1.9 0-3.5-1-4.3-2.4l-1-1.6c-.4-.6-1-1-1.7-1-.3 0-.5.1-.8.1L6 8.3V13h2V9.6l1.8-.7"/></svg>`;
-  const carSvg = `<svg viewBox="0 0 24 24" width="13" height="13" fill="#9a8a7a"><path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z"/></svg>`;
-  let html = '';
-  if(walkMatch) html+=`<span style="display:flex;align-items:center;gap:3px;font-size:12px;color:#9a8a7a;font-family:sans-serif">${personSvg}${walkMatch[1]} min</span>`;
-  if(walkMatch&&driveMatch) html+=`<span style="color:#c8bfb6">/</span>`;
-  if(driveMatch) html+=`<span style="display:flex;align-items:center;gap:3px;font-size:12px;color:#9a8a7a;font-family:sans-serif">${carSvg}${driveMatch[1]} min</span>`;
+  if (!val.trim()) { wrap.innerHTML=''; wrap.style.marginTop='0'; wrap.style.cursor=''; wrap.onclick=null; return; }
+  const html = _buildWalkDriveBadgeHtml(val);
+  if (!html) { wrap.innerHTML=''; wrap.style.marginTop='0'; wrap.style.cursor=''; wrap.onclick=null; return; }
   wrap.style.marginTop='8px';
   wrap.innerHTML = html;
+  const dest = (document.getElementById('pf-address')||{}).value || (document.getElementById('pf-name')||{}).value || '';
+  const mapsUrl = dest ? `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(dest)}&travelmode=driving` : '';
+  _applyCommuteClickable(wrap, val, mapsUrl);
+}
+
+// Edit Commute popup
+function _openEditCommute(mapsUrl) {
+  // Open maps
+  if (mapsUrl) _openExternal(mapsUrl);
+
+  // Determine which sheet is visible — places-overlay (edit) or idea-sheet (new)
+  const pfVisible = document.getElementById('places-overlay') && document.getElementById('places-overlay').style.display !== 'none';
+  const subwayEl   = pfVisible ? document.getElementById('pf-subway')    : document.getElementById('idea-subway');
+  const walkdriveEl= pfVisible ? document.getElementById('pf-walkdrive') : document.getElementById('idea-walkdrive');
+  const subwayVal   = (subwayEl    ? subwayEl.value    : '').replace(/\s*\?\s*$/, '').trim();
+  const walkdriveVal= (walkdriveEl ? walkdriveEl.value : '').replace(/\s*\?\s*$/, '').trim();
+
+  // Populate Edit Commute fields
+  const ecSubway    = document.getElementById('ec-subway');
+  const ecWalkdrive = document.getElementById('ec-walkdrive');
+  if (ecSubway)    ecSubway.value    = subwayVal;
+  if (ecWalkdrive) ecWalkdrive.value = walkdriveVal;
+  _ecRenderSubway();
+  _ecRenderWalkdrive();
+
+  // Store context so save knows where to write back
+  window._ecPfVisible = pfVisible;
+
+  document.getElementById('edit-commute-overlay').style.display = 'flex';
+  document.body.classList.add('overlay-open');
+}
+
+function _closeEditCommute() {
+  document.getElementById('edit-commute-overlay').style.display = 'none';
+  document.body.classList.remove('overlay-open');
+}
+
+function _ecRenderSubway() {
+  const val = (document.getElementById('ec-subway')||{}).value || '';
+  const wrap = document.getElementById('ec-subway-badges');
+  if (!wrap) return;
+  if (!val.trim()) { wrap.innerHTML=''; wrap.style.marginTop='0'; return; }
+  const html = _buildSubwayBadgeHtml(val); // no ? in val, so no ? circle shown
+  wrap.style.marginTop = html ? '8px' : '0';
+  wrap.innerHTML = html || '';
+}
+
+function _ecRenderWalkdrive() {
+  const val = (document.getElementById('ec-walkdrive')||{}).value || '';
+  const wrap = document.getElementById('ec-walkdrive-badges');
+  if (!wrap) return;
+  if (!val.trim()) { wrap.innerHTML=''; wrap.style.marginTop='0'; return; }
+  const html = _buildWalkDriveBadgeHtml(val);
+  wrap.style.marginTop = html ? '8px' : '0';
+  wrap.innerHTML = html || '';
+}
+
+function _saveEditCommute() {
+  const subwayVal   = (document.getElementById('ec-subway').value    || '').replace(/\s*\?\s*$/, '').trim();
+  const walkdriveVal= (document.getElementById('ec-walkdrive').value || '').replace(/\s*\?\s*$/, '').trim();
+
+  const pfVisible = window._ecPfVisible;
+  const subwayEl   = pfVisible ? document.getElementById('pf-subway')    : document.getElementById('idea-subway');
+  const walkdriveEl= pfVisible ? document.getElementById('pf-walkdrive') : document.getElementById('idea-walkdrive');
+  if (subwayEl)    { subwayEl.value    = subwayVal;    pfVisible ? renderSubwayBadges()    : renderIdeaSubwayBadges(); }
+  if (walkdriveEl) { walkdriveEl.value = walkdriveVal; pfVisible ? renderWalkDriveBadges() : renderIdeaWalkDriveBadges(); }
+
+  // If in edit modal, persist to idea immediately
+  if (pfVisible) {
+    const id = window._editModalId;
+    if (id) {
+      const item = ideas.find(i => i.id === id);
+      if (item) {
+        item.subwayRoute  = subwayVal;
+        item.walkDriveTime= walkdriveVal;
+        saveIdeas(ideas);
+        render();
+      }
+    }
+  }
+
+  _closeEditCommute();
 }
 
 function ideaMapsAddress() {
@@ -6958,8 +7194,8 @@ function saveNewIdea() {
   const showType  = isOut
     ? (document.getElementById('idea-showtype') || {checked:true}).checked
     : (document.getElementById('idea-showtype-in') || {checked:true}).checked;
-  const subway    = isOut ? document.getElementById('idea-subway').value.trim() : '';
-  const walkdrive = isOut ? document.getElementById('idea-walkdrive').value.trim() : '';
+  const subway    = isOut ? document.getElementById('idea-subway').value.trim().replace(/\s*\?\s*$/, '') : '';
+  const walkdrive = isOut ? document.getElementById('idea-walkdrive').value.trim().replace(/\s*\?\s*$/, '') : '';
   const about     = isOut
     ? document.getElementById('idea-about').value.trim()
     : document.getElementById('idea-note-long').value.trim();
@@ -7507,7 +7743,7 @@ function openDetail(id, navContext) {
     _detailNavList = ideas.filter(i => !i.archived && i.type === 'in' && !_isHiddenPrivate(i)).sort((a,b)=>a.name.localeCompare(b.name)).map(i => i.id);
   } else if (navContext === 'newdate') {
     // All Out (alpha) + All In (alpha), respecting hidePrivate
-    const byName = (a,b) => a.name.localeCompare(b.name);
+    // byName uses global _sortKey helper (ignores leading "The ")
     const outIds = ideas.filter(i => !i.archived && i.type === 'out' && !_isHiddenPrivate(i)).sort(byName).map(i => i.id);
     const inIds  = ideas.filter(i => !i.archived && i.type === 'in'  && !_isHiddenPrivate(i)).sort(byName).map(i => i.id);
     _detailNavList = outIds.concat(inIds);
@@ -8852,8 +9088,8 @@ function savePlace() {
     const addrChanged = newAddr !== item.address || newNeigh !== (item.neighborhood || '');
     item.address      = newAddr;
     item.neighborhood = newNeigh;
-    item.subwayRoute  = document.getElementById('pf-subway').value.trim();
-    item.walkDriveTime= document.getElementById('pf-walkdrive').value.trim();
+    item.subwayRoute  = document.getElementById('pf-subway').value.trim().replace(/\s*\?\s*$/, '');
+    item.walkDriveTime= document.getElementById('pf-walkdrive').value.trim().replace(/\s*\?\s*$/, '');
     item.reservation  = document.getElementById('pf-reservation').value;
     item.eventbriteUrl= document.getElementById('pf-eventbrite-url').value.trim();
     item.websiteUrl   = item.reservation === 'website' ? (document.getElementById('pf-website-url')||{value:''}).value.trim() : '';
@@ -8934,7 +9170,6 @@ function renderArchive() {
   }
   const out = archived.filter(i => i.type === 'out');
   const inIdeas = archived.filter(i => i.type === 'in');
-  const byName = (a,b) => a.name.localeCompare(b.name);
 
   function section(items, type) {
     if (!items.length) return '';
@@ -9076,7 +9311,7 @@ async function exportAllData() {
     staticPastDates: STATIC_PAST_DATES,
     memoryNotes: (() => { try { return JSON.parse(localStorage.getItem('ll_memories') || '{}'); } catch(e) { return {}; } })(),
     todos: todos.filter(t => !t.done),
-    categories: { out: OUT_CATS, in: IN_CATS },
+    categories: { out: OUT_CATS, in: IN_CATS, selectedCats: [...SELECTED_CATS] },
     reservedDateKeys: [..._reservedDateKeys],
     settings: {
       homeAddress: homeAddress,
@@ -9189,6 +9424,9 @@ function _renderEcList() {
   const cats = _ecCats();
   list.innerHTML = cats.map((cat, i) => {
     const iconSvg = ICONS[cat.iconKey] ? ICONS[cat.iconKey](18,'#9a8a7a') : ICONS.wine(18,'#9a8a7a');
+    const checked = SELECTED_CATS.has(cat.id);
+    const cbStyle = `width:18px;height:18px;border-radius:4px;border:2px solid ${checked?'#c07a8a':'#c8bfb8'};background:${checked?'#c07a8a':'transparent'};display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:background 0.15s`;
+    const checkSvg = checked ? `<svg viewBox="0 0 12 12" width="10" height="10" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="2,6 5,9 10,3"/></svg>` : '';
     return `<div id="ec-row-${i}" class="ec-row" draggable="true"
       ondragstart="_ecDragStart(event,${i})" ondragover="_ecDragOver(event,${i})"
       ondragend="_ecDragEnd(event)" ondrop="_ecDrop(event,${i})"
@@ -9205,6 +9443,7 @@ function _renderEcList() {
         oninput="_applyTitleCase(this);_ecUpdateName(${i},this.value)"
         style="flex:1;border:none;background:transparent;font-size:15px;font-family:sans-serif;color:#2a1f1f;outline:none;padding:3px 0;min-width:0;cursor:text"
         onclick="this.select()">
+      <div id="ec-cb-${i}" onclick="_ecToggleSelected('${cat.id}',${i})" style="${cbStyle}">${checkSvg}</div>
       <button onclick="_openDelCat(${i})" style="background:none;border:none;cursor:pointer;padding:5px;flex-shrink:0;display:flex" title="Delete">
         <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#c07a8a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <polyline points="3 6 5 6 21 6"/>
@@ -9519,6 +9758,22 @@ function _updatePfTypeIcon() {
 
 
 // ── Save categories ──────────────────────────────────
+function _ecToggleSelected(catId, rowIdx) {
+  if (SELECTED_CATS.has(catId)) {
+    SELECTED_CATS.delete(catId);
+  } else {
+    SELECTED_CATS.add(catId);
+  }
+  // Re-render just this checkbox
+  const cb = document.getElementById(`ec-cb-${rowIdx}`);
+  if (cb) {
+    const checked = SELECTED_CATS.has(catId);
+    cb.style.border = `2px solid ${checked ? '#c07a8a' : '#c8bfb8'}`;
+    cb.style.background = checked ? '#c07a8a' : 'transparent';
+    cb.innerHTML = checked ? `<svg viewBox="0 0 12 12" width="10" height="10" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="2,6 5,9 10,3"/></svg>` : '';
+  }
+}
+
 function saveEditCategories() {
   _flushEcNames();
 
@@ -9529,7 +9784,7 @@ function saveEditCategories() {
   // Apply new cats
   OUT_CATS = _ecOut.map(c => ({...c}));
   IN_CATS  = _ecIn.map(c => ({...c}));
-  saveCats();
+  saveCats(); // saves OUT_CATS, IN_CATS, and SELECTED_CATS
 
   // Build new id->label maps
   const outNewMap = {}; OUT_CATS.forEach(c => { outNewMap[c.id] = c.label; });
@@ -9783,6 +10038,9 @@ function handleImportFile(e) {
         };
         OUT_CATS = _mergeCats(OUT_CATS, data.categories.out);
         IN_CATS  = _mergeCats(IN_CATS,  data.categories.in);
+        if (Array.isArray(data.categories.selectedCats)) {
+          SELECTED_CATS = new Set(data.categories.selectedCats);
+        }
         saveCats();
         _rebuildAllCatDropdowns();
       }
@@ -9861,5 +10119,40 @@ _renderPrivacyBox('ts-lock-icon', 'ts-privacy-box', false, false);
     </div>
   </div>
 </div>
+
+<!-- EDIT COMMUTE POPUP -->
+<div id="edit-commute-overlay" onclick="_closeEditCommute()" style="position:fixed;inset:0;background:rgba(30,20,20,0.55);z-index:600;display:none;align-items:center;justify-content:center;padding:24px">
+  <div onclick="event.stopPropagation()" style="width:100%;max-width:360px;background:var(--bg);border-radius:20px;padding:0;overflow:hidden;box-shadow:0 16px 48px rgba(0,0,0,0.28)">
+    <!-- Header -->
+    <div style="padding:18px 20px 14px;border-bottom:1px solid var(--border)">
+      <div style="font-size:17px;font-weight:700;color:var(--popup-title);font-family:sans-serif">Edit Commute</div>
+    </div>
+    <!-- Body -->
+    <div style="padding:18px 20px 4px;display:flex;flex-direction:column;gap:14px">
+      <!-- Subway -->
+      <div>
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:0">
+          <svg viewBox="0 0 24 24" width="18" height="18" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="9" y1="7" x2="15" y2="7"/><circle cx="9" cy="13" r="1" fill="#9a8a7a"/><circle cx="15" cy="13" r="1" fill="#9a8a7a"/><line x1="9" y1="17" x2="9" y2="19"/><line x1="15" y1="17" x2="15" y2="19"/></svg>
+          <input id="ec-subway" class="field-input" type="text" placeholder="Transit (e.g. G to Metropolitan Av 25 min)" oninput="_ecRenderSubway()" style="flex:1;margin-bottom:0">
+        </div>
+        <div id="ec-subway-badges" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:0;margin-left:28px;min-height:0"></div>
+      </div>
+      <!-- Walk/Drive -->
+      <div>
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:0">
+          <svg viewBox="0 0 24 24" width="18" height="18" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><circle cx="12" cy="5" r="2"/><path d="M12 7v5l3 3"/><path d="M9 12l-2 5"/><path d="M15 12l2 5"/></svg>
+          <input id="ec-walkdrive" class="field-input" type="text" placeholder="Walk / Drive (e.g. 12 min walk / 8 min drive)" oninput="_ecRenderWalkdrive()" style="flex:1;margin-bottom:0">
+        </div>
+        <div id="ec-walkdrive-badges" style="display:flex;align-items:center;gap:8px;margin-top:0;margin-left:28px;min-height:0"></div>
+      </div>
+    </div>
+    <!-- Footer -->
+    <div style="display:flex;gap:10px;padding:16px 20px 20px">
+      <button onclick="_closeEditCommute()" style="flex:1;padding:11px 0;background:none;border:1.5px solid var(--border);border-radius:12px;font-family:sans-serif;font-size:14px;color:var(--text-secondary);cursor:pointer">Cancel</button>
+      <button onclick="_saveEditCommute()" style="flex:1;padding:11px 0;background:var(--rose);border:none;border-radius:12px;font-family:sans-serif;font-size:14px;font-weight:600;color:#fff;cursor:pointer">Save</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
