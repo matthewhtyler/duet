@@ -1061,6 +1061,11 @@
             <svg viewBox="0 0 24 24" width="18" height="18" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
             <span id="di-time" style="font-size:14px;font-family:sans-serif;color:#9a8a7a"></span>
           </div>
+          <!-- In-location row (My place / Her place, shown for my_place and partner_place) -->
+          <div id="di-in-location-row" style="display:none;align-items:center;gap:10px;margin-bottom:14px">
+            <span id="di-in-location-icon" style="display:flex;flex-shrink:0"></span>
+            <span id="di-in-location-label" style="font-size:14px;font-family:sans-serif;color:#9a8a7a;cursor:pointer"></span>
+          </div>
           <!-- In-other location rows (place name + address, shown when inLocation === 'other') -->
           <div id="di-in-other-name-row" style="display:none;align-items:center;gap:10px;margin-bottom:14px">
             <svg style="flex-shrink:0" viewBox="0 0 24 24" width="18" height="18" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/></svg>
@@ -1884,7 +1889,7 @@ function _syncAllClearable() {
 // every renderNav() so it survives re-renders. When null/false, the override is
 // removed and the element falls back to its normal CSS (color:var(--text-primary)).
 // ─────────────────────────────────────────────────────────────────────────────
-const testcolor = null;
+const testcolor = 'orange';
 function _applyTestcolor() {
   const el = document.getElementById('duet-logo-text');
   if (!el) return;
@@ -4008,12 +4013,7 @@ function closeTodoSheet() {
   if (!ideaSheetVisible) {
     document.getElementById('sheet-overlay').style.display = 'none';
   }
-  _todoEditId = null;
-  _todoSelectedActivity = null;
-  _todoSelectedDateKey = null;
-  _todoSelectedIdeaId = null;
-  _tsAttachOn = false;
-  _applyTodoAttach('ts', false);
+  _resetTodoForm();
   document.getElementById('btn-new-circle').style.background = ROSE;
   document.getElementById('btn-new-icon-plus').style.display = 'block';
   document.getElementById('btn-new-icon-check').style.display = 'none';
@@ -4192,8 +4192,7 @@ function toggleTodoDone(id) {
 
 // ── Home ──────────────────────────────────────────────
 function _dateCardSubNote(u) {
-  const note = u.note && u.note.trim();
-  if (note) return note;
+  // Never show note on upcoming cards — notes only appear in Date Info popup (upcoming) or as subtitle (past)
   const idea = u.ideaId ? ideas.find(i => i.id === u.ideaId) : ideas.find(i => i.name && u.venue && i.name.toLowerCase() === u.venue.toLowerCase());
   if (idea && idea.shortdesc && idea.shortdesc.trim()) return idea.shortdesc.trim();
   return '';
@@ -4277,7 +4276,7 @@ function renderHome() {
       const hasPrev = idx > 0;
       const hasNext = idx < visibleDates.length - 1;
       const card = _buildBannerCard(u, {
-        onClickExpr: `openDateInfo(FUTURE_DATES[${idx}]?._ref || FUTURE_DATES[${idx}])`,
+        onClickExpr: `openDateInfo(UPCOMING_DATES.find(d=>String(d.id)==='${u.id||''}'))`,
         hasPrev, hasNext,
         onPrev: 'scrollHomeCarousel(-1)',
         onNext: 'scrollHomeCarousel(1)'
@@ -4955,6 +4954,26 @@ function renderCalendar() {
       _ipPanels.push(`<div style="display:flex;align-items:center;justify-content:center;gap:5px;cursor:pointer" onclick="${_ipAddrOnclick}">${_ipPinSvg}<span style="font-size:12px;font-family:sans-serif;color:#b0a090;text-align:center">${_ipStreet}</span></div>`);
     }
 
+    // Panel: In-date location — only for In-type dates
+    const _ipIsInDate = (_ipIdea && _ipIdea.type === 'in') || !!u.inLocation;
+    if (_ipIsInDate && u.inLocation) {
+      const _pLabel = partnerPlaceLabel();
+      const _ipIsPartner = u.inLocation === _pLabel || u.inLocation === 'partner_place';
+      let _ipLocLabel = _ipIsPartner ? _pLabel
+        : u.inLocation === 'my_place' ? 'My place'
+        : u.inLocation === 'other' ? (u.inLocationOtherName || u.inLocationOther || 'Other')
+        : u.inLocation; // stored as display string already
+      if (_ipLocLabel) {
+        const _ipPinSvg2 = `<svg viewBox="0 0 24 24" width="13" height="13" fill="${_ipAccent}" style="flex-shrink:0"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>`;
+        const _ipHomeSvg = `<svg viewBox="0 0 24 24" width="13" height="13" fill="${_ipAccent}" style="flex-shrink:0"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>`;
+        const _ipLocIcon = _ipIsPartner ? _ipPinSvg2 : _ipHomeSvg;
+        const _ipPartnerOnclick = (_ipIsPartner && partnerAddress)
+          ? `_openExternal('https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(partnerAddress)}')`
+          : '';
+        _ipPanels.push(`<div style="display:flex;align-items:center;justify-content:center;gap:5px;${_ipPartnerOnclick ? 'cursor:pointer' : ''}" ${_ipPartnerOnclick ? `onclick="${_ipPartnerOnclick}"` : ''}><span style="display:flex;align-items:center">${_ipLocIcon}</span><span style="font-size:12px;font-family:sans-serif;color:#b0a090">${_ipLocLabel}</span></div>`);
+      }
+    }
+
     _calInfoPanelIdx = Math.min(_calInfoPanelIdx, Math.max(_ipPanels.length - 1, 0));
 
     // Header line: [icon] venue  ·  date · time  (fixed, doesn't swipe)
@@ -5227,10 +5246,37 @@ function _normalizeName(s) {
   return (s || '').replace(/[‘’ʼ`´]/g, "'").replace(/[“”]/g, '"').toLowerCase();
 }
 
+// Map #OVERWRITE tag names to JS field names
+const _OVERWRITE_TAG_MAP = {
+  'CUISINE':'cuisine','ADDRESS':'address','NEIGHBORHOOD':'neighborhood',
+  'SHORTDESC':'shortdesc','LONGDESC':'about','ABOUT':'about','NOTE':'note',
+  'SUBWAY':'subwayRoute','WALKDRIVE':'walkDriveTime',
+  'RESERVATION':'reservation','WEBSITEURL':'websiteUrl',
+  'RESYURL':'resyUrl','OPENTABLEURL':'opentableUrl','EVENTBRITEURL':'eventbriteUrl',
+  'IMAGESEARCHTERM':'imgSearchTerm',
+};
+
+function _parseOverwrite(text) {
+  // Returns 'all' or a Set of field keys, or null if no #OVERWRITE directive
+  const m = text.match(/^#OVERWRITE\s+(.+)$/im);
+  if (!m) return null;
+  const val = m[1].trim();
+  if (val.toLowerCase() === 'all') return 'all';
+  const fields = new Set(
+    val.split(',').map(s => s.trim().toUpperCase())
+       .map(tag => _OVERWRITE_TAG_MAP[tag]).filter(Boolean)
+  );
+  return fields.size > 0 ? fields : null;
+}
+
 function _handleIdeaNamePaste(e) {
   const text = (e.clipboardData || window.clipboardData).getData('text');
   if (!text || !text.includes('#PLACE')) return; // not import format
   e.preventDefault();
+
+  // Parse top-level #OVERWRITE directive (applies to all blocks)
+  const overwrite = _parseOverwrite(text);
+
   const blocks = text.split(/^(?:---|###)\s*$/m).map(b => b.trim()).filter(Boolean);
   if (blocks.length === 0) return;
 
@@ -5239,7 +5285,7 @@ function _handleIdeaNamePaste(e) {
     const data = _parseIdeaBlock(block);
     if (!data.name) return null;
     const existing = ideas.find(i => i.name && _normalizeName(i.name) === _normalizeName(data.name));
-    return { data, existing: existing || null };
+    return { data, existing: existing || null, overwrite };
   }).filter(Boolean);
 
   if (preview.length === 0) return;
@@ -5298,18 +5344,22 @@ function _showPlaceFinderPreview(preview) {
         websiteUrl: existing.websiteUrl, resyUrl: existing.resyUrl,
         opentableUrl: existing.opentableUrl, imgSearchTerm: existing.imgSearchTerm,
       };
-      const changes = MERGE_FIELDS.filter(f => !existMap[f] && dataMap[f]);
+      const ow = item.overwrite;
+      const willOverwrite = (f) => ow === 'all' || (ow instanceof Set && ow.has(f));
+      // Fields that are new (empty → filled) or being overwritten (filled → overwritten)
+      const changes = MERGE_FIELDS.filter(f => dataMap[f] && (!existMap[f] || willOverwrite(f)));
       badge = changes.length > 0 ? updBadge : noChangeBadge;
       if (changes.length === 0) {
         body = '<div style="font-size:12px;color:var(--text-muted);font-family:sans-serif;font-style:italic;margin-top:4px">No new info</div>';
       } else {
         body = '<div style="margin-top:7px;display:flex;flex-direction:column;gap:6px">'
-          + changes.map(f =>
-              '<div style="display:flex;gap:10px;align-items:baseline">'
-            + '<span style="font-size:10px;font-family:sans-serif;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--text-muted);flex-shrink:0;width:88px">' + FIELD_LABELS[f] + '</span>'
-            + '<span style="font-size:12px;font-family:sans-serif;color:var(--text-secondary);word-break:break-word;flex:1">' + dataMap[f] + '</span>'
-            + '</div>'
-          ).join('')
+          + changes.map(f => {
+              const isOw = willOverwrite(f) && !!existMap[f];
+              return '<div style="display:flex;gap:10px;align-items:baseline">'
+                + '<span style="font-size:10px;font-family:sans-serif;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--text-muted);flex-shrink:0;width:88px">' + FIELD_LABELS[f] + (isOw ? ' <span style="color:#c07a8a">↺</span>' : '') + '</span>'
+                + '<span style="font-size:12px;font-family:sans-serif;color:var(--text-secondary);word-break:break-word;flex:1">' + dataMap[f] + '</span>'
+                + '</div>';
+            }).join('')
           + '</div>';
       }
     }
@@ -5333,9 +5383,9 @@ function _closePlaceFinderPreview() {
 
 function _savePlaceFinderPreview() {
   if (!_pfPreviewData) return;
-  _pfPreviewData.forEach(({ data, existing }) => {
+  _pfPreviewData.forEach(({ data, existing, overwrite }) => {
     if (existing) {
-      _mergeIdeaData(existing, data);
+      _mergeIdeaData(existing, data, overwrite);
     } else {
       _createIdeaFromData(data);
     }
@@ -5435,22 +5485,24 @@ function _applyIdeaImport(data, intoOpenPopup) {
   _syncAllClearable();
 }
 
-function _mergeIdeaData(idea, data) {
-  // Only fill fields that are currently empty
-  if (!idea.cuisine && data.cuisine) idea.cuisine = data.cuisine;
-  if (!idea.address && data.address) idea.address = data.address;
-  if (!idea.neighborhood && data.neighborhood) idea.neighborhood = data.neighborhood;
-  if (!idea.shortdesc && data.shortdesc) idea.shortdesc = data.shortdesc;
-  if (!idea.about && data.about) idea.about = data.about;
-  if (!idea.note && data.note) idea.note = data.note;
-  if (!idea.subwayRoute && data.subwayRoute) idea.subwayRoute = data.subwayRoute;
-  if (!idea.walkDriveTime && data.walkDriveTime) idea.walkDriveTime = data.walkDriveTime;
-  if ((!idea.reservation || idea.reservation === 'none') && data.reservation) idea.reservation = data.reservation;
-  if (!idea.websiteUrl && data.websiteUrl) idea.websiteUrl = data.websiteUrl;
-  if (!idea.resyUrl && data.resyUrl) idea.resyUrl = data.resyUrl;
-  if (!idea.opentableUrl && data.opentableUrl) idea.opentableUrl = data.opentableUrl;
-  if (!idea.eventbriteUrl && data.eventbriteUrl) idea.eventbriteUrl = data.eventbriteUrl;
-  if ((!idea.imageUrls || !idea.imageUrls.length) && data.imageUrls && data.imageUrls.length) idea.imageUrls = data.imageUrls;
+function _mergeIdeaData(idea, data, overwrite) {
+  // overwrite: 'all' | Set of field keys | null
+  const ow = (f) => overwrite === 'all' || (overwrite instanceof Set && overwrite.has(f));
+  const set = (f, val) => { if (val && (ow(f) || !idea[f])) idea[f] = val; };
+  set('cuisine', data.cuisine);
+  set('address', data.address);
+  set('neighborhood', data.neighborhood);
+  set('shortdesc', data.shortdesc);
+  set('about', data.about);
+  set('note', data.note);
+  set('subwayRoute', data.subwayRoute);
+  set('walkDriveTime', data.walkDriveTime);
+  if (data.reservation && (ow('reservation') || !idea.reservation || idea.reservation === 'none')) idea.reservation = data.reservation;
+  if (data.websiteUrl && (ow('websiteUrl') || !idea.websiteUrl)) idea.websiteUrl = data.websiteUrl;
+  if (data.resyUrl && (ow('resyUrl') || !idea.resyUrl)) idea.resyUrl = data.resyUrl;
+  if (data.opentableUrl && (ow('opentableUrl') || !idea.opentableUrl)) idea.opentableUrl = data.opentableUrl;
+  if (data.eventbriteUrl && (ow('eventbriteUrl') || !idea.eventbriteUrl)) idea.eventbriteUrl = data.eventbriteUrl;
+  if (data.imageUrls && data.imageUrls.length && (ow('imageUrls') || !idea.imageUrls || !idea.imageUrls.length)) idea.imageUrls = data.imageUrls;
   if (data.imgSearchTerm) idea.imgSearchTerm = data.imgSearchTerm;
 }
 
@@ -6344,10 +6396,67 @@ function switchSheetContext(view) {
   }
 }
 
+function _resetDateForm() {
+  selectedActivity = null;
+  const _dal = document.getElementById('date-activity-label');
+  if (_dal) { _dal.textContent = 'Date ideas…'; _dal.style.fontSize = '16px'; _dal.style.color = 'var(--text-placeholder)'; }
+  const _dai = document.getElementById('date-activity-icon');
+  if (_dai) { _dai.innerHTML = ''; _dai.style.display = 'none'; }
+  const _dab = document.getElementById('date-activity-btn');
+  if (_dab) _dab.style.borderColor = document.body.classList.contains('dark-mode') ? 'var(--border)' : '#ede9e2';
+  const _dcw = document.getElementById('date-custom-wrap');
+  if (_dcw) _dcw.style.display = 'none';
+  const _daib = document.getElementById('date-activity-info-btn');
+  if (_daib) _daib.style.display = 'none';
+  const _dd = document.getElementById('date-day'); if (_dd) _dd.value = '';
+  const _dt = document.getElementById('date-time-select'); if (_dt) _dt.value = '';
+  const _dn = document.getElementById('date-note'); if (_dn) _dn.value = '';
+  const _dil = document.getElementById('date-in-location-select'); if (_dil) { _dil.value = 'my_place'; onDateInLocationChange(); }
+  _dateIsPrivate = null;
+  _renderPrivacyBox('date-lock-icon', 'date-privacy-box', false, false);
+  populateDateImageFields([]);
+  delete _imgSearchTermOverrides['date-image-fields'];
+}
+
+function _resetTodoForm() {
+  const _tt = document.getElementById('ts-task'); if (_tt) _tt.value = '';
+  const _tp = document.getElementById('ts-priority'); if (_tp) _tp.value = 'normal';
+  const _tn = document.getElementById('ts-note'); if (_tn) _tn.value = '';
+  _todoEditId = null;
+  _todoSelectedActivity = null;
+  _todoSelectedDateKey = null;
+  _todoSelectedIdeaId = null;
+  _tsAttachOn = false;
+  _applyTodoAttach('ts', false);
+}
+
+function _resetIdeaForm() {
+  ['idea-name','idea-address','idea-neighborhood','idea-cuisine','idea-shortdesc','idea-subway','idea-walkdrive','idea-about','idea-note-short','idea-in-shortdesc','idea-note-long','idea-website-url','idea-eventbrite-url','idea-opentable-url','idea-resy-url','idea-webapp-url','idea-webapp-label'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+  const catSel = document.getElementById('idea-cat-select'); if (catSel) catSel.value = 'restaurant';
+  const catSelIn = document.getElementById('idea-cat-select-in'); if (catSelIn) catSelIn.value = 'restaurant';
+  window._ideaSaved = false; renderIdeaHeartBtn();
+  window._ideaIsPrivate = false; _renderLockBtn('idea-lock-btn', false);
+  _ideaCustomIconKey = null;
+  _webappIconKey = 'webapp';
+  _renderWebappIconBtn('idea-webapp-icon-btn', 'webapp');
+  populateIdeaImageFields([]);
+  delete _imgSearchTermOverrides['idea-image-fields'];
+  window._imgsPopupPendingSearchTerm = undefined;
+  selectedCategory = 'restaurant';
+  onIdeaCatSelectChange();
+  const resSel = document.getElementById('idea-reservation'); if (resSel) { resSel.value = 'none'; onIdeaReservationChange(false); }
+  if (ideaType !== 'out') { switchSheetType('out'); }
+}
+
 function closeSheet() {
   document.getElementById('sheet-overlay').style.display = 'none';
   document.getElementById('idea-sheet').style.display = 'none';
   sheetOpen = false;
+  if (sheetMode === 'date') {
+    _resetDateForm();
+  } else if (!window._editingIdeaId) {
+    _resetIdeaForm();
+  }
   window._editingIdeaId = null;
   sheetMode = 'idea';
   document.getElementById('btn-new-circle').style.background = ROSE;
@@ -7126,9 +7235,9 @@ function _updateInLocationVisibility(prefix, show) {
   if (!wrap) return;
   wrap.style.display = show ? 'block' : 'none';
   if (show) {
-    // Update partner option label with current pronoun
+    // Update partner option label with current pronoun (keep value as 'partner_place')
     const partnerOpt = document.getElementById(prefix + '-in-partner-option');
-    if (partnerOpt) partnerOpt.textContent = partnerPlaceLabel();
+    if (partnerOpt) { partnerOpt.textContent = partnerPlaceLabel(); partnerOpt.value = 'partner_place'; }
     // Reset to default if switching to In
     const sel = document.getElementById(prefix + '-in-location-select');
     if (sel && sel.value === '') sel.value = 'my_place';
@@ -7494,6 +7603,46 @@ function openDetail(id, navContext) {
       <div style="margin-top:2px;flex-shrink:0">${infoIcon}</div>
       ${aboutContent}
     </div>`;
+  }
+
+  // Commute info (subway + walk/drive) — same as Date Info but without Leave By
+  if (item.type === 'out') {
+    const _diSubway = item.subwayRoute ? item.subwayRoute.trim() : '';
+    const _diWalkdrive = item.walkDriveTime ? item.walkDriveTime.trim() : '';
+    const _diDest = item.address ? item.address.trim() : item.name;
+    if (_diSubway) {
+      const _subwayOnclick = (homeAddress && _diDest)
+        ? `_openExternal('https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(homeAddress)}&destination=${encodeURIComponent(_diDest)}&travelmode=transit')`
+        : '';
+      const _badgesHtml = buildSubwayBadgesHtml(_diSubway);
+      body += `<div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:14px">
+        <div style="margin-top:2px;flex-shrink:0">${infoIcon}</div>
+        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;${_subwayOnclick?'cursor:pointer':''}" ${_subwayOnclick?`onclick="${_subwayOnclick}"`:''}>${_badgesHtml}</div>
+      </div>`;
+    }
+    if (_diWalkdrive) {
+      const _wdMatch = _diWalkdrive.match(/(\d+)\s*min\s*walk/i);
+      const _ddMatch = _diWalkdrive.match(/(\d+)\s*min\s*drive/i);
+      if (_wdMatch || _ddMatch) {
+        const _pSvg = `<svg viewBox="0 0 24 24" width="13" height="13" fill="#b0a090"><path d="M13.5 5.5c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zM9.8 8.9L7 23h2.1l1.8-8 2.1 2v6h2v-7.5l-2.1-2 .6-3C14.8 12 16.8 13 19 13v-2c-1.9 0-3.5-1-4.3-2.4l-1-1.6c-.4-.6-1-1-1.7-1-.3 0-.5.1-.8.1L6 8.3V13h2V9.6l1.8-.7"/></svg>`;
+        const _cSvg = `<svg viewBox="0 0 24 24" width="13" height="13" fill="#b0a090"><path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z"/></svg>`;
+        let _wdHtml = `<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">`;
+        if (_wdMatch) {
+          const _wOC = (homeAddress && _diDest) ? `_openExternal('https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(homeAddress)}&destination=${encodeURIComponent(_diDest)}&travelmode=walking')` : '';
+          _wdHtml += `<span style="display:flex;align-items:center;gap:4px;font-size:13px;font-family:sans-serif;color:#b0a090;${_wOC?'cursor:pointer':''}" ${_wOC?`onclick="${_wOC}"`:''}>${_pSvg}${_wdMatch[1]} min</span>`;
+        }
+        if (_wdMatch && _ddMatch) _wdHtml += `<span style="color:#b0a090;font-size:13px">/</span>`;
+        if (_ddMatch) {
+          const _dOC = (homeAddress && _diDest) ? `_openExternal('https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(homeAddress)}&destination=${encodeURIComponent(_diDest)}&travelmode=driving')` : '';
+          _wdHtml += `<span style="display:flex;align-items:center;gap:4px;font-size:13px;font-family:sans-serif;color:#b0a090;${_dOC?'cursor:pointer':''}" ${_dOC?`onclick="${_dOC}"`:''}>${_cSvg}${_ddMatch[1]} min</span>`;
+        }
+        _wdHtml += `</div>`;
+        body += `<div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:14px">
+          <div style="margin-top:2px;flex-shrink:0">${infoIcon}</div>
+          ${_wdHtml}
+        </div>`;
+      }
+    }
   }
 
   // Bottom action buttons row
@@ -7946,6 +8095,33 @@ function openDateInfo(u, memoryMode) {
   // In-other location (place name + address when Other is selected on an In idea)
   const _inOtherIdea = ideas.find(i => i.name && u.venue && i.name.toLowerCase() === u.venue.toLowerCase());
   const _isOtherLoc = u.inLocation === 'other' && _inOtherIdea && _inOtherIdea.type === 'in';
+
+  // My place / Her place row
+  const diInLocRow = document.getElementById('di-in-location-row');
+  const diInLocIcon = document.getElementById('di-in-location-icon');
+  const diInLocLabel = document.getElementById('di-in-location-label');
+  const _pLbl = partnerPlaceLabel();
+  const _isPartnerLoc = u.inLocation === _pLbl || u.inLocation === 'partner_place';
+  if (diInLocRow && (u.inLocation === 'my_place' || _isPartnerLoc)) {
+    const _locLabel = _isPartnerLoc ? _pLbl : 'My place';
+    const _pinSvg = `<svg viewBox="0 0 24 24" width="18" height="18" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>`;
+    const _homeSvg = `<svg viewBox="0 0 24 24" width="18" height="18" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>`;
+    if (diInLocIcon) diInLocIcon.innerHTML = _isPartnerLoc ? _pinSvg : _homeSvg;
+    if (diInLocLabel) {
+      diInLocLabel.textContent = _locLabel;
+      if (_isPartnerLoc && partnerAddress) {
+        const _partnerUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(partnerAddress)}`;
+        diInLocLabel.onclick = () => _openExternal(_partnerUrl);
+        diInLocLabel.style.cursor = 'pointer';
+      } else {
+        diInLocLabel.onclick = null;
+        diInLocLabel.style.cursor = 'default';
+      }
+    }
+    diInLocRow.style.display = 'flex';
+  } else {
+    if (diInLocRow) diInLocRow.style.display = 'none';
+  }
   const diInOtherNameRow = document.getElementById('di-in-other-name-row');
   const diInOtherAddrRow = document.getElementById('di-in-other-addr-row');
   if (_isOtherLoc && u.inLocationOtherName) {
@@ -8226,7 +8402,14 @@ function populateEditDateFields(u) {
     _updateInLocationVisibility('ed', matched.type === 'in');
     if (matched.type === 'in') {
       const sel = document.getElementById('ed-in-location-select');
-      if (sel) sel.value = u.inLocation || 'my_place';
+      if (sel) {
+        // inLocation may be stored as display label ("Her place") or key ("partner_place")
+        const _pLabelEd = partnerPlaceLabel();
+        const _edLoc = (u.inLocation === _pLabelEd || u.inLocation === 'partner_place') ? 'partner_place'
+          : (u.inLocation === 'My place' || u.inLocation === 'my_place') ? 'my_place'
+          : u.inLocation || 'my_place';
+        sel.value = _edLoc;
+      }
       onEdInLocationChange();
       const otherInp = document.getElementById('ed-in-location-other');
       if (otherInp) otherInp.value = u.inLocationOther || '';
