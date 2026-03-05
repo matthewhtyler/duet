@@ -1930,7 +1930,9 @@ let sheetOpen = false;
 let ideaType = 'out';
 let ideasFilter = 'all';
 let ideasSearch = '';
-let catTabFilter = 'all'; // active pill in the Categories tab: 'all' | 'favs' | <catId>
+let catTabFilter = 'all'; // active pill in the Categories tab: 'all' | <catId> | '_in'
+let outTabFilter = 'all'; // active pill in the Out tab: 'all' | <catId>
+let inTabFilter  = 'all'; // active pill in the In tab:  'all' | <catId>
 // Sort key: strip leading "The " for alphabetical ordering
 function _sortKey(name) { return (name||'').replace(/^the\s+/i, '').trim(); }
 const byName = (a,b) => _sortKey(a.name).localeCompare(_sortKey(b.name));
@@ -2424,10 +2426,36 @@ function navigate(view) {
 function setIdeasFilter(f) {
   ideasFilter = f;
   _favScrollIdx = 0;
-  if (f !== 'favs') catTabFilter = 'all'; // reset cat tab pill when leaving categories tab
-  // Full re-render needed so controlbar toggle styles update correctly
   const main = document.getElementById('main-content');
   if (main) main.innerHTML = renderIdeas();
+}
+function setOutTabFilter(f) {
+  outTabFilter = f;
+  const body = document.getElementById('ideas-body');
+  if (body) body.innerHTML = _buildOutTabBody();
+  requestAnimationFrame(() => {
+    const strip = document.getElementById('out-tab-strip');
+    if (!strip) return;
+    const active = strip.querySelector('.out-pill-active');
+    if (!active) return;
+    const stripRect = strip.getBoundingClientRect();
+    const pillRect = active.getBoundingClientRect();
+    strip.scrollLeft = (pillRect.left - stripRect.left + strip.scrollLeft + pillRect.width / 2) - strip.clientWidth / 2;
+  });
+}
+function setInTabFilter(f) {
+  inTabFilter = f;
+  const body = document.getElementById('ideas-body');
+  if (body) body.innerHTML = _buildInTabBody();
+  requestAnimationFrame(() => {
+    const strip = document.getElementById('in-tab-strip');
+    if (!strip) return;
+    const active = strip.querySelector('.in-pill-active');
+    if (!active) return;
+    const stripRect = strip.getBoundingClientRect();
+    const pillRect = active.getBoundingClientRect();
+    strip.scrollLeft = (pillRect.left - stripRect.left + strip.scrollLeft + pillRect.width / 2) - strip.clientWidth / 2;
+  });
 }
 function setCatTabFilter(f) {
   catTabFilter = f;
@@ -3235,6 +3263,12 @@ function renderIdeas() {
     if (isFavFilter) {
     return `<div id="ideas-body">${_buildCatTabBody()}</div>`;
   }
+  if (ideasFilter === 'out') {
+    return `<div id="ideas-body">${_buildOutTabBody()}</div>`;
+  }
+  if (ideasFilter === 'in') {
+    return `<div id="ideas-body">${_buildInTabBody()}</div>`;
+  }
   return `<div id="ideas-body">${_buildIdeasBody(pool, q, byName, isFavFilter)}</div>`;
 }
 
@@ -3375,36 +3409,44 @@ function _buildIdeasBody(pool, q, byName, isFavFilter) {
 // ── Categories Tab builder (used when ideasFilter === 'favs')
 function _buildCatTabBody() {
   const q = (ideasSearch || '').trim();
-  const accent = accentColor('out');
   const isDark = document.body.classList.contains('dark-mode');
   const pillActiveColor = isDark ? '#c07a8a' : BURGUNDY;
   const pillInactiveColor = '#9a8a7a';
 
-  // Build the ordered pill list: All, Favorites, then selected out cats, then selected in cats
-  const selOut = OUT_CATS.filter(c => SELECTED_CATS.has(c.id));
-  const selIn  = IN_CATS.filter(c => SELECTED_CATS.has(c.id));
+  // All favorites only
+  const allFavs = ideas.filter(i => !i.archived && !_isHiddenPrivate(i) && i.saved && ideaMatchesSearch(i, q)).sort(byName);
+  const outFavs = allFavs.filter(i => i.type === 'out');
+  const inFavs  = allFavs.filter(i => i.type === 'in');
+
+  // Pills: All + only OUT_CATS that have at least one fav, in OUT_CATS order;
+  // then a single "Staying In" pill if any in-favs exist
+  const outCatsWithFavs = OUT_CATS.filter(c => outFavs.some(i => (i.category||'other') === c.id));
+  // Also catch any out-favs whose category isn't in OUT_CATS
+  const knownOutIds = new Set(OUT_CATS.map(c => c.id));
+  const extraOutCatIds = [...new Set(outFavs.map(i => i.category||'other').filter(id => !knownOutIds.has(id)))];
+
   const pills = [
-    { id: 'all',  label: 'All',       iconKey: null, type: null },
-    { id: 'favs', label: 'Favorites', iconKey: 'heart', type: null },
-    ...selOut.map(c => ({id: c.id, label: c.label, iconKey: c.iconKey, type: 'out'})),
-    ...selIn.map(c  => ({id: c.id, label: c.label, iconKey: c.iconKey, type: 'in'})),
+    { id: 'all', label: 'All', iconKey: null, type: null },
+    ...outCatsWithFavs.map(c => ({ id: c.id, label: c.label, iconKey: c.iconKey, type: 'out' })),
+    ...extraOutCatIds.map(id => ({ id, label: catLabelForId(id, 'out'), iconKey: null, type: 'out' })),
+    ...(inFavs.length ? [{ id: '_in', label: 'Staying In', iconKey: null, type: 'in' }] : []),
   ];
+
+  // If current catTabFilter is no longer valid (its category has no favs), reset to 'all'
+  const validPillIds = new Set(['all', ...outCatsWithFavs.map(c => c.id), ...extraOutCatIds, ...(inFavs.length ? ['_in'] : [])]);
+  if (!validPillIds.has(catTabFilter)) catTabFilter = 'all';
 
   function pillHtml(p) {
     const active = catTabFilter === p.id;
     const color = active ? pillActiveColor : pillInactiveColor;
-    const iconSvg = p.iconKey && ICONS[p.iconKey]
-      ? (p.iconKey === 'heart'
-          ? `<svg viewBox="0 0 24 24" width="13" height="13" stroke="${color}" stroke-width="2" fill="${active ? color : 'none'}" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>`
-          : ICONS[p.iconKey](14, color))
-      : '';
+    const iconSvg = p.iconKey && ICONS[p.iconKey] ? ICONS[p.iconKey](14, color) : '';
     const fw = active ? '700' : '500';
     return `<button class="${active ? 'cat-pill-active' : ''}" onclick="setCatTabFilter('${p.id}')" style="display:flex;align-items:center;gap:5px;white-space:nowrap;background:none;border:none;cursor:pointer;padding:6px 4px;font-family:sans-serif;font-size:13px;font-weight:${fw};color:${color};flex-shrink:0;line-height:1">${iconSvg}${p.label}</button>`;
   }
 
-  const stripHtml = `<div id="cat-tab-strip" style="display:flex;align-items:center;gap:10px;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none;-webkit-overflow-scrolling:touch;padding:0 20px 10px;border-bottom:1px solid var(--border);margin-bottom:0">${pills.map(pillHtml).join('<span style="color:var(--border);font-size:16px;flex-shrink:0">·</span>')}</div>`;
-
-  // Build content based on active pill
+  const stripHtml = pills.length > 1
+    ? `<div id="cat-tab-strip" style="display:flex;align-items:center;gap:10px;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none;-webkit-overflow-scrolling:touch;padding:0 20px 10px;border-bottom:1px solid var(--border)">${pills.map(pillHtml).join('<span style="color:var(--border);font-size:16px;flex-shrink:0">·</span>')}</div>`
+    : '';
 
   function smallCard(item) {
     const sub = itemSubLine(item);
@@ -3440,50 +3482,196 @@ function _buildCatTabBody() {
     </div>`;
   }
 
-  let allIdeas = ideas.filter(i => !i.archived && !_isHiddenPrivate(i) && ideaMatchesSearch(i, q));
   let contentHtml = '';
 
-  if (catTabFilter === 'all') {
-    // All out ideas grouped by category, then Staying In grouped by category
-    const outAll = allIdeas.filter(i => i.type === 'out').sort(byName);
-    const inAll  = allIdeas.filter(i => i.type === 'in').sort(byName);
-    const outMap = new Map();
-    outAll.forEach(i => { const cid = i.category||'other'; if(!outMap.has(cid)) outMap.set(cid,[]); outMap.get(cid).push(i); });
-    outMap.forEach((items, catId) => { contentHtml += catSection(catId, items, 'out'); });
-    if (inAll.length) {
-      contentHtml += `<div style="margin-bottom:20px"><div class="section-label" style="margin-bottom:8px">Staying In</div><div style="display:flex;flex-direction:column;gap:8px">${inAll.map(smallCard).join('')}</div></div>`;
-    }
-  } else if (catTabFilter === 'favs') {
-    // Favorites grouped by category
-    const favs = allIdeas.filter(i => i.saved).sort(byName);
-    const outFavs = favs.filter(i => i.type === 'out');
-    const inFavs  = favs.filter(i => i.type === 'in');
-    const outMap = new Map();
-    outFavs.forEach(i => { const cid = i.category||'other'; if(!outMap.has(cid)) outMap.set(cid,[]); outMap.get(cid).push(i); });
-    outMap.forEach((items, catId) => { contentHtml += catSection(catId, items, 'out'); });
+  if (!allFavs.length) {
+    contentHtml = `<div style="color:#b0a090;font-size:15px;font-style:italic;text-align:center;padding:40px 0">No favorites yet.</div>`;
+  } else if (catTabFilter === 'all') {
+    // Out favs grouped by category in OUT_CATS order, then flat Staying In
+    const map = new Map();
+    outFavs.forEach(i => { const cid = i.category||'other'; if(!map.has(cid)) map.set(cid,[]); map.get(cid).push(i); });
+    OUT_CATS.forEach(c => { if (map.has(c.id)) { contentHtml += catSection(c.id, map.get(c.id), 'out'); map.delete(c.id); } });
+    map.forEach((its, cid) => { contentHtml += catSection(cid, its, 'out'); });
     if (inFavs.length) {
       contentHtml += `<div style="margin-bottom:20px"><div class="section-label" style="margin-bottom:8px">Staying In</div><div style="display:flex;flex-direction:column;gap:8px">${inFavs.map(smallCard).join('')}</div></div>`;
     }
-    if (!favs.length) contentHtml = `<div style="color:#b0a090;font-size:15px;font-style:italic;text-align:center;padding:40px 0">No favorites yet.</div>`;
+  } else if (catTabFilter === '_in') {
+    contentHtml = `<div style="margin-bottom:20px"><div class="section-label" style="margin-bottom:8px">Staying In</div><div style="display:flex;flex-direction:column;gap:8px">${inFavs.map(smallCard).join('')}</div></div>`;
   } else {
-    // Single category selected
-    const pill = pills.find(p => p.id === catTabFilter);
-    const type = pill ? pill.type : null;
-    let items;
-    if (type === 'in') {
-      items = allIdeas.filter(i => i.type === 'in' && (i.category||'otherin') === catTabFilter).sort(byName);
-    } else {
-      items = allIdeas.filter(i => i.type === 'out' && (i.category||'other') === catTabFilter).sort(byName);
-    }
-    const label = catLabelForId(catTabFilter, type||'out');
-    if (items.length) {
-      contentHtml = `<div style="margin-bottom:20px">
-        <div class="section-label" style="margin-bottom:8px">${label}</div>
-        <div style="display:flex;flex-direction:column;gap:8px">${items.map(smallCard).join('')}</div>
-      </div>`;
-    } else {
-      contentHtml = `<div style="color:#b0a090;font-size:15px;font-style:italic;text-align:center;padding:40px 0">No ideas in this category.</div>`;
-    }
+    // Single out category
+    const items = outFavs.filter(i => (i.category||'other') === catTabFilter).sort(byName);
+    const label = catLabelForId(catTabFilter, 'out');
+    contentHtml = items.length
+      ? `<div style="margin-bottom:20px"><div class="section-label" style="margin-bottom:8px">${label}</div><div style="display:flex;flex-direction:column;gap:8px">${items.map(smallCard).join('')}</div></div>`
+      : `<div style="color:#b0a090;font-size:15px;font-style:italic;text-align:center;padding:40px 0">No favorites in this category.</div>`;
+  }
+
+  return `${stripHtml}<div style="padding:12px 20px 80px">${contentHtml}</div>`;
+}
+function _buildOutTabBody() {
+  const q = (ideasSearch || '').trim();
+  const isDark = document.body.classList.contains('dark-mode');
+  const pillActiveColor = isDark ? '#c07a8a' : BURGUNDY;
+  const pillInactiveColor = '#9a8a7a';
+  const accent = accentColor('out');
+
+  // Pills: All + selected Out cats in OUT_CATS order (fallback to all if none selected)
+  const selOut = OUT_CATS.filter(c => SELECTED_CATS.has(c.id));
+  const outPillCats = selOut.length ? selOut : OUT_CATS;
+  const pills = [
+    { id: 'all', label: 'All', iconKey: null },
+    ...outPillCats.map(c => ({ id: c.id, label: c.label, iconKey: c.iconKey })),
+  ];
+
+  function pillHtml(p) {
+    const active = outTabFilter === p.id;
+    const color = active ? pillActiveColor : pillInactiveColor;
+    const iconSvg = p.iconKey && ICONS[p.iconKey] ? ICONS[p.iconKey](14, color) : '';
+    const fw = active ? '700' : '500';
+    return `<button class="${active ? 'out-pill-active' : ''}" onclick="setOutTabFilter('${p.id}')" style="display:flex;align-items:center;gap:5px;white-space:nowrap;background:none;border:none;cursor:pointer;padding:6px 4px;font-family:sans-serif;font-size:13px;font-weight:${fw};color:${color};flex-shrink:0;line-height:1">${iconSvg}${p.label}</button>`;
+  }
+
+  const stripHtml = `<div id="out-tab-strip" style="display:flex;align-items:center;gap:10px;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none;-webkit-overflow-scrolling:touch;padding:0 20px 10px;border-bottom:1px solid var(--border)">${pills.map(pillHtml).join('<span style="color:var(--border);font-size:16px;flex-shrink:0">·</span>')}</div>`;
+
+  const allOut = ideas.filter(i => !i.archived && !_isHiddenPrivate(i) && i.type === 'out' && ideaMatchesSearch(i, q)).sort(byName);
+
+  function smallCard(item) {
+    const sub = itemSubLine(item);
+    const _subColor = subColor('out');
+    const urls = getImageUrls(item);
+    const imgPanel = urls.length
+      ? `<div style="width:120px;flex-shrink:0;margin:-12px -14px -12px 0;border-left:1px solid var(--img-sep);border-radius:0 14px 14px 0;overflow:hidden;align-self:stretch;background:#6b2340;position:relative"><img src="${urls[0]}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center;display:block" onerror="this.parentNode.style.background='#6b2340';this.style.display='none'"></div>`
+      : '';
+    const hasDate = !!_nextUpcomingDateForIdea(item);
+    const calIcon = hasDate ? `<svg viewBox="0 0 24 24" width="12" height="12" stroke="${accent}" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-left:4px"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>` : '';
+    const subLine = sub
+      ? `<div class="quick-row-sub" style="display:flex;align-items:center;color:${_subColor}">${sub}${calIcon}</div>`
+      : (hasDate ? `<div class="quick-row-sub" style="display:flex;align-items:center">${calIcon}</div>` : '');
+    return `<div class="quick-row" onclick="openDetail(${item.id},'out')" style="cursor:pointer;overflow:hidden">
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;align-items:center;gap:7px;margin-bottom:${subLine?'4px':'0'}">
+          ${ideaIcon(item, 14, accent)}
+          <div class="quick-row-name">${item.name}</div>
+        </div>
+        ${subLine}
+      </div>
+      ${imgPanel}
+    </div>`;
+  }
+
+  function catSection(catId, items) {
+    const label = catLabelForId(catId, 'out');
+    return `<div style="margin-bottom:20px">
+      <div class="section-label" style="margin-bottom:8px">${label}</div>
+      <div style="display:flex;flex-direction:column;gap:8px">${items.map(smallCard).join('')}</div>
+    </div>`;
+  }
+
+  function orderedSections(items) {
+    const map = new Map();
+    items.forEach(i => { const cid = i.category||'other'; if(!map.has(cid)) map.set(cid,[]); map.get(cid).push(i); });
+    let html = '';
+    OUT_CATS.forEach(c => { if (map.has(c.id)) { html += catSection(c.id, map.get(c.id)); map.delete(c.id); } });
+    map.forEach((its, cid) => { html += catSection(cid, its); });
+    return html;
+  }
+
+  let contentHtml = '';
+  if (!allOut.length) {
+    contentHtml = `<div style="color:#b0a090;font-size:15px;font-style:italic;text-align:center;padding:40px 0">No ideas yet.</div>`;
+  } else if (outTabFilter === 'all') {
+    contentHtml = orderedSections(allOut);
+  } else {
+    const items = allOut.filter(i => (i.category||'other') === outTabFilter);
+    const label = catLabelForId(outTabFilter, 'out');
+    contentHtml = items.length
+      ? `<div style="margin-bottom:20px"><div class="section-label" style="margin-bottom:8px">${label}</div><div style="display:flex;flex-direction:column;gap:8px">${items.map(smallCard).join('')}</div></div>`
+      : `<div style="color:#b0a090;font-size:15px;font-style:italic;text-align:center;padding:40px 0">No ideas in this category.</div>`;
+  }
+
+  return `${stripHtml}<div style="padding:12px 20px 80px">${contentHtml}</div>`;
+}
+
+// ── In Tab builder — pill strip of selected In categories + category-grouped content
+function _buildInTabBody() {
+  const q = (ideasSearch || '').trim();
+  const isDark = document.body.classList.contains('dark-mode');
+  const pillActiveColor = isDark ? '#c07a8a' : BURGUNDY;
+  const pillInactiveColor = '#9a8a7a';
+  const accent = accentColor('in');
+
+  // Pills: All + selected In cats in IN_CATS order (fallback to all if none selected)
+  const selIn = IN_CATS.filter(c => SELECTED_CATS.has(c.id));
+  const inPillCats = selIn.length ? selIn : IN_CATS;
+  const pills = [
+    { id: 'all', label: 'All', iconKey: null },
+    ...inPillCats.map(c => ({ id: c.id, label: c.label, iconKey: c.iconKey })),
+  ];
+
+  function pillHtml(p) {
+    const active = inTabFilter === p.id;
+    const color = active ? pillActiveColor : pillInactiveColor;
+    const iconSvg = p.iconKey && ICONS[p.iconKey] ? ICONS[p.iconKey](14, color) : '';
+    const fw = active ? '700' : '500';
+    return `<button class="${active ? 'in-pill-active' : ''}" onclick="setInTabFilter('${p.id}')" style="display:flex;align-items:center;gap:5px;white-space:nowrap;background:none;border:none;cursor:pointer;padding:6px 4px;font-family:sans-serif;font-size:13px;font-weight:${fw};color:${color};flex-shrink:0;line-height:1">${iconSvg}${p.label}</button>`;
+  }
+
+  const stripHtml = `<div id="in-tab-strip" style="display:flex;align-items:center;gap:10px;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none;-webkit-overflow-scrolling:touch;padding:0 20px 10px;border-bottom:1px solid var(--border)">${pills.map(pillHtml).join('<span style="color:var(--border);font-size:16px;flex-shrink:0">·</span>')}</div>`;
+
+  const allIn = ideas.filter(i => !i.archived && !_isHiddenPrivate(i) && i.type === 'in' && ideaMatchesSearch(i, q)).sort(byName);
+
+  function smallCard(item) {
+    const sub = itemSubLine(item);
+    const _subColor = subColor('in');
+    const urls = getImageUrls(item);
+    const imgPanel = urls.length
+      ? `<div style="width:120px;flex-shrink:0;margin:-12px -14px -12px 0;border-left:1px solid var(--img-sep);border-radius:0 14px 14px 0;overflow:hidden;align-self:stretch;background:#6b2340;position:relative"><img src="${urls[0]}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center;display:block" onerror="this.parentNode.style.background='#6b2340';this.style.display='none'"></div>`
+      : '';
+    const hasDate = !!_nextUpcomingDateForIdea(item);
+    const calIcon = hasDate ? `<svg viewBox="0 0 24 24" width="12" height="12" stroke="${accent}" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-left:4px"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>` : '';
+    const subLine = sub
+      ? `<div class="quick-row-sub" style="display:flex;align-items:center;color:${_subColor}">${sub}${calIcon}</div>`
+      : (hasDate ? `<div class="quick-row-sub" style="display:flex;align-items:center">${calIcon}</div>` : '');
+    return `<div class="quick-row" onclick="openDetail(${item.id},'in')" style="cursor:pointer;overflow:hidden">
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;align-items:center;gap:7px;margin-bottom:${subLine?'4px':'0'}">
+          ${ideaIcon(item, 14, accent)}
+          <div class="quick-row-name">${item.name}</div>
+        </div>
+        ${subLine}
+      </div>
+      ${imgPanel}
+    </div>`;
+  }
+
+  function catSection(catId, items) {
+    const label = catLabelForId(catId, 'in');
+    return `<div style="margin-bottom:20px">
+      <div class="section-label" style="margin-bottom:8px">${label}</div>
+      <div style="display:flex;flex-direction:column;gap:8px">${items.map(smallCard).join('')}</div>
+    </div>`;
+  }
+
+  function orderedSections(items) {
+    const map = new Map();
+    items.forEach(i => { const cid = i.category||'otherin'; if(!map.has(cid)) map.set(cid,[]); map.get(cid).push(i); });
+    let html = '';
+    IN_CATS.forEach(c => { if (map.has(c.id)) { html += catSection(c.id, map.get(c.id)); map.delete(c.id); } });
+    map.forEach((its, cid) => { html += catSection(cid, its); });
+    return html;
+  }
+
+  let contentHtml = '';
+  if (!allIn.length) {
+    contentHtml = `<div style="color:#b0a090;font-size:15px;font-style:italic;text-align:center;padding:40px 0">No ideas yet.</div>`;
+  } else if (inTabFilter === 'all') {
+    contentHtml = orderedSections(allIn);
+  } else {
+    const items = allIn.filter(i => (i.category||'otherin') === inTabFilter);
+    const label = catLabelForId(inTabFilter, 'in');
+    contentHtml = items.length
+      ? `<div style="margin-bottom:20px"><div class="section-label" style="margin-bottom:8px">${label}</div><div style="display:flex;flex-direction:column;gap:8px">${items.map(smallCard).join('')}</div></div>`
+      : `<div style="color:#b0a090;font-size:15px;font-style:italic;text-align:center;padding:40px 0">No ideas in this category.</div>`;
   }
 
   return `${stripHtml}<div style="padding:12px 20px 80px">${contentHtml}</div>`;
@@ -3531,7 +3719,7 @@ function _renderIdeasBody() {
   }
 
   const body = document.getElementById('ideas-body');
-  if (body) body.innerHTML = isFavFilter ? _buildCatTabBody() : _buildIdeasBody(pool, q, byName, isFavFilter);
+  if (body) body.innerHTML = isFavFilter ? _buildCatTabBody() : ideasFilter === 'out' ? _buildOutTabBody() : ideasFilter === 'in' ? _buildInTabBody() : _buildIdeasBody(pool, q, byName, isFavFilter);
 }
 
 // scrollFavs: scrolls the favorites list by showing next/prev card
