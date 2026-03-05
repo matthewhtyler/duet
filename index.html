@@ -1934,6 +1934,21 @@ let catTabFilter = 'all'; // active pill in the Categories tab: 'all' | 'favs' |
 // Sort key: strip leading "The " for alphabetical ordering
 function _sortKey(name) { return (name||'').replace(/^the\s+/i, '').trim(); }
 const byName = (a,b) => _sortKey(a.name).localeCompare(_sortKey(b.name));
+// Returns the soonest future upcoming date for an idea, or null
+function _nextUpcomingDateForIdea(item) {
+  const today = new Date(); today.setHours(0,0,0,0);
+  const matches = (UPCOMING_DATES || []).filter(d => {
+    if (d.archived) return false;
+    const matches = (d.ideaId && d.ideaId === item.id) ||
+      (d.venue && item.name && d.venue.toLowerCase() === item.name.toLowerCase());
+    if (!matches) return false;
+    const dt = new Date(d.year||2026, MONTH_NUMS[d.month]||0, d.day);
+    return dt >= today;
+  });
+  if (!matches.length) return null;
+  matches.sort((a,b) => new Date(a.year||2026,MONTH_NUMS[a.month]||0,a.day) - new Date(b.year||2026,MONTH_NUMS[b.month]||0,b.day));
+  return matches[0];
+}
 let _favScrollIdx = 0;
 let _homeCarouselIdx = 0;
 let selectedCategory = 'restaurant';
@@ -3233,13 +3248,18 @@ function _buildIdeasBody(pool, q, byName, isFavFilter) {
     const imgPanel = urls.length
       ? `<div style="width:120px;flex-shrink:0;margin:-12px -14px -12px 0;border-left:1px solid var(--img-sep);border-radius:0 14px 14px 0;overflow:hidden;align-self:stretch;background:#6b2340;position:relative"><img src="${urls[0]}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center;display:block" onerror="this.parentNode.style.background='#6b2340';this.style.display='none'"></div>`
       : '';
+    const hasDate = !!_nextUpcomingDateForIdea(item);
+    const calIcon = hasDate ? `<svg viewBox="0 0 24 24" width="12" height="12" stroke="${accent}" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-left:4px"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>` : '';
+    const subLine = sub
+      ? `<div class="quick-row-sub" style="display:flex;align-items:center;color:${_subColor}">${sub}${calIcon}</div>`
+      : (hasDate ? `<div class="quick-row-sub" style="display:flex;align-items:center">${calIcon}</div>` : '');
     return `<div class="quick-row" onclick="openDetail(${item.id},'${navCtx}')" style="cursor:pointer;overflow:hidden">
       <div style="flex:1;min-width:0">
-        <div style="display:flex;align-items:center;gap:7px;margin-bottom:${sub?'4px':'0'}">
+        <div style="display:flex;align-items:center;gap:7px;margin-bottom:${subLine?'4px':'0'}">
           ${ideaIcon(item, 14, accent)}
           <div class="quick-row-name">${item.name}</div>
         </div>
-        ${sub ? `<div class="quick-row-sub" style="color:${_subColor}">${sub}</div>` : ''}
+        ${subLine}
       </div>
       ${imgPanel}
     </div>`;
@@ -3262,9 +3282,14 @@ function _buildIdeasBody(pool, q, byName, isFavFilter) {
         <svg viewBox="0 0 24 24" width="15" height="15" stroke="#b0a090" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
       </button>
     </div>`;
+    const nextDate = _nextUpcomingDateForIdea(item);
+    const dateBadgeHtml = nextDate ? `<div onclick="event.stopPropagation();currentCalMonth=${MONTH_NUMS[nextDate.month]||0};currentCalYear=${nextDate.year||2026};selectedCalDay=${nextDate.day};navigate('calendar')" style="display:flex;flex-direction:column;align-items:center;justify-content:center;position:absolute;bottom:8px;right:8px;border:1px solid rgba(255,255,255,0.85);border-radius:5px;padding:2px 5px;min-width:26px;background:rgba(0,0,0,0.32);backdrop-filter:blur(2px);cursor:pointer">
+      <span style="font-size:7px;font-family:sans-serif;font-weight:700;color:#fff;letter-spacing:0.07em;text-transform:uppercase;line-height:1.2">${nextDate.month}</span>
+      <span style="font-size:13px;font-weight:700;color:#fff;line-height:1.1;font-family:sans-serif">${nextDate.day}</span>
+    </div>` : '';
     return `<div onclick="openDetail(${item.id},'featured')" class="quick-row" style="cursor:pointer;flex-direction:column;align-items:stretch;padding:0;flex-shrink:0;width:calc(100vw - 40px);max-width:362px;scroll-snap-align:start;overflow:hidden">
-      <div style="height:100px;background:#6b2340;border-radius:13px 13px 0 0;flex-shrink:0;overflow:hidden;position:relative">${urls.length ? `<img src="${urls[0]}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center;display:block" onerror="this.parentNode.style.background='#6b2340';this.style.display='none'">` : ''}</div>
-      <div style="display:flex;align-items:center;gap:14px;padding:0 14px 12px">
+      <div style="height:100px;background:#6b2340;border-radius:13px 13px 0 0;flex-shrink:0;overflow:hidden;position:relative">${urls.length ? `<img src="${urls[0]}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center;display:block" onerror="this.parentNode.style.background='#6b2340';this.style.display='none'">` : ''}${dateBadgeHtml}</div>
+      <div style="display:flex;align-items:center;gap:10px;padding:0 14px 12px">
         <div style="flex:1;min-width:0">
           <div style="display:flex;align-items:center;gap:7px;margin-bottom:${sub?'3px':'0'}">
             ${ideaIcon(item, 14, accent)}
@@ -3390,13 +3415,18 @@ function _buildCatTabBody() {
       ? `<div style="width:120px;flex-shrink:0;margin:-12px -14px -12px 0;border-left:1px solid var(--img-sep);border-radius:0 14px 14px 0;overflow:hidden;align-self:stretch;background:#6b2340;position:relative"><img src="${urls[0]}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center;display:block" onerror="this.parentNode.style.background='#6b2340';this.style.display='none'"></div>`
       : '';
     const navCtx = item.type === 'in' ? 'in' : 'out';
+    const hasDate = !!_nextUpcomingDateForIdea(item);
+    const calIcon = hasDate ? `<svg viewBox="0 0 24 24" width="12" height="12" stroke="${ac}" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-left:4px"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>` : '';
+    const subLine = sub
+      ? `<div class="quick-row-sub" style="display:flex;align-items:center;color:${_subColor}">${sub}${calIcon}</div>`
+      : (hasDate ? `<div class="quick-row-sub" style="display:flex;align-items:center">${calIcon}</div>` : '');
     return `<div class="quick-row" onclick="openDetail(${item.id},'${navCtx}')" style="cursor:pointer;overflow:hidden">
       <div style="flex:1;min-width:0">
-        <div style="display:flex;align-items:center;gap:7px;margin-bottom:${sub?'4px':'0'}">
+        <div style="display:flex;align-items:center;gap:7px;margin-bottom:${subLine?'4px':'0'}">
           ${ideaIcon(item, 14, ac)}
           <div class="quick-row-name">${item.name}</div>
         </div>
-        ${sub ? `<div class="quick-row-sub" style="color:${_subColor}">${sub}</div>` : ''}
+        ${subLine}
       </div>
       ${imgPanel}
     </div>`;
