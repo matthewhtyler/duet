@@ -5382,168 +5382,208 @@ function renderCalendar() {
 
     // ── New: Info panel ──
     _calBannerIdx = Math.min(_calBannerIdx, _selDayVisible.length - 1);
-    const u = _selDayVisible[_calBannerIdx];
-    const _ipIdea = u.ideaId
-      ? ideas.find(i => i.id === u.ideaId)
-      : ideas.find(i => i.name && u.venue && i.name.toLowerCase() === u.venue.toLowerCase());
-    const _ipAccent = accentColor(_ipIdea ? _ipIdea.type : 'out');
 
-    // Build panels array — only add panels that have content
-    const _ipPanels = [];
+    // Helper: build panels for a single date entry
+    function _buildDatePanels(u) {
+      const _ipIdea = u.ideaId
+        ? ideas.find(i => i.id === u.ideaId)
+        : ideas.find(i => i.name && u.venue && i.name.toLowerCase() === u.venue.toLowerCase());
+      const _ipAccent = accentColor(_ipIdea ? _ipIdea.type : 'out');
 
-    // Panel: Reservation / Tickets — only show if not yet reserved
-    const _ipHasRes = _ipIdea && _ipIdea.reservation && _ipIdea.reservation !== 'none';
-    if (_ipHasRes) {
-      const _ipDk = _dateKey(u);
-      const _ipAlreadyReserved = _reservedDateKeys.has(_ipDk);
-      const _ipResUrl = _buildResUrl(u.venue, _ipIdea.reservation, _todoDateStr(u), _todoTimeStr(u.time), _ipIdea.eventbriteUrl, _ipIdea.websiteUrl, _ipIdea.opentableUrl, _ipIdea.resyUrl);
-      const _ipLabel = (_ipIdea.reservation === 'resy' || _ipIdea.reservation === 'opentable') ? 'Reserve' : 'Tickets';
-      if (!_ipAlreadyReserved && (_ipIdea.reservation !== 'website' || _ipResUrl)) {
-        const _ipResText = _ipLabel === 'Reserve' ? 'Make a reservation' : 'Purchase tickets';
-        const _ipCircleBtn = `<button id="cal-details-res-${_ipDk}" onclick="openReserveLink('${_ipResUrl.replace(/'/g,"\\'")}','${_ipDk}')" style="display:flex;align-items:center;gap:6px;height:24px;padding:0 12px;border:none;border-radius:12px;font-family:sans-serif;font-size:12px;font-weight:600;color:#fff;background:${ROSE};cursor:pointer;flex-shrink:0"><svg viewBox="0 0 24 24" width="10" height="10" stroke="#fff" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>${_ipLabel}</button>`;
-        _ipPanels.push(`<div style="display:flex;align-items:center;justify-content:center;gap:8px"><span style="font-size:13px;color:var(--text-secondary);font-family:sans-serif">${_ipResText}</span>${_ipCircleBtn}</div>`);
-      }
-    }
+      // Build panels array — only add panels that have content
+      const _ipPanels = [];
 
-    // Panel: Subway commute — use shared buildSubwayBadgesHtml (MTA colors, station, time)
-    const _ipSubway = _ipIdea && _ipIdea.subwayRoute ? _ipIdea.subwayRoute.trim() : '';
-    if (_ipSubway && !(u.inLocation === 'my_place') && !(_ipIdea && _ipIdea.type === 'in' && !u.inLocation)) {
-      const _ipDest = _ipIdea && _ipIdea.address ? _ipIdea.address.trim() : u.venue;
-      const _ipSubwayOnclick = (homeAddress && _ipDest)
-        ? `_openExternal('https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(homeAddress)}&destination=${encodeURIComponent(_ipDest)}&travelmode=transit')`
-        : '';
-      const timeMatch = _ipSubway.match(/~?\s*(\d+)\s*min/i);
-      const commuteMin = timeMatch ? parseInt(timeMatch[1]) : null;
-      const badgesHtml = buildSubwayBadgesHtml(_ipSubway);
-      // Leave by
-      let leaveByHtml = '';
-      if (commuteMin && u.time) {
-        const parsed = parseTimeInput(u.time);
-        const m = parsed.match(/(\d+):(\d+)\s*(am|pm)/i);
-        if (m) {
-          let h = parseInt(m[1]), mn = parseInt(m[2]);
-          const isPm = m[3].toLowerCase() === 'pm';
-          if (isPm && h !== 12) h += 12; if (!isPm && h === 12) h = 0;
-          const totalMin = h * 60 + mn - commuteMin - 10;
-          const lh = Math.floor(((totalMin%1440)+1440)%1440/60);
-          const lm = ((totalMin%1440)+1440)%1440%60;
-          const suf = lh >= 12 ? 'pm' : 'am';
-          const lh12 = lh===0?12:lh>12?lh-12:lh;
-          const leaveTimeStr = lm===0?`${lh12} ${suf}`:`${lh12}:${String(lm).padStart(2,'0')} ${suf}`;
-          leaveByHtml = `<span style="font-size:11px;color:var(--text-secondary);font-family:sans-serif">Leave by ${leaveTimeStr}</span>`;
+      // Panel: Reservation / Tickets — only show if not yet reserved
+      const _ipHasRes = _ipIdea && _ipIdea.reservation && _ipIdea.reservation !== 'none';
+      if (_ipHasRes) {
+        const _ipDk = _dateKey(u);
+        const _ipAlreadyReserved = _reservedDateKeys.has(_ipDk);
+        const _ipResUrl = _buildResUrl(u.venue, _ipIdea.reservation, _todoDateStr(u), _todoTimeStr(u.time), _ipIdea.eventbriteUrl, _ipIdea.websiteUrl, _ipIdea.opentableUrl, _ipIdea.resyUrl);
+        const _ipLabel = (_ipIdea.reservation === 'resy' || _ipIdea.reservation === 'opentable') ? 'Reserve' : 'Tickets';
+        if (!_ipAlreadyReserved && (_ipIdea.reservation !== 'website' || _ipResUrl)) {
+          const _ipResText = _ipLabel === 'Reserve' ? 'Make a reservation' : 'Purchase tickets';
+          const _ipCircleBtn = `<button id="cal-details-res-${_ipDk}" onclick="openReserveLink('${_ipResUrl.replace(/'/g,"\\'")}','${_ipDk}')" style="display:flex;align-items:center;gap:6px;height:24px;padding:0 12px;border:none;border-radius:12px;font-family:sans-serif;font-size:12px;font-weight:600;color:#fff;background:${ROSE};cursor:pointer;flex-shrink:0"><svg viewBox="0 0 24 24" width="10" height="10" stroke="#fff" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>${_ipLabel}</button>`;
+          _ipPanels.push(`<div style="display:flex;align-items:center;justify-content:center;gap:8px"><span style="font-size:13px;color:var(--text-secondary);font-family:sans-serif">${_ipResText}</span>${_ipCircleBtn}</div>`);
         }
       }
-      const subwayPanelContent = `<div style="display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap;${_ipSubwayOnclick?'cursor:pointer':''}" ${_ipSubwayOnclick?`onclick="${_ipSubwayOnclick}"`:''}>${badgesHtml}${leaveByHtml?`<span style="color:#b0a090;font-size:11px">·</span>${leaveByHtml}`:''}</div>`;
-      _ipPanels.push(subwayPanelContent);
-    }
 
-    // Panel: Walk / Drive — brown text, leave-by
-    const _ipWalkdrive = _ipIdea && _ipIdea.walkDriveTime ? _ipIdea.walkDriveTime.trim() : '';
-    if (_ipWalkdrive && !(u.inLocation === 'my_place') && !(_ipIdea && _ipIdea.type === 'in' && !u.inLocation)) {
-      const _ipDest2 = _ipIdea && _ipIdea.address ? _ipIdea.address.trim() : u.venue;
-      const walkMatch = _ipWalkdrive.match(/(\d+)\s*min\s*walk/i);
-      const driveMatch = _ipWalkdrive.match(/(\d+)\s*min\s*drive/i);
-      if (walkMatch || driveMatch) {
-        const personSvg = `<svg viewBox="0 0 24 24" width="13" height="13" fill="#b0a090"><path d="M13.5 5.5c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zM9.8 8.9L7 23h2.1l1.8-8 2.1 2v6h2v-7.5l-2.1-2 .6-3C14.8 12 16.8 13 19 13v-2c-1.9 0-3.5-1-4.3-2.4l-1-1.6c-.4-.6-1-1-1.7-1-.3 0-.5.1-.8.1L6 8.3V13h2V9.6l1.8-.7"/></svg>`;
-        const carSvg = `<svg viewBox="0 0 24 24" width="13" height="13" fill="#b0a090"><path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z"/></svg>`;
-        // Leave by — use the faster of walk/drive for calculation
-        const wdCommuteMin = walkMatch ? parseInt(walkMatch[1]) : (driveMatch ? parseInt(driveMatch[1]) : null);
-        let wdLeaveByHtml = '';
-        if (wdCommuteMin && u.time) {
+      // Panel: Subway commute — use shared buildSubwayBadgesHtml (MTA colors, station, time)
+      const _ipSubway = _ipIdea && _ipIdea.subwayRoute ? _ipIdea.subwayRoute.trim() : '';
+      if (_ipSubway && !(u.inLocation === 'my_place') && !(_ipIdea && _ipIdea.type === 'in' && !u.inLocation)) {
+        const _ipDest = _ipIdea && _ipIdea.address ? _ipIdea.address.trim() : u.venue;
+        const _ipSubwayOnclick = (homeAddress && _ipDest)
+          ? `_openExternal('https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(homeAddress)}&destination=${encodeURIComponent(_ipDest)}&travelmode=transit')`
+          : '';
+        const timeMatch = _ipSubway.match(/~?\s*(\d+)\s*min/i);
+        const commuteMin = timeMatch ? parseInt(timeMatch[1]) : null;
+        const badgesHtml = buildSubwayBadgesHtml(_ipSubway);
+        // Leave by
+        let leaveByHtml = '';
+        if (commuteMin && u.time) {
           const parsed = parseTimeInput(u.time);
           const m = parsed.match(/(\d+):(\d+)\s*(am|pm)/i);
           if (m) {
             let h = parseInt(m[1]), mn = parseInt(m[2]);
             const isPm = m[3].toLowerCase() === 'pm';
             if (isPm && h !== 12) h += 12; if (!isPm && h === 12) h = 0;
-            const totalMin = h * 60 + mn - wdCommuteMin - 10;
+            const totalMin = h * 60 + mn - commuteMin - 10;
             const lh = Math.floor(((totalMin%1440)+1440)%1440/60);
             const lm = ((totalMin%1440)+1440)%1440%60;
             const suf = lh >= 12 ? 'pm' : 'am';
             const lh12 = lh===0?12:lh>12?lh-12:lh;
             const leaveTimeStr = lm===0?`${lh12} ${suf}`:`${lh12}:${String(lm).padStart(2,'0')} ${suf}`;
-            wdLeaveByHtml = `<span style="font-size:11px;color:var(--text-secondary);font-family:sans-serif">Leave by ${leaveTimeStr}</span>`;
+            leaveByHtml = `<span style="font-size:11px;color:var(--text-secondary);font-family:sans-serif">Leave by ${leaveTimeStr}</span>`;
           }
         }
-        let wdHtml = '<div style="display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap">';
-        if (walkMatch) {
-          const _walkOnclick = (homeAddress && _ipDest2) ? `_openExternal('https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(homeAddress)}&destination=${encodeURIComponent(_ipDest2)}&travelmode=walking')` : '';
-          wdHtml += `<span style="display:flex;align-items:center;gap:4px;font-size:13px;font-family:sans-serif;color:#b0a090;${_walkOnclick?'cursor:pointer':''}" ${_walkOnclick?`onclick="${_walkOnclick}"`:''}>${personSvg}${walkMatch[1]} min</span>`;
-        }
-        if (walkMatch && driveMatch) wdHtml += `<span style="color:#b0a090;font-size:13px">/</span>`;
-        if (driveMatch) {
-          const _driveOnclick = (homeAddress && _ipDest2) ? `_openExternal('https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(homeAddress)}&destination=${encodeURIComponent(_ipDest2)}&travelmode=driving')` : '';
-          wdHtml += `<span style="display:flex;align-items:center;gap:4px;font-size:13px;font-family:sans-serif;color:#b0a090;${_driveOnclick?'cursor:pointer':''}" ${_driveOnclick?`onclick="${_driveOnclick}"`:''}>${carSvg}${driveMatch[1]} min</span>`;
-        }
-        if (wdLeaveByHtml) wdHtml += `<span style="color:#b0a090;font-size:11px">·</span>${wdLeaveByHtml}`;
-        wdHtml += '</div>';
-        _ipPanels.push(wdHtml);
+        const subwayPanelContent = `<div style="display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap;${_ipSubwayOnclick?'cursor:pointer':''}" ${_ipSubwayOnclick?`onclick="${_ipSubwayOnclick}"`:''}>${badgesHtml}${leaveByHtml?`<span style="color:#b0a090;font-size:11px">·</span>${leaveByHtml}`:''}</div>`;
+        _ipPanels.push(subwayPanelContent);
       }
-    }
 
-    // Panel: Address
-    const _ipAddress = _ipIdea && _ipIdea.address ? _ipIdea.address.trim() : '';
-    if (_ipAddress) {
-      // Strip city, state, zip — keep only street part (before first comma)
-      const _ipStreet = _ipAddress.split(',')[0].trim();
-      const _ipAddrOnclick = `_openExternal('https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(_ipAddress)}')`;
-      const _ipPinSvg = `<svg viewBox="0 0 24 24" width="13" height="13" fill="${_ipAccent}" style="flex-shrink:0"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>`;
-      _ipPanels.push(`<div style="display:flex;align-items:center;justify-content:center;gap:5px;cursor:pointer" onclick="${_ipAddrOnclick}">${_ipPinSvg}<span style="font-size:12px;font-family:sans-serif;color:#b0a090;text-align:center">${_ipStreet}</span></div>`);
-    }
-
-    // Panel: In-date location — only for In-type dates
-    const _ipIsInDate = (_ipIdea && _ipIdea.type === 'in') || !!u.inLocation;
-    if (_ipIsInDate && u.inLocation) {
-      const _pLabel = partnerPlaceLabel();
-      const _ipIsPartner = u.inLocation === _pLabel || u.inLocation === 'partner_place';
-      let _ipLocLabel = _ipIsPartner ? _pLabel
-        : u.inLocation === 'my_place' ? 'My place'
-        : u.inLocation === 'other' ? (u.inLocationOtherName || u.inLocationOther || 'Other')
-        : u.inLocation; // stored as display string already
-      if (_ipLocLabel) {
-        const _ipPinSvg2 = `<svg viewBox="0 0 24 24" width="13" height="13" fill="${_ipAccent}" style="flex-shrink:0"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>`;
-        const _ipHomeSvg = `<svg viewBox="0 0 24 24" width="13" height="13" fill="${_ipAccent}" style="flex-shrink:0"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>`;
-        const _ipLocIcon = _ipIsPartner ? _ipPinSvg2 : _ipHomeSvg;
-        const _ipPartnerOnclick = (_ipIsPartner && partnerAddress)
-          ? `_openExternal('https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(partnerAddress)}')`
-          : '';
-        _ipPanels.push(`<div style="display:flex;align-items:center;justify-content:center;gap:5px;${_ipPartnerOnclick ? 'cursor:pointer' : ''}" ${_ipPartnerOnclick ? `onclick="${_ipPartnerOnclick}"` : ''}><span style="display:flex;align-items:center">${_ipLocIcon}</span><span style="font-size:12px;font-family:sans-serif;color:#b0a090">${_ipLocLabel}</span></div>`);
+      // Panel: Walk / Drive — brown text, leave-by
+      const _ipWalkdrive = _ipIdea && _ipIdea.walkDriveTime ? _ipIdea.walkDriveTime.trim() : '';
+      if (_ipWalkdrive && !(u.inLocation === 'my_place') && !(_ipIdea && _ipIdea.type === 'in' && !u.inLocation)) {
+        const _ipDest2 = _ipIdea && _ipIdea.address ? _ipIdea.address.trim() : u.venue;
+        const walkMatch = _ipWalkdrive.match(/(\d+)\s*min\s*walk/i);
+        const driveMatch = _ipWalkdrive.match(/(\d+)\s*min\s*drive/i);
+        if (walkMatch || driveMatch) {
+          const personSvg = `<svg viewBox="0 0 24 24" width="13" height="13" fill="#b0a090"><path d="M13.5 5.5c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zM9.8 8.9L7 23h2.1l1.8-8 2.1 2v6h2v-7.5l-2.1-2 .6-3C14.8 12 16.8 13 19 13v-2c-1.9 0-3.5-1-4.3-2.4l-1-1.6c-.4-.6-1-1-1.7-1-.3 0-.5.1-.8.1L6 8.3V13h2V9.6l1.8-.7"/></svg>`;
+          const carSvg = `<svg viewBox="0 0 24 24" width="13" height="13" fill="#b0a090"><path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z"/></svg>`;
+          const wdCommuteMin = walkMatch ? parseInt(walkMatch[1]) : (driveMatch ? parseInt(driveMatch[1]) : null);
+          let wdLeaveByHtml = '';
+          if (wdCommuteMin && u.time) {
+            const parsed = parseTimeInput(u.time);
+            const m = parsed.match(/(\d+):(\d+)\s*(am|pm)/i);
+            if (m) {
+              let h = parseInt(m[1]), mn = parseInt(m[2]);
+              const isPm = m[3].toLowerCase() === 'pm';
+              if (isPm && h !== 12) h += 12; if (!isPm && h === 12) h = 0;
+              const totalMin = h * 60 + mn - wdCommuteMin - 10;
+              const lh = Math.floor(((totalMin%1440)+1440)%1440/60);
+              const lm = ((totalMin%1440)+1440)%1440%60;
+              const suf = lh >= 12 ? 'pm' : 'am';
+              const lh12 = lh===0?12:lh>12?lh-12:lh;
+              const leaveTimeStr = lm===0?`${lh12} ${suf}`:`${lh12}:${String(lm).padStart(2,'0')} ${suf}`;
+              wdLeaveByHtml = `<span style="font-size:11px;color:var(--text-secondary);font-family:sans-serif">Leave by ${leaveTimeStr}</span>`;
+            }
+          }
+          let wdHtml = '<div style="display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap">';
+          if (walkMatch) {
+            const _walkOnclick = (homeAddress && _ipDest2) ? `_openExternal('https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(homeAddress)}&destination=${encodeURIComponent(_ipDest2)}&travelmode=walking')` : '';
+            wdHtml += `<span style="display:flex;align-items:center;gap:4px;font-size:13px;font-family:sans-serif;color:#b0a090;${_walkOnclick?'cursor:pointer':''}" ${_walkOnclick?`onclick="${_walkOnclick}"`:''}>${personSvg}${walkMatch[1]} min</span>`;
+          }
+          if (walkMatch && driveMatch) wdHtml += `<span style="color:#b0a090;font-size:13px">/</span>`;
+          if (driveMatch) {
+            const _driveOnclick = (homeAddress && _ipDest2) ? `_openExternal('https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(homeAddress)}&destination=${encodeURIComponent(_ipDest2)}&travelmode=driving')` : '';
+            wdHtml += `<span style="display:flex;align-items:center;gap:4px;font-size:13px;font-family:sans-serif;color:#b0a090;${_driveOnclick?'cursor:pointer':''}" ${_driveOnclick?`onclick="${_driveOnclick}"`:''}>${carSvg}${driveMatch[1]} min</span>`;
+          }
+          if (wdLeaveByHtml) wdHtml += `<span style="color:#b0a090;font-size:11px">·</span>${wdLeaveByHtml}`;
+          wdHtml += '</div>';
+          _ipPanels.push(wdHtml);
+        }
       }
+
+      // Panel: Address
+      const _ipAddress = _ipIdea && _ipIdea.address ? _ipIdea.address.trim() : '';
+      if (_ipAddress) {
+        const _ipStreet = _ipAddress.split(',')[0].trim();
+        const _ipAddrOnclick = `_openExternal('https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(_ipAddress)}')`;
+        const _ipPinSvg = `<svg viewBox="0 0 24 24" width="13" height="13" fill="${_ipAccent}" style="flex-shrink:0"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>`;
+        _ipPanels.push(`<div style="display:flex;align-items:center;justify-content:center;gap:5px;cursor:pointer" onclick="${_ipAddrOnclick}">${_ipPinSvg}<span style="font-size:12px;font-family:sans-serif;color:#b0a090;text-align:center">${_ipStreet}</span></div>`);
+      }
+
+      // Panel: In-date location — only for In-type dates
+      const _ipIsInDate = (_ipIdea && _ipIdea.type === 'in') || !!u.inLocation;
+      if (_ipIsInDate && u.inLocation) {
+        const _pLabel = partnerPlaceLabel();
+        const _ipIsPartner = u.inLocation === _pLabel || u.inLocation === 'partner_place';
+        let _ipLocLabel = _ipIsPartner ? _pLabel
+          : u.inLocation === 'my_place' ? 'My place'
+          : u.inLocation === 'other' ? (u.inLocationOtherName || u.inLocationOther || 'Other')
+          : u.inLocation;
+        if (_ipLocLabel) {
+          const _ipPinSvg2 = `<svg viewBox="0 0 24 24" width="13" height="13" fill="${_ipAccent}" style="flex-shrink:0"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>`;
+          const _ipHomeSvg = `<svg viewBox="0 0 24 24" width="13" height="13" fill="${_ipAccent}" style="flex-shrink:0"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>`;
+          const _ipLocIcon = _ipIsPartner ? _ipPinSvg2 : _ipHomeSvg;
+          const _ipPartnerOnclick = (_ipIsPartner && partnerAddress)
+            ? `_openExternal('https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(partnerAddress)}')`
+            : '';
+          _ipPanels.push(`<div style="display:flex;align-items:center;justify-content:center;gap:5px;${_ipPartnerOnclick ? 'cursor:pointer' : ''}" ${_ipPartnerOnclick ? `onclick="${_ipPartnerOnclick}"` : ''}><span style="display:flex;align-items:center">${_ipLocIcon}</span><span style="font-size:12px;font-family:sans-serif;color:#b0a090">${_ipLocLabel}</span></div>`);
+        }
+      }
+
+      return { panels: _ipPanels, idea: _ipIdea, accent: _ipAccent };
     }
 
-    _calInfoPanelIdx = Math.min(_calInfoPanelIdx, Math.max(_ipPanels.length - 1, 0));
+    // Build header HTML for a given date entry
+    function _buildIpHeader(u, accent, idea, clickable) {
+      const _ipIcon = ideaIcon(idea, 13, accent);
+      const _ipMonthAbbr = new Date(currentCalYear, currentCalMonth, selectedCalDay).toLocaleString('en-US',{month:'short'});
+      const _ipTime = u.time ? _shortTime(u.time) : '';
+      const _ipDateTimeParts = [`${_ipMonthAbbr} ${selectedCalDay}`, _ipTime].filter(Boolean);
+      const _ipDateTimeStr = _ipDateTimeParts.join(' · ');
+      const inner = `<div style="display:flex;align-items:flex-end;justify-content:center;gap:5px;padding:0 28px;overflow:hidden">
+        ${_ipIcon ? `<span style="display:flex;align-items:center;flex-shrink:0;padding-bottom:1px">${_ipIcon}</span>` : ''}
+        <span style="font-size:13px;font-weight:600;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:-0.01em;line-height:1.2">${u.venue}</span>
+        ${_ipDateTimeStr ? `<span style="font-size:12px;font-family:sans-serif;color:var(--text-secondary);white-space:nowrap;flex-shrink:0;line-height:1.2"> · ${_ipDateTimeStr}</span>` : ''}
+      </div>`;
+      return clickable
+        ? `<div style="cursor:pointer;margin-bottom:6px" onclick="openDateInfo(UPCOMING_DATES.find(d=>String(d.id)==='${String(u.id).replace(/'/g,"\\'")}'))">${inner}</div>`
+        : `<div style="margin-bottom:6px">${inner}</div>`;
+    }
 
-    // Header line: [icon] venue  ·  date · time  (fixed, doesn't swipe)
-    const _ipIcon = ideaIcon(_ipIdea, 13, _ipAccent);
-    const _ipMonthAbbr = new Date(currentCalYear, currentCalMonth, selectedCalDay).toLocaleString('en-US',{month:'short'});
-    const _ipTime = u.time ? _shortTime(u.time) : '';
-    const _ipDateTimeParts = [`${_ipMonthAbbr} ${selectedCalDay}`, _ipTime].filter(Boolean);
-    const _ipDateTimeStr = _ipDateTimeParts.join(' · ');
-    const _ipHeader = `<div style="display:flex;align-items:flex-end;justify-content:center;gap:5px;padding:0 28px;margin-bottom:6px;overflow:hidden">
-      ${_ipIcon ? `<span style="display:flex;align-items:center;flex-shrink:0;padding-bottom:1px">${_ipIcon}</span>` : ''}
-      <span style="font-size:13px;font-weight:600;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:-0.01em;line-height:1.2">${u.venue}</span>
-      ${_ipDateTimeStr ? `<span style="font-size:12px;font-family:sans-serif;color:var(--text-secondary);white-space:nowrap;flex-shrink:0;line-height:1.2"> · ${_ipDateTimeStr}</span>` : ''}
-    </div>`;
+    // Combine panels across all visible dates on this day
+    // Each date contributes: [header-panel, ...detail-panels] and dates are separated by a divider panel
+    const _allPanels = []; // { html, dateIdx }
+    // Store per-date header data for live header updates
+    const _dateHeaders = []; // indexed by dateIdx
 
-    // Snap-scroll panel container — all panels rendered, JS scrolls to active
+    _selDayVisible.forEach((dateEntry, di) => {
+      const { panels, idea, accent } = _buildDatePanels(dateEntry);
+      const headerHtml = _buildIpHeader(dateEntry, accent, idea, true);
+      _dateHeaders.push({ html: headerHtml, u: dateEntry });
+
+      if (panels.length > 0) {
+        panels.forEach(p => _allPanels.push({ html: p, dateIdx: di }));
+      } else {
+        // No detail panels — show a "More info" tap link
+        const inner = `<div style="width:100%;display:flex;justify-content:center"><span style="font-size:14px;font-style:italic;color:#b0a090;cursor:pointer" onclick="event.stopPropagation();openDateInfo(UPCOMING_DATES.find(d=>String(d.id)==='${String(dateEntry.id).replace(/'/g,"\\'")}'))">More info <span style="color:#b0a090">→</span></span></div>`;
+        _allPanels.push({ html: inner, dateIdx: di });
+      }
+    });
+
+    _calInfoPanelIdx = Math.min(_calInfoPanelIdx, Math.max(_allPanels.length - 1, 0));
+
+    // Active date based on current panel
+    const _activeDate = _selDayVisible[(_allPanels[_calInfoPanelIdx] || {}).dateIdx || 0];
+    const _activeDateResult = _buildDatePanels(_activeDate);
+
+    // Header — shows the currently active date (updates live on scroll)
+    const _ipHeader = _buildIpHeader(_activeDate, _activeDateResult.accent, _activeDateResult.idea, true);
+
+    // Snap-scroll panel container
     const chevStyle = 'background:none;border:none;cursor:pointer;padding:4px;display:flex;align-items:center;flex-shrink:0;line-height:0';
     const hasPrevPanel = _calInfoPanelIdx > 0;
-    const hasNextPanel = _calInfoPanelIdx < _ipPanels.length - 1;
-    const _ipContent = _ipPanels.length > 0
+    const hasNextPanel = _calInfoPanelIdx < _allPanels.length - 1;
+    const _ipContent = _allPanels.length > 0
       ? `<div id="cal-info-scroll" style="display:flex;overflow-x:auto;scroll-snap-type:x mandatory;width:100%;-webkit-overflow-scrolling:touch;scrollbar-width:none">${
-          _ipPanels.map((p,i) => `<div class="cal-info-panel" style="flex-shrink:0;width:100%;scroll-snap-align:start;display:flex;align-items:center;justify-content:center">${p}</div>`).join('')
+          _allPanels.map((p, i) => `<div class="cal-info-panel" data-date-idx="${p.dateIdx}" style="flex-shrink:0;width:100%;scroll-snap-align:start;display:flex;align-items:center;justify-content:center">${p.html}</div>`).join('')
         }</div>`
-      : `<div style="width:100%;display:flex;justify-content:center"><span style="font-size:14px;font-style:italic;color:#b0a090;cursor:pointer" onclick="event.stopPropagation();openDateInfo(UPCOMING_DATES.find(d=>String(d.id)==='${u.id}'))">More info <span style="color:#b0a090">→</span></span></div>`;
+      : `<div style="width:100%;display:flex;justify-content:center"><span style="font-size:14px;font-style:italic;color:#b0a090;cursor:pointer" onclick="event.stopPropagation();openDateInfo(UPCOMING_DATES.find(d=>String(d.id)==='${String(_activeDate.id).replace(/'/g,"\\'")}'))">More info <span style="color:#b0a090">→</span></span></div>`;
+
+    // Store date headers for live update in scroll handler
+    window._calDateHeaders = _dateHeaders;
 
     selectedCardHTML = `
       <div style="margin-top:20px;min-height:70px;box-sizing:border-box;padding:10px 0 10px;display:flex;flex-direction:column;align-items:stretch;justify-content:center">
-        <div style="cursor:pointer" onclick="openDateInfo(UPCOMING_DATES.find(d=>String(d.id)==='${u.id}'))">${_ipHeader}</div>
+        <div id="cal-info-header">${_ipHeader}</div>
         <div style="display:flex;align-items:center;gap:2px">
-          <div style="width:22px;flex-shrink:0">${_ipPanels.length > 1 ? `<button id="cal-info-prev-btn" onclick="event.stopPropagation();_calInfoPrev()" style="${chevStyle};opacity:${hasPrevPanel?1:0.2}"><svg viewBox="0 0 24 24" width="14" height="14" stroke="#b0a090" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>` : ''}</div>
+          <div style="width:22px;flex-shrink:0">${_allPanels.length > 1 ? `<button id="cal-info-prev-btn" onclick="event.stopPropagation();_calInfoPrev()" style="${chevStyle};opacity:${hasPrevPanel?1:0.2}"><svg viewBox="0 0 24 24" width="14" height="14" stroke="#b0a090" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>` : ''}</div>
           <div style="flex:1;min-width:0;overflow:hidden">${_ipContent}</div>
-          <div style="width:22px;flex-shrink:0;display:flex;justify-content:flex-end">${_ipPanels.length > 1 ? `<button id="cal-info-next-btn" onclick="event.stopPropagation();_calInfoNext()" style="${chevStyle};opacity:${hasNextPanel?1:0.2}"><svg viewBox="0 0 24 24" width="14" height="14" stroke="#b0a090" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></button>` : ''}</div>
+          <div style="width:22px;flex-shrink:0;display:flex;justify-content:flex-end">${_allPanels.length > 1 ? `<button id="cal-info-next-btn" onclick="event.stopPropagation();_calInfoNext()" style="${chevStyle};opacity:${hasNextPanel?1:0.2}"><svg viewBox="0 0 24 24" width="14" height="14" stroke="#b0a090" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></button>` : ''}</div>
         </div>
       </div>`;
+  
+
   } else if (_selDayAllPrivate) {
     const _privDateLabel = _calDayLabel(selectedCalDay, currentCalMonth, currentCalYear);
     selectedCardHTML = `
@@ -5680,15 +5720,50 @@ function selectCalDay(day) {
 function _calCardClick(day, month, year, dateId) {
   const MONTH_NUMS = {Jan:0,Feb:1,Mar:2,Apr:3,May:4,Jun:5,Jul:6,Aug:7,Sep:8,Oct:9,Nov:10,Dec:11};
   const mNum = MONTH_NUMS[month] ?? 0;
-  // If this card is already selected, open Date Info
+  const u = dateId
+    ? (UPCOMING_DATES.find(u => String(u.id) === String(dateId)) || UPCOMING_DATES.find(u => u.month === month && (u.year||2026) === year && u.day === day))
+    : UPCOMING_DATES.find(u => u.month === month && (u.year||2026) === year && u.day === day);
+
   if (selectedCalDay === day && currentCalMonth === mNum && currentCalYear === year) {
-    const u = dateId
-      ? (UPCOMING_DATES.find(u => u.id === dateId) || UPCOMING_DATES.find(u => u.month === month && (u.year||2026) === year && u.day === day))
-      : UPCOMING_DATES.find(u => u.month === month && (u.year||2026) === year && u.day === day);
-    if (u) openDateInfo(u);
+    // Day is already selected — check multi-date behaviour
+    const visible = UPCOMING_DATES.filter(d => d.month === month && (d.year||2026) === year && d.day === day && !_isDateHiddenPrivate(d));
+    if (visible.length > 1 && u) {
+      const dateIdx = visible.findIndex(d => String(d.id) === String(u.id));
+      // Find the first panel for this dateIdx
+      const panels = window._calDateHeaders;
+      const scroll = document.getElementById('cal-info-scroll');
+      const panelEls = scroll ? scroll.querySelectorAll('.cal-info-panel') : [];
+      let firstPanelForDate = -1;
+      panelEls.forEach((el, i) => {
+        if (firstPanelForDate === -1 && parseInt(el.dataset.dateIdx || '0') === dateIdx) firstPanelForDate = i;
+      });
+      const alreadyOnThisDate = panelEls[_calInfoPanelIdx] && parseInt(panelEls[_calInfoPanelIdx].dataset.dateIdx || '0') === dateIdx;
+      if (alreadyOnThisDate) {
+        // Already viewing this date's panels — open Date Info
+        if (u) openDateInfo(u);
+      } else if (firstPanelForDate >= 0) {
+        // Scroll to this date's first panel
+        _calInfoPanelIdx = firstPanelForDate;
+        _scrollCalInfoPanel();
+        // Update header immediately
+        if (panels && panels[dateIdx]) {
+          const headerEl = document.getElementById('cal-info-header');
+          if (headerEl) headerEl.innerHTML = panels[dateIdx].html;
+        }
+        const prevBtn = document.getElementById('cal-info-prev-btn');
+        const nextBtn = document.getElementById('cal-info-next-btn');
+        if (prevBtn) prevBtn.style.opacity = _calInfoPanelIdx > 0 ? '1' : '0.2';
+        if (nextBtn) nextBtn.style.opacity = _calInfoPanelIdx < panelEls.length - 1 ? '1' : '0.2';
+      } else {
+        if (u) openDateInfo(u);
+      }
+    } else {
+      // Single date on this day — original behaviour
+      if (u) openDateInfo(u);
+    }
     return;
   }
-  // Otherwise select it (navigate to correct month/year)
+  // Otherwise select the day (navigate to correct month/year)
   currentCalMonth = mNum;
   currentCalYear = year;
   selectedCalDay = day;
@@ -6131,7 +6206,7 @@ function _initCalInfoScroll() {
   }
   // Hide scrollbar (webkit)
   scroll.style.cssText += ';-ms-overflow-style:none';
-  // Update index + chevrons when user swipes
+  // Update index + chevrons + header when user swipes
   scroll.onscroll = () => {
     const w = scroll.offsetWidth;
     if (!w) return;
@@ -6143,6 +6218,14 @@ function _initCalInfoScroll() {
       const nextBtn = document.getElementById('cal-info-next-btn');
       if (prevBtn) prevBtn.style.opacity = _calInfoPanelIdx > 0 ? '1' : '0.2';
       if (nextBtn) nextBtn.style.opacity = _calInfoPanelIdx < total - 1 ? '1' : '0.2';
+      // Update header if active date changed
+      const activePanel = panels[_calInfoPanelIdx];
+      const dateIdx = activePanel ? parseInt(activePanel.dataset.dateIdx || '0') : 0;
+      const headers = window._calDateHeaders;
+      if (headers && headers[dateIdx]) {
+        const headerEl = document.getElementById('cal-info-header');
+        if (headerEl) headerEl.innerHTML = headers[dateIdx].html;
+      }
     }
   };
 }
