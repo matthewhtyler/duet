@@ -1889,7 +1889,7 @@ function _syncAllClearable() {
 // every renderNav() so it survives re-renders. When null/false, the override is
 // removed and the element falls back to its normal CSS (color:var(--text-primary)).
 // ─────────────────────────────────────────────────────────────────────────────
-const testcolor = 'orange';
+const testcolor = null;
 function _applyTestcolor() {
   const el = document.getElementById('duet-logo-text');
   if (!el) return;
@@ -2369,12 +2369,6 @@ function navigate(view) {
       return;
     }
     switchSheetContext(view);
-    return;
-  }
-  // Home icon tapped while already on home → toggle dark mode
-  if (view === 'home' && currentView === 'home') {
-    const newMode = document.body.classList.contains('dark-mode') ? 'light' : 'dark';
-    setAppearance(newMode);
     return;
   }
   // Redirect legacy out/in to ideas
@@ -4264,11 +4258,14 @@ function _buildUpcomingCardHtml(u, extraStyle, directOpen) {
 }
 
 function renderHome() {
-  const _outIdeas = ideas.filter(i => !i.archived && i.type === 'out' && !_isHiddenPrivate(i));
+  const visibleDates = FUTURE_DATES.filter(fd => !_isDateHiddenPrivate(fd._ref || fd));
+  const _carouselIdeaIds = new Set(visibleDates.map(fd => (fd._ref || fd).ideaId).filter(Boolean));
+  const _carouselVenues = new Set(visibleDates.map(fd => (fd._ref || fd).venue).filter(Boolean).map(v => v.toLowerCase()));
+  const _outIdeas = ideas.filter(i => !i.archived && i.type === 'out' && !_isHiddenPrivate(i)
+    && !_carouselIdeaIds.has(i.id)
+    && !_carouselVenues.has((i.name || '').toLowerCase()));
   const _shuffled = _outIdeas.slice().sort(() => Math.random() - 0.5);
   const savedIdeas = _shuffled.slice(0, 5);
-
-  const visibleDates = FUTURE_DATES.filter(fd => !_isDateHiddenPrivate(fd._ref || fd));
 
   // ── Upcoming dates carousel (above the date bubble) ──
   let homeCarouselHtml = '';
@@ -7618,7 +7615,7 @@ function openDetail(id, navContext) {
         ? `_openExternal('https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(homeAddress)}&destination=${encodeURIComponent(_diDest)}&travelmode=transit')`
         : '';
       const _badgesHtml = buildSubwayBadgesHtml(_diSubway);
-      body += `<div style="display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap;margin-top:16px;margin-bottom:6px;${_subwayOnclick?'cursor:pointer':''}\" ${_subwayOnclick?`onclick="${_subwayOnclick}"`:''}>${_badgesHtml}</div>`;
+      body += `<div style="display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap;margin-top:40px;margin-bottom:6px;${_subwayOnclick?'cursor:pointer':''}\" ${_subwayOnclick?`onclick="${_subwayOnclick}"`:''}>${_badgesHtml}</div>`;
     }
     if (_diWalkdrive) {
       const _wdMatch = _diWalkdrive.match(/(\d+)\s*min\s*walk/i);
@@ -7637,7 +7634,7 @@ function openDetail(id, navContext) {
           _wdHtml += `<span style="display:flex;align-items:center;gap:4px;font-size:13px;font-family:sans-serif;color:#b0a090;${_dOC?'cursor:pointer':''}" ${_dOC?`onclick="${_dOC}"`:''}>${_cSvg}${_ddMatch[1]} min</span>`;
         }
         _wdHtml += `</div>`;
-        _wdHtml = _wdHtml.replace('display:flex;align-items:center;gap:8px;flex-wrap:wrap', `display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;margin-top:${_diSubway ? '6px' : '16px'};margin-bottom:6px`);
+        _wdHtml = _wdHtml.replace('display:flex;align-items:center;gap:8px;flex-wrap:wrap', `display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;margin-top:${_diSubway ? '6px' : '40px'};margin-bottom:6px`);
         body += _wdHtml;
       }
     }
