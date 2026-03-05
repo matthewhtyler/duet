@@ -5457,7 +5457,7 @@ function _mergeIdeaData(idea, data) {
   if (!idea.opentableUrl && data.opentableUrl) idea.opentableUrl = data.opentableUrl;
   if (!idea.eventbriteUrl && data.eventbriteUrl) idea.eventbriteUrl = data.eventbriteUrl;
   if ((!idea.imageUrls || !idea.imageUrls.length) && data.imageUrls && data.imageUrls.length) idea.imageUrls = data.imageUrls;
-  if (!idea.imgSearchTerm && data.imgSearchTerm) idea.imgSearchTerm = data.imgSearchTerm;
+  if (data.imgSearchTerm) idea.imgSearchTerm = data.imgSearchTerm;
 }
 
 function _createIdeaFromData(data) {
