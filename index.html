@@ -1327,8 +1327,8 @@
       </div>
       <div style="margin-top:10px;margin-bottom:32px">
         <select id="settings-additional-tab" style="font-family:sans-serif;font-size:14px;padding:6px 10px;border:1.5px solid var(--border);border-radius:8px;background:var(--bg-input);color:var(--text-primary);cursor:pointer">
-          <option value="favorites">Show Favorites</option>
           <option value="neighborhood">Show Neighborhoods</option>
+          <option value="favorites">Show Favorites</option>
         </select>
       </div>
       <div style="margin-top:0;display:flex;justify-content:space-between;align-items:center">
@@ -2167,7 +2167,7 @@ let partnerAddress = appSettings.partnerAddress || '';
 let partnerPronouns = appSettings.partnerPronouns || 'she/her';
 let partnerPronounsCustom = appSettings.partnerPronounsCustom || '';
 let hidePrivate = appSettings.hidePrivate || false;
-let additionalTab = appSettings.additionalTab || 'favorites'; // 'favorites' | 'neighborhood'
+let additionalTab = appSettings.additionalTab || 'neighborhood'; // 'favorites' | 'neighborhood'
 FUTURE_DATES = buildFutureDates();
 
 // Returns the object pronoun: "her", "him", "them", or custom
@@ -9712,6 +9712,8 @@ async function exportAllData() {
       partnerPronouns: partnerPronouns,
       partnerPronounsCustom: partnerPronounsCustom,
       hidePrivate: hidePrivate,
+      homeLayout: homeLayout,
+      additionalTab: additionalTab,
       appearance: _appearance,
     },
     appearance: _appearance,
@@ -10444,12 +10446,16 @@ function handleImportFile(e) {
       if (s.partnerPronouns !== undefined) partnerPronouns     = s.partnerPronouns;
       if (s.partnerPronounsCustom !== undefined) partnerPronounsCustom = s.partnerPronounsCustom;
       if (s.hidePrivate   !== undefined) hidePrivate           = s.hidePrivate;
+      if (s.homeLayout    !== undefined) homeLayout            = s.homeLayout;
+      if (s.additionalTab !== undefined) additionalTab         = s.additionalTab;
       // Sync appSettings and persist
       appSettings.homeAddress          = homeAddress;
       appSettings.partnerAddress       = partnerAddress;
       appSettings.partnerPronouns      = partnerPronouns;
       appSettings.partnerPronounsCustom = partnerPronounsCustom;
       appSettings.hidePrivate          = hidePrivate;
+      appSettings.homeLayout           = homeLayout;
+      appSettings.additionalTab        = additionalTab;
       saveSettings(appSettings);
       // Refresh Settings popup fields if open
       const _saEl = document.getElementById('settings-overlay');
