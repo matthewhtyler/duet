@@ -1135,7 +1135,7 @@
             style="flex:1;padding:9px 14px;background:var(--bg-input);border:1.5px solid var(--border);border-radius:10px;font-family:sans-serif;color:var(--text-primary);text-align:left;cursor:pointer;display:flex;align-items:center;gap:10px;margin-bottom:0">
             <span id="ed-activity-icon" style="display:none;flex-shrink:0"></span>
             <span id="ed-activity-label" style="flex:1;font-size:16px;color:var(--text-placeholder)">Date ideas…</span>
-            <span id="ed-activity-info-btn" onclick="openDetailFromActivity('ed-activity-info-btn',event)" style="display:none;width:20px;height:20px;background:#c07a8a;border-radius:50%;flex-shrink:0;align-items:center;justify-content:center;cursor:pointer">
+            <span id="ed-activity-info-btn" onclick="event.stopPropagation();const _eaId=parseInt(this.dataset.ideaId);if(_eaId){closeEditDate();openEditIdeaModal(_eaId);}" style="display:none;width:20px;height:20px;background:#c07a8a;border-radius:50%;flex-shrink:0;align-items:center;justify-content:center;cursor:pointer">
               <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
             </span>
           </button>
@@ -1884,7 +1884,7 @@ function _syncAllClearable() {
 // every renderNav() so it survives re-renders. When null/false, the override is
 // removed and the element falls back to its normal CSS (color:var(--text-primary)).
 // ─────────────────────────────────────────────────────────────────────────────
-const testcolor = 'gray';
+const testcolor = null;
 function _applyTestcolor() {
   const el = document.getElementById('duet-logo-text');
   if (!el) return;
@@ -4974,7 +4974,7 @@ function renderCalendar() {
     const hasPrevPanel = _calInfoPanelIdx > 0;
     const hasNextPanel = _calInfoPanelIdx < _ipPanels.length - 1;
     const _ipContent = _ipPanels.length > 0
-      ? `<div id="cal-info-scroll" style="display:flex;overflow:hidden;scroll-snap-type:x mandatory;width:100%">${
+      ? `<div id="cal-info-scroll" style="display:flex;overflow-x:auto;scroll-snap-type:x mandatory;width:100%;-webkit-overflow-scrolling:touch;scrollbar-width:none">${
           _ipPanels.map((p,i) => `<div class="cal-info-panel" style="flex-shrink:0;width:100%;scroll-snap-align:start;display:flex;align-items:center;justify-content:center">${p}</div>`).join('')
         }</div>`
       : `<div style="width:100%;display:flex;justify-content:center"><span style="font-size:14px;font-style:italic;color:#b0a090;cursor:pointer" onclick="event.stopPropagation();openDateInfo(UPCOMING_DATES.find(d=>String(d.id)==='${u.id}'))">More info <span style="color:#b0a090">→</span></span></div>`;
@@ -5234,13 +5234,7 @@ function _handleIdeaNamePaste(e) {
   const blocks = text.split(/^(?:---|###)\s*$/m).map(b => b.trim()).filter(Boolean);
   if (blocks.length === 0) return;
 
-  // Single place: apply directly to open popup, no preview needed
-  if (blocks.length === 1) {
-    _applyIdeaImport(_parseIdeaBlock(blocks[0]), true);
-    return;
-  }
-
-  // Multiple places: build preview and show confirmation popup
+  // All pastes go through the preview popup (single or multiple)
   const preview = blocks.map(block => {
     const data = _parseIdeaBlock(block);
     if (!data.name) return null;
@@ -5545,6 +5539,22 @@ function _initCalInfoScroll() {
     panels[idx].scrollIntoView({ block: 'nearest', inline: 'start' });
     requestAnimationFrame(() => { scroll.style.scrollBehavior = ''; });
   }
+  // Hide scrollbar (webkit)
+  scroll.style.cssText += ';-ms-overflow-style:none';
+  // Update index + chevrons when user swipes
+  scroll.onscroll = () => {
+    const w = scroll.offsetWidth;
+    if (!w) return;
+    const newIdx = Math.round(scroll.scrollLeft / w);
+    if (newIdx !== _calInfoPanelIdx) {
+      _calInfoPanelIdx = newIdx;
+      const total = panels.length;
+      const prevBtn = document.getElementById('cal-info-prev-btn');
+      const nextBtn = document.getElementById('cal-info-next-btn');
+      if (prevBtn) prevBtn.style.opacity = _calInfoPanelIdx > 0 ? '1' : '0.2';
+      if (nextBtn) nextBtn.style.opacity = _calInfoPanelIdx < total - 1 ? '1' : '0.2';
+    }
+  };
 }
 function _refreshCalBanner() {
   const wrap = document.getElementById('cal-banner-card');
