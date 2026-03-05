@@ -5222,6 +5222,11 @@ function _calDayNext() {
 // ── Idea import paste parser ──────────────────────────────────────────────────
 // Detects #TAG format pasted into the idea-name field and populates all fields.
 // Supports multiple place blocks separated by --- or ### on their own line.
+function _normalizeName(s) {
+  // Normalize curly/smart quotes and apostrophes to straight equivalents for comparison
+  return (s || '').replace(/[‘’ʼ`´]/g, "'").replace(/[“”]/g, '"').toLowerCase();
+}
+
 function _handleIdeaNamePaste(e) {
   const text = (e.clipboardData || window.clipboardData).getData('text');
   if (!text || !text.includes('#PLACE')) return; // not import format
@@ -5239,7 +5244,7 @@ function _handleIdeaNamePaste(e) {
   const preview = blocks.map(block => {
     const data = _parseIdeaBlock(block);
     if (!data.name) return null;
-    const existing = ideas.find(i => i.name && i.name.toLowerCase() === data.name.toLowerCase());
+    const existing = ideas.find(i => i.name && _normalizeName(i.name) === _normalizeName(data.name));
     return { data, existing: existing || null };
   }).filter(Boolean);
 
