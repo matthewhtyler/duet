@@ -119,6 +119,12 @@
     justify-content: center;
   }
   #app.todo-nav { padding-top: 107px; }
+  #top-nav-past-row {
+    display: none;
+    padding: 0 20px 12px;
+    justify-content: center;
+  }
+  #app.past-nav { padding-top: 107px; }
   #nav-logo { display: flex; align-items: center; gap: 8px; background: none; border: none; outline: none; cursor: pointer; }
   #nav-logo span { font-size: 17px; font-weight: 600; letter-spacing: 0.02em; color: var(--text-primary); }
   body.dark-mode #logo-circle-dark { stroke: #845764; }
@@ -620,6 +626,7 @@
   </div><!-- /top-nav-main-row -->
   <div id="top-nav-ideas-row"></div>
   <div id="top-nav-todo-row"></div>
+  <div id="top-nav-past-row"></div>
   </div>
   </div>
 
@@ -1941,6 +1948,7 @@ let sheetOpen = false;
 let ideaType = 'out';
 let ideasFilter = 'all';
 let ideasSearch = '';
+let memoriesSearch = '';
 let catTabFilter  = 'all'; // active pill in the Categories tab: 'all' | <catId> | '_in'
 let outTabFilter  = 'all'; // active pill in the Out tab: 'all' | <catId>
 let inTabFilter   = 'all'; // active pill in the In tab:  'all' | <catId>
@@ -2364,7 +2372,26 @@ function renderNav() {
 
   // Show/hide todo nav row
   const _todoRow2 = document.getElementById('top-nav-todo-row');
+  const _pastRow = document.getElementById('top-nav-past-row');
   const _appEl2 = document.getElementById('app');
+  if (_pastRow) {
+    if (currentView === 'past') {
+      const _pq = memoriesSearch || '';
+      const _clearBtn = _pq ? `<button onclick="memoriesSearch='';_renderPastDates();document.getElementById('memories-search-input').value=''" style="background:none;border:none;cursor:pointer;padding:0;display:flex;flex-shrink:0;line-height:0"><svg viewBox="0 0 24 24" width="14" height="14" stroke="#9a8a7a" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>` : '';
+      _pastRow.innerHTML = `<div style="display:flex;align-items:center;background:var(--toggle-bg);border-radius:20px;padding:5px 10px;gap:6px;width:200px;flex-shrink:0">
+        <svg viewBox="0 0 24 24" width="13" height="13" stroke="#9a8a7a" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input id="memories-search-input" type="text" value="${_pq.replace(/"/g,'&quot;')}" oninput="memoriesSearch=this.value;_renderPastDates()" placeholder="" style="border:none;background:transparent;outline:none;font-size:16px;font-family:sans-serif;color:var(--text-primary);width:100%;line-height:1;padding:0;min-width:0">
+        ${_clearBtn}
+      </div>`;
+      _pastRow.style.display = 'flex';
+      if (_appEl2) _appEl2.classList.add('past-nav');
+    } else {
+      _pastRow.style.display = 'none';
+      _pastRow.innerHTML = '';
+      if (_appEl2) _appEl2.classList.remove('past-nav');
+      memoriesSearch = '';
+    }
+  }
   if (_todoRow2) {
     if (currentView === 'todo') {
       const _priActive = _todoGroupBy === 'priority';
@@ -3243,8 +3270,8 @@ function ideaMatchesSearch(item, q) {
   if (!q) return true;
   const s = q.toLowerCase();
   return [item.name, item.category, item.cuisine, item.shortdesc,
-    item.about, item.note, item.address, item.subwayRoute,
-    item.walkDriveTime, item.type
+    item.about, item.note, item.address, item.neighborhood,
+    item.subwayRoute, item.walkDriveTime, item.type
   ].some(f => f && f.toLowerCase().includes(s));
 }
 
@@ -5202,7 +5229,18 @@ function renderCatalog(type) { return renderIdeas(); }
 let _editingMemory = null;
 
 function renderPastDates() {
-  const memories = _computeMemories().filter(d => !_isDateHiddenPrivate(d));
+  const q = (memoriesSearch || '').trim().toLowerCase();
+  const all = _computeMemories().filter(d => !_isDateHiddenPrivate(d));
+  const memories = q ? all.filter(d => {
+    const idea = ideas.find(i => i.name && d.venue && i.name.toLowerCase() === d.venue.toLowerCase());
+    return [
+      d.venue, d.activity, d.note, d.neighborhood, d.label, d.month,
+      d.time, d.inLocation, d.inLocationOtherName,
+      idea && idea.shortdesc, idea && idea.about, idea && idea.cuisine,
+      idea && idea.category, idea && idea.neighborhood, idea && idea.address,
+      idea && idea.subwayRoute, idea && idea.note
+    ].some(f => f && typeof f === 'string' && f.toLowerCase().includes(q));
+  }) : all;
   const BROWN = '#9a8a7a';
   if (memories.length === 0) {
     return `<div style="position:fixed;top:calc(50% - 60px);left:50%;transform:translateX(-50%);text-align:center;color:#b0a090;font-size:15px;font-style:italic;pointer-events:none;width:80%;z-index:1">No past dates.</div>`;
@@ -5241,6 +5279,10 @@ function renderPastDates() {
   }).join('');
 
   return `<div style="padding:20px 20px 80px">${rows}</div>`;
+}
+function _renderPastDates() {
+  const main = document.getElementById('main-content');
+  if (main) main.innerHTML = renderPastDates();
 }
 
 function openMemoryEdit(id) {
