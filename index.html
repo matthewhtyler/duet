@@ -1322,6 +1322,10 @@
   <!-- MORE MENU POPUP -->
   <div id="more-menu-overlay" class="popup-overlay" onclick="closeMoreMenu()" style="position:fixed;inset:0;background:rgba(30,20,20,0.45);z-index:450;display:none;align-items:center;justify-content:center;padding:20px">
     <div onclick="event.stopPropagation()" style="background:var(--bg);border-radius:18px;padding:16px;box-shadow:0 12px 48px rgba(0,0,0,0.18);display:flex;flex-direction:column;gap:8px;min-width:220px">
+      <button onclick="openCopyPlaces()" style="display:flex;align-items:center;gap:10px;padding:11px 14px;background:none;border:1.5px solid #ede9e2;border-radius:10px;font-family:sans-serif;font-size:13px;font-weight:600;color:#9a8a7a;cursor:pointer;text-align:left;width:100%" class="btn-outline">
+        <svg viewBox="0 0 24 24" width="15" height="15" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+        Copy Places
+      </button>
       <button onclick="importData()" style="display:flex;align-items:center;gap:10px;padding:11px 14px;background:none;border:1.5px solid #ede9e2;border-radius:10px;font-family:sans-serif;font-size:13px;font-weight:600;color:#9a8a7a;cursor:pointer;text-align:left;width:100%" class="btn-outline">
         <svg viewBox="0 0 24 24" width="15" height="15" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 5 17 10"/><line x1="12" y1="5" x2="12" y2="15"/></svg>
         Import Data
@@ -1889,6 +1893,10 @@ function _applyTestcolor() {
 }
 document.addEventListener('DOMContentLoaded', _applyTestcolor);
 document.addEventListener('DOMContentLoaded', _initClearableFields);
+document.addEventListener('DOMContentLoaded', () => {
+  const nameEl = document.getElementById('idea-name');
+  if (nameEl) nameEl.addEventListener('paste', _handleIdeaNamePaste);
+});
 
 function accentColor(type) {
   if (document.body.classList.contains('dark-mode')) return ROSE;
@@ -5211,6 +5219,267 @@ function _calDayNext() {
 }
 
 // ── Short time formatter (9:00 pm → 9 pm, 9:30 pm → 9:30 pm) ──
+// ── Idea import paste parser ──────────────────────────────────────────────────
+// Detects #TAG format pasted into the idea-name field and populates all fields.
+// Supports multiple place blocks separated by --- or ### on their own line.
+function _handleIdeaNamePaste(e) {
+  const text = (e.clipboardData || window.clipboardData).getData('text');
+  if (!text || !text.includes('#PLACE')) return; // not import format
+  e.preventDefault();
+  const blocks = text.split(/^(?:---|###)\s*$/m).map(b => b.trim()).filter(Boolean);
+  if (blocks.length === 0) return;
+
+  // Single place: apply directly to open popup, no preview needed
+  if (blocks.length === 1) {
+    _applyIdeaImport(_parseIdeaBlock(blocks[0]), true);
+    return;
+  }
+
+  // Multiple places: build preview and show confirmation popup
+  const preview = blocks.map(block => {
+    const data = _parseIdeaBlock(block);
+    if (!data.name) return null;
+    const existing = ideas.find(i => i.name && i.name.toLowerCase() === data.name.toLowerCase());
+    return { data, existing: existing || null };
+  }).filter(Boolean);
+
+  if (preview.length === 0) return;
+  _showPlaceFinderPreview(preview);
+}
+
+let _pfPreviewData = null;
+
+function _showPlaceFinderPreview(preview) {
+  _pfPreviewData = preview;
+  const overlay = document.getElementById('pf-preview-overlay');
+  const list    = document.getElementById('pf-preview-list');
+  if (!overlay || !list) return;
+
+  const FIELD_LABELS = {
+    cuisine:'Cuisine', address:'Address', neighborhood:'Neighborhood',
+    shortdesc:'Short desc', about:'Description', note:'Note',
+    subwayRoute:'Subway', walkDriveTime:'Walk/Drive',
+    reservation:'Reservation', websiteUrl:'Website',
+    resyUrl:'Resy URL', opentableUrl:'OpenTable URL',
+    imgSearchTerm:'Image search',
+  };
+  const MERGE_FIELDS = Object.keys(FIELD_LABELS);
+
+  const newBadge = '<span style="font-size:10px;font-family:sans-serif;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:#6aaa7a;background:rgba(106,170,122,0.12);border:1px solid rgba(106,170,122,0.3);border-radius:4px;padding:2px 6px">New</span>';
+  const noChangeBadge = '<span style="font-size:10px;font-family:sans-serif;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:#9a8a7a;background:rgba(154,138,122,0.1);border:1px solid rgba(154,138,122,0.25);border-radius:4px;padding:2px 6px">No Change</span>';
+  const updBadge = '<span style="font-size:10px;font-family:sans-serif;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:#c07a8a;background:rgba(192,122,138,0.1);border:1px solid rgba(192,122,138,0.25);border-radius:4px;padding:2px 6px">Update</span>';
+
+  list.innerHTML = preview.map((item, i) => {
+    const { data, existing } = item;
+    const isNew = !existing;
+    const catLabel = catLabelForId(data.category, data.type) || data.category || '';
+    // badge determined after computing changes (for updates, distinguish change vs no-change)
+    let badge;
+    const divider = i < preview.length - 1 ? '<div style="height:1px;background:var(--border-light);margin:0 -16px"></div>' : '';
+
+    let body = '';
+    if (isNew) { badge = newBadge;
+      const sub = [catLabel, data.cuisine, data.neighborhood].filter(Boolean).join(' · ');
+      body = (sub ? '<div style="font-size:12px;color:var(--text-secondary);font-family:sans-serif;margin-top:2px">' + sub + '</div>' : '')
+           + (data.address ? '<div style="font-size:12px;color:var(--text-muted);font-family:sans-serif;margin-top:1px">' + data.address + '</div>' : '');
+    } else {
+      const dataMap = {
+        cuisine: data.cuisine, address: data.address, neighborhood: data.neighborhood,
+        shortdesc: data.shortdesc, about: data.about, note: data.note,
+        subwayRoute: data.subwayRoute, walkDriveTime: data.walkDriveTime,
+        reservation: data.reservation, websiteUrl: data.websiteUrl,
+        resyUrl: data.resyUrl, opentableUrl: data.opentableUrl,
+        imgSearchTerm: data.imgSearchTerm,
+      };
+      const existMap = {
+        cuisine: existing.cuisine, address: existing.address, neighborhood: existing.neighborhood,
+        shortdesc: existing.shortdesc, about: existing.about, note: existing.note,
+        subwayRoute: existing.subwayRoute, walkDriveTime: existing.walkDriveTime,
+        reservation: (existing.reservation === 'none' ? '' : existing.reservation),
+        websiteUrl: existing.websiteUrl, resyUrl: existing.resyUrl,
+        opentableUrl: existing.opentableUrl, imgSearchTerm: existing.imgSearchTerm,
+      };
+      const changes = MERGE_FIELDS.filter(f => !existMap[f] && dataMap[f]);
+      badge = changes.length > 0 ? updBadge : noChangeBadge;
+      if (changes.length === 0) {
+        body = '<div style="font-size:12px;color:var(--text-muted);font-family:sans-serif;font-style:italic;margin-top:4px">No new info</div>';
+      } else {
+        body = '<div style="margin-top:7px;display:flex;flex-direction:column;gap:6px">'
+          + changes.map(f =>
+              '<div style="display:flex;gap:10px;align-items:baseline">'
+            + '<span style="font-size:10px;font-family:sans-serif;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--text-muted);flex-shrink:0;width:88px">' + FIELD_LABELS[f] + '</span>'
+            + '<span style="font-size:12px;font-family:sans-serif;color:var(--text-secondary);word-break:break-word;flex:1">' + dataMap[f] + '</span>'
+            + '</div>'
+          ).join('')
+          + '</div>';
+      }
+    }
+
+    return '<div style="padding:12px 0">'
+      + '<div style="display:flex;align-items:center;gap:8px;margin-bottom:1px">' + badge
+      + '<span style="font-size:15px;font-weight:700;color:var(--text-primary)">' + data.name + '</span></div>'
+      + body + '</div>' + divider;
+  }).join('');
+
+  overlay.style.display = 'flex';
+  document.body.classList.add('overlay-open');
+}
+
+function _closePlaceFinderPreview() {
+  _pfPreviewData = null;
+  const overlay = document.getElementById('pf-preview-overlay');
+  if (overlay) overlay.style.display = 'none';
+  document.body.classList.remove('overlay-open');
+}
+
+function _savePlaceFinderPreview() {
+  if (!_pfPreviewData) return;
+  _pfPreviewData.forEach(({ data, existing }) => {
+    if (existing) {
+      _mergeIdeaData(existing, data);
+    } else {
+      _createIdeaFromData(data);
+    }
+  });
+  saveIdeas(ideas);
+  _closePlaceFinderPreview();
+  render();
+}
+
+function _parseIdeaBlock(text) {
+  const get = (tag) => {
+    const m = text.match(new RegExp('#' + tag + '\\s+([^\\n#][^\\n]*)', 'i'));
+    return m ? m[1].trim() : '';
+  };
+  const rawCat = (get('CATEGORY') || '').toLowerCase();
+  // Map place-finder CATEGORY ids to duet category ids and in/out toggle
+  const CAT_MAP = {
+    'restaurant':'restaurant','bar':'bar','cafe':'cafe',
+    'movie':'movie','museum':'museum','bookstore':'bookstore',
+    'livemusic':'livemusic','livejazz':'livejazz','concert':'concert',
+    'livecomedy':'livecomedy','theatre':'theatre','theater':'theatre',
+    'venue':'venue','park':'park','other':'other',
+    'orderin':'orderin','cook':'cook','moviein':'moviein',
+    'game':'game','otherin':'otherin',
+  };
+  const IN_CATS_SET = new Set(['orderin','cook','moviein','game','otherin']);
+  const catId = CAT_MAP[rawCat] || null;
+  const ideaTypeVal = IN_CATS_SET.has(rawCat) ? 'in' : 'out';
+  return {
+    name:          get('PLACE'),
+    type:          ideaTypeVal,
+    category:      catId || rawCat || '',
+    cuisine:       get('CUISINE'),
+    address:       get('ADDRESS'),
+    neighborhood:  get('NEIGHBORHOOD'),
+    shortdesc:     get('SHORTDESC'),
+    about:         get('LONGDESC') || get('ABOUT'), // support both old and new tag
+    note:          get('NOTE'),
+    subwayRoute:   get('SUBWAY'),
+    walkDriveTime: get('WALKDRIVE'),
+    reservation:   (get('RESERVATION') || '').toLowerCase() || undefined,
+    websiteUrl:    get('WEBSITEURL'),
+    resyUrl:       get('RESYURL'),
+    opentableUrl:  get('OPENTABLEURL'),
+    eventbriteUrl: get('EVENTBRITEURL'),
+    imgSearchTerm: get('IMAGESEARCHTERM'),
+    imageUrls: [1,2,3,4,5].map(n => get('IMAGEURL' + n)).filter(Boolean),
+  };
+}
+
+function _applyIdeaImport(data, intoOpenPopup) {
+  if (!intoOpenPopup) return;
+  const set = (id, val) => { if (!val) return; const el = document.getElementById(id); if (el && !el.value) el.value = val; };
+  if (data.name) document.getElementById('idea-name').value = data.name;
+  if (data.type && (data.type === 'in' || data.type === 'out')) {
+    if (data.type !== ideaType) { switchSheetType(data.type); }
+  }
+  // Set category dropdown if we have a valid category id
+  if (data.category) {
+    const cats = data.type === 'in' ? IN_CATS : OUT_CATS;
+    const match = cats.find(c => c.id === data.category || c.label.toLowerCase() === data.category.toLowerCase());
+    if (match) {
+      selectedCategory = match.id;
+      renderSheetUI();
+    }
+  }
+  set('idea-cuisine', data.cuisine);
+  set('idea-address', data.address);
+  set('idea-shortdesc', data.shortdesc);
+  set('idea-about', data.about);
+  set('idea-note-long', data.note);
+  set('idea-subway', data.subwayRoute);
+  set('idea-walkdrive', data.walkDriveTime);
+  if (data.reservation) {
+    const sel = document.getElementById('idea-reservation');
+    if (sel && !sel.value || sel.value === 'none') {
+      sel.value = data.reservation;
+      onIdeaReservationChange(false);
+      set('idea-website-url', data.websiteUrl);
+      set('idea-resy-url', data.resyUrl);
+      set('idea-opentable-url', data.opentableUrl);
+      set('idea-eventbrite-url', data.eventbriteUrl);
+    }
+  }
+  if (data.imageUrls && data.imageUrls.length) {
+    populateIdeaImageFields(data.imageUrls);
+  }
+  if (data.imgSearchTerm) {
+    const sEl = document.getElementById('idea-img-search');
+    if (sEl && !sEl.value) sEl.value = data.imgSearchTerm;
+  }
+  if (data.subwayRoute) renderIdeaSubwayBadges();
+  if (data.walkDriveTime) renderIdeaWalkDriveBadges();
+  _syncAllClearable();
+}
+
+function _mergeIdeaData(idea, data) {
+  // Only fill fields that are currently empty
+  if (!idea.cuisine && data.cuisine) idea.cuisine = data.cuisine;
+  if (!idea.address && data.address) idea.address = data.address;
+  if (!idea.neighborhood && data.neighborhood) idea.neighborhood = data.neighborhood;
+  if (!idea.shortdesc && data.shortdesc) idea.shortdesc = data.shortdesc;
+  if (!idea.about && data.about) idea.about = data.about;
+  if (!idea.note && data.note) idea.note = data.note;
+  if (!idea.subwayRoute && data.subwayRoute) idea.subwayRoute = data.subwayRoute;
+  if (!idea.walkDriveTime && data.walkDriveTime) idea.walkDriveTime = data.walkDriveTime;
+  if ((!idea.reservation || idea.reservation === 'none') && data.reservation) idea.reservation = data.reservation;
+  if (!idea.websiteUrl && data.websiteUrl) idea.websiteUrl = data.websiteUrl;
+  if (!idea.resyUrl && data.resyUrl) idea.resyUrl = data.resyUrl;
+  if (!idea.opentableUrl && data.opentableUrl) idea.opentableUrl = data.opentableUrl;
+  if (!idea.eventbriteUrl && data.eventbriteUrl) idea.eventbriteUrl = data.eventbriteUrl;
+  if ((!idea.imageUrls || !idea.imageUrls.length) && data.imageUrls && data.imageUrls.length) idea.imageUrls = data.imageUrls;
+  if (!idea.imgSearchTerm && data.imgSearchTerm) idea.imgSearchTerm = data.imgSearchTerm;
+}
+
+function _createIdeaFromData(data) {
+  const validTypes = ['in','out','restaurant','bar','cafe','museum','theater','park','shop','activity'];
+  const type = validTypes.includes(data.type) ? (data.type === 'in' ? 'in' : 'out') : 'out';
+  ideas.unshift({
+    id: Date.now() + Math.random(),
+    type,
+    category: data.category || catMemory[type] || '',
+    name: data.name,
+    cuisine: data.cuisine || '',
+    address: data.address || '',
+    neighborhood: data.neighborhood || '',
+    shortdesc: data.shortdesc || '',
+    about: data.about || '',
+    note: data.note || '',
+    subwayRoute: data.subwayRoute || '',
+    walkDriveTime: data.walkDriveTime || '',
+    reservation: data.reservation || 'none',
+    websiteUrl: data.websiteUrl || '',
+    resyUrl: data.resyUrl || '',
+    opentableUrl: data.opentableUrl || '',
+    eventbriteUrl: data.eventbriteUrl || '',
+    imageUrls: data.imageUrls || [],
+    imgSearchTerm: data.imgSearchTerm || '',
+    saved: false,
+    isPrivate: false,
+  });
+}
+
 function _shortTime(t) {
   if (!t) return t;
   return t.replace(/^(\d+):00\s*(am|pm)$/i, '$1 $2');
@@ -7198,7 +7467,16 @@ function openDetail(id, navContext) {
   }
 
   // About / description
-  if (item.about) body += plainRowTop(infoIcon, item.about);
+  if (item.about) {
+    const aboutUrl = item.websiteUrl || '';
+    const aboutContent = aboutUrl
+      ? `<span onclick="_openExternal('${aboutUrl.replace(/'/g, "\\'")}');event.stopPropagation()" style="font-size:14px;font-family:sans-serif;color:#9a8a7a;line-height:1.5;cursor:pointer">${item.about}</span>`
+      : `<span style="font-size:14px;font-family:sans-serif;color:#9a8a7a;line-height:1.5">${item.about}</span>`;
+    body += `<div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:14px">
+      <div style="margin-top:2px;flex-shrink:0">${infoIcon}</div>
+      ${aboutContent}
+    </div>`;
+  }
 
   // Bottom action buttons row
   const hasReservation = item.reservation && item.reservation !== 'none';
@@ -7768,7 +8046,18 @@ function openDateInfo(u, memoryMode) {
   const aboutVal = u.about || u.note || '';
   const aboutRow = document.getElementById('di-about-row');
   if (aboutVal) {
-    document.getElementById('di-about').textContent = aboutVal;
+    const _diAboutEl = document.getElementById('di-about');
+    const _ideaForAbout = ideas.find(i => i.id === u.ideaId || (i.name && u.venue && i.name.toLowerCase() === u.venue.toLowerCase()));
+    const _aboutWebUrl = _ideaForAbout && _ideaForAbout.websiteUrl ? _ideaForAbout.websiteUrl : '';
+    if (_aboutWebUrl) {
+      _diAboutEl.textContent = aboutVal;
+      _diAboutEl.style.cursor = 'pointer';
+      _diAboutEl.onclick = (ev) => { ev.stopPropagation(); _openExternal(_aboutWebUrl); };
+    } else {
+      _diAboutEl.textContent = aboutVal;
+      _diAboutEl.style.cursor = '';
+      _diAboutEl.onclick = null;
+    }
     aboutRow.style.display = 'flex';
   } else { aboutRow.style.display = 'none'; }
 
@@ -9147,6 +9436,37 @@ function closeMoreMenu() {
   document.getElementById('more-menu-overlay').style.display = 'none';
 }
 
+function openCopyPlaces() {
+  // Close both More menu and Settings
+  document.getElementById('more-menu-overlay').style.display = 'none';
+  closeSettings();
+  // Build comma-separated list of all Out (place) idea names
+  const outNames = ideas
+    .filter(i => !i.archived && i.type === 'out')
+    .sort((a, b) => a.name.localeCompare(b.name))
+    .map(i => i.name)
+    .join(', ');
+  const ta = document.getElementById('copy-places-text');
+  ta.value = outNames;
+  // Auto-resize textarea to fit content
+  ta.style.height = 'auto';
+  ta.style.height = Math.min(ta.scrollHeight, 220) + 'px';
+  document.getElementById('copy-places-overlay').style.display = 'flex';
+  document.body.classList.add('overlay-open');
+  // Select all text after render
+  setTimeout(() => { ta.focus(); ta.select(); }, 50);
+}
+
+function closeCopyPlaces() {
+  document.getElementById('copy-places-overlay').style.display = 'none';
+  document.body.classList.remove('overlay-open');
+}
+
+function copyPlacesSelectAll() {
+  const ta = document.getElementById('copy-places-text');
+  if (ta) { ta.focus(); ta.select(); }
+}
+
 // ═══════════════════════════════════════════════════════
 // ERASE CONFIRM
 // ═══════════════════════════════════════════════════════
@@ -9290,5 +9610,31 @@ _renderLockBtn('pf-lock-btn', false);
 _renderPrivacyBox('date-lock-icon', 'date-privacy-box', false, false);
 _renderPrivacyBox('ts-lock-icon', 'ts-privacy-box', false, false);
 </script>
+
+<!-- PLACE FINDER PREVIEW POPUP — z-index 460 -->
+<div id="pf-preview-overlay" onclick="_closePlaceFinderPreview()" style="position:fixed;inset:0;background:rgba(30,20,20,0.55);z-index:460;display:none;align-items:flex-start;justify-content:center;padding:66px 16px 24px">
+  <div onclick="event.stopPropagation()" style="width:100%;max-width:370px;background:var(--bg);border-radius:20px;box-shadow:0 16px 48px rgba(0,0,0,0.28);display:flex;flex-direction:column;max-height:calc(100vh - 90px);overflow:hidden">
+    <div style="padding:20px 20px 14px;border-bottom:1px solid var(--border);flex-shrink:0">
+      <div style="font-size:18px;font-weight:700;color:var(--popup-title)">Place Finder Results</div>
+      <div style="font-size:12px;color:var(--text-secondary);font-family:sans-serif;margin-top:3px">Review changes before saving</div>
+    </div>
+    <div id="pf-preview-list" style="overflow-y:auto;padding:0 16px;flex:1;-webkit-overflow-scrolling:touch"></div>
+    <div style="display:flex;gap:10px;padding:14px 20px 20px;border-top:1px solid var(--border);flex-shrink:0">
+      <button onclick="_closePlaceFinderPreview()" style="flex:1;padding:11px 0;background:none;border:1.5px solid var(--border);border-radius:10px;font-family:sans-serif;font-size:14px;font-weight:600;color:var(--text-secondary);cursor:pointer">Cancel</button>
+      <button onclick="_savePlaceFinderPreview()" style="flex:1;padding:11px 0;background:#c07a8a;border:none;border-radius:10px;font-family:sans-serif;font-size:14px;font-weight:600;color:#fff;cursor:pointer">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- COPY PLACES POPUP -->
+<div id="copy-places-overlay" onclick="closeCopyPlaces()" style="position:fixed;inset:0;background:rgba(30,20,20,0.5);z-index:500;display:none;align-items:center;justify-content:center;padding:24px">
+  <div onclick="event.stopPropagation()" style="width:100%;max-width:340px;background:var(--bg);border-radius:20px;padding:24px 20px 20px;box-shadow:0 16px 48px rgba(0,0,0,0.22)">
+    <div class="section-label" id="copy-places-label" onclick="copyPlacesSelectAll()" style="margin-bottom:10px;padding-left:0;cursor:default">Places</div>
+    <textarea id="copy-places-text" style="width:100%;padding:9px 14px;font-size:15px;border:1.5px solid var(--border);border-radius:10px;background:var(--bg-input);color:var(--text-primary);outline:none;font-family:sans-serif;resize:none;line-height:1.6;min-height:80px;" onfocus="this.select()"></textarea>
+    <div style="margin-top:14px">
+      <button onclick="closeCopyPlaces()" style="width:100%;padding:11px 0;background:#c07a8a;border:none;border-radius:10px;font-family:sans-serif;font-size:14px;font-weight:600;color:#fff;cursor:pointer">Done</button>
+    </div>
+  </div>
+</div>
 </body>
 </html>
