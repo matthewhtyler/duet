@@ -1889,7 +1889,7 @@ function _syncAllClearable() {
 // every renderNav() so it survives re-renders. When null/false, the override is
 // removed and the element falls back to its normal CSS (color:var(--text-primary)).
 // ─────────────────────────────────────────────────────────────────────────────
-const testcolor = 'orange';
+const testcolor = null;
 function _applyTestcolor() {
   const el = document.getElementById('duet-logo-text');
   if (!el) return;
@@ -5392,6 +5392,7 @@ function _savePlaceFinderPreview() {
   });
   saveIdeas(ideas);
   _closePlaceFinderPreview();
+  closeSheet();
   render();
 }
 
@@ -7615,10 +7616,7 @@ function openDetail(id, navContext) {
         ? `_openExternal('https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(homeAddress)}&destination=${encodeURIComponent(_diDest)}&travelmode=transit')`
         : '';
       const _badgesHtml = buildSubwayBadgesHtml(_diSubway);
-      body += `<div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:14px">
-        <div style="margin-top:2px;flex-shrink:0">${infoIcon}</div>
-        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;${_subwayOnclick?'cursor:pointer':''}" ${_subwayOnclick?`onclick="${_subwayOnclick}"`:''}>${_badgesHtml}</div>
-      </div>`;
+      body += `<div style="display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap;margin-top:16px;margin-bottom:6px;${_subwayOnclick?'cursor:pointer':''}\" ${_subwayOnclick?`onclick="${_subwayOnclick}"`:''}>${_badgesHtml}</div>`;
     }
     if (_diWalkdrive) {
       const _wdMatch = _diWalkdrive.match(/(\d+)\s*min\s*walk/i);
@@ -7637,10 +7635,8 @@ function openDetail(id, navContext) {
           _wdHtml += `<span style="display:flex;align-items:center;gap:4px;font-size:13px;font-family:sans-serif;color:#b0a090;${_dOC?'cursor:pointer':''}" ${_dOC?`onclick="${_dOC}"`:''}>${_cSvg}${_ddMatch[1]} min</span>`;
         }
         _wdHtml += `</div>`;
-        body += `<div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:14px">
-          <div style="margin-top:2px;flex-shrink:0">${infoIcon}</div>
-          ${_wdHtml}
-        </div>`;
+        _wdHtml = _wdHtml.replace('display:flex;align-items:center;gap:8px;flex-wrap:wrap', `display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;margin-top:${_diSubway ? '6px' : '16px'};margin-bottom:6px`);
+        body += _wdHtml;
       }
     }
   }
