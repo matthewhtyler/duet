@@ -2262,7 +2262,23 @@ function render() {
     const _appEl = document.getElementById('app');
     if (_appEl) _appEl.classList.remove('ideas-nav');
   }
-  if (currentView === 'home')     main.innerHTML = renderHome();
+  if (currentView === 'home') {
+    const _ws = document.getElementById('week-strip-scroll');
+    const _savedScroll = _ws ? _ws.scrollLeft : -1;
+    main.innerHTML = renderHome();
+    if (_savedScroll >= 0) {
+      const _ws2 = document.getElementById('week-strip-scroll');
+      if (_ws2) {
+        _ws2.style.scrollSnapType = 'none';
+        _ws2.style.scrollBehavior = 'auto';
+        _ws2.scrollLeft = _savedScroll;
+        requestAnimationFrame(() => {
+          _ws2.scrollLeft = _savedScroll;
+          requestAnimationFrame(() => { _ws2.style.scrollSnapType = 'x mandatory'; _ws2.style.scrollBehavior = ''; });
+        });
+      }
+    }
+  }
   else if (currentView === 'ideas')    main.innerHTML = renderIdeas();
   else if (currentView === 'calendar') main.innerHTML = renderCalendar();
   else if (currentView === 'todo')     main.innerHTML = renderTodo();
