@@ -1313,6 +1313,17 @@
           <span style="font-size:14px;font-family:sans-serif;color:var(--text-primary)">Safe mode</span>
         </label>
       </div>
+      <!-- Date Ideas -->
+      <div class="field-label" style="display:flex;align-items:center;gap:6px;margin-top:32px">
+        <svg viewBox="0 0 24 24" width="14" height="14" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M8 22h8"/><path d="M12 15.8v6.2"/><path d="M5 3h14l-1.5 9a5 5 0 0 1-5 4h-1a5 5 0 0 1-5-4L5 3z"/></svg>
+        Date Ideas
+      </div>
+      <div style="margin-top:10px;margin-bottom:32px">
+        <select id="settings-additional-tab" style="font-family:sans-serif;font-size:14px;padding:6px 10px;border:1.5px solid var(--border);border-radius:8px;background:var(--bg-input);color:var(--text-primary);cursor:pointer">
+          <option value="favorites">Show Favorites</option>
+          <option value="neighborhood">Show Neighborhoods</option>
+        </select>
+      </div>
       <div style="margin-top:0;display:flex;justify-content:space-between;align-items:center">
         <button onclick="openMoreMenu()" style="padding:10px 16px;background:none;border:1.5px solid #ede9e2;border-radius:10px;font-family:sans-serif;font-size:13px;font-weight:600;color:#9a8a7a;cursor:pointer" class="btn-outline">More…</button>
         <div style="display:flex;gap:8px">
@@ -1930,12 +1941,19 @@ let sheetOpen = false;
 let ideaType = 'out';
 let ideasFilter = 'all';
 let ideasSearch = '';
-let catTabFilter = 'all'; // active pill in the Categories tab: 'all' | <catId> | '_in'
-let outTabFilter = 'all'; // active pill in the Out tab: 'all' | <catId>
-let inTabFilter  = 'all'; // active pill in the In tab:  'all' | <catId>
+let catTabFilter  = 'all'; // active pill in the Categories tab: 'all' | <catId> | '_in'
+let outTabFilter  = 'all'; // active pill in the Out tab: 'all' | <catId>
+let inTabFilter   = 'all'; // active pill in the In tab:  'all' | <catId>
+let neighTabFilter = 'all'; // active pill in the Neighborhood tab: 'all' | <neighborhood>
 // Sort key: strip leading "The " for alphabetical ordering
 function _sortKey(name) { return (name||'').replace(/^the\s+/i, '').trim(); }
 const byName = (a,b) => _sortKey(a.name).localeCompare(_sortKey(b.name));
+// Strips zip/postal codes from an address string for display
+function _stripZip(addr) {
+  if (!addr) return addr;
+  // Remove US zip (5-digit or zip+4) and common formats at end of string or before country
+  return addr.replace(/,?\s*\b\d{5}(-\d{4})?\b/g, '').replace(/,\s*,/g, ',').replace(/,\s*$/, '').trim();
+}
 // Returns the soonest future upcoming date for an idea, or null
 function _nextUpcomingDateForIdea(item) {
   const today = new Date(); today.setHours(0,0,0,0);
@@ -2141,6 +2159,7 @@ let partnerAddress = appSettings.partnerAddress || '';
 let partnerPronouns = appSettings.partnerPronouns || 'she/her';
 let partnerPronounsCustom = appSettings.partnerPronounsCustom || '';
 let hidePrivate = appSettings.hidePrivate || false;
+let additionalTab = appSettings.additionalTab || 'favorites'; // 'favorites' | 'neighborhood'
 FUTURE_DATES = buildFutureDates();
 
 // Returns the object pronoun: "her", "him", "them", or custom
@@ -2451,6 +2470,20 @@ function setInTabFilter(f) {
     const strip = document.getElementById('in-tab-strip');
     if (!strip) return;
     const active = strip.querySelector('.in-pill-active');
+    if (!active) return;
+    const stripRect = strip.getBoundingClientRect();
+    const pillRect = active.getBoundingClientRect();
+    strip.scrollLeft = (pillRect.left - stripRect.left + strip.scrollLeft + pillRect.width / 2) - strip.clientWidth / 2;
+  });
+}
+function setNeighTabFilter(f) {
+  neighTabFilter = f;
+  const body = document.getElementById('ideas-body');
+  if (body) body.innerHTML = _buildNeighborhoodTabBody();
+  requestAnimationFrame(() => {
+    const strip = document.getElementById('neigh-tab-strip');
+    if (!strip) return;
+    const active = strip.querySelector('.neigh-pill-active');
     if (!active) return;
     const stripRect = strip.getBoundingClientRect();
     const pillRect = active.getBoundingClientRect();
@@ -3231,13 +3264,13 @@ function renderIdeas() {
   if (ideasFilter === 'favs') pool = pool.filter(i => i.saved);
 
 
-  // ── Heart SVG for toggle button
-  const heartSvg = (active) => `<svg viewBox="0 0 24 24" width="13" height="13" stroke="${active?_toggleActiveColor:'#9a8a7a'}" stroke-width="2" fill="${active?_toggleActiveColor:'none'}" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>`;
-
   // ── Control bar: toggle LEFT, search pill RIGHT
   const _isDarkMode = document.body.classList.contains('dark-mode');
   const _toggleActiveBg = _isDarkMode ? '#9a8a7a' : '#fff';
   const _toggleActiveColor = _isDarkMode ? '#f0ede9' : '#2a1f1f';
+  const heartSvg = (active) => `<svg viewBox="0 0 24 24" width="13" height="13" stroke="${active?_toggleActiveColor:'#9a8a7a'}" stroke-width="2" fill="${active?_toggleActiveColor:'none'}" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>`;
+  const pinSvg = (active) => `<svg viewBox="0 0 24 24" width="13" height="13" stroke="${active?_toggleActiveColor:'#9a8a7a'}" stroke-width="2" fill="${active?_toggleActiveColor:'none'}" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3" fill="${active?'white':'none'}" stroke="${active?_toggleActiveColor:'#9a8a7a'}"/></svg>`;
+  const favTabSvg = additionalTab === 'neighborhood' ? pinSvg(ideasFilter==='favs') : heartSvg(ideasFilter==='favs');
   const af = f => `background:${ideasFilter===f?_toggleActiveBg:'transparent'};color:${ideasFilter===f?_toggleActiveColor:'#9a8a7a'};box-shadow:${ideasFilter===f?'0 1px 3px rgba(0,0,0,0.10)':'none'}`;
   const clearBtn = q ? `<button onclick="clearIdeasSearch()" style="background:none;border:none;cursor:pointer;padding:0;display:flex;flex-shrink:0;line-height:0;padding-top:9px"><svg viewBox="0 0 24 24" width="13" height="13" stroke="#9a8a7a" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>` : '';
   const controlBar = `<div id="ideas-controlbar" style="display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%">
@@ -3245,7 +3278,7 @@ function renderIdeas() {
       <button data-filter="all" onclick="setIdeasFilter('all')" style="padding:4px 12px;border:none;border-radius:18px;font-family:sans-serif;font-size:12px;font-weight:600;cursor:pointer;${af('all')}">All</button>
       <button data-filter="out" onclick="setIdeasFilter('out')" style="padding:4px 12px;border:none;border-radius:18px;font-family:sans-serif;font-size:12px;font-weight:600;cursor:pointer;${af('out')}">Out</button>
       <button data-filter="in" onclick="setIdeasFilter('in')"  style="padding:4px 12px;border:none;border-radius:18px;font-family:sans-serif;font-size:12px;font-weight:600;cursor:pointer;${af('in')}">In</button>
-      <button data-filter="favs" onclick="setIdeasFilter('favs')" style="padding:4px 10px;border:none;border-radius:18px;font-family:sans-serif;font-size:12px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:4px;${af('favs')}">${heartSvg(ideasFilter==='favs')}</button>
+      <button data-filter="favs" onclick="setIdeasFilter('favs')" style="padding:4px 10px;border:none;border-radius:18px;font-family:sans-serif;font-size:12px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:4px;${af('favs')}">${favTabSvg}</button>
     </div>
     <div style="display:flex;align-items:center;background:var(--toggle-bg);border-radius:20px;padding:5px 10px;gap:6px;width:160px;flex-shrink:0;margin-left:auto">
       <svg viewBox="0 0 24 24" width="13" height="13" stroke="#9a8a7a" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
@@ -3261,7 +3294,7 @@ function renderIdeas() {
     document.getElementById('app').classList.add('ideas-nav');
   }, 0);
     if (isFavFilter) {
-    return `<div id="ideas-body">${_buildCatTabBody()}</div>`;
+    return `<div id="ideas-body">${additionalTab === 'neighborhood' ? _buildNeighborhoodTabBody() : _buildCatTabBody()}</div>`;
   }
   if (ideasFilter === 'out') {
     return `<div id="ideas-body">${_buildOutTabBody()}</div>`;
@@ -3508,6 +3541,101 @@ function _buildCatTabBody() {
 
   return `${stripHtml}<div style="padding:12px 20px 80px">${contentHtml}</div>`;
 }
+
+// ── Neighborhood Tab builder — groups ALL ideas by neighborhood
+function _buildNeighborhoodTabBody() {
+  const q = (ideasSearch || '').trim();
+  const isDark = document.body.classList.contains('dark-mode');
+  const pillActiveColor = isDark ? '#c07a8a' : BURGUNDY;
+  const pillInactiveColor = '#9a8a7a';
+
+  const allIdeas = ideas.filter(i => !i.archived && !_isHiddenPrivate(i) && ideaMatchesSearch(i, q));
+
+  // Build neighborhood map — key is neighborhood string or '_unknown'
+  const neighMap = new Map();
+  allIdeas.forEach(i => {
+    const n = (i.neighborhood || '').trim();
+    const key = n ? n : '_unknown';
+    if (!neighMap.has(key)) neighMap.set(key, []);
+    neighMap.get(key).push(i);
+  });
+
+  // Known neighborhoods sorted alphabetically, unknown at end
+  const knownNeighs = [...neighMap.keys()].filter(k => k !== '_unknown').sort((a,b) => a.localeCompare(b));
+  const hasUnknown = neighMap.has('_unknown');
+
+  // Validate current filter
+  const validIds = new Set(['all', ...knownNeighs, ...(hasUnknown ? ['_unknown'] : [])]);
+  if (!validIds.has(neighTabFilter)) neighTabFilter = 'all';
+
+  // Pills: All + known neighborhoods alphabetically (+ Unknown if needed)
+  const pills = [
+    { id: 'all', label: 'All' },
+    ...knownNeighs.map(n => ({ id: n, label: n })),
+    ...(hasUnknown ? [{ id: '_unknown', label: 'Unknown' }] : []),
+  ];
+
+  function pillHtml(p) {
+    const active = neighTabFilter === p.id;
+    const color = active ? pillActiveColor : pillInactiveColor;
+    const fw = active ? '700' : '500';
+    return `<button class="${active ? 'neigh-pill-active' : ''}" onclick="setNeighTabFilter('${p.id.replace(/'/g, "\\'")}')" style="display:flex;align-items:center;gap:5px;white-space:nowrap;background:none;border:none;cursor:pointer;padding:6px 4px;font-family:sans-serif;font-size:13px;font-weight:${fw};color:${color};flex-shrink:0;line-height:1">${p.label}</button>`;
+  }
+
+  const stripHtml = pills.length > 1
+    ? `<div id="neigh-tab-strip" style="display:flex;align-items:center;gap:10px;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none;-webkit-overflow-scrolling:touch;padding:0 20px 10px;border-bottom:1px solid var(--border)">${pills.map(pillHtml).join('<span style="color:var(--border);font-size:16px;flex-shrink:0">·</span>')}</div>`
+    : '';
+
+  function smallCard(item) {
+    const sub = itemSubLine(item);
+    const ac = accentColor(item.type);
+    const _subColor = subColor(item.type);
+    const urls = getImageUrls(item);
+    const imgPanel = urls.length
+      ? `<div style="width:120px;flex-shrink:0;margin:-12px -14px -12px 0;border-left:1px solid var(--img-sep);border-radius:0 14px 14px 0;overflow:hidden;align-self:stretch;background:#6b2340;position:relative"><img src="${urls[0]}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center;display:block" onerror="this.parentNode.style.background='#6b2340';this.style.display='none'"></div>`
+      : '';
+    const navCtx = item.type === 'in' ? 'in' : 'out';
+    const hasDate = !!_nextUpcomingDateForIdea(item);
+    const calIcon = hasDate ? `<svg viewBox="0 0 24 24" width="12" height="12" stroke="${ac}" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-left:4px"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>` : '';
+    const subLine = sub
+      ? `<div class="quick-row-sub" style="display:flex;align-items:center;color:${_subColor}">${sub}${calIcon}</div>`
+      : (hasDate ? `<div class="quick-row-sub" style="display:flex;align-items:center">${calIcon}</div>` : '');
+    return `<div class="quick-row" onclick="openDetail(${item.id},'${navCtx}')" style="cursor:pointer;overflow:hidden">
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;align-items:center;gap:7px;margin-bottom:${subLine?'4px':'0'}">
+          ${ideaIcon(item, 14, ac)}
+          <div class="quick-row-name">${item.name}</div>
+        </div>
+        ${subLine}
+      </div>
+      ${imgPanel}
+    </div>`;
+  }
+
+  function neighSection(key, items) {
+    const label = key === '_unknown' ? 'Unknown' : key;
+    return `<div style="margin-bottom:20px">
+      <div class="section-label" style="margin-bottom:8px">${label}</div>
+      <div style="display:flex;flex-direction:column;gap:8px">${items.sort(byName).map(smallCard).join('')}</div>
+    </div>`;
+  }
+
+  let contentHtml = '';
+  if (!allIdeas.length) {
+    contentHtml = `<div style="color:#b0a090;font-size:15px;font-style:italic;text-align:center;padding:40px 0">No ideas yet.</div>`;
+  } else if (neighTabFilter === 'all') {
+    knownNeighs.forEach(n => { contentHtml += neighSection(n, neighMap.get(n)); });
+    if (hasUnknown) contentHtml += neighSection('_unknown', neighMap.get('_unknown'));
+  } else {
+    const items = neighMap.get(neighTabFilter) || [];
+    contentHtml = items.length
+      ? neighSection(neighTabFilter, items)
+      : `<div style="color:#b0a090;font-size:15px;font-style:italic;text-align:center;padding:40px 0">No ideas in this neighborhood.</div>`;
+  }
+
+  return `${stripHtml}<div style="padding:12px 20px 80px">${contentHtml}</div>`;
+}
+
 function _buildOutTabBody() {
   const q = (ideasSearch || '').trim();
   const isDark = document.body.classList.contains('dark-mode');
@@ -3719,7 +3847,7 @@ function _renderIdeasBody() {
   }
 
   const body = document.getElementById('ideas-body');
-  if (body) body.innerHTML = isFavFilter ? _buildCatTabBody() : ideasFilter === 'out' ? _buildOutTabBody() : ideasFilter === 'in' ? _buildInTabBody() : _buildIdeasBody(pool, q, byName, isFavFilter);
+  if (body) body.innerHTML = isFavFilter ? (additionalTab === 'neighborhood' ? _buildNeighborhoodTabBody() : _buildCatTabBody()) : ideasFilter === 'out' ? _buildOutTabBody() : ideasFilter === 'in' ? _buildInTabBody() : _buildIdeasBody(pool, q, byName, isFavFilter);
 }
 
 // scrollFavs: scrolls the favorites list by showing next/prev card
@@ -8059,7 +8187,7 @@ function openDetail(id, navContext) {
   if (isOut && item.address) {
     body += `<div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;margin-top:20px">
       <span onclick="_openExternal('${directionsUrl.replace(/'/g,"\\'")}')" style="display:flex;flex-shrink:0;cursor:pointer">${pinIcon}</span>
-      <span onclick="_openExternal('${directionsUrl.replace(/'/g,"\\'")}')" style="font-size:14px;font-family:sans-serif;color:#9a8a7a;cursor:pointer">${item.address}</span>
+      <span onclick="_openExternal('${directionsUrl.replace(/'/g,"\\'")}')" style="font-size:14px;font-family:sans-serif;color:#9a8a7a;cursor:pointer">${_stripZip(item.address)}</span>
     </div>`;
   }
 
@@ -8496,7 +8624,8 @@ function openDateInfo(u, memoryMode) {
         </button>
       </div>`;
     diBanner.style.cssText = 'display:block;height:200px;border-radius:20px 20px 0 0;flex-shrink:0;position:relative;overflow:hidden';
-    diBanner.innerHTML = `<div id="di-img-scroll" style="display:flex;height:200px;overflow-x:scroll;overflow-y:hidden;scrollbar-width:none;-ms-overflow-style:none;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;border-radius:20px 20px 0 0">${slides}</div>${arrowsPill}${controlsPill}`;
+    const _diBadgeHtml = (u.day && u.month) ? `<div onclick="event.stopPropagation();currentCalMonth=${MONTH_NUMS[u.month]||0};currentCalYear=${u.year||2026};selectedCalDay=${u.day};navigate('calendar')" style="display:flex;flex-direction:column;align-items:center;justify-content:center;position:absolute;bottom:8px;right:8px;border:1px solid rgba(255,255,255,0.85);border-radius:5px;padding:2px 5px;min-width:26px;background:rgba(0,0,0,0.32);backdrop-filter:blur(2px);cursor:pointer;z-index:2"><span style="font-size:7px;font-family:sans-serif;font-weight:700;color:#fff;letter-spacing:0.07em;text-transform:uppercase;line-height:1.2">${u.month}</span><span style="font-size:13px;font-weight:700;color:#fff;line-height:1.1;font-family:sans-serif">${u.day}</span></div>` : '';
+    diBanner.innerHTML = `<div id="di-img-scroll" style="display:flex;height:200px;overflow-x:scroll;overflow-y:hidden;scrollbar-width:none;-ms-overflow-style:none;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;border-radius:20px 20px 0 0">${slides}</div>${arrowsPill}${controlsPill}${_diBadgeHtml}`;
     diBanner.onmouseenter = () => { ['di-pill-arrows','di-pill-controls'].forEach(id => { const p=document.getElementById(id); if(p) p.style.opacity='1'; }); };
     diBanner.onmouseleave = () => { ['di-pill-arrows','di-pill-controls'].forEach(id => { const p=document.getElementById(id); if(p) p.style.opacity='0'; }); };
     } else {
@@ -8632,7 +8761,7 @@ function openDateInfo(u, memoryMode) {
     const addrPin = document.getElementById('di-address-pin-link');
     const addrLink = document.getElementById('di-address');
     if (addrPin) addrPin.onclick = _addrClick;
-    if (addrLink) { addrLink.textContent = addrVal; addrLink.onclick = _addrClick; }
+    if (addrLink) { addrLink.textContent = _stripZip(addrVal); addrLink.onclick = _addrClick; }
     addrRow.style.display = 'flex';
   } else { addrRow.style.display = 'none'; }
 
@@ -9432,6 +9561,8 @@ function openSettings() {
   if (partnerPronouns === 'other') document.getElementById('settings-pronouns-custom').value = partnerPronounsCustom;
   const layoutSel = document.getElementById('settings-home-layout');
   if (layoutSel) layoutSel.value = homeLayout || 'full';
+  const atSel = document.getElementById('settings-additional-tab');
+  if (atSel) atSel.value = additionalTab || 'favorites';
   document.getElementById('settings-overlay').style.display = 'flex';
   // Sync radio buttons to current appearance
   setTimeout(() => _applyAppearance(_appearance), 0);
@@ -9459,6 +9590,8 @@ function saveSettingsData() {
   if (hpEl) { hidePrivate = hpEl.checked; appSettings.hidePrivate = hidePrivate; }
   const layoutEl = document.getElementById('settings-home-layout');
   if (layoutEl) { homeLayout = layoutEl.value; appSettings.homeLayout = homeLayout; }
+  const atEl = document.getElementById('settings-additional-tab');
+  if (atEl) { additionalTab = atEl.value; appSettings.additionalTab = additionalTab; }
   // Save appearance
   localStorage.setItem('duet_appearance', _appearance);
   saveSettings(appSettings);
