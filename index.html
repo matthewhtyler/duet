@@ -750,7 +750,7 @@
           <button id="idea-img-icon-btn" title="Search for photos" style="background:none;border:none;cursor:pointer;padding:0;display:flex;align-items:center;flex-shrink:0;line-height:0">
             <svg viewBox="0 0 24 24" width="18" height="18" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
           </button>
-          <button id="idea-img-count-box" onclick="openImagesPopup('idea-image-fields', _getIdeaImgsearchName, () => window._editingIdeaId ? ideas.find(i=>i.id===window._editingIdeaId) : null)" style="flex:1;padding:9px 14px;font-size:16px;font-family:sans-serif;background:var(--bg-input);border:1.5px solid var(--border);border-radius:10px;text-align:left;cursor:pointer;color:var(--text-placeholder);margin-bottom:0">No images</button>
+          <button id="idea-img-count-box" onclick="openImagesPopup('idea-image-fields', _getIdeaImgsearchName, () => { if (window._editingIdeaId) return ideas.find(i=>i.id===window._editingIdeaId); const _n = (document.getElementById('idea-name')||{}).value||''; return _n ? ideas.find(i=>i.name&&_normalizeName(i.name)===_normalizeName(_n)) : null; })" style="flex:1;padding:9px 14px;font-size:16px;font-family:sans-serif;background:var(--bg-input);border:1.5px solid var(--border);border-radius:10px;text-align:left;cursor:pointer;color:var(--text-placeholder);margin-bottom:0">No images</button>
           <div id="idea-image-fields" style="display:none"></div>
         </div>
 
@@ -838,7 +838,7 @@
           <button id="idea-in-img-icon-btn" title="Search for photos" style="background:none;border:none;cursor:pointer;padding:0;display:flex;align-items:center;flex-shrink:0;line-height:0">
             <svg viewBox="0 0 24 24" width="18" height="18" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
           </button>
-          <button id="idea-img-count-box-in" onclick="openImagesPopup('idea-image-fields', _getIdeaImgsearchName, () => window._editingIdeaId ? ideas.find(i=>i.id===window._editingIdeaId) : null)" style="flex:1;padding:9px 14px;font-size:16px;font-family:sans-serif;background:var(--bg-input);border:1.5px solid var(--border);border-radius:10px;text-align:left;cursor:pointer;color:var(--text-placeholder);margin-bottom:0">No images</button>
+          <button id="idea-img-count-box-in" onclick="openImagesPopup('idea-image-fields', _getIdeaImgsearchName, () => { if (window._editingIdeaId) return ideas.find(i=>i.id===window._editingIdeaId); const _n = (document.getElementById('idea-name')||{}).value||''; return _n ? ideas.find(i=>i.name&&_normalizeName(i.name)===_normalizeName(_n)) : null; })" style="flex:1;padding:9px 14px;font-size:16px;font-family:sans-serif;background:var(--bg-input);border:1.5px solid var(--border);border-radius:10px;text-align:left;cursor:pointer;color:var(--text-placeholder);margin-bottom:0">No images</button>
         </div>
         <!-- Short description -->
         <div class="idea-row" id="idea-in-shortdesc-wrap">
@@ -5432,6 +5432,9 @@ function _applyIdeaImport(data, intoOpenPopup) {
   if (data.imgSearchTerm) {
     const sEl = document.getElementById('idea-img-search');
     if (sEl && !sEl.value) sEl.value = data.imgSearchTerm;
+    // Also store in the override + pending so images popup and saveNewIdea both see it
+    _imgSearchTermOverrides['idea-image-fields'] = data.imgSearchTerm;
+    window._imgsPopupPendingSearchTerm = data.imgSearchTerm;
   }
   if (data.subwayRoute) renderIdeaSubwayBadges();
   if (data.walkDriveTime) renderIdeaWalkDriveBadges();
@@ -6847,7 +6850,7 @@ function saveNewIdea() {
   if (window._editingIdeaId) {
     const item = ideas.find(i=>i.id===window._editingIdeaId);
     const _editImgUrls = collectNewIdeaImageUrls();
-    if (item) Object.assign(item, { name, address, neighborhood, cuisine, shortdesc, showType, subwayRoute: subway, walkDriveTime: walkdrive, about, reservation, eventbriteUrl, websiteUrl, opentableUrl, resyUrl, webappUrl, webappLabel, webappIconKey, note, category: selectedCategory, saved: window._ideaSaved, imageUrls: _editImgUrls, isPrivate, customIconKey });
+    if (item) Object.assign(item, { name, address, neighborhood, cuisine, shortdesc, showType, subwayRoute: subway, walkDriveTime: walkdrive, about, reservation, eventbriteUrl, websiteUrl, opentableUrl, resyUrl, webappUrl, webappLabel, webappIconKey, note, category: selectedCategory, saved: window._ideaSaved, imageUrls: _editImgUrls, isPrivate, customIconKey, imgSearchTerm: window._imgsPopupPendingSearchTerm || item.imgSearchTerm || undefined });
     window._editingIdeaId = null;
   } else {
     const _newImgUrls = collectNewIdeaImageUrls();
