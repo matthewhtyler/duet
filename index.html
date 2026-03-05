@@ -1889,7 +1889,7 @@ function _syncAllClearable() {
 // every renderNav() so it survives re-renders. When null/false, the override is
 // removed and the element falls back to its normal CSS (color:var(--text-primary)).
 // ─────────────────────────────────────────────────────────────────────────────
-const testcolor = 'orange';
+const testcolor = null;
 function _applyTestcolor() {
   const el = document.getElementById('duet-logo-text');
   if (!el) return;
@@ -7607,7 +7607,7 @@ function openDetail(id, navContext) {
     const _rawUrl = item.websiteUrl.trim();
     const _fullUrl = /^https?:\/\//i.test(_rawUrl) ? _rawUrl : 'https://' + _rawUrl;
     const _displayUrl = _rawUrl.replace(/^https?:\/\//i,'').replace(/^www\./i,'').split('/')[0];
-    const _phoneSvg = `<svg viewBox="0 0 24 24" width="16" height="16" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.6 3.38 2 2 0 0 1 3.57 1.21h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.81a16 16 0 0 0 6 6l.92-.92a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7a2 2 0 0 1 1.72 2.02z"/></svg>`;
+    const _phoneSvg = `<svg viewBox="0 0 24 24" width="16" height="16" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>`;
     body += `<div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
       ${_phoneSvg}
       <span onclick="_openExternal('${_fullUrl.replace(/'/g,"\\'")}');event.stopPropagation()" style="font-size:13px;font-family:sans-serif;color:#9a8a7a;cursor:pointer">${_displayUrl}</span>
