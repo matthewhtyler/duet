@@ -4264,7 +4264,9 @@ function _buildUpcomingCardHtml(u, extraStyle, directOpen) {
 }
 
 function renderHome() {
-  const savedIdeas = ideas.filter(i => !i.archived && !_isHiddenPrivate(i)).slice(0, 5);
+  const _outIdeas = ideas.filter(i => !i.archived && i.type === 'out' && !_isHiddenPrivate(i));
+  const _shuffled = _outIdeas.slice().sort(() => Math.random() - 0.5);
+  const savedIdeas = _shuffled.slice(0, 5);
 
   const visibleDates = FUTURE_DATES.filter(fd => !_isDateHiddenPrivate(fd._ref || fd));
 
@@ -4333,7 +4335,7 @@ function renderHome() {
 
   <div style="padding:36px 20px 36px">
     ${savedIdeas.length ? `<button onclick="navigate('out')" style="background:none;border:none;cursor:pointer;padding:0;display:flex;align-items:center;gap:4px;margin-bottom:12px">
-      <span class="section-label">Latest Ideas</span>
+      <span class="section-label">Date Ideas</span>
       <span style="font-size:11px;color:#9a8a7a;font-family:sans-serif;letter-spacing:0.05em;line-height:1">›</span>
     </button>` : ''}
     <div style="display:flex;flex-direction:column;gap:8px">
