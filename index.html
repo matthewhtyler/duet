@@ -1147,7 +1147,7 @@
             style="flex:1;padding:9px 14px;background:var(--bg-input);border:1.5px solid var(--border);border-radius:10px;font-family:sans-serif;color:var(--text-primary);text-align:left;cursor:pointer;display:flex;align-items:center;gap:10px;margin-bottom:0">
             <span id="ed-activity-icon" style="display:none;flex-shrink:0"></span>
             <span id="ed-activity-label" style="flex:1;font-size:16px;color:var(--text-placeholder)">Date ideas…</span>
-            <span id="ed-activity-info-btn" onclick="event.stopPropagation();_openEditIdeaFromEditDate(parseInt(this.dataset.ideaId))" style="display:none;width:20px;height:20px;background:#c07a8a;border-radius:50%;flex-shrink:0;align-items:center;justify-content:center;cursor:pointer">
+            <span id="ed-activity-info-btn" onclick="event.stopPropagation();_openEditIdeaFromEditDate(parseFloat(this.dataset.ideaId))" style="display:none;width:20px;height:20px;background:#c07a8a;border-radius:50%;flex-shrink:0;align-items:center;justify-content:center;cursor:pointer">
               <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
             </span>
           </button>
@@ -9839,7 +9839,7 @@ function closePlaces() {
         document.getElementById('ed-activity-icon').style.display = 'flex'; document.getElementById('ed-activity-icon').style.alignItems = 'center';
         document.getElementById('ed-activity-label').textContent = updated.name;
         document.getElementById('ed-activity-label').style.fontSize = '16px';
-        document.getElementById('ed-activity-label').style.color = '#2a1f1f';
+        document.getElementById('ed-activity-label').style.color = document.body.classList.contains('dark-mode') ? 'var(--text-primary)' : '#2a1f1f';
         document.getElementById('ed-activity-btn').style.borderColor = accent;
       }
     }
