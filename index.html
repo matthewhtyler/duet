@@ -4715,7 +4715,8 @@ function toggleTodoDone(id) {
 
 // ── Home ──────────────────────────────────────────────
 function _dateCardSubNote(u) {
-  // Never show note on upcoming cards — notes only appear in Date Info popup (upcoming) or as subtitle (past)
+  // If the date has a note, show it (replaces shortdesc in the subline)
+  if (u.note && u.note.trim()) return u.note.trim();
   const idea = u.ideaId ? ideas.find(i => i.id === u.ideaId) : ideas.find(i => i.name && u.venue && i.name.toLowerCase() === u.venue.toLowerCase());
   if (idea && idea.shortdesc && idea.shortdesc.trim()) return idea.shortdesc.trim();
   return '';
