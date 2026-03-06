@@ -4769,7 +4769,7 @@ function _buildUpcomingCardHtml(u, extraStyle, directOpen) {
     ? `openDateInfo(UPCOMING_DATES.find(d=>String(d.id)==='${u.id||''}'))`
     : `_calCardClick(${u.day},'${u.month}',${u.year||2026},'${u.id||''}')`;
   return `
-    <div class="upcoming-item" onclick="${_clickHandler}" style="${extraStyle || ''}">
+    <div class="upcoming-item" data-date-id="${u.id||''}" onclick="${_clickHandler}" style="${extraStyle || ''}">
       <div class="upcoming-date-badge">
         <span class="upcoming-month">${u.month}</span>
         <span class="upcoming-day-num">${u.day}</span>
@@ -5561,6 +5561,7 @@ function renderCalendar() {
 
     // Active date based on current panel
     const _activeDate = _selDayVisible[(_allPanels[_calInfoPanelIdx] || {}).dateIdx || 0];
+    window._calActiveDateId = _activeDate ? String(_activeDate.id) : null;
     const _activeDateResult = _buildDatePanels(_activeDate);
 
     // Header — shows the currently active date (updates live on scroll)
@@ -5622,7 +5623,11 @@ function renderCalendar() {
     .sort((a,b) => new Date((a.year||2026),MONTH_NUMS[a.month]||0,a.day) - new Date((b.year||2026),MONTH_NUMS[b.month]||0,b.day))
     .map(u => {
       const isSelected = u.month === monthAbbr && (u.year||2026) === currentCalYear && u.day === selectedCalDay;
-      return _buildUpcomingCardHtml(u, isSelected ? `border-color:${ROSE};` : '');
+      if (!isSelected) return _buildUpcomingCardHtml(u, '');
+      // On a multi-date day: accent border only for the currently-active date; others get muted outline
+      const _dayDates = _selDayVisible;
+      const isActive = _dayDates.length <= 1 || String(u.id) === window._calActiveDateId;
+      return _buildUpcomingCardHtml(u, isActive ? `border-color:${ROSE};` : 'border-color:var(--text-secondary);');
     }).join('');
 
   return `
@@ -6231,6 +6236,22 @@ function _initCalInfoScroll() {
       if (headers && headers[dateIdx]) {
         const headerEl = document.getElementById('cal-info-header');
         if (headerEl) headerEl.innerHTML = headers[dateIdx].html;
+        // Update active date ID and refresh upcoming card borders
+        const activeDate = headers[dateIdx].u;
+        const newActiveDateId = activeDate ? String(activeDate.id) : null;
+        if (newActiveDateId !== window._calActiveDateId) {
+          window._calActiveDateId = newActiveDateId;
+          // Re-paint borders on upcoming cards for this day
+          document.querySelectorAll('#cal-upcoming .upcoming-item').forEach(el => {
+            const cardId = el.dataset.dateId;
+            const u = UPCOMING_DATES.find(d => String(d.id) === cardId);
+            if (!u) return;
+            const MONTH_NUMS2 = {Jan:0,Feb:1,Mar:2,Apr:3,May:4,Jun:5,Jul:6,Aug:7,Sep:8,Oct:9,Nov:10,Dec:11};
+            if (u.day === selectedCalDay && (u.year||2026) === currentCalYear && (MONTH_NUMS2[u.month]||0) === currentCalMonth) {
+              el.style.borderColor = String(u.id) === window._calActiveDateId ? ROSE : 'var(--text-secondary)';
+            }
+          });
+        }
       }
     }
   };
@@ -7553,6 +7574,12 @@ function _saveEditCommute() {
       const detailOverlay = document.getElementById('detail-overlay');
       if (detailOverlay && detailOverlay.style.display !== 'none' && detailItemId === idea.id) {
         openDetail(idea.id);
+      }
+      // Refresh the Date Info popup if it's open for a date using this idea
+      const diOverlay = document.getElementById('date-info-overlay');
+      if (diOverlay && diOverlay.style.display !== 'none' && currentDateInfo) {
+        const diIdea = ideas.find(i => i.name && currentDateInfo.venue && i.name.toLowerCase() === currentDateInfo.venue.toLowerCase());
+        if (diIdea && diIdea.id === idea.id) openDateInfo(currentDateInfo);
       }
     }
     window._ecDateInfoIdeaId = null;
