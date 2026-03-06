@@ -5390,7 +5390,7 @@ function renderCalendar() {
     _calBannerIdx = Math.min(_calBannerIdx, _selDayVisible.length - 1);
 
     // Helper: build panels for a single date entry
-    function _buildDatePanels(u) {
+    function _buildDatePanels(u, isFirst = true) {
       const _ipIdea = u.ideaId
         ? ideas.find(i => i.id === u.ideaId)
         : ideas.find(i => i.name && u.venue && i.name.toLowerCase() === u.venue.toLowerCase());
@@ -5413,19 +5413,26 @@ function renderCalendar() {
         }
       }
 
-      // Panel: Subway commute — use shared buildSubwayBadgesHtml (MTA colors, station, time)
-      const _ipSubway = _ipIdea && _ipIdea.subwayRoute ? _ipIdea.subwayRoute.trim() : '';
-      if (_ipSubway && !(u.inLocation === 'my_place') && !(_ipIdea && _ipIdea.type === 'in' && !u.inLocation)) {
+      // Panel: Subway commute — first date only (subsequent dates depart from previous venue)
+      const _ipSubwayRaw = _ipIdea && _ipIdea.subwayRoute ? _ipIdea.subwayRoute.trim() : '';
+      const _ipSubwayHasQ = _ipSubwayRaw.endsWith('?');
+      const _ipSubway = _ipSubwayHasQ ? _ipSubwayRaw.replace(/\s*\?\s*$/, '').trim() : _ipSubwayRaw;
+      if (isFirst && _ipSubway && !(u.inLocation === 'my_place') && !(_ipIdea && _ipIdea.type === 'in' && !u.inLocation)) {
         const _ipDest = _ipIdea && _ipIdea.address ? _ipIdea.address.trim() : u.venue;
-        const _ipSubwayOnclick = (homeAddress && _ipDest)
-          ? `_openExternal('https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(homeAddress)}&destination=${encodeURIComponent(_ipDest)}&travelmode=transit')`
+        const _ipMapsUrl = (homeAddress && _ipDest)
+          ? `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(homeAddress)}&destination=${encodeURIComponent(_ipDest)}&travelmode=transit`
           : '';
+        const _ipSubwayOnclick = _ipSubwayHasQ
+          ? `_openEditCommuteFromDateInfo(${_ipIdea ? _ipIdea.id : 'null'},'${_ipMapsUrl.replace(/'/g,"\\'")}')`
+          : (_ipMapsUrl ? `_openExternal('${_ipMapsUrl.replace(/'/g,"\\'")}')` : '');
         const timeMatch = _ipSubway.match(/~?\s*(\d+)\s*min/i);
         const commuteMin = timeMatch ? parseInt(timeMatch[1]) : null;
         const badgesHtml = buildSubwayBadgesHtml(_ipSubway);
-        // Leave by
+        // Leave by or ? badge
         let leaveByHtml = '';
-        if (commuteMin && u.time) {
+        if (_ipSubwayHasQ) {
+          leaveByHtml = `<span style="display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:50%;border:1.5px solid #b0a090;font-size:9px;font-weight:700;color:#b0a090;font-family:sans-serif;flex-shrink:0;cursor:pointer">?</span>`;
+        } else if (commuteMin && u.time) {
           const parsed = parseTimeInput(u.time);
           const m = parsed.match(/(\d+):(\d+)\s*(am|pm)/i);
           if (m) {
@@ -5445,9 +5452,11 @@ function renderCalendar() {
         _ipPanels.push(subwayPanelContent);
       }
 
-      // Panel: Walk / Drive — brown text, leave-by
-      const _ipWalkdrive = _ipIdea && _ipIdea.walkDriveTime ? _ipIdea.walkDriveTime.trim() : '';
-      if (_ipWalkdrive && !(u.inLocation === 'my_place') && !(_ipIdea && _ipIdea.type === 'in' && !u.inLocation)) {
+      // Panel: Walk / Drive — first date only (subsequent dates depart from previous venue)
+      const _ipWalkdriveRaw = _ipIdea && _ipIdea.walkDriveTime ? _ipIdea.walkDriveTime.trim() : '';
+      const _ipWalkdriveHasQ = _ipWalkdriveRaw.endsWith('?');
+      const _ipWalkdrive = _ipWalkdriveHasQ ? _ipWalkdriveRaw.replace(/\s*\?\s*$/, '').trim() : _ipWalkdriveRaw;
+      if (isFirst && _ipWalkdrive && !(u.inLocation === 'my_place') && !(_ipIdea && _ipIdea.type === 'in' && !u.inLocation)) {
         const _ipDest2 = _ipIdea && _ipIdea.address ? _ipIdea.address.trim() : u.venue;
         const walkMatch = _ipWalkdrive.match(/(\d+)\s*min\s*walk/i);
         const driveMatch = _ipWalkdrive.match(/(\d+)\s*min\s*drive/i);
@@ -5455,8 +5464,12 @@ function renderCalendar() {
           const personSvg = `<svg viewBox="0 0 24 24" width="13" height="13" fill="#b0a090"><path d="M13.5 5.5c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zM9.8 8.9L7 23h2.1l1.8-8 2.1 2v6h2v-7.5l-2.1-2 .6-3C14.8 12 16.8 13 19 13v-2c-1.9 0-3.5-1-4.3-2.4l-1-1.6c-.4-.6-1-1-1.7-1-.3 0-.5.1-.8.1L6 8.3V13h2V9.6l1.8-.7"/></svg>`;
           const carSvg = `<svg viewBox="0 0 24 24" width="13" height="13" fill="#b0a090"><path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z"/></svg>`;
           const wdCommuteMin = walkMatch ? parseInt(walkMatch[1]) : (driveMatch ? parseInt(driveMatch[1]) : null);
+          // ? badge or Leave by
+          const _ipWdQBadge = `<span style="display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:50%;border:1.5px solid #b0a090;font-size:9px;font-weight:700;color:#b0a090;font-family:sans-serif;flex-shrink:0;cursor:pointer">?</span>`;
           let wdLeaveByHtml = '';
-          if (wdCommuteMin && u.time) {
+          if (_ipWalkdriveHasQ) {
+            wdLeaveByHtml = _ipWdQBadge;
+          } else if (wdCommuteMin && u.time) {
             const parsed = parseTimeInput(u.time);
             const m = parsed.match(/(\d+):(\d+)\s*(am|pm)/i);
             if (m) {
@@ -5472,14 +5485,20 @@ function renderCalendar() {
               wdLeaveByHtml = `<span style="font-size:11px;color:var(--text-secondary);font-family:sans-serif">Leave by ${leaveTimeStr}</span>`;
             }
           }
-          let wdHtml = '<div style="display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap">';
+          // Build the Maps URLs for walk/drive spans
+          const _walkMapsUrl = (homeAddress && _ipDest2) ? `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(homeAddress)}&destination=${encodeURIComponent(_ipDest2)}&travelmode=walking` : '';
+          const _driveMapsUrl = (homeAddress && _ipDest2) ? `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(homeAddress)}&destination=${encodeURIComponent(_ipDest2)}&travelmode=driving` : '';
+          // When ?, clicking the whole panel opens Maps + Edit Commute
+          const _wdPanelOnclick = _ipWalkdriveHasQ
+            ? `_openEditCommuteFromDateInfo(${_ipIdea ? _ipIdea.id : 'null'},'${(_walkMapsUrl||_driveMapsUrl).replace(/'/g,"\\'")}')` : '';
+          let wdHtml = `<div style="display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;${_wdPanelOnclick?'cursor:pointer':''}" ${_wdPanelOnclick?`onclick="${_wdPanelOnclick}"`:''}>`;
           if (walkMatch) {
-            const _walkOnclick = (homeAddress && _ipDest2) ? `_openExternal('https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(homeAddress)}&destination=${encodeURIComponent(_ipDest2)}&travelmode=walking')` : '';
+            const _walkOnclick = !_ipWalkdriveHasQ && _walkMapsUrl ? `_openExternal('${_walkMapsUrl.replace(/'/g,"\\'")}')` : '';
             wdHtml += `<span style="display:flex;align-items:center;gap:4px;font-size:13px;font-family:sans-serif;color:#b0a090;${_walkOnclick?'cursor:pointer':''}" ${_walkOnclick?`onclick="${_walkOnclick}"`:''}>${personSvg}${walkMatch[1]} min</span>`;
           }
           if (walkMatch && driveMatch) wdHtml += `<span style="color:#b0a090;font-size:13px">/</span>`;
           if (driveMatch) {
-            const _driveOnclick = (homeAddress && _ipDest2) ? `_openExternal('https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(homeAddress)}&destination=${encodeURIComponent(_ipDest2)}&travelmode=driving')` : '';
+            const _driveOnclick = !_ipWalkdriveHasQ && _driveMapsUrl ? `_openExternal('${_driveMapsUrl.replace(/'/g,"\\'")}')` : '';
             wdHtml += `<span style="display:flex;align-items:center;gap:4px;font-size:13px;font-family:sans-serif;color:#b0a090;${_driveOnclick?'cursor:pointer':''}" ${_driveOnclick?`onclick="${_driveOnclick}"`:''}>${carSvg}${driveMatch[1]} min</span>`;
           }
           if (wdLeaveByHtml) wdHtml += `<span style="color:#b0a090;font-size:11px">·</span>${wdLeaveByHtml}`;
@@ -5544,7 +5563,7 @@ function renderCalendar() {
     const _dateHeaders = []; // indexed by dateIdx
 
     _selDayVisible.forEach((dateEntry, di) => {
-      const { panels, idea, accent } = _buildDatePanels(dateEntry);
+      const { panels, idea, accent } = _buildDatePanels(dateEntry, di === 0);
       const headerHtml = _buildIpHeader(dateEntry, accent, idea, true);
       _dateHeaders.push({ html: headerHtml, u: dateEntry });
 
