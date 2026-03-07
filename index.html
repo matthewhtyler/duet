@@ -974,7 +974,7 @@
     <div id="ideas-picker-sheet" onclick="event.stopPropagation()" style="width:100%;max-width:370px;background:var(--bg);border-radius:20px;padding:20px 20px 24px;height:76vh;display:flex;flex-direction:column;box-shadow:0 12px 48px rgba(0,0,0,0.18)">
       <!-- Header: title + X -->
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-shrink:0">
-        <div style="font-size:17px;font-weight:700;color:var(--popup-title)">Date Ideas</div>
+        <div style="font-size:17px;font-weight:700;color:var(--popup-title)">Ideas</div>
         <button onclick="closeIdeasPicker()" style="background:none;border:none;display:flex;cursor:pointer">
           <svg viewBox="0 0 24 24" width="20" height="20" stroke="#888" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="icon-close"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
         </button>
@@ -1271,14 +1271,14 @@
         Home Address
       </div>
       <input class="field-input" id="settings-home-address" type="text" placeholder="e.g. 123 Main St, Brooklyn">
-      <!-- Partner's Address -->
+      <!-- Secondary Address -->
       <div class="field-label" style="display:flex;align-items:center;gap:6px;margin-top:16px">
         <svg viewBox="0 0 24 24" width="14" height="14" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-        Partner's Address
+        Secondary Address
       </div>
       <input class="field-input" id="settings-partner-address" type="text" placeholder="e.g. 456 Park Ave, Brooklyn">
-      <!-- Partner's Pronouns -->
-      <div class="field-label" style="display:flex;align-items:center;gap:6px;margin-top:16px">
+      <!-- Partner's Pronouns (hidden) -->
+      <div id="partner-pronouns-section" style="display:none"><div class="field-label" style="display:flex;align-items:center;gap:6px;margin-top:16px">
         <svg viewBox="0 0 24 24" width="14" height="14" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
         Partner's Pronouns
       </div>
@@ -1291,6 +1291,7 @@
       <div id="settings-pronouns-custom-wrap" style="display:none;margin-top:10px">
         <input class="field-input" id="settings-pronouns-custom" type="text" placeholder="Enter pronouns…" style="margin-bottom:0">
       </div>
+      </div><!-- end partner-pronouns-section -->
       <!-- Appearance -->
       <div class="field-label" style="display:flex;align-items:center;gap:6px;margin-top:32px">
         <svg viewBox="0 0 24 24" width="14" height="14" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
@@ -1320,10 +1321,10 @@
           <span style="font-size:14px;font-family:sans-serif;color:var(--text-primary)">Safe mode</span>
         </label>
       </div>
-      <!-- Date Ideas -->
+      <!-- Ideas -->
       <div class="field-label" style="display:flex;align-items:center;gap:6px;margin-top:32px">
         <svg viewBox="0 0 24 24" width="14" height="14" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M8 22h8"/><path d="M12 15.8v6.2"/><path d="M5 3h14l-1.5 9a5 5 0 0 1-5 4h-1a5 5 0 0 1-5-4L5 3z"/></svg>
-        Date Ideas
+        Ideas
       </div>
       <div style="margin-top:10px;margin-bottom:32px">
         <select id="settings-additional-tab" style="font-family:sans-serif;font-size:14px;padding:6px 10px;border:1.5px solid var(--border);border-radius:8px;background:var(--bg-input);color:var(--text-primary);cursor:pointer">
@@ -2341,7 +2342,15 @@ function render() {
     setTimeout(() => { _initDateCardsScroll(); _initWeekStrip(); _initHomeCarousel(); }, 0);
   }
   if (currentView === 'calendar') {
-    setTimeout(() => { _initCalSwipe(); _initCalDayCards(); _initCalInfoScroll(); }, 0);
+    setTimeout(() => {
+      _initCalSwipe(); _initCalDayCards(); _initCalInfoScroll();
+      if (window._calNavFromHome) {
+        window._calNavFromHome = false;
+        window.scrollTo(0, 0);
+        const app = document.getElementById('app');
+        if (app) app.scrollTop = 0;
+      }
+    }, 0);
   }
 }
 
@@ -2362,7 +2371,7 @@ function renderNav() {
 
   if (center) {
     if (currentView === 'ideas') {
-      center.innerHTML = `<span onclick="toggleDarkMode()" style="font-size:13px;color:#9a8a7a;letter-spacing:0.05em;text-transform:uppercase;font-family:sans-serif;cursor:pointer">Date Ideas</span>`;
+      center.innerHTML = `<span onclick="toggleDarkMode()" style="font-size:13px;color:#9a8a7a;letter-spacing:0.05em;text-transform:uppercase;font-family:sans-serif;cursor:pointer">Ideas</span>`;
     } else {
       const titles = { calendar:'Calendar', todo:'To Do', home:'', past:'Memories', archive:'Archive' };
       const t = titles[currentView] || '';
@@ -4719,6 +4728,14 @@ function _dateCardSubNote(u) {
   if (u.note && u.note.trim()) return u.note.trim();
   const idea = u.ideaId ? ideas.find(i => i.id === u.ideaId) : ideas.find(i => i.name && u.venue && i.name.toLowerCase() === u.venue.toLowerCase());
   if (idea && idea.shortdesc && idea.shortdesc.trim()) return idea.shortdesc.trim();
+  // Fall back to cuisine+category label for restaurant/cafe
+  if (idea) {
+    const cat = (idea.category || '').toLowerCase();
+    if (cat === 'restaurant' || cat === 'cafe') {
+      const label = cat === 'restaurant' ? 'Restaurant' : 'Cafe';
+      return idea.cuisine ? `${idea.cuisine} ${label}` : label;
+    }
+  }
   return '';
 }
 
@@ -4751,7 +4768,7 @@ function _buildDateCardHtml(fd, idx) {
   </div>`;
 }
 
-function _buildUpcomingCardHtml(u, extraStyle, directOpen) {
+function _buildUpcomingCardHtml(u, extraStyle, directOpen, navToCal) {
   // Build small reserve/tickets button if applicable and not already reserved
   let _calResBtn = '';
   let _calDk = '';
@@ -4766,7 +4783,9 @@ function _buildUpcomingCardHtml(u, extraStyle, directOpen) {
       }
     }
   }
-  const _clickHandler = directOpen
+  const _clickHandler = navToCal
+    ? `_navToCalendarDate(UPCOMING_DATES.find(d=>String(d.id)==='${u.id||''}'))`
+    : directOpen
     ? `openDateInfo(UPCOMING_DATES.find(d=>String(d.id)==='${u.id||''}'))`
     : `_calCardClick(${u.day},'${u.month}',${u.year||2026},'${u.id||''}')`;
   return `
@@ -4883,7 +4902,7 @@ function renderHome() {
         '<span class="section-label">Upcoming</span>' +
         '<span style="font-size:11px;color:#9a8a7a;font-family:sans-serif;letter-spacing:0.05em;line-height:1">›</span>' +
       '</button>' +
-      upcoming3.map(u => _buildUpcomingCardHtml(u, '', true)).join('') +
+      upcoming3.map(u => _buildUpcomingCardHtml(u, '', false, true)).join('') +
       '</div>';
   })()}
 
@@ -5374,6 +5393,18 @@ function renderCalendar() {
   }
 
   // Selected date detail cards — all dates on this day, carousel style
+  // If navigating from home to a specific date, pre-resolve the panel index now (before upcoming list renders)
+  if (window._calPendingDateId && selectedCalDay) {
+    const _pendingId = window._calPendingDateId;
+    const _pendingVisible = UPCOMING_DATES.filter(u =>
+      u.month === monthAbbr && (u.year||2026) === currentCalYear && u.day === selectedCalDay && !_isDateHiddenPrivate(u)
+    );
+    const _pendingDateIdx = Math.max(0, _pendingVisible.findIndex(d => String(d.id) === _pendingId));
+    // We don't know panel indices yet (panels not built), but we know dateIdx → set _calInfoPanelIdx
+    // to a best-guess: first panel for that dateIdx. Will be refined in _initCalInfoScroll.
+    // For now just store the dateIdx so _calActiveDateId gets set correctly below.
+    window._calPendingDateIdx = _pendingDateIdx;
+  }
   const _selDayDates = selectedCalDay ? UPCOMING_DATES.filter(u => u.month === monthAbbr && (u.year||2026) === currentCalYear && u.day === selectedCalDay) : [];
   const _selDayVisible = _selDayDates.filter(u => !_isDateHiddenPrivate(u));
   const _selDayAllPrivate = _selDayDates.length > 0 && _selDayVisible.length === 0;
@@ -5579,8 +5610,16 @@ function renderCalendar() {
 
     _calInfoPanelIdx = Math.min(_calInfoPanelIdx, Math.max(_allPanels.length - 1, 0));
 
-    // Active date based on current panel
-    const _activeDate = _selDayVisible[(_allPanels[_calInfoPanelIdx] || {}).dateIdx || 0];
+    // If navigating from home, use the pending dateIdx to pick the right active date
+    let _activeDateIdx = (_allPanels[_calInfoPanelIdx] || {}).dateIdx || 0;
+    if (window._calPendingDateIdx !== undefined) {
+      _activeDateIdx = window._calPendingDateIdx;
+      // Also advance _calInfoPanelIdx to the first panel belonging to this dateIdx
+      const firstPanel = _allPanels.findIndex(p => p.dateIdx === _activeDateIdx);
+      if (firstPanel >= 0) _calInfoPanelIdx = firstPanel;
+      delete window._calPendingDateIdx;
+    }
+    const _activeDate = _selDayVisible[_activeDateIdx];
     window._calActiveDateId = _activeDate ? String(_activeDate.id) : null;
     const _activeDateResult = _buildDatePanels(_activeDate);
 
@@ -5705,6 +5744,24 @@ function renderCalendar() {
 }
 
 // ── Calendar nav ──────────────────────────────────────
+function _navToCalendarDate(u) {
+  // Navigate to calendar, select the month/day, and set the active date panel
+  const mNum = MONTH_NUMS[u.month] ?? 0;
+  currentCalMonth = mNum;
+  currentCalYear = u.year || 2026;
+  selectedCalDay = u.day;
+  _calBannerIdx = 0;
+  // Find which index this date is among visible dates on that day, set panel accordingly
+  const dayVisible = UPCOMING_DATES.filter(d =>
+    d.month === u.month && (d.year||2026) === currentCalYear && d.day === u.day && !_isDateHiddenPrivate(d)
+  );
+  const dateIdx = Math.max(0, dayVisible.findIndex(d => String(d.id) === String(u.id)));
+  // We'll set _calInfoPanelIdx after render (panels aren't built yet), store intent
+  window._calPendingDateId = String(u.id);
+  window._calNavFromHome = true;
+  navigate('calendar');
+}
+
 function calPrev() {
   if (currentCalMonth === 0) { currentCalMonth=11; currentCalYear--; }
   else currentCalMonth--;
@@ -6224,6 +6281,8 @@ function _scrollCalInfoPanel() {
   if (nextBtn) nextBtn.style.opacity = _calInfoPanelIdx < total - 1 ? '1' : '0.2';
 }
 function _initCalInfoScroll() {
+  // Clear any pending date navigation flag (already resolved during render)
+  window._calPendingDateId = null;
   const scroll = document.getElementById('cal-info-scroll');
   if (!scroll) return;
   const panels = scroll.querySelectorAll('.cal-info-panel');
