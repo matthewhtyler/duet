@@ -1275,23 +1275,26 @@
       <div class="field-label" style="display:flex;align-items:center;gap:6px;margin-top:16px">
         <svg viewBox="0 0 24 24" width="14" height="14" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
         Secondary Address
+        <div style="position:relative;margin-left:auto">
+          <button id="settings-gender-btn" onclick="_toggleGenderMenu(event)" style="background:none;border:none;cursor:pointer;padding:2px;display:flex;align-items:center;opacity:0.7;line-height:0"></button>
+          <div id="settings-gender-menu" style="display:none;position:absolute;right:0;top:calc(100% + 6px);background:var(--bg);border:1.5px solid var(--border);border-radius:12px;padding:4px;z-index:9999;min-width:140px;box-shadow:0 4px 16px rgba(0,0,0,0.12)">
+            <button onclick="_selectGender('she/her')" style="display:flex;align-items:center;gap:8px;width:100%;background:none;border:none;cursor:pointer;padding:8px 10px;border-radius:8px;font-size:13px;color:var(--text-primary);font-family:sans-serif" onmouseover="this.style.background='var(--bg-input)'" onmouseout="this.style.background='none'">
+              <svg viewBox="0 0 24 24" width="15" height="15" stroke="#9a8a7a" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="5"/><line x1="12" y1="13" x2="12" y2="21"/><line x1="9" y1="18" x2="15" y2="18"/></svg>
+              Her place
+            </button>
+            <button onclick="_selectGender('he/him')" style="display:flex;align-items:center;gap:8px;width:100%;background:none;border:none;cursor:pointer;padding:8px 10px;border-radius:8px;font-size:13px;color:var(--text-primary);font-family:sans-serif" onmouseover="this.style.background='var(--bg-input)'" onmouseout="this.style.background='none'">
+              <svg viewBox="0 0 24 24" width="15" height="15" stroke="#9a8a7a" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="13" r="5"/><line x1="15" y1="9" x2="21" y2="3"/><polyline points="17 3 21 3 21 7"/></svg>
+              His place
+            </button>
+            <button onclick="_selectGender('they/them')" style="display:flex;align-items:center;gap:8px;width:100%;background:none;border:none;cursor:pointer;padding:8px 10px;border-radius:8px;font-size:13px;color:var(--text-primary);font-family:sans-serif" onmouseover="this.style.background='var(--bg-input)'" onmouseout="this.style.background='none'">
+              <svg viewBox="0 0 24 24" width="15" height="15" stroke="#9a8a7a" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/></svg>
+              Their place
+            </button>
+          </div>
+        </div>
       </div>
       <input class="field-input" id="settings-partner-address" type="text" placeholder="e.g. 456 Park Ave, Brooklyn">
-      <!-- Partner's Pronouns (hidden) -->
-      <div id="partner-pronouns-section" style="display:none"><div class="field-label" style="display:flex;align-items:center;gap:6px;margin-top:16px">
-        <svg viewBox="0 0 24 24" width="14" height="14" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
-        Partner's Pronouns
-      </div>
-      <select class="field-input" id="settings-pronouns" onchange="onPronounsChange()" style="margin-bottom:0">
-        <option value="she/her">she / her</option>
-        <option value="he/him">he / him</option>
-        <option value="they/them">they / them</option>
-        <option value="other">other</option>
-      </select>
-      <div id="settings-pronouns-custom-wrap" style="display:none;margin-top:10px">
-        <input class="field-input" id="settings-pronouns-custom" type="text" placeholder="Enter pronouns…" style="margin-bottom:0">
-      </div>
-      </div><!-- end partner-pronouns-section -->
+
       <!-- Appearance -->
       <div class="field-label" style="display:flex;align-items:center;gap:6px;margin-top:32px">
         <svg viewBox="0 0 24 24" width="14" height="14" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
@@ -2063,6 +2066,16 @@ function saveDates(arr) {
 }
 
 let UPCOMING_DATES = loadDates();
+// Migrate any dates that have a string like "Her place"/"His place"/"Their place" stored as inLocation
+(function _migratePartnerPlace() {
+  let changed = false;
+  UPCOMING_DATES.forEach(u => {
+    if (u.inLocation && u.inLocation !== 'partner_place' && u.inLocation !== 'my_place' && u.inLocation !== 'other' && u.inLocation.endsWith(' place') && u.inLocation !== 'My place') {
+      u.inLocation = 'partner_place'; changed = true;
+    }
+  });
+  if (changed) saveDates(UPCOMING_DATES);
+})();
 
 // Derive FUTURE_DATES from UPCOMING_DATES (for home screen bubble)
 const MONTH_NUMS = {Jan:0,Feb:1,Mar:2,Apr:3,May:4,Jun:5,Jul:6,Aug:7,Sep:8,Oct:9,Nov:10,Dec:11};
@@ -2166,7 +2179,6 @@ let homeAddress = appSettings.homeAddress || '';
 let homeLayout  = appSettings.homeLayout  || 'full';
 let partnerAddress = appSettings.partnerAddress || '';
 let partnerPronouns = appSettings.partnerPronouns || 'she/her';
-let partnerPronounsCustom = appSettings.partnerPronounsCustom || '';
 let hidePrivate = appSettings.hidePrivate || false;
 let additionalTab = appSettings.additionalTab || 'neighborhood'; // 'favorites' | 'neighborhood'
 FUTURE_DATES = buildFutureDates();
@@ -2176,14 +2188,14 @@ function partnerObj() {
   if (partnerPronouns === 'she/her') return 'her';
   if (partnerPronouns === 'he/him') return 'him';
   if (partnerPronouns === 'they/them') return 'them';
-  return partnerPronounsCustom.split('/')[1]?.trim() || partnerPronounsCustom || 'them';
+  return 'them';
 }
 // Returns the possessive: "her", "his", "their", or custom
 function partnerPoss() {
   if (partnerPronouns === 'she/her') return 'her';
   if (partnerPronouns === 'he/him') return 'his';
   if (partnerPronouns === 'they/them') return 'their';
-  return partnerPronounsCustom.split('/')[1]?.trim() || partnerPronounsCustom || 'their';
+  return 'their';
 }
 // Returns "Her place" / "His place" / "Their place" etc.
 function partnerPlaceLabel() {
@@ -2300,11 +2312,9 @@ function ideaIcon(item, size, color) {
 function render() {
   // Keep partner place label in sync
   const _ppl = partnerPlaceLabel();
-  // Only update partner-place options in location dropdowns, not task selects
-  document.querySelectorAll('#date-location-select option, #ed-location-select option, #date-in-partner-option, #ed-in-partner-option').forEach(opt => {
-    if (opt.id === 'date-in-partner-option' || opt.id === 'ed-in-partner-option' || opt.value === 'Her place' || (opt.value.endsWith(' place') && opt.value !== 'My place')) {
-      opt.value = _ppl; opt.textContent = _ppl;
-    }
+  // Only update the display text of partner-place options — value must always stay 'partner_place'
+  document.querySelectorAll('#date-in-partner-option, #ed-in-partner-option').forEach(opt => {
+    opt.textContent = _ppl;
   });
   const main = document.getElementById('main-content');
   if (!main) return;
@@ -9320,9 +9330,7 @@ function populateEditDateFields(u) {
     if (matched.type === 'in') {
       const sel = document.getElementById('ed-in-location-select');
       if (sel) {
-        // inLocation may be stored as display label ("Her place") or key ("partner_place")
-        const _pLabelEd = partnerPlaceLabel();
-        const _edLoc = (u.inLocation === _pLabelEd || u.inLocation === 'partner_place') ? 'partner_place'
+        const _edLoc = (u.inLocation === 'partner_place' || (u.inLocation && u.inLocation.endsWith(' place') && u.inLocation !== 'My place')) ? 'partner_place'
           : (u.inLocation === 'My place' || u.inLocation === 'my_place') ? 'my_place'
           : u.inLocation || 'my_place';
         sel.value = _edLoc;
@@ -9873,23 +9881,60 @@ function openSettings() {
   const hpCb = document.getElementById('settings-hide-private');
   if (hpCb) hpCb.checked = hidePrivate;
   document.getElementById('settings-partner-address').value = partnerAddress;
-  document.getElementById('settings-pronouns').value = partnerPronouns;
-  const customWrap = document.getElementById('settings-pronouns-custom-wrap');
-  if (customWrap) customWrap.style.display = partnerPronouns === 'other' ? 'block' : 'none';
-  if (partnerPronouns === 'other') document.getElementById('settings-pronouns-custom').value = partnerPronounsCustom;
   const layoutSel = document.getElementById('settings-home-layout');
   if (layoutSel) layoutSel.value = homeLayout || 'full';
   const atSel = document.getElementById('settings-additional-tab');
   if (atSel) atSel.value = additionalTab || 'favorites';
   document.getElementById('settings-overlay').style.display = 'flex';
+  _renderGenderBtn();
   // Sync radio buttons to current appearance
   setTimeout(() => _applyAppearance(_appearance), 0);
 }
-function onPronounsChange() {
-  const val = document.getElementById('settings-pronouns').value;
-  const wrap = document.getElementById('settings-pronouns-custom-wrap');
-  if (wrap) wrap.style.display = val === 'other' ? 'block' : 'none';
+
+function _genderIconSvg(pronouns, size) {
+  const s = size || 15;
+  const st = `stroke="#9a8a7a" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"`;
+  if (pronouns === 'she/her')
+    return `<svg viewBox="0 0 24 24" width="${s}" height="${s}" ${st}><circle cx="12" cy="8" r="5"/><line x1="12" y1="13" x2="12" y2="21"/><line x1="9" y1="18" x2="15" y2="18"/></svg>`;
+  if (pronouns === 'he/him')
+    return `<svg viewBox="0 0 24 24" width="${s}" height="${s}" ${st}><circle cx="11" cy="13" r="5"/><line x1="15" y1="9" x2="21" y2="3"/><polyline points="17 3 21 3 21 7"/></svg>`;
+  // they/them or other — circle
+  return `<svg viewBox="0 0 24 24" width="${s}" height="${s}" ${st}><circle cx="12" cy="12" r="5"/></svg>`;
 }
+
+function _renderGenderBtn() {
+  const btn = document.getElementById('settings-gender-btn');
+  if (btn) btn.innerHTML = _genderIconSvg(partnerPronouns, 16);
+}
+
+function _toggleGenderMenu(e) {
+  e.stopPropagation();
+  const menu = document.getElementById('settings-gender-menu');
+  if (!menu) return;
+  const isOpen = menu.style.display !== 'none';
+  menu.style.display = isOpen ? 'none' : 'block';
+  if (!isOpen) {
+    // Close on next outside click
+    setTimeout(() => {
+      document.addEventListener('click', function _closeGM() {
+        menu.style.display = 'none';
+        document.removeEventListener('click', _closeGM);
+      });
+    }, 0);
+  }
+}
+
+function _selectGender(pronouns) {
+  partnerPronouns = pronouns;
+  appSettings.partnerPronouns = pronouns;
+  saveSettings(appSettings);
+  _renderGenderBtn();
+  const menu = document.getElementById('settings-gender-menu');
+  if (menu) menu.style.display = 'none';
+  // render() triggers "Keep partner place label in sync" which updates all dropdowns + re-renders dates
+  render();
+}
+
 function closeSettings() {
   document.getElementById('settings-overlay').style.display = 'none';
 }
@@ -9898,12 +9943,6 @@ function saveSettingsData() {
   appSettings.homeAddress = homeAddress;
   partnerAddress = document.getElementById('settings-partner-address').value.trim();
   appSettings.partnerAddress = partnerAddress;
-  partnerPronouns = document.getElementById('settings-pronouns').value;
-  appSettings.partnerPronouns = partnerPronouns;
-  if (partnerPronouns === 'other') {
-    partnerPronounsCustom = document.getElementById('settings-pronouns-custom').value.trim();
-    appSettings.partnerPronounsCustom = partnerPronounsCustom;
-  }
   const hpEl = document.getElementById('settings-hide-private');
   if (hpEl) { hidePrivate = hpEl.checked; appSettings.hidePrivate = hidePrivate; }
   const layoutEl = document.getElementById('settings-home-layout');
@@ -9986,7 +10025,6 @@ async function exportAllData() {
       homeAddress: homeAddress,
       partnerAddress: partnerAddress,
       partnerPronouns: partnerPronouns,
-      partnerPronounsCustom: partnerPronounsCustom,
       hidePrivate: hidePrivate,
       homeLayout: homeLayout,
       additionalTab: additionalTab,
@@ -10720,7 +10758,6 @@ function handleImportFile(e) {
       if (s.homeAddress   !== undefined) homeAddress          = s.homeAddress;
       if (s.partnerAddress !== undefined) partnerAddress       = s.partnerAddress;
       if (s.partnerPronouns !== undefined) partnerPronouns     = s.partnerPronouns;
-      if (s.partnerPronounsCustom !== undefined) partnerPronounsCustom = s.partnerPronounsCustom;
       if (s.hidePrivate   !== undefined) hidePrivate           = s.hidePrivate;
       if (s.homeLayout    !== undefined) homeLayout            = s.homeLayout;
       if (s.additionalTab !== undefined) additionalTab         = s.additionalTab;
@@ -10728,7 +10765,6 @@ function handleImportFile(e) {
       appSettings.homeAddress          = homeAddress;
       appSettings.partnerAddress       = partnerAddress;
       appSettings.partnerPronouns      = partnerPronouns;
-      appSettings.partnerPronounsCustom = partnerPronounsCustom;
       appSettings.hidePrivate          = hidePrivate;
       appSettings.homeLayout           = homeLayout;
       appSettings.additionalTab        = additionalTab;
