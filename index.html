@@ -464,7 +464,7 @@
   .highlighted .upcoming-sub { color: rgba(255,255,255,0.65); }
 
   /* ── New Idea Sheet ── */
-  #sheet-overlay { position: fixed; inset: 0; z-index: 55; display: none; }
+  #sheet-overlay { position: fixed; inset: 0; z-index: 65; display: none; }
   #idea-sheet, #todo-sheet {
     position: fixed; bottom: 68px; left: 50%; transform: translateX(-50%);
     width: 100%; max-width: 402px;
@@ -878,7 +878,7 @@
         <button id="date-activity-btn" onclick="openIdeasPicker()"
           style="flex:1;padding:9px 14px;background:var(--bg-input);border:1.5px solid var(--border);border-radius:10px;font-family:sans-serif;color:var(--text-primary);text-align:left;cursor:pointer;display:flex;align-items:center;gap:10px;margin-bottom:0">
           <span id="date-activity-icon" style="display:none;flex-shrink:0"></span>
-          <span id="date-activity-label" style="flex:1;font-size:16px;color:var(--text-placeholder)">Date ideas…</span>
+          <span id="date-activity-label" style="flex:1;font-size:16px;color:var(--text-placeholder)">Select idea…</span>
           <span id="date-activity-info-btn" onclick="openDetailFromActivity('date-activity-info-btn',event)" style="display:none;width:20px;height:20px;background:#c07a8a;border-radius:50%;flex-shrink:0;align-items:center;justify-content:center;cursor:pointer"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
         </button>
       </div>
@@ -1146,7 +1146,7 @@
           <button id="ed-activity-btn" onclick="openIdeasPickerForEdit()"
             style="flex:1;padding:9px 14px;background:var(--bg-input);border:1.5px solid var(--border);border-radius:10px;font-family:sans-serif;color:var(--text-primary);text-align:left;cursor:pointer;display:flex;align-items:center;gap:10px;margin-bottom:0">
             <span id="ed-activity-icon" style="display:none;flex-shrink:0"></span>
-            <span id="ed-activity-label" style="flex:1;font-size:16px;color:var(--text-placeholder)">Date ideas…</span>
+            <span id="ed-activity-label" style="flex:1;font-size:16px;color:var(--text-placeholder)">Select idea…</span>
             <span id="ed-activity-info-btn" onclick="event.stopPropagation();_openEditIdeaFromEditDate(parseFloat(this.dataset.ideaId))" style="display:none;width:20px;height:20px;background:#c07a8a;border-radius:50%;flex-shrink:0;align-items:center;justify-content:center;cursor:pointer">
               <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
             </span>
@@ -1278,15 +1278,15 @@
         <div style="position:relative;margin-left:auto">
           <button id="settings-gender-btn" onclick="_toggleGenderMenu(event)" style="background:none;border:none;cursor:pointer;padding:2px;display:flex;align-items:center;opacity:0.7;line-height:0"></button>
           <div id="settings-gender-menu" style="display:none;position:absolute;right:0;top:calc(100% + 6px);background:var(--bg);border:1.5px solid var(--border);border-radius:12px;padding:4px;z-index:9999;min-width:140px;box-shadow:0 4px 16px rgba(0,0,0,0.12)">
-            <button onclick="_selectGender('she/her')" style="display:flex;align-items:center;gap:8px;width:100%;background:none;border:none;cursor:pointer;padding:8px 10px;border-radius:8px;font-size:13px;color:var(--text-primary);font-family:sans-serif" onmouseover="this.style.background='var(--bg-input)'" onmouseout="this.style.background='none'">
+            <button data-pronouns="she/her" onclick="_selectGender('she/her')" style="display:flex;align-items:center;gap:8px;width:100%;background:none;border:none;cursor:pointer;padding:8px 10px;border-radius:8px;font-size:13px;color:var(--text-primary);font-family:sans-serif" onmouseover="this.style.background='var(--bg-input)'" onmouseout="this.style.background='none'">
               <svg viewBox="0 0 24 24" width="15" height="15" stroke="#9a8a7a" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="5"/><line x1="12" y1="13" x2="12" y2="21"/><line x1="9" y1="18" x2="15" y2="18"/></svg>
               Her place
             </button>
-            <button onclick="_selectGender('he/him')" style="display:flex;align-items:center;gap:8px;width:100%;background:none;border:none;cursor:pointer;padding:8px 10px;border-radius:8px;font-size:13px;color:var(--text-primary);font-family:sans-serif" onmouseover="this.style.background='var(--bg-input)'" onmouseout="this.style.background='none'">
+            <button data-pronouns="he/him" onclick="_selectGender('he/him')" style="display:flex;align-items:center;gap:8px;width:100%;background:none;border:none;cursor:pointer;padding:8px 10px;border-radius:8px;font-size:13px;color:var(--text-primary);font-family:sans-serif" onmouseover="this.style.background='var(--bg-input)'" onmouseout="this.style.background='none'">
               <svg viewBox="0 0 24 24" width="15" height="15" stroke="#9a8a7a" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="13" r="5"/><line x1="15" y1="9" x2="21" y2="3"/><polyline points="17 3 21 3 21 7"/></svg>
               His place
             </button>
-            <button onclick="_selectGender('they/them')" style="display:flex;align-items:center;gap:8px;width:100%;background:none;border:none;cursor:pointer;padding:8px 10px;border-radius:8px;font-size:13px;color:var(--text-primary);font-family:sans-serif" onmouseover="this.style.background='var(--bg-input)'" onmouseout="this.style.background='none'">
+            <button data-pronouns="they/them" onclick="_selectGender('they/them')" style="display:flex;align-items:center;gap:8px;width:100%;background:none;border:none;cursor:pointer;padding:8px 10px;border-radius:8px;font-size:13px;color:var(--text-primary);font-family:sans-serif" onmouseover="this.style.background='var(--bg-input)'" onmouseout="this.style.background='none'">
               <svg viewBox="0 0 24 24" width="15" height="15" stroke="#9a8a7a" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/></svg>
               Their place
             </button>
@@ -1329,11 +1329,19 @@
         <svg viewBox="0 0 24 24" width="14" height="14" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M8 22h8"/><path d="M12 15.8v6.2"/><path d="M5 3h14l-1.5 9a5 5 0 0 1-5 4h-1a5 5 0 0 1-5-4L5 3z"/></svg>
         Ideas
       </div>
-      <div style="margin-top:10px;margin-bottom:32px">
-        <select id="settings-additional-tab" style="font-family:sans-serif;font-size:14px;padding:6px 10px;border:1.5px solid var(--border);border-radius:8px;background:var(--bg-input);color:var(--text-primary);cursor:pointer">
-          <option value="neighborhood">Show Neighborhoods</option>
-          <option value="favorites">Show Favorites</option>
+      <div style="margin-top:10px;margin-bottom:32px;display:flex;gap:8px">
+        <select id="settings-additional-tab" style="font-family:sans-serif;font-size:14px;padding:6px 10px;border:1.5px solid var(--border);border-radius:8px;background:var(--bg-input);color:var(--text-primary);cursor:pointer;flex:1;min-width:0">
+          <option value="neighborhood">Neighborhoods Tab</option>
+          <option value="favorites">Favorites Tab</option>
         </select>
+        <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none"><circle cx="12" cy="12" r="8.5" stroke="#9a8a7a" stroke-width="2"/></svg>
+          <select id="settings-home-ideas-filter" style="font-family:sans-serif;font-size:14px;padding:6px 10px;border:1.5px solid var(--border);border-radius:8px;background:var(--bg-input);color:var(--text-primary);cursor:pointer">
+            <option value="out">Out</option>
+            <option value="in">In</option>
+            <option value="all">All</option>
+          </select>
+        </div>
       </div>
       <div style="margin-top:0;display:flex;justify-content:space-between;align-items:center">
         <button onclick="openMoreMenu()" style="padding:10px 16px;background:none;border:1.5px solid #ede9e2;border-radius:10px;font-family:sans-serif;font-size:13px;font-weight:600;color:#9a8a7a;cursor:pointer" class="btn-outline">More…</button>
@@ -1668,7 +1676,7 @@
       <button id="ts-idea-btn" onclick="openIdeasPickerForTodoIdea()"
         style="flex:1;padding:9px 14px;background:var(--bg-input);border:1.5px solid var(--border);border-radius:10px;font-family:sans-serif;color:var(--text-primary);text-align:left;cursor:pointer;display:flex;align-items:center;gap:10px;margin-bottom:0">
         <span id="ts-idea-icon" style="display:none;flex-shrink:0"></span>
-        <span id="ts-idea-label" style="flex:1;font-size:16px;color:var(--text-placeholder)">Ideas...</span>
+        <span id="ts-idea-label" style="flex:1;font-size:16px;color:var(--text-placeholder)">Select idea…</span>
         <span id="ts-idea-clear" onclick="event.stopPropagation();clearTodoAttachment('ts','idea')" style="display:none;flex-shrink:0;cursor:pointer;display:none;align-items:center"><svg viewBox="0 0 24 24" width="14" height="14" stroke="#9a8a7a" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span>
       </button>
     </div>
@@ -1678,7 +1686,7 @@
       <button id="ts-date-btn" onclick="openUpcomingDatesPicker('ts')"
         style="flex:1;padding:9px 14px;background:var(--bg-input);border:1.5px solid var(--border);border-radius:10px;font-family:sans-serif;color:var(--text-primary);text-align:left;cursor:pointer;display:flex;align-items:center;gap:10px;margin-bottom:0">
         <span id="ts-date-icon" style="display:none;flex-shrink:0"></span>
-        <span id="ts-date-label" style="flex:1;font-size:16px;color:var(--text-placeholder)">Upcoming dates...</span>
+        <span id="ts-date-label" style="flex:1;font-size:16px;color:var(--text-placeholder)">Select date…</span>
         <span id="ts-date-clear" onclick="event.stopPropagation();clearTodoAttachment('ts','date')" style="display:none;flex-shrink:0;cursor:pointer;align-items:center"><svg viewBox="0 0 24 24" width="14" height="14" stroke="#9a8a7a" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span>
       </button>
     </div>
@@ -1765,7 +1773,7 @@
         <button id="et-idea-btn" onclick="openIdeasPickerForEditTodoIdea()"
           style="flex:1;padding:9px 14px;background:var(--bg-input);border:1.5px solid var(--border);border-radius:10px;font-family:sans-serif;color:var(--text-primary);text-align:left;cursor:pointer;display:flex;align-items:center;gap:10px;margin-bottom:0">
           <span id="et-idea-icon" style="display:none;flex-shrink:0"></span>
-          <span id="et-idea-label" style="flex:1;font-size:16px;color:var(--text-placeholder)">Ideas...</span>
+          <span id="et-idea-label" style="flex:1;font-size:16px;color:var(--text-placeholder)">Select idea…</span>
           <span id="et-idea-clear" onclick="event.stopPropagation();clearTodoAttachment('et','idea')" style="display:none;flex-shrink:0;cursor:pointer;align-items:center"><svg viewBox="0 0 24 24" width="14" height="14" stroke="#9a8a7a" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span>
         </button>
       </div>
@@ -1775,7 +1783,7 @@
         <button id="et-date-btn" onclick="openUpcomingDatesPicker('et')"
           style="flex:1;padding:9px 14px;background:var(--bg-input);border:1.5px solid var(--border);border-radius:10px;font-family:sans-serif;color:var(--text-primary);text-align:left;cursor:pointer;display:flex;align-items:center;gap:10px;margin-bottom:0">
           <span id="et-date-icon" style="display:none;flex-shrink:0"></span>
-          <span id="et-date-label" style="flex:1;font-size:16px;color:var(--text-placeholder)">Upcoming dates...</span>
+          <span id="et-date-label" style="flex:1;font-size:16px;color:var(--text-placeholder)">Select date…</span>
           <span id="et-date-clear" onclick="event.stopPropagation();clearTodoAttachment('et','date')" style="display:none;flex-shrink:0;cursor:pointer;align-items:center"><svg viewBox="0 0 24 24" width="14" height="14" stroke="#9a8a7a" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span>
         </button>
       </div>
@@ -1984,7 +1992,7 @@ function _nextUpcomingDateForIdea(item) {
 let _favScrollIdx = 0;
 let _homeCarouselIdx = 0;
 let selectedCategory = 'restaurant';
-let selectedCalDay = null;
+let selectedCalDay = new Date().getDate();
 let _calBannerIdx = 0; // index within _selDayVisible for the Full banner card
 let _calInfoPanelIdx = 0; // which swipeable info panel is active
 let currentCalMonth = new Date().getMonth();
@@ -2181,6 +2189,7 @@ let partnerAddress = appSettings.partnerAddress || '';
 let partnerPronouns = appSettings.partnerPronouns || 'she/her';
 let hidePrivate = appSettings.hidePrivate || false;
 let additionalTab = appSettings.additionalTab || 'neighborhood'; // 'favorites' | 'neighborhood'
+let homeIdeasFilter = appSettings.homeIdeasFilter || 'out'; // 'out' | 'in' | 'all'
 FUTURE_DATES = buildFutureDates();
 
 // Returns the object pronoun: "her", "him", "them", or custom
@@ -3601,7 +3610,7 @@ function _buildNeighborhoodTabBody() {
   const pillActiveColor = isDark ? '#c07a8a' : BURGUNDY;
   const pillInactiveColor = '#9a8a7a';
 
-  const allIdeas = ideas.filter(i => !i.archived && !_isHiddenPrivate(i) && ideaMatchesSearch(i, q));
+  const allIdeas = ideas.filter(i => !i.archived && !_isHiddenPrivate(i) && i.type !== 'in' && ideaMatchesSearch(i, q));
 
   // Build neighborhood map — key is neighborhood string or '_unknown'
   const neighMap = new Map();
@@ -4380,7 +4389,7 @@ function _updateTodoDateBtn(btnId, iconId, labelId, u) {
   if (!btn || !labelEl) return;
   if (!u) {
     if (iconEl) { iconEl.innerHTML = ''; iconEl.style.display = 'none'; }
-    labelEl.textContent = 'Upcoming dates...';
+    labelEl.textContent = 'Select date…';
     labelEl.style.fontSize = '16px';
     labelEl.style.color = 'var(--text-placeholder)';
     btn.style.borderColor = 'var(--border)';
@@ -4440,7 +4449,7 @@ function _updateTodoIdeaBtn(btnId, iconId, labelId, ideaId) {
     if (clearEl) clearEl.style.display = 'flex';
   } else {
     if (icon) { icon.innerHTML = ''; icon.style.display = 'none'; }
-    if (lbl)  { lbl.textContent = 'Ideas...'; lbl.style.color = 'var(--text-placeholder)'; }
+    if (lbl)  { lbl.textContent = 'Select idea…'; lbl.style.color = 'var(--text-placeholder)'; }
     btn.style.borderColor = '';
     if (clearEl) clearEl.style.display = 'none';
   }
@@ -4820,7 +4829,8 @@ function renderHome() {
   const visibleDates = FUTURE_DATES.filter(fd => !_isDateHiddenPrivate(fd._ref || fd));
   const _carouselIdeaIds = new Set(visibleDates.map(fd => (fd._ref || fd).ideaId).filter(Boolean));
   const _carouselVenues = new Set(visibleDates.map(fd => (fd._ref || fd).venue).filter(Boolean).map(v => v.toLowerCase()));
-  const _outIdeas = ideas.filter(i => !i.archived && i.type === 'out' && !_isHiddenPrivate(i)
+  const _homeIdeaTypes = homeIdeasFilter === 'in' ? ['in'] : homeIdeasFilter === 'all' ? ['out','in'] : ['out'];
+  const _outIdeas = ideas.filter(i => !i.archived && _homeIdeaTypes.includes(i.type) && !_isHiddenPrivate(i)
     && !_carouselIdeaIds.has(i.id)
     && !_carouselVenues.has((i.name || '').toLowerCase()));
   const _shuffled = _outIdeas.slice().sort(() => Math.random() - 0.5);
@@ -4891,7 +4901,7 @@ function renderHome() {
 
   <div style="padding:36px 20px 36px">
     ${savedIdeas.length ? `<button onclick="navigate('out')" style="background:none;border:none;cursor:pointer;padding:0;display:flex;align-items:center;gap:4px;margin-bottom:12px">
-      <span class="section-label">Date Ideas</span>
+      <span class="section-label">Ideas</span>
       <span style="font-size:11px;color:#9a8a7a;font-family:sans-serif;letter-spacing:0.05em;line-height:1">›</span>
     </button>` : ''}
     <div style="display:flex;flex-direction:column;gap:8px">
@@ -5867,6 +5877,14 @@ function _calCardClick(day, month, year, dateId) {
   selectedCalDay = day;
   _calBannerIdx = 0;
   _calInfoPanelIdx = 0;
+  // If a specific date was clicked on a multi-date day, pre-set the active date index
+  if (u && dateId) {
+    const _visible = UPCOMING_DATES.filter(d => d.month === month && (d.year||2026) === year && d.day === day && !_isDateHiddenPrivate(d));
+    if (_visible.length > 1) {
+      const _di = _visible.findIndex(d => String(d.id) === String(u.id));
+      if (_di > 0) window._calPendingDateIdx = _di;
+    }
+  }
   render();
 }
 
@@ -7136,7 +7154,7 @@ function switchSheetContext(view) {
 function _resetDateForm() {
   selectedActivity = null;
   const _dal = document.getElementById('date-activity-label');
-  if (_dal) { _dal.textContent = 'Date ideas…'; _dal.style.fontSize = '16px'; _dal.style.color = 'var(--text-placeholder)'; }
+  if (_dal) { _dal.textContent = 'Select idea…'; _dal.style.fontSize = '16px'; _dal.style.color = 'var(--text-placeholder)'; }
   const _dai = document.getElementById('date-activity-icon');
   if (_dai) { _dai.innerHTML = ''; _dai.style.display = 'none'; }
   const _dab = document.getElementById('date-activity-btn');
@@ -7436,7 +7454,7 @@ function renderDateSheetUI() {
   // Reset activity button
   document.getElementById('date-activity-icon').innerHTML = '';
   document.getElementById('date-activity-icon').style.display = 'none';
-  document.getElementById('date-activity-label').textContent = 'Date ideas…';
+  document.getElementById('date-activity-label').textContent = 'Select idea…';
   document.getElementById('date-activity-label').style.fontSize = '16px';
   document.getElementById('date-activity-label').style.color = 'var(--text-placeholder)';
   document.getElementById('date-activity-btn').style.borderColor = document.body.classList.contains('dark-mode') ? 'var(--border)' : '#ede9e2';
@@ -8302,7 +8320,7 @@ function saveNewDate() {
 
   // Reset form
   selectedActivity = null;
-  document.getElementById('date-activity-label').textContent = 'Date ideas…';
+  document.getElementById('date-activity-label').textContent = 'Select idea…';
   document.getElementById('date-activity-label').style.fontSize = '16px';
   document.getElementById('date-activity-label').style.color = 'var(--text-placeholder)';
   document.getElementById('date-activity-icon').innerHTML = '';
@@ -9356,7 +9374,7 @@ function populateEditDateFields(u) {
     _edUpdateActivityEditBtn(false);
   } else {
     edSelectedActivity = null;
-    document.getElementById('ed-activity-label').textContent = 'Date ideas…';
+    document.getElementById('ed-activity-label').textContent = 'Select idea…';
     document.getElementById('ed-activity-label').style.fontSize = '16px';
     document.getElementById('ed-activity-label').style.color = 'var(--text-placeholder)';
     document.getElementById('ed-activity-icon').innerHTML = '';
@@ -9884,7 +9902,9 @@ function openSettings() {
   const layoutSel = document.getElementById('settings-home-layout');
   if (layoutSel) layoutSel.value = homeLayout || 'full';
   const atSel = document.getElementById('settings-additional-tab');
-  if (atSel) atSel.value = additionalTab || 'favorites';
+  if (atSel) atSel.value = additionalTab || 'neighborhood';
+  const hifSel = document.getElementById('settings-home-ideas-filter');
+  if (hifSel) hifSel.value = homeIdeasFilter || 'out';
   document.getElementById('settings-overlay').style.display = 'flex';
   _renderGenderBtn();
   // Sync radio buttons to current appearance
@@ -9912,9 +9932,18 @@ function _toggleGenderMenu(e) {
   const menu = document.getElementById('settings-gender-menu');
   if (!menu) return;
   const isOpen = menu.style.display !== 'none';
+  if (!isOpen) {
+    // Style each button: active one gets white icon + accent text
+    menu.querySelectorAll('button[data-pronouns]').forEach(btn => {
+      const isActive = btn.dataset.pronouns === partnerPronouns;
+      btn.querySelectorAll('svg').forEach(svg => {
+        svg.setAttribute('stroke', isActive ? '#fff' : '#9a8a7a');
+      });
+      btn.style.color = isActive ? ROSE : 'var(--text-primary)';
+    });
+  }
   menu.style.display = isOpen ? 'none' : 'block';
   if (!isOpen) {
-    // Close on next outside click
     setTimeout(() => {
       document.addEventListener('click', function _closeGM() {
         menu.style.display = 'none';
@@ -9949,6 +9978,8 @@ function saveSettingsData() {
   if (layoutEl) { homeLayout = layoutEl.value; appSettings.homeLayout = homeLayout; }
   const atEl = document.getElementById('settings-additional-tab');
   if (atEl) { additionalTab = atEl.value; appSettings.additionalTab = additionalTab; }
+  const hifEl = document.getElementById('settings-home-ideas-filter');
+  if (hifEl) { homeIdeasFilter = hifEl.value; appSettings.homeIdeasFilter = homeIdeasFilter; }
   // Save appearance
   localStorage.setItem('duet_appearance', _appearance);
   saveSettings(appSettings);
@@ -10761,6 +10792,7 @@ function handleImportFile(e) {
       if (s.hidePrivate   !== undefined) hidePrivate           = s.hidePrivate;
       if (s.homeLayout    !== undefined) homeLayout            = s.homeLayout;
       if (s.additionalTab !== undefined) additionalTab         = s.additionalTab;
+      if (s.homeIdeasFilter !== undefined) homeIdeasFilter      = s.homeIdeasFilter;
       // Sync appSettings and persist
       appSettings.homeAddress          = homeAddress;
       appSettings.partnerAddress       = partnerAddress;
@@ -10768,6 +10800,7 @@ function handleImportFile(e) {
       appSettings.hidePrivate          = hidePrivate;
       appSettings.homeLayout           = homeLayout;
       appSettings.additionalTab        = additionalTab;
+      appSettings.homeIdeasFilter      = homeIdeasFilter;
       saveSettings(appSettings);
       // Refresh Settings popup fields if open
       const _saEl = document.getElementById('settings-overlay');
