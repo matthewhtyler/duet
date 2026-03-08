@@ -532,6 +532,16 @@
   /* Edit Categories dark mode */
   body.dark-mode .ec-row { border-bottom-color: #3a3330 !important; }
   body.dark-mode .ec-row input { color: #f0ede9 !important; }
+  /* Edit Main Screen */
+  .ems-block { background:var(--bg-input);border:1.5px solid var(--border);border-radius:12px;padding:12px 14px;cursor:grab;user-select:none;transition:box-shadow 0.15s,opacity 0.15s; }
+  .ems-block.dragging { opacity:0.45;box-shadow:0 8px 24px rgba(0,0,0,0.18);cursor:grabbing; }
+  .ems-block.drag-over { border-color:#a05268;box-shadow:0 0 0 2px rgba(160,82,104,0.25); }
+  .ems-block-header { display:flex;align-items:center;gap:8px; }
+  .ems-drag-handle { color:var(--text-secondary);flex-shrink:0;opacity:0.5; }
+  .ems-block-title { font-family:sans-serif;font-size:14px;font-weight:700;color:var(--text-primary);flex:1; }
+  .ems-options { display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;padding-top:10px;border-top:1px solid var(--border); }
+  .ems-opt-label { font-family:sans-serif;font-size:12px;color:var(--text-secondary);white-space:nowrap;display:flex;align-items:center;gap:4px; }
+  .ems-sel { font-family:sans-serif;font-size:12px;padding:4px 8px;border:1.5px solid var(--border);border-radius:7px;background:var(--bg);color:var(--text-primary);cursor:pointer; }
   .img-field-row { display:flex; align-items:center; gap:6px; margin-bottom:8px; }
   .img-field-row .field-input { flex:1 !important; width:auto !important; margin-bottom:0 !important; min-width:0; box-sizing:border-box; }
   .img-btn { background:none; border:none; cursor:pointer; padding:0; display:flex !important; align-items:center; justify-content:center; flex-shrink:0; width:20px !important; height:20px !important; line-height:0; }
@@ -1314,10 +1324,6 @@
             </span>
             Dark
           </label>
-          <select id="settings-home-layout" class="field-input" style="width:auto;padding:6px 10px;font-size:13px;margin-bottom:0">
-            <option value="full">Full</option>
-            <option value="compact">Compact</option>
-          </select>
         </div>
         <label style="display:flex;align-items:center;gap:8px;cursor:pointer;margin-right:15px;flex-shrink:0;white-space:nowrap">
           <input type="checkbox" id="settings-hide-private" class="showtype-check">
@@ -1329,19 +1335,11 @@
         <svg viewBox="0 0 24 24" width="14" height="14" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M8 22h8"/><path d="M12 15.8v6.2"/><path d="M5 3h14l-1.5 9a5 5 0 0 1-5 4h-1a5 5 0 0 1-5-4L5 3z"/></svg>
         Ideas
       </div>
-      <div style="margin-top:10px;margin-bottom:32px;display:flex;gap:8px">
-        <select id="settings-additional-tab" style="font-family:sans-serif;font-size:14px;padding:6px 10px;border:1.5px solid var(--border);border-radius:8px;background:var(--bg-input);color:var(--text-primary);cursor:pointer;flex:1;min-width:0">
+      <div style="margin-top:10px;margin-bottom:32px">
+        <select id="settings-additional-tab" style="font-family:sans-serif;font-size:14px;padding:6px 10px;border:1.5px solid var(--border);border-radius:8px;background:var(--bg-input);color:var(--text-primary);cursor:pointer">
           <option value="neighborhood">Neighborhoods Tab</option>
           <option value="favorites">Favorites Tab</option>
         </select>
-        <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="none"><circle cx="12" cy="12" r="8.5" stroke="#9a8a7a" stroke-width="2"/></svg>
-          <select id="settings-home-ideas-filter" style="font-family:sans-serif;font-size:14px;padding:6px 10px;border:1.5px solid var(--border);border-radius:8px;background:var(--bg-input);color:var(--text-primary);cursor:pointer">
-            <option value="out">Out</option>
-            <option value="in">In</option>
-            <option value="all">All</option>
-          </select>
-        </div>
       </div>
       <div style="margin-top:0;display:flex;justify-content:space-between;align-items:center">
         <button onclick="openMoreMenu()" style="padding:10px 16px;background:none;border:1.5px solid #ede9e2;border-radius:10px;font-family:sans-serif;font-size:13px;font-weight:600;color:#9a8a7a;cursor:pointer" class="btn-outline">More…</button>
@@ -1361,17 +1359,13 @@
         <svg viewBox="0 0 24 24" width="15" height="15" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>
         Edit Categories
       </button>
+      <button onclick="closeMoreMenu();openEditMainScreen()" style="display:flex;align-items:center;gap:10px;padding:11px 14px;background:none;border:1.5px solid #ede9e2;border-radius:10px;font-family:sans-serif;font-size:13px;font-weight:600;color:#9a8a7a;cursor:pointer;text-align:left;width:100%" class="btn-outline">
+        <svg viewBox="0 0 24 24" width="15" height="15" fill="none"><circle cx="12" cy="12" r="8.5" stroke="#9a8a7a" stroke-width="2"/></svg>
+        Edit Main Screen
+      </button>
       <button onclick="openCopyPlaces()" style="display:flex;align-items:center;gap:10px;padding:11px 14px;background:none;border:1.5px solid #ede9e2;border-radius:10px;font-family:sans-serif;font-size:13px;font-weight:600;color:#9a8a7a;cursor:pointer;text-align:left;width:100%" class="btn-outline">
         <svg viewBox="0 0 24 24" width="15" height="15" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
         Copy Places
-      </button>
-      <button onclick="importData()" style="display:flex;align-items:center;gap:10px;padding:11px 14px;background:none;border:1.5px solid #ede9e2;border-radius:10px;font-family:sans-serif;font-size:13px;font-weight:600;color:#9a8a7a;cursor:pointer;text-align:left;width:100%" class="btn-outline">
-        <svg viewBox="0 0 24 24" width="15" height="15" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 5 17 10"/><line x1="12" y1="5" x2="12" y2="15"/></svg>
-        Import Data
-      </button>
-      <button onclick="exportAllData();closeMoreMenu()" style="display:flex;align-items:center;gap:10px;padding:11px 14px;background:none;border:1.5px solid #ede9e2;border-radius:10px;font-family:sans-serif;font-size:13px;font-weight:600;color:#9a8a7a;cursor:pointer;text-align:left;width:100%" class="btn-outline">
-        <svg viewBox="0 0 24 24" width="15" height="15" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-        Save Data
       </button>
       <button onclick="openEraseConfirm()" style="display:flex;align-items:center;gap:10px;padding:11px 14px;background:none;border:1.5px solid #ede9e2;border-radius:10px;font-family:sans-serif;font-size:13px;font-weight:600;color:#9a8a7a;cursor:pointer;text-align:left;width:100%" class="btn-outline">
         <svg viewBox="0 0 24 24" width="15" height="15" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
@@ -1433,6 +1427,23 @@
       <div style="padding:14px 20px;flex-shrink:0;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px;align-items:center">
         <button onclick="closeEditCategories()" style="padding:10px 16px;background:none;border:1.5px solid #ede9e2;border-radius:10px;font-family:sans-serif;font-size:13px;font-weight:600;color:#9a8a7a;cursor:pointer" class="btn-outline">Cancel</button>
         <button onclick="saveEditCategories()" style="padding:10px 20px;background:#c07a8a;border:none;border-radius:10px;font-family:sans-serif;font-size:13px;font-weight:600;color:#fff;cursor:pointer">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- EDIT MAIN SCREEN POPUP -->
+  <div id="editmain-overlay" class="popup-overlay" onclick="closeEditMainScreen()" style="position:fixed;inset:0;background:rgba(30,20,20,0.5);z-index:500;display:none;align-items:center;justify-content:center;padding:20px">
+    <div id="editmain-modal" onclick="event.stopPropagation()" style="width:100%;max-width:390px;background:var(--bg);border-radius:20px;display:flex;flex-direction:column;height:88vh;box-shadow:0 12px 48px rgba(0,0,0,0.18)">
+      <!-- Header -->
+      <div style="padding:20px 20px 16px;flex-shrink:0;border-bottom:1px solid var(--border)">
+        <div style="font-size:17px;font-weight:700;color:var(--popup-title)">Edit Main Screen</div>
+      </div>
+      <!-- Body -->
+      <div id="editmain-list" style="flex:1;overflow-y:auto;padding:14px 16px;display:flex;flex-direction:column;gap:10px"></div>
+      <!-- Footer -->
+      <div style="padding:14px 20px;flex-shrink:0;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px;align-items:center">
+        <button onclick="closeEditMainScreen()" style="padding:10px 16px;background:none;border:1.5px solid #ede9e2;border-radius:10px;font-family:sans-serif;font-size:13px;font-weight:600;color:#9a8a7a;cursor:pointer" class="btn-outline">Cancel</button>
+        <button onclick="saveEditMainScreen()" style="padding:10px 20px;background:#a05268;border:none;border-radius:10px;font-family:sans-serif;font-size:13px;font-weight:600;color:#fff;cursor:pointer">Save</button>
       </div>
     </div>
   </div>
@@ -2190,7 +2201,44 @@ let partnerPronouns = appSettings.partnerPronouns || 'she/her';
 let hidePrivate = appSettings.hidePrivate || false;
 let additionalTab = appSettings.additionalTab || 'neighborhood'; // 'favorites' | 'neighborhood'
 let homeIdeasFilter = appSettings.homeIdeasFilter || 'out'; // 'out' | 'in' | 'all'
+
+// Home screen section config (order + per-section settings)
+const _homeDefaultSections = [
+  { id:'nextDates',    label:'Next Dates',     on:true,  display:'full',    calendar:'week'  },
+  { id:'ideas',        label:'Ideas',          on:true,  show:'3',          order:'random',  filter:'all', title:'Ideas' },
+  { id:'upcomingDates',label:'Upcoming', on:true,  show:'3' },
+  { id:'todo',         label:'To Do',          on:true,  show:'3' },
+];
+function _getHomeScreenConfig() {
+  try {
+    const saved = appSettings.homeScreenConfig;
+    if (saved && Array.isArray(saved) && saved.length === 4) {
+      const expectedIds = ['nextDates','ideas','upcomingDates','todo'];
+      const hasAllIds = expectedIds.every(id => saved.some(s => s.id === id));
+      if (!hasAllIds) return _homeDefaultSections.map(s => ({...s}));
+      // Merge with defaults, ensuring on:true unless explicitly false; always use default label
+      return saved.map(s => {
+        const def = _homeDefaultSections.find(d => d.id === s.id) || {};
+        return { ...def, ...s, label: def.label, on: s.on !== false };
+      });
+    }
+  } catch(e){}
+  return _homeDefaultSections.map(s => ({...s}));
+}
+// Reset homeScreenConfig in appSettings if it was saved in a bad state
+function _fixHomeScreenConfig() {
+  if (appSettings.homeScreenConfig) {
+    const cfg = appSettings.homeScreenConfig;
+    if (!Array.isArray(cfg) || cfg.length !== 4 || cfg.some(s => !s.id)) {
+      delete appSettings.homeScreenConfig;
+      saveSettings(appSettings);
+    }
+  }
+}
+_fixHomeScreenConfig();
+let homeScreenConfig = _getHomeScreenConfig();
 FUTURE_DATES = buildFutureDates();
+
 
 // Returns the object pronoun: "her", "him", "them", or custom
 function partnerObj() {
@@ -4825,129 +4873,172 @@ function _buildUpcomingCardHtml(u, extraStyle, directOpen, navToCal) {
     </div>`;
 }
 
+function renderHomeMonthCal() {
+  const _now = new Date(); _now.setHours(0,0,0,0);
+  const today = _now;
+  const year = today.getFullYear();
+  const month = today.getMonth();
+  const monthAbbr = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][month];
+  const monthName = today.toLocaleString('default',{month:'long'});
+  const daysInMonth = new Date(year, month+1, 0).getDate();
+  const firstDow = new Date(year, month, 1).getDay();
+  const todayDay = today.getDate();
+  const DOW = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+
+  // Map dates this month
+  const futureDateMap = {}; // day -> FUTURE_DATES index
+  FUTURE_DATES.forEach((fd, i) => {
+    const ref = fd._ref || fd;
+    const mNum = MONTH_NUMS[ref.month] ?? 0;
+    if (ref.year === year && mNum === month) futureDateMap[ref.day] = i;
+  });
+  const markedDays = UPCOMING_DATES.filter(u => u.month === monthAbbr && (u.year||year) === year).map(u => u.day);
+
+  // Selected day = dateIdx mapped to a day
+  let selectedDay = null;
+  if (FUTURE_DATES[dateIdx]) {
+    const ref = FUTURE_DATES[dateIdx]._ref || FUTURE_DATES[dateIdx];
+    const mNum = MONTH_NUMS[ref.month] ?? 0;
+    if (ref.year === year && mNum === month) selectedDay = ref.day;
+  }
+
+  let cells = '';
+  for (let i=0;i<firstDow;i++) cells += '<div></div>';
+  for (let d=1;d<=daysInMonth;d++) {
+    const isSelected = d === selectedDay;
+    const isMarked   = markedDays.includes(d);
+    const isToday    = d === todayDay;
+    const fdIdx      = futureDateMap[d];
+    const cls        = isSelected ? 'cal-day selected' : isToday ? 'cal-day today' : 'cal-day';
+    const dotClass   = isSelected ? 'cal-dot selected' : 'cal-dot';
+    const dayDate    = new Date(year, month, d); dayDate.setHours(0,0,0,0);
+    const isPast     = dayDate < _now;
+    const clickFn    = fdIdx !== undefined
+      ? `selectWeekDate(${fdIdx})`
+      : `showWeekTooltip(event,${d},${month},${year})`;
+    cells += `<button class="${cls}" onclick="${clickFn}">${d}${isMarked?`<div class="${dotClass}"></div>`:''}</button>`;
+  }
+
+  return `<div style="padding:14px 20px 6px">
+    <div style="font-size:13px;font-weight:700;color:var(--text-secondary);font-family:sans-serif;margin-bottom:8px">${monthName}</div>
+    <div class="cal-dow" style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:2px">${DOW.map(d=>`<div class="cal-dow-cell" style="font-size:10px">${d}</div>`).join('')}</div>
+    <div class="cal-grid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px">${cells}</div>
+  </div>`;
+}
+
 function renderHome() {
+  const cfg = homeScreenConfig && homeScreenConfig.length === 4 ? homeScreenConfig : _homeDefaultSections.map(s=>({...s}));
   const visibleDates = FUTURE_DATES.filter(fd => !_isDateHiddenPrivate(fd._ref || fd));
   const _carouselIdeaIds = new Set(visibleDates.map(fd => (fd._ref || fd).ideaId).filter(Boolean));
-  const _carouselVenues = new Set(visibleDates.map(fd => (fd._ref || fd).venue).filter(Boolean).map(v => v.toLowerCase()));
-  const _homeIdeaTypes = homeIdeasFilter === 'in' ? ['in'] : homeIdeasFilter === 'all' ? ['out','in'] : ['out'];
-  const _outIdeas = ideas.filter(i => !i.archived && _homeIdeaTypes.includes(i.type) && !_isHiddenPrivate(i)
-    && !_carouselIdeaIds.has(i.id)
-    && !_carouselVenues.has((i.name || '').toLowerCase()));
-  const _shuffled = _outIdeas.slice().sort(() => Math.random() - 0.5);
-  const savedIdeas = _shuffled.slice(0, 5);
+  const _carouselVenues  = new Set(visibleDates.map(fd => (fd._ref || fd).venue).filter(Boolean).map(v => v.toLowerCase()));
 
-  // ── Upcoming dates carousel (above the date bubble) ──
-  let homeCarouselHtml = '';
-  if (visibleDates.length > 0) {
-    const cards = visibleDates.map((fd, idx) => {
-      const u = fd._ref || fd;
-      const hasPrev = idx > 0;
-      const hasNext = idx < visibleDates.length - 1;
-      const card = _buildBannerCard(u, {
-        onClickExpr: `openDateInfo(UPCOMING_DATES.find(d=>String(d.id)==='${u.id||''}'))`,
-        hasPrev, hasNext,
-        onPrev: 'scrollHomeCarousel(-1)',
-        onNext: 'scrollHomeCarousel(1)'
-      });
-      return `<div style="flex-shrink:0;width:calc(100vw - 40px);max-width:362px;scroll-snap-align:start">${card}</div>`;
-    }).join('');
-    homeCarouselHtml = `<div style="padding:22px 20px 0">
-      <div id="home-dates-carousel" style="display:flex;flex-direction:row;gap:10px;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch">
-        ${cards}
-      </div>
-    </div>`;
-  }
+  const sectionHtml = cfg.map(sec => {
+    if (sec.on === false) return '';
 
-  const isCompact = (homeLayout === 'compact');
-  let topSectionHtml;
-  if (visibleDates.length === 0) {
-    topSectionHtml = `<div style="padding:22px 20px 8px">
-      <div id="next-date-card" style="background:${ROSE};box-shadow:0 2px 12px rgba(192,122,138,0.3)">
-        <div style="display:flex;align-items:center;gap:14px;cursor:pointer" onclick="navigate('calendar')">
-          <div style="flex:1;min-width:0">
-            <span style="font-size:15px;font-weight:700;color:#fff">No upcoming dates</span><br>
-            <span style="font-size:12px;color:rgba(255,255,255,0.75);font-family:sans-serif">Plan one →</span>
+    if (sec.id === 'nextDates') {
+      const isCompact = (sec.display || homeLayout) === 'compact';
+      const calMode   = sec.calendar || 'week';
+      let topHtml;
+      if (visibleDates.length === 0) {
+        topHtml = `<div style="padding:22px 20px 8px">
+          <div id="next-date-card" style="background:${ROSE};box-shadow:0 2px 12px rgba(192,122,138,0.3)">
+            <div style="display:flex;align-items:center;gap:14px;cursor:pointer" onclick="navigate('calendar')">
+              <div style="flex:1;min-width:0">
+                <span style="font-size:15px;font-weight:700;color:#fff">No upcoming dates</span><br>
+                <span style="font-size:12px;color:rgba(255,255,255,0.75);font-family:sans-serif">Plan one →</span>
+              </div>
+            </div>
           </div>
-        </div>
-      </div>
-    </div>
-    ${renderWeekStrip()}`;
-  } else if (isCompact) {
-    topSectionHtml = `
-    <div id="date-cards-outer">
-      <div id="date-cards-scroll">
-        <div id="date-cards-inner">
-          ${visibleDates.map((fd, i) => _buildDateCardHtml(fd, i)).join('')}
-        </div>
-      </div>
-      <div id="date-cards-arrows">
-        <button id="date-btn-prev" onclick="event.stopPropagation();prevDate()">
-          <svg viewBox="0 0 24 24" width="16" height="16" stroke="#fff" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        </div>`;
+      } else if (isCompact) {
+        topHtml = `<div id="date-cards-outer">
+          <div id="date-cards-scroll"><div id="date-cards-inner">${visibleDates.map((fd,i)=>_buildDateCardHtml(fd,i)).join('')}</div></div>
+          <div id="date-cards-arrows">
+            <button id="date-btn-prev" onclick="event.stopPropagation();prevDate()"><svg viewBox="0 0 24 24" width="16" height="16" stroke="#fff" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
+            <button id="date-btn-next" onclick="event.stopPropagation();nextDate()"><svg viewBox="0 0 24 24" width="16" height="16" stroke="#fff" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></button>
+          </div>
+        </div>`;
+      } else {
+        const cards = visibleDates.map((fd,idx) => {
+          const u = fd._ref || fd;
+          const card = _buildBannerCard(u, {
+            onClickExpr:`openDateInfo(UPCOMING_DATES.find(d=>String(d.id)==='${u.id||''}'))`,
+            hasPrev:idx>0, hasNext:idx<visibleDates.length-1,
+            onPrev:'scrollHomeCarousel(-1)', onNext:'scrollHomeCarousel(1)'
+          });
+          return `<div style="flex-shrink:0;width:calc(100vw - 40px);max-width:362px;scroll-snap-align:start">${card}</div>`;
+        }).join('');
+        topHtml = `<div style="padding:22px 20px 0"><div id="home-dates-carousel" style="display:flex;flex-direction:row;gap:10px;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch">${cards}</div></div>`;
+      }
+      const calHtml = calMode === 'none' ? '' : calMode === 'month' ? renderHomeMonthCal() : renderWeekStrip();
+      return topHtml + calHtml;
+    }
+
+    if (sec.id === 'ideas') {
+      const typeFilter = sec.filter || 'all';
+      const ideaTypes  = typeFilter === 'in' ? ['in'] : typeFilter === 'all' ? ['out','in'] : ['out'];
+      const pool = ideas.filter(i => !i.archived && ideaTypes.includes(i.type) && !_isHiddenPrivate(i)
+        && !_carouselIdeaIds.has(i.id) && !_carouselVenues.has((i.name||'').toLowerCase()));
+      const ordered = (sec.order || 'random') === 'recent'
+        ? pool.slice().sort((a,b) => (b.createdAt||0) - (a.createdAt||0))
+        : pool.slice().sort(() => Math.random() - 0.5);
+      const limit = sec.show === 'all' ? ordered.length : parseInt(sec.show)||3;
+      const savedIdeas = ordered.slice(0, limit);
+      if (!savedIdeas.length) return '';
+      return `<div style="padding:36px 20px 36px">
+        <button onclick="navigate('out')" style="background:none;border:none;cursor:pointer;padding:0;display:flex;align-items:center;gap:4px;margin-bottom:12px">
+          <span class="section-label">${sec.title || 'Ideas'}</span>
+          <span style="font-size:11px;color:#9a8a7a;font-family:sans-serif;letter-spacing:0.05em;line-height:1">›</span>
         </button>
-        <button id="date-btn-next" onclick="event.stopPropagation();nextDate()">
-          <svg viewBox="0 0 24 24" width="16" height="16" stroke="#fff" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
-        </button>
-      </div>
-    </div>
-    ${renderWeekStrip()}`;
-  } else {
-    topSectionHtml = `${homeCarouselHtml}${renderWeekStrip()}`;
-  }
+        <div style="display:flex;flex-direction:column;gap:8px">${savedIdeas.map(item=>renderQuickRow(item,'latest')).join('')}</div>
+      </div>`;
+    }
 
-  const dateBubbleHTML = topSectionHtml;
+    if (sec.id === 'upcomingDates') {
+      const _now2 = new Date(); _now2.setHours(0,0,0,0);
+      const all = UPCOMING_DATES
+        .filter(u => { const dt=new Date((u.year||2026),MONTH_NUMS[u.month]||0,u.day); dt.setHours(0,0,0,0); return dt>=_now2; })
+        .filter(u => !_isDateHiddenPrivate(u))
+        .sort((a,b) => new Date((a.year||2026),MONTH_NUMS[a.month]||0,a.day) - new Date((b.year||2026),MONTH_NUMS[b.month]||0,b.day));
+      const limit = sec.show === 'all' ? all.length : parseInt(sec.show)||3;
+      const upcoming = all.slice(0, limit);
+      if (!upcoming.length) return '';
+      return '<div style="padding:0 20px 0">' +
+        '<button onclick="navigate(\'calendar\')" style="background:none;border:none;cursor:pointer;padding:0;display:flex;align-items:center;gap:4px;margin-bottom:12px">' +
+          '<span class="section-label">Upcoming</span>' +
+          '<span style="font-size:11px;color:#9a8a7a;font-family:sans-serif;letter-spacing:0.05em;line-height:1">›</span>' +
+        '</button>' +
+        upcoming.map(u => _buildUpcomingCardHtml(u, '', false, true)).join('') +
+        '</div>';
+    }
 
-  return `
-  ${dateBubbleHTML}
+    if (sec.id === 'todo') {
+      const priorityOrder = { high:0, normal:1, low:2 };
+      const active = todos.filter(t => !t.done && !_isTodoHiddenPrivate(t)).sort((a,b) => {
+        const pa = priorityOrder[a.priority??'normal']??1;
+        const pb = priorityOrder[b.priority??'normal']??1;
+        if (pa !== pb) return pa - pb;
+        return (a.createdAt||0) - (b.createdAt||0);
+      });
+      const limit = sec.show === 'all' ? active.length : parseInt(sec.show)||3;
+      const sliced = active.slice(0, limit);
+      const pendingDone = todos.filter(t => t.done && _todoDeleteTimers[t.id]);
+      const visible = [...sliced, ...pendingDone];
+      if (!visible.length) return '';
+      return '<div style="padding:36px 20px 32px">' +
+        '<button onclick="navigate(\'todo\')" style="background:none;border:none;cursor:pointer;padding:0;display:flex;align-items:center;gap:4px;margin-bottom:6px">' +
+          '<span class="section-label">To Do</span>' +
+          '<span style="font-size:11px;color:#9a8a7a;font-family:sans-serif;letter-spacing:0.05em;line-height:1">›</span>' +
+        '</button>' +
+        '<div style="padding:0 10px">' + visible.map(t => _todoRow(t)).join('') + '</div>' +
+        '</div>';
+    }
+    return '';
+  }).join('');
 
-  <div style="padding:36px 20px 36px">
-    ${savedIdeas.length ? `<button onclick="navigate('out')" style="background:none;border:none;cursor:pointer;padding:0;display:flex;align-items:center;gap:4px;margin-bottom:12px">
-      <span class="section-label">Ideas</span>
-      <span style="font-size:11px;color:#9a8a7a;font-family:sans-serif;letter-spacing:0.05em;line-height:1">›</span>
-    </button>` : ''}
-    <div style="display:flex;flex-direction:column;gap:8px">
-      ${savedIdeas.map(item => renderQuickRow(item, 'latest')).join('')}
-    </div>
-  </div>
-
-  ${(() => {
-    const _now2 = new Date(); _now2.setHours(0,0,0,0);
-    const upcoming3 = UPCOMING_DATES
-      .filter(u => { const dt = new Date((u.year||2026), MONTH_NUMS[u.month]||0, u.day); dt.setHours(0,0,0,0); return dt >= _now2; })
-      .filter(u => !_isDateHiddenPrivate(u))
-      .sort((a,b) => new Date((a.year||2026),MONTH_NUMS[a.month]||0,a.day) - new Date((b.year||2026),MONTH_NUMS[b.month]||0,b.day))
-      .slice(0, 3);
-    if (upcoming3.length === 0) return '';
-    return '<div style="padding:0 20px 0">' +
-      '<button onclick="navigate(\'calendar\')" style="background:none;border:none;cursor:pointer;padding:0;display:flex;align-items:center;gap:4px;margin-bottom:12px">' +
-        '<span class="section-label">Upcoming</span>' +
-        '<span style="font-size:11px;color:#9a8a7a;font-family:sans-serif;letter-spacing:0.05em;line-height:1">›</span>' +
-      '</button>' +
-      upcoming3.map(u => _buildUpcomingCardHtml(u, '', false, true)).join('') +
-      '</div>';
-  })()}
-
-  ${(() => {
-    const priorityOrder = { high: 0, normal: 1, low: 2 };
-    const active = todos.filter(t => !t.done && !_isTodoHiddenPrivate(t)).sort((a,b) => {
-      const pa = priorityOrder[a.priority ?? 'normal'] ?? 1;
-      const pb = priorityOrder[b.priority ?? 'normal'] ?? 1;
-      if (pa !== pb) return pa - pb;
-      return (a.createdAt || 0) - (b.createdAt || 0);
-    }).slice(0, 3);
-    // Also include done todos that are pending deletion (in the 5s window)
-    const pendingDone = todos.filter(t => t.done && _todoDeleteTimers[t.id]);
-    const visible = [...active, ...pendingDone];
-    if (visible.length === 0) return '';
-    return '<div style="padding:36px 20px 32px">' +
-      '<button onclick="navigate(\'todo\')" style="background:none;border:none;cursor:pointer;padding:0;display:flex;align-items:center;gap:4px;margin-bottom:6px">' +
-        '<span class="section-label">To Do</span>' +
-        '<span style="font-size:11px;color:#9a8a7a;font-family:sans-serif;letter-spacing:0.05em;line-height:1">›</span>' +
-      '</button>' +
-      '<div style="padding:0 10px">' + visible.map(t => _todoRow(t)).join('') + '</div>' +
-      '</div>';
-
-  })()}`;
+  return sectionHtml;
 }
+
 
 function renderWeekStrip() {
   const today = new Date(); today.setHours(0,0,0,0);
@@ -9899,12 +9990,8 @@ function openSettings() {
   const hpCb = document.getElementById('settings-hide-private');
   if (hpCb) hpCb.checked = hidePrivate;
   document.getElementById('settings-partner-address').value = partnerAddress;
-  const layoutSel = document.getElementById('settings-home-layout');
-  if (layoutSel) layoutSel.value = homeLayout || 'full';
   const atSel = document.getElementById('settings-additional-tab');
   if (atSel) atSel.value = additionalTab || 'neighborhood';
-  const hifSel = document.getElementById('settings-home-ideas-filter');
-  if (hifSel) hifSel.value = homeIdeasFilter || 'out';
   document.getElementById('settings-overlay').style.display = 'flex';
   _renderGenderBtn();
   // Sync radio buttons to current appearance
@@ -9974,12 +10061,8 @@ function saveSettingsData() {
   appSettings.partnerAddress = partnerAddress;
   const hpEl = document.getElementById('settings-hide-private');
   if (hpEl) { hidePrivate = hpEl.checked; appSettings.hidePrivate = hidePrivate; }
-  const layoutEl = document.getElementById('settings-home-layout');
-  if (layoutEl) { homeLayout = layoutEl.value; appSettings.homeLayout = homeLayout; }
   const atEl = document.getElementById('settings-additional-tab');
   if (atEl) { additionalTab = atEl.value; appSettings.additionalTab = additionalTab; }
-  const hifEl = document.getElementById('settings-home-ideas-filter');
-  if (hifEl) { homeIdeasFilter = hifEl.value; appSettings.homeIdeasFilter = homeIdeasFilter; }
   // Save appearance
   localStorage.setItem('duet_appearance', _appearance);
   saveSettings(appSettings);
@@ -10113,6 +10196,147 @@ function _renderWebappIconBtn(btnId, iconKey) {
   if (!btn) return;
   const k = iconKey || 'webapp';
   btn.innerHTML = ICONS[k] ? ICONS[k](18, '#9a8a7a') : ICONS.webapp(18, '#9a8a7a');
+}
+
+// ── Edit Main Screen ──────────────────────────────────────────────
+let _emsWorkingConfig = null;
+let _emsDragSrcIdx = null;
+
+function openEditMainScreen() {
+  _emsWorkingConfig = homeScreenConfig.map(s => ({...s}));
+  _renderEditMainScreenList();
+  document.getElementById('editmain-overlay').style.display = 'flex';
+}
+
+function closeEditMainScreen() {
+  document.getElementById('editmain-overlay').style.display = 'none';
+  _emsWorkingConfig = null;
+}
+
+function saveEditMainScreen() {
+  // Read current DOM state into _emsWorkingConfig
+  _emsReadFromDom();
+  homeScreenConfig = _emsWorkingConfig.map(s => ({...s}));
+  appSettings.homeScreenConfig = homeScreenConfig;
+  // Also sync homeLayout from nextDates block for legacy usage
+  const nd = homeScreenConfig.find(s => s.id === 'nextDates');
+  if (nd) { homeLayout = nd.display || 'full'; appSettings.homeLayout = homeLayout; }
+  // Sync homeIdeasFilter from ideas block
+  const id = homeScreenConfig.find(s => s.id === 'ideas');
+  if (id) { homeIdeasFilter = id.filter || 'out'; appSettings.homeIdeasFilter = homeIdeasFilter; }
+  saveSettings(appSettings);
+  closeEditMainScreen();
+  render();
+}
+
+function _emsReadFromDom() {
+  if (!_emsWorkingConfig) return;
+  _emsWorkingConfig.forEach((sec, i) => {
+    const block = document.querySelector(`[data-ems-id="${sec.id}"]`);
+    if (!block) return;
+    const chk = block.querySelector('.ems-enabled-chk');
+    if (chk) sec.on = chk.checked;
+    const sels = block.querySelectorAll('[data-ems-key]');
+    sels.forEach(el => { sec[el.dataset.emsKey] = el.value; });
+  });
+}
+
+function _renderEditMainScreenList() {
+  const list = document.getElementById('editmain-list');
+  if (!list) return;
+  list.innerHTML = _emsWorkingConfig.map((sec, i) => _emsBlockHtml(sec, i)).join('');
+  _emsAttachDrag();
+  _emsAttachShowChange();
+}
+
+function _emsBlockHtml(sec, i) {
+  const opts = _emsOptionsHtml(sec);
+  return `<div class="ems-block" data-ems-id="${sec.id}" data-ems-idx="${i}" draggable="true">
+    <div class="ems-block-header">
+      <svg class="ems-drag-handle" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="8" x2="20" y2="8"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="16" x2="20" y2="16"/></svg>
+      <span class="ems-block-title">${sec.label}</span>
+      <label style="display:flex;align-items:center;gap:4px;cursor:pointer">
+        <input type="checkbox" class="ems-enabled-chk" ${sec.on ? 'checked' : ''} style="width:16px;height:16px;accent-color:#a05268;cursor:pointer">
+      </label>
+    </div>
+    ${opts ? `<div class="ems-options">${opts}</div>` : ''}
+  </div>`;
+}
+
+function _emsSel(key, val, options) {
+  const opts = options.map(o => `<option value="${o.v}"${val===o.v?' selected':''}>${o.l}</option>`).join('');
+  return `<select class="ems-sel" data-ems-key="${key}">${opts}</select>`;
+}
+
+function _emsOptionsHtml(sec) {
+  if (sec.id === 'nextDates') {
+    return `<span class="ems-opt-label">Display</span>${_emsSel('display', sec.display||'full', [{v:'full',l:'Full'},{v:'compact',l:'Compact'}])}
+      <span class="ems-opt-label" style="margin-left:4px">Calendar</span>${_emsSel('calendar', sec.calendar||'week', [{v:'week',l:'Week'},{v:'month',l:'Month'},{v:'none',l:'None'}])}`;
+  }
+  if (sec.id === 'ideas') {
+    const showVal = sec.show || '3';
+    const hideOrder = showVal === 'all';
+    const titleVal = sec.title || 'Ideas';
+    return `<span class="ems-opt-label">Show</span>${_emsSel('show', showVal, [{v:'3',l:'3'},{v:'5',l:'5'},{v:'all',l:'All'}])}
+      <span class="ems-order-opt" style="display:${hideOrder?'none':'inline-flex'};align-items:center;gap:4px;margin-left:4px">${_emsSel('order', sec.order||'random', [{v:'random',l:'Random'},{v:'recent',l:'Recent'}])}</span>
+      ${_emsSel('filter', sec.filter||'all', [{v:'all',l:'All'},{v:'out',l:'Out'},{v:'in',l:'In'}])}
+      <div style="display:flex;align-items:center;gap:6px;width:100%;margin-top:4px">
+        <span class="ems-opt-label">Title</span>
+        <input type="text" data-ems-key="title" value="${titleVal}" placeholder="Ideas" style="font-family:sans-serif;font-size:12px;padding:4px 8px;border:1.5px solid var(--border);border-radius:7px;background:var(--bg);color:var(--text-primary);flex:1;min-width:0">
+      </div>`;
+  }
+  if (sec.id === 'upcomingDates' || sec.id === 'todo') {
+    return `<span class="ems-opt-label">Show</span>${_emsSel('show', sec.show||'3', [{v:'3',l:'3'},{v:'5',l:'5'},{v:'all',l:'All'}])}`;
+  }
+  return '';
+}
+
+function _emsAttachShowChange() {
+  // Ideas block: hide/show Order select when Show=All
+  const ideasBlock = document.querySelector('[data-ems-id="ideas"]');
+  if (!ideasBlock) return;
+  const showSel = ideasBlock.querySelector('[data-ems-key="show"]');
+  const orderSel = ideasBlock.querySelector('[data-ems-key="order"]');
+  const orderLabels = ideasBlock.querySelectorAll('.ems-order-opt');
+  if (!showSel || !orderSel) return;
+  showSel.addEventListener('change', () => {
+    const hide = showSel.value === 'all';
+    orderSel.style.display = hide ? 'none' : '';
+    orderLabels.forEach(el => el.style.display = hide ? 'none' : '');
+  });
+}
+
+function _emsAttachDrag() {
+  const list = document.getElementById('editmain-list');
+  const blocks = list.querySelectorAll('.ems-block');
+  blocks.forEach((block, idx) => {
+    block.addEventListener('dragstart', e => {
+      _emsDragSrcIdx = idx;
+      setTimeout(() => block.classList.add('dragging'), 0);
+      e.dataTransfer.effectAllowed = 'move';
+    });
+    block.addEventListener('dragend', () => {
+      block.classList.remove('dragging');
+      list.querySelectorAll('.ems-block').forEach(b => b.classList.remove('drag-over'));
+    });
+    block.addEventListener('dragover', e => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      list.querySelectorAll('.ems-block').forEach(b => b.classList.remove('drag-over'));
+      block.classList.add('drag-over');
+    });
+    block.addEventListener('drop', e => {
+      e.preventDefault();
+      const destIdx = parseInt(block.dataset.emsIdx);
+      if (_emsDragSrcIdx === null || _emsDragSrcIdx === destIdx) return;
+      // Read DOM state before reorder
+      _emsReadFromDom();
+      const moved = _emsWorkingConfig.splice(_emsDragSrcIdx, 1)[0];
+      _emsWorkingConfig.splice(destIdx, 0, moved);
+      _emsDragSrcIdx = null;
+      _renderEditMainScreenList();
+    });
+  });
 }
 
 function openEditCategories(startType) {
@@ -10793,6 +11017,7 @@ function handleImportFile(e) {
       if (s.homeLayout    !== undefined) homeLayout            = s.homeLayout;
       if (s.additionalTab !== undefined) additionalTab         = s.additionalTab;
       if (s.homeIdeasFilter !== undefined) homeIdeasFilter      = s.homeIdeasFilter;
+      if (s.homeScreenConfig !== undefined) { homeScreenConfig = s.homeScreenConfig; appSettings.homeScreenConfig = homeScreenConfig; }
       // Sync appSettings and persist
       appSettings.homeAddress          = homeAddress;
       appSettings.partnerAddress       = partnerAddress;
@@ -10801,6 +11026,7 @@ function handleImportFile(e) {
       appSettings.homeLayout           = homeLayout;
       appSettings.additionalTab        = additionalTab;
       appSettings.homeIdeasFilter      = homeIdeasFilter;
+      appSettings.homeScreenConfig     = homeScreenConfig;
       saveSettings(appSettings);
       // Refresh Settings popup fields if open
       const _saEl = document.getElementById('settings-overlay');
