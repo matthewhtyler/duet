@@ -217,7 +217,7 @@
 
   /* ── Week Strip Carousel ── */
   #week-strip {
-    padding: 16px 20px 0;
+    padding: 8px 20px 16px;
     position: relative;
   }
   #week-strip-scroll {
@@ -5095,7 +5095,7 @@ function renderHome() {
       const calMode   = sec.calendar || 'week';
       let topHtml;
       if (visibleDates.length === 0) {
-        topHtml = `<div style="padding:22px 20px 8px">
+        topHtml = `<div style="padding:22px 20px 16px">
           <div id="next-date-card" style="background:${ROSE};box-shadow:0 2px 12px rgba(192,122,138,0.3)">
             <div style="display:flex;align-items:center;gap:14px;cursor:pointer" onclick="navigate('calendar')">
               <div style="flex:1;min-width:0">
@@ -5123,7 +5123,7 @@ function renderHome() {
           });
           return `<div style="flex-shrink:0;width:calc(100vw - 40px);max-width:362px;scroll-snap-align:start">${card}</div>`;
         }).join('');
-        topHtml = `<div style="padding:22px 20px 0"><div id="home-dates-carousel" style="display:flex;flex-direction:row;gap:10px;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch">${cards}</div></div>`;
+        topHtml = `<div style="padding:22px 20px 5px"><div id="home-dates-carousel" style="display:flex;flex-direction:row;gap:10px;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch">${cards}</div></div>`;
       }
       const calHtml = calMode === 'none' ? '' : calMode === 'month' ? renderHomeMonthCal() : renderWeekStrip();
       return topHtml + calHtml;
@@ -5140,7 +5140,7 @@ function renderHome() {
       const limit = sec.show === 'all' ? ordered.length : parseInt(sec.show)||3;
       const savedIdeas = ordered.slice(0, limit);
       if (!savedIdeas.length) return '';
-      return `<div style="padding:22px 20px 36px">
+      return `<div style="padding:22px 20px 16px">
         <button onclick="navigate('out')" style="background:none;border:none;cursor:pointer;padding:0;display:flex;align-items:center;gap:4px;margin-bottom:12px">
           <span class="section-label">${sec.title || 'Ideas'}</span>
           <span style="font-size:11px;color:#9a8a7a;font-family:sans-serif;letter-spacing:0.05em;line-height:1">›</span>
@@ -5158,7 +5158,7 @@ function renderHome() {
       const limit = sec.show === 'all' ? all.length : parseInt(sec.show)||3;
       const upcoming = all.slice(0, limit);
       if (!upcoming.length) return '';
-      return '<div style="padding:0 20px 0">' +
+      return '<div style="padding:22px 20px 16px">' +
         '<button onclick="navigate(\'calendar\')" style="background:none;border:none;cursor:pointer;padding:0;display:flex;align-items:center;gap:4px;margin-bottom:12px">' +
           '<span class="section-label">Upcoming</span>' +
           '<span style="font-size:11px;color:#9a8a7a;font-family:sans-serif;letter-spacing:0.05em;line-height:1">›</span>' +
@@ -5180,7 +5180,7 @@ function renderHome() {
       const pendingDone = todos.filter(t => t.done && _todoDeleteTimers[t.id]);
       const visible = [...sliced, ...pendingDone];
       if (!visible.length) return '';
-      return '<div style="padding:22px 20px 32px">' +
+      return '<div style="padding:22px 20px 16px">' +
         '<button onclick="navigate(\'todo\')" style="background:none;border:none;cursor:pointer;padding:0;display:flex;align-items:center;gap:4px;margin-bottom:6px">' +
           '<span class="section-label">To Do</span>' +
           '<span style="font-size:11px;color:#9a8a7a;font-family:sans-serif;letter-spacing:0.05em;line-height:1">›</span>' +
