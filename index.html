@@ -5140,7 +5140,7 @@ function renderHome() {
       const limit = sec.show === 'all' ? ordered.length : parseInt(sec.show)||3;
       const savedIdeas = ordered.slice(0, limit);
       if (!savedIdeas.length) return '';
-      return `<div style="padding:36px 20px 36px">
+      return `<div style="padding:22px 20px 36px">
         <button onclick="navigate('out')" style="background:none;border:none;cursor:pointer;padding:0;display:flex;align-items:center;gap:4px;margin-bottom:12px">
           <span class="section-label">${sec.title || 'Ideas'}</span>
           <span style="font-size:11px;color:#9a8a7a;font-family:sans-serif;letter-spacing:0.05em;line-height:1">›</span>
@@ -5180,7 +5180,7 @@ function renderHome() {
       const pendingDone = todos.filter(t => t.done && _todoDeleteTimers[t.id]);
       const visible = [...sliced, ...pendingDone];
       if (!visible.length) return '';
-      return '<div style="padding:36px 20px 32px">' +
+      return '<div style="padding:22px 20px 32px">' +
         '<button onclick="navigate(\'todo\')" style="background:none;border:none;cursor:pointer;padding:0;display:flex;align-items:center;gap:4px;margin-bottom:6px">' +
           '<span class="section-label">To Do</span>' +
           '<span style="font-size:11px;color:#9a8a7a;font-family:sans-serif;letter-spacing:0.05em;line-height:1">›</span>' +
