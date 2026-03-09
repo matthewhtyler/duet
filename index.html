@@ -7387,6 +7387,23 @@ function openSheet(type) {
   document.getElementById('btn-new-icon-check').style.display = 'block';
   setTimeout(() => { document.getElementById('sheet-overlay').style.display = 'block'; }, 0);
   _syncAllClearable();
+  // iOS: attach sheet-level guard once to prevent window scroll stealing picker swipes
+  const _sheet = document.getElementById('idea-sheet');
+  if (_sheet && !_sheet._pickerSwipeGuard) {
+    _sheet._pickerSwipeGuard = true;
+    let _gStartX = 0, _gStartY = 0, _gInPicker = false;
+    _sheet.addEventListener('touchstart', e => {
+      _gStartX = e.touches[0].clientX;
+      _gStartY = e.touches[0].clientY;
+      _gInPicker = !!e.target.closest('#date-picker-scroll');
+    }, { passive: true });
+    _sheet.addEventListener('touchmove', e => {
+      if (!_gInPicker) return;
+      const dx = Math.abs(e.touches[0].clientX - _gStartX);
+      const dy = Math.abs(e.touches[0].clientY - _gStartY);
+      if (dx > dy) e.preventDefault();
+    }, { passive: false });
+  }
 }
 
 function switchSheetType(type) {
