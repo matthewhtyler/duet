@@ -10227,7 +10227,10 @@ function saveSettingsData() {
   appSettings.partnerAddress = partnerAddress;
   const hpEl = document.getElementById('settings-hide-private');
   if (hpEl) { hidePrivate = hpEl.checked; appSettings.hidePrivate = hidePrivate; }
+  const atEl = document.getElementById('settings-additional-tab');
+  if (atEl) { additionalTab = atEl.value; appSettings.additionalTab = additionalTab; }
   // Save appearance
+  appSettings.appearance = _appearance;
   localStorage.setItem('duet_appearance', _appearance);
   saveSettings(appSettings);
   // Update "Her place" option label in location dropdowns
@@ -10307,6 +10310,8 @@ async function exportAllData() {
       homeLayout: homeLayout,
       additionalTab: additionalTab,
       appearance: _appearance,
+      homeScreenConfig: homeScreenConfig,
+      homeIdeasFilter: homeIdeasFilter,
     },
     appearance: _appearance,
   };
@@ -10382,7 +10387,7 @@ function closeEditIdeasScreen() {
 }
 function saveEditIdeasScreen() {
   const sel = document.getElementById('editideas-additional-tab');
-  if (sel) { additionalTab = sel.value; appSettings.additionalTab = additionalTab; saveAppSettings(); }
+  if (sel) { additionalTab = sel.value; appSettings.additionalTab = additionalTab; saveSettings(appSettings); }
   closeEditIdeasScreen();
   if (currentView === 'ideas') render();
 }
@@ -11281,6 +11286,7 @@ function handleImportFile(e) {
       const importedAppearance = s.appearance || data.appearance;
       if (importedAppearance) {
         _appearance = importedAppearance;
+        appSettings.appearance = _appearance;
         localStorage.setItem('duet_appearance', _appearance);
         _applyAppearance(_appearance);
       }
