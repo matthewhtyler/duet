@@ -7476,12 +7476,23 @@ function closeSheet() {
 
 function handleNewBtn() {
   if (sheetOpen) {
-    if (sheetMode === 'date') saveNewDate();
-    else saveNewIdea();
+    if (sheetMode === 'date') {
+      if (!selectedActivity) { closeSheet(); return; }
+      saveNewDate();
+    } else {
+      const name = (document.getElementById('idea-name') || {}).value || '';
+      if (!name.trim()) { closeSheet(); return; }
+      saveNewIdea();
+    }
     return;
   }
   const _tsEl = document.getElementById('todo-sheet');
-  if (_tsEl && _tsEl.style.display === 'block') { saveTodoFromSheet(); return; }
+  if (_tsEl && _tsEl.style.display === 'block') {
+    const task = (document.getElementById('ts-task') || {}).value || '';
+    if (!task.trim()) { closeTodoSheet(); return; }
+    saveTodoFromSheet();
+    return;
+  }
   if (currentView === 'ideas') {
     openSheet(ideasFilter === 'in' ? 'in' : 'out');
   } else if (currentView === 'calendar') {
