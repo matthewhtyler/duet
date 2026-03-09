@@ -333,6 +333,11 @@
   }
   body.dark-mode #week-tooltip::before { border-bottom-color: #ddd8d0; }
   body.dark-mode #week-tooltip::after  { border-bottom-color: #f5f1ec; }
+  #home-month-tooltip::before { content:''; position:absolute; bottom:100%; left:var(--caret-left); transform:translateX(-50%); border-left:7px solid transparent; border-right:7px solid transparent; border-bottom:7px solid #ede9e2; }
+  #home-month-tooltip::after  { content:''; position:absolute; bottom:calc(100% - 1px); left:var(--caret-left); transform:translateX(-50%); border-left:6px solid transparent; border-right:6px solid transparent; border-bottom:6px solid var(--bg-card); }
+  body.dark-mode #home-month-tooltip { background:#f5f1ec; border-color:#ddd8d0; color:#3a3330; }
+  body.dark-mode #home-month-tooltip::before { border-bottom-color:#ddd8d0; }
+  body.dark-mode #home-month-tooltip::after  { border-bottom-color:#f5f1ec; }
   body.dark-mode .picker-tooltip::before { border-bottom-color: #ddd8d0; }
   body.dark-mode .picker-tooltip::after  { border-bottom-color: #f5f1ec; }
 
@@ -1330,18 +1335,7 @@
           <span style="font-size:14px;font-family:sans-serif;color:var(--text-primary)">Safe mode</span>
         </label>
       </div>
-      <!-- Ideas -->
-      <div class="field-label" style="display:flex;align-items:center;gap:6px;margin-top:32px">
-        <svg viewBox="0 0 24 24" width="14" height="14" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M8 22h8"/><path d="M12 15.8v6.2"/><path d="M5 3h14l-1.5 9a5 5 0 0 1-5 4h-1a5 5 0 0 1-5-4L5 3z"/></svg>
-        Ideas
-      </div>
-      <div style="margin-top:10px;margin-bottom:32px">
-        <select id="settings-additional-tab" style="font-family:sans-serif;font-size:14px;padding:6px 10px;border:1.5px solid var(--border);border-radius:8px;background:var(--bg-input);color:var(--text-primary);cursor:pointer">
-          <option value="neighborhood">Neighborhoods Tab</option>
-          <option value="favorites">Favorites Tab</option>
-        </select>
-      </div>
-      <div style="margin-top:0;display:flex;justify-content:space-between;align-items:center">
+            <div style="margin-top:0;display:flex;justify-content:space-between;align-items:center">
         <button onclick="openMoreMenu()" style="padding:10px 16px;background:none;border:1.5px solid #ede9e2;border-radius:10px;font-family:sans-serif;font-size:13px;font-weight:600;color:#9a8a7a;cursor:pointer" class="btn-outline">More…</button>
         <div style="display:flex;gap:8px">
           <button onclick="closeSettings()" style="padding:10px 16px;background:none;border:1.5px solid #ede9e2;border-radius:10px;font-family:sans-serif;font-size:13px;font-weight:600;color:#9a8a7a;cursor:pointer" class="btn-outline">Cancel</button>
@@ -1362,6 +1356,10 @@
       <button onclick="closeMoreMenu();openEditMainScreen()" style="display:flex;align-items:center;gap:10px;padding:11px 14px;background:none;border:1.5px solid #ede9e2;border-radius:10px;font-family:sans-serif;font-size:13px;font-weight:600;color:#9a8a7a;cursor:pointer;text-align:left;width:100%" class="btn-outline">
         <svg viewBox="0 0 24 24" width="15" height="15" fill="none"><circle cx="12" cy="12" r="8.5" stroke="#9a8a7a" stroke-width="2"/></svg>
         Edit Main Screen
+      </button>
+      <button onclick="closeMoreMenu();openEditIdeasScreen()" style="display:flex;align-items:center;gap:10px;padding:11px 14px;background:none;border:1.5px solid #ede9e2;border-radius:10px;font-family:sans-serif;font-size:13px;font-weight:600;color:#9a8a7a;cursor:pointer;text-align:left;width:100%" class="btn-outline">
+        <svg viewBox="0 0 24 24" width="15" height="15" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M8 22h8"/><path d="M12 15.8v6.2"/><path d="M5 3h14l-1.5 9a5 5 0 0 1-5 4h-1a5 5 0 0 1-5-4L5 3z"/></svg>
+        Edit Ideas Screen
       </button>
       <button onclick="openCopyPlaces()" style="display:flex;align-items:center;gap:10px;padding:11px 14px;background:none;border:1.5px solid #ede9e2;border-radius:10px;font-family:sans-serif;font-size:13px;font-weight:600;color:#9a8a7a;cursor:pointer;text-align:left;width:100%" class="btn-outline">
         <svg viewBox="0 0 24 24" width="15" height="15" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
@@ -1444,6 +1442,26 @@
       <div style="padding:14px 20px;flex-shrink:0;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px;align-items:center">
         <button onclick="closeEditMainScreen()" style="padding:10px 16px;background:none;border:1.5px solid #ede9e2;border-radius:10px;font-family:sans-serif;font-size:13px;font-weight:600;color:#9a8a7a;cursor:pointer" class="btn-outline">Cancel</button>
         <button onclick="saveEditMainScreen()" style="padding:10px 20px;background:#a05268;border:none;border-radius:10px;font-family:sans-serif;font-size:13px;font-weight:600;color:#fff;cursor:pointer">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- EDIT IDEAS SCREEN POPUP -->
+  <div id="editideas-overlay" class="popup-overlay" onclick="closeEditIdeasScreen()" style="position:fixed;inset:0;background:rgba(30,20,20,0.5);z-index:500;display:none;align-items:center;justify-content:center;padding:20px">
+    <div onclick="event.stopPropagation()" style="width:100%;max-width:390px;background:var(--bg);border-radius:20px;display:flex;flex-direction:column;box-shadow:0 12px 48px rgba(0,0,0,0.18)">
+      <div style="padding:20px 20px 16px;flex-shrink:0;border-bottom:1px solid var(--border)">
+        <div style="font-size:17px;font-weight:700;color:var(--popup-title)">Edit Ideas Screen</div>
+      </div>
+      <div style="padding:20px">
+        <div style="font-family:sans-serif;font-size:13px;color:var(--text-secondary);margin-bottom:10px">Additional Tab</div>
+        <select id="editideas-additional-tab" style="font-family:sans-serif;font-size:14px;padding:6px 10px;border:1.5px solid var(--border);border-radius:8px;background:var(--bg-input);color:var(--text-primary);cursor:pointer;width:100%">
+          <option value="neighborhood">Neighborhoods</option>
+          <option value="favorites">Favorites</option>
+        </select>
+      </div>
+      <div style="padding:14px 20px;flex-shrink:0;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px">
+        <button onclick="closeEditIdeasScreen()" style="padding:10px 16px;background:none;border:1.5px solid #ede9e2;border-radius:10px;font-family:sans-serif;font-size:13px;font-weight:600;color:#9a8a7a;cursor:pointer" class="btn-outline">Cancel</button>
+        <button onclick="saveEditIdeasScreen()" style="padding:10px 20px;background:#a05268;border:none;border-radius:10px;font-family:sans-serif;font-size:13px;font-weight:600;color:#fff;cursor:pointer">Save</button>
       </div>
     </div>
   </div>
@@ -2201,6 +2219,11 @@ let partnerPronouns = appSettings.partnerPronouns || 'she/her';
 let hidePrivate = appSettings.hidePrivate || false;
 let additionalTab = appSettings.additionalTab || 'neighborhood'; // 'favorites' | 'neighborhood'
 let homeIdeasFilter = appSettings.homeIdeasFilter || 'out'; // 'out' | 'in' | 'all'
+// Month calendar on home screen — separate month/year state from Calendar screen
+let _homeMonthCalYear  = new Date().getFullYear();
+let _homeMonthCalMonth = new Date().getMonth();
+let _homeMonthCalSelectedDay = null; // {year, month (0-based), day} or null
+
 
 // Home screen section config (order + per-section settings)
 const _homeDefaultSections = [
@@ -2406,7 +2429,7 @@ function render() {
   renderNav();
   // Initialize scroll positions after DOM update
   if (currentView === 'home') {
-    setTimeout(() => { _initDateCardsScroll(); _initWeekStrip(); _initHomeCarousel(); }, 0);
+    setTimeout(() => { _initDateCardsScroll(); _initWeekStrip(); _initHomeCarousel(); _initHomeMonthCalSwipe(); }, 0);
   }
   if (currentView === 'calendar') {
     setTimeout(() => {
@@ -2527,6 +2550,8 @@ function navigate(view) {
       closeSheet();
       closeTodoSheet();
       currentView = 'home';
+      _homeMonthCalYear = new Date().getFullYear();
+      _homeMonthCalMonth = new Date().getMonth();
       render();
       return;
     }
@@ -2535,6 +2560,10 @@ function navigate(view) {
   }
   // Redirect legacy out/in to ideas
   if (view === 'out' || view === 'in') { currentView = 'ideas'; render(); return; }
+  if (view === 'home') {
+    _homeMonthCalYear = new Date().getFullYear();
+    _homeMonthCalMonth = new Date().getMonth();
+  }
   currentView = view;
   // Hide ideas nav row when leaving ideas screen
   if (view !== 'ideas') {
@@ -3970,6 +3999,18 @@ function scrollFavs(dir) {
   if (cards[_favScrollIdx]) cards[_favScrollIdx].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
+function _syncHomeMonthCalToDate(fdIdx) {
+  const fd = FUTURE_DATES[fdIdx];
+  if (!fd) return;
+  const ref = fd._ref || fd;
+  const mNum = MONTH_NUMS[ref.month] ?? 0;
+  const yr   = ref.year || new Date().getFullYear();
+  _homeMonthCalYear  = yr;
+  _homeMonthCalMonth = mNum;
+  _homeMonthCalSelectedDay = { year: yr, month: mNum, day: ref.day };
+  _reRenderHomeMonthCal();
+}
+
 function scrollHomeCarousel(dir) {
   const scroll = document.getElementById('home-dates-carousel');
   if (!scroll) return;
@@ -3983,6 +4024,7 @@ function scrollHomeCarousel(dir) {
     const ws = document.getElementById('week-strip');
     if (ws) { _weekStripAnimate = true; ws.outerHTML = renderWeekStrip(); setTimeout(_initWeekStrip, 0); }
   }
+  _syncHomeMonthCalToDate(_homeCarouselIdx);
 }
 
 function _initHomeCarousel() {
@@ -4008,6 +4050,7 @@ function _initHomeCarousel() {
           })();
           const ws = document.getElementById('week-strip');
           if (ws && inRange) { _weekStripAnimate = true; ws.outerHTML = renderWeekStrip(); setTimeout(_initWeekStrip, 0); }
+          _syncHomeMonthCalToDate(_homeCarouselIdx);
         }
       }
     }, 80);
@@ -4875,32 +4918,32 @@ function _buildUpcomingCardHtml(u, extraStyle, directOpen, navToCal) {
 
 function renderHomeMonthCal() {
   const _now = new Date(); _now.setHours(0,0,0,0);
-  const today = _now;
-  const year = today.getFullYear();
-  const month = today.getMonth();
-  const monthAbbr = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][month];
-  const monthName = today.toLocaleString('default',{month:'long'});
+  const year  = _homeMonthCalYear;
+  const month = _homeMonthCalMonth;
+  const MONTH_ABBRS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const monthAbbr  = MONTH_ABBRS[month];
+  const monthName  = new Date(year, month, 1).toLocaleString('default',{month:'long'});
   const daysInMonth = new Date(year, month+1, 0).getDate();
-  const firstDow = new Date(year, month, 1).getDay();
-  const todayDay = today.getDate();
-  const DOW = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const firstDow    = new Date(year, month, 1).getDay();
+  const todayDay    = (_now.getFullYear()===year && _now.getMonth()===month) ? _now.getDate() : null;
+  const DOW = ['S','M','T','W','T','F','S'];
+  const _isDark = document.body.classList.contains('dark-mode');
 
-  // Map dates this month
-  const futureDateMap = {}; // day -> FUTURE_DATES index
+  // Dates in this month → FUTURE_DATES index
+  const futureDateMap = {};
   FUTURE_DATES.forEach((fd, i) => {
     const ref = fd._ref || fd;
     const mNum = MONTH_NUMS[ref.month] ?? 0;
-    if (ref.year === year && mNum === month) futureDateMap[ref.day] = i;
+    if ((ref.year||new Date().getFullYear()) === year && mNum === month) futureDateMap[ref.day] = i;
   });
-  const markedDays = UPCOMING_DATES.filter(u => u.month === monthAbbr && (u.year||year) === year).map(u => u.day);
+  const markedDays = UPCOMING_DATES.filter(u => {
+    const mNum = MONTH_NUMS[u.month] ?? 0;
+    return (u.year||new Date().getFullYear()) === year && mNum === month;
+  }).map(u => u.day);
 
-  // Selected day = dateIdx mapped to a day
-  let selectedDay = null;
-  if (FUTURE_DATES[dateIdx]) {
-    const ref = FUTURE_DATES[dateIdx]._ref || FUTURE_DATES[dateIdx];
-    const mNum = MONTH_NUMS[ref.month] ?? 0;
-    if (ref.year === year && mNum === month) selectedDay = ref.day;
-  }
+  // Which day is selected (if any) in this month
+  const sel = _homeMonthCalSelectedDay;
+  const selectedDay = (sel && sel.year===year && sel.month===month) ? sel.day : null;
 
   let cells = '';
   for (let i=0;i<firstDow;i++) cells += '<div></div>';
@@ -4909,21 +4952,130 @@ function renderHomeMonthCal() {
     const isMarked   = markedDays.includes(d);
     const isToday    = d === todayDay;
     const fdIdx      = futureDateMap[d];
-    const cls        = isSelected ? 'cal-day selected' : isToday ? 'cal-day today' : 'cal-day';
-    const dotClass   = isSelected ? 'cal-dot selected' : 'cal-dot';
     const dayDate    = new Date(year, month, d); dayDate.setHours(0,0,0,0);
     const isPast     = dayDate < _now;
+    const cls        = isSelected ? 'cal-day selected' : isToday ? 'cal-day today' : 'cal-day';
+    const dotClass   = isSelected ? 'cal-dot selected' : isPast ? 'cal-dot past' : 'cal-dot';
     const clickFn    = fdIdx !== undefined
-      ? `selectWeekDate(${fdIdx})`
-      : `showWeekTooltip(event,${d},${month},${year})`;
+      ? `_homeMonthCalSelectDate(${fdIdx},${d})`
+      : `_homeMonthCalTooltip(event,${d},${month},${year})`;
     cells += `<button class="${cls}" onclick="${clickFn}">${d}${isMarked?`<div class="${dotClass}"></div>`:''}</button>`;
   }
 
-  return `<div style="padding:14px 20px 6px">
-    <div style="font-size:13px;font-weight:700;color:var(--text-secondary);font-family:sans-serif;margin-bottom:8px">${monthName}</div>
-    <div class="cal-dow" style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:2px">${DOW.map(d=>`<div class="cal-dow-cell" style="font-size:10px">${d}</div>`).join('')}</div>
+  // Show month label with nav arrows
+  const _thisYear = new Date().getFullYear();
+  const monthLabel = year !== _thisYear ? `${monthName} ${year}` : monthName;
+
+  return `<div id="home-month-cal" style="padding:14px 20px 10px;position:relative">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+      <button onclick="_homeMonthCalNav(-1)" style="background:none;border:none;cursor:pointer;padding:4px;line-height:0;color:var(--text-secondary)">
+        <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+      </button>
+      <span style="font-size:13px;font-weight:700;color:var(--text-secondary);font-family:sans-serif">${monthLabel}</span>
+      <button onclick="_homeMonthCalNav(1)" style="background:none;border:none;cursor:pointer;padding:4px;line-height:0;color:var(--text-secondary)">
+        <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:2px">
+      ${DOW.map(d=>`<div class="cal-dow-cell" style="font-size:10px">${d}</div>`).join('')}
+    </div>
     <div class="cal-grid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px">${cells}</div>
+    <div id="home-month-tooltip" style="display:none;position:absolute;--caret-left:50%;background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:8px 14px;box-shadow:0 6px 24px rgba(0,0,0,0.32);z-index:80;white-space:nowrap;pointer-events:auto;">
+      <span id="home-month-tooltip-link" style="color:${ROSE};cursor:pointer;font-size:14px;font-style:italic">Plan a date ›</span>
+    </div>
   </div>`;
+}
+
+function _homeMonthCalNav(dir) {
+  _homeMonthCalMonth += dir;
+  if (_homeMonthCalMonth > 11) { _homeMonthCalMonth = 0;  _homeMonthCalYear++; }
+  if (_homeMonthCalMonth < 0)  { _homeMonthCalMonth = 11; _homeMonthCalYear--; }
+  _reRenderHomeMonthCal();
+}
+
+function _homeMonthCalSelectDate(fdIdx, day) {
+  if (fdIdx < 0 || fdIdx >= FUTURE_DATES.length) return;
+  _homeMonthCalSelectedDay = { year: _homeMonthCalYear, month: _homeMonthCalMonth, day };
+  dateIdx = fdIdx;
+  _homeCarouselIdx = fdIdx;
+  // Scroll the banner carousel to the selected date
+  const carousel = document.getElementById('home-dates-carousel');
+  if (carousel && carousel.children[fdIdx]) {
+    carousel.children[fdIdx].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+  _reRenderHomeMonthCal();
+}
+
+function _homeMonthCalTooltip(e, day, month, year) {
+  e.stopPropagation();
+  const cal  = document.getElementById('home-month-cal');
+  const tt   = document.getElementById('home-month-tooltip');
+  const link = document.getElementById('home-month-tooltip-link');
+  if (!cal || !tt || !link) return;
+
+  const key = `${year}-${month}-${day}`;
+
+  // Toggle: clicking same day again closes the tooltip
+  if (tt._openKey === key && tt.style.display === 'block') {
+    tt.style.display = 'none';
+    tt._openKey = null;
+    return;
+  }
+  tt._openKey = key;
+
+  const cell    = e.currentTarget;
+  const calRect = cal.getBoundingClientRect();
+  const cellRect = cell.getBoundingClientRect();
+
+  const cellCenterX = cellRect.left - calRect.left + cellRect.width / 2;
+  const cellBottom  = cellRect.bottom - calRect.top;
+
+  tt.style.display = 'block';
+  const ttW = tt.offsetWidth || 120;
+  const calW = calRect.width;
+  let left = cellCenterX - ttW / 2;
+  if (left < 4) left = 4;
+  if (left + ttW > calW - 4) left = calW - ttW - 4;
+  tt.style.left = left + 'px';
+  tt.style.top  = (cellBottom + 6) + 'px';
+  tt.style.setProperty('--caret-left', (cellCenterX - left) + 'px');
+
+  link.onclick = (ev) => {
+    ev.stopPropagation();
+    tt.style.display = 'none';
+    tt._openKey = null;
+    openNewDateFromCal(day, month, year);
+  };
+
+  setTimeout(() => {
+    document.addEventListener('click', function _closeHMT() {
+      tt.style.display = 'none';
+      tt._openKey = null;
+      document.removeEventListener('click', _closeHMT);
+    }, { once: true });
+  }, 0);
+}
+
+function _reRenderHomeMonthCal() {
+  const el = document.getElementById('home-month-cal');
+  if (!el) return;
+  const tmp = document.createElement('div');
+  tmp.innerHTML = renderHomeMonthCal();
+  el.replaceWith(tmp.firstElementChild);
+  _initHomeMonthCalSwipe();
+}
+
+function _initHomeMonthCalSwipe() {
+  const el = document.getElementById('home-month-cal');
+  if (!el) return;
+  let startX = 0, moved = false;
+  el.addEventListener('touchstart', e => { startX = e.touches[0].clientX; moved = false; }, { passive: true });
+  el.addEventListener('touchmove',  e => { if (Math.abs(e.touches[0].clientX - startX) > 10) moved = true; }, { passive: true });
+  el.addEventListener('touchend',   e => {
+    if (!moved) return;
+    const dx = e.changedTouches[0].clientX - startX;
+    if (Math.abs(dx) > 40) _homeMonthCalNav(dx < 0 ? 1 : -1);
+  });
 }
 
 function renderHome() {
@@ -6782,7 +6934,7 @@ function selectWeekDate(idx) {
   const main = document.getElementById('main-content');
   if (main) {
     main.innerHTML = renderHome();
-    setTimeout(() => { _initDateCardsScroll(); _initWeekStrip(); _initHomeCarousel(); }, 0);
+    setTimeout(() => { _initDateCardsScroll(); _initWeekStrip(); _initHomeCarousel(); _initHomeMonthCalSwipe(); }, 0);
   }
 }
 
@@ -10061,8 +10213,6 @@ function saveSettingsData() {
   appSettings.partnerAddress = partnerAddress;
   const hpEl = document.getElementById('settings-hide-private');
   if (hpEl) { hidePrivate = hpEl.checked; appSettings.hidePrivate = hidePrivate; }
-  const atEl = document.getElementById('settings-additional-tab');
-  if (atEl) { additionalTab = atEl.value; appSettings.additionalTab = additionalTab; }
   // Save appearance
   localStorage.setItem('duet_appearance', _appearance);
   saveSettings(appSettings);
@@ -10206,6 +10356,21 @@ function openEditMainScreen() {
   _emsWorkingConfig = homeScreenConfig.map(s => ({...s}));
   _renderEditMainScreenList();
   document.getElementById('editmain-overlay').style.display = 'flex';
+}
+
+function openEditIdeasScreen() {
+  const sel = document.getElementById('editideas-additional-tab');
+  if (sel) sel.value = additionalTab || 'neighborhood';
+  document.getElementById('editideas-overlay').style.display = 'flex';
+}
+function closeEditIdeasScreen() {
+  document.getElementById('editideas-overlay').style.display = 'none';
+}
+function saveEditIdeasScreen() {
+  const sel = document.getElementById('editideas-additional-tab');
+  if (sel) { additionalTab = sel.value; appSettings.additionalTab = additionalTab; saveAppSettings(); }
+  closeEditIdeasScreen();
+  if (currentView === 'ideas') render();
 }
 
 function closeEditMainScreen() {
