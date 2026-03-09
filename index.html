@@ -334,8 +334,8 @@
   body.dark-mode #week-tooltip::before { border-bottom-color: #ddd8d0; }
   body.dark-mode #week-tooltip::after  { border-bottom-color: #f5f1ec; }
   #home-month-tooltip::before { content:''; position:absolute; bottom:100%; left:var(--caret-left); transform:translateX(-50%); border-left:7px solid transparent; border-right:7px solid transparent; border-bottom:7px solid #ede9e2; }
-  #home-month-tooltip::after  { content:''; position:absolute; bottom:calc(100% - 1px); left:var(--caret-left); transform:translateX(-50%); border-left:6px solid transparent; border-right:6px solid transparent; border-bottom:6px solid var(--bg-card); }
-  body.dark-mode #home-month-tooltip { background:#f5f1ec; border-color:#ddd8d0; color:#3a3330; }
+  #home-month-tooltip::after  { content:''; position:absolute; bottom:calc(100% - 1px); left:var(--caret-left); transform:translateX(-50%); border-left:6px solid transparent; border-right:6px solid transparent; border-bottom:6px solid #f5f1ec; }
+  #home-month-tooltip { background:#f5f1ec; border:1px solid #ddd8d0; color:#3a3330; }
   body.dark-mode #home-month-tooltip::before { border-bottom-color:#ddd8d0; }
   body.dark-mode #home-month-tooltip::after  { border-bottom-color:#f5f1ec; }
   body.dark-mode .picker-tooltip::before { border-bottom-color: #ddd8d0; }
@@ -4980,7 +4980,7 @@ function renderHomeMonthCal() {
       ${DOW.map(d=>`<div class="cal-dow-cell" style="font-size:10px">${d}</div>`).join('')}
     </div>
     <div class="cal-grid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px">${cells}</div>
-    <div id="home-month-tooltip" style="display:none;position:absolute;--caret-left:50%;background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:8px 14px;box-shadow:0 6px 24px rgba(0,0,0,0.32);z-index:80;white-space:nowrap;pointer-events:auto;">
+    <div id="home-month-tooltip" style="display:none;position:absolute;--caret-left:50%;border-radius:10px;padding:8px 14px;box-shadow:0 6px 24px rgba(0,0,0,0.32);z-index:80;white-space:nowrap;pointer-events:auto;">
       <span id="home-month-tooltip-link" style="color:${ROSE};cursor:pointer;font-size:14px;font-style:italic">Plan a date ›</span>
     </div>
   </div>`;
