@@ -162,7 +162,7 @@
     width: 100%; max-width: 402px;
     background: var(--nav-bg); border-top: 1px solid var(--nav-border);
     display: flex; justify-content: center; align-items: center;
-    height: 90px; box-sizing: border-box; z-index: 60; overflow: visible;
+    height: 90px; box-sizing: border-box; z-index: 75; overflow: visible;
   }
   #bottom-nav-inner {
     display: flex; justify-content: space-around; align-items: center;
@@ -477,7 +477,7 @@
     background: var(--bg); border-radius: 20px 20px 0 0;
     border-top: 1px solid var(--border); border-left: 1px solid var(--border); border-right: 1px solid var(--border);
     display: none;
-    z-index: 56; box-shadow: 0 -8px 32px rgba(0,0,0,0.08);
+    z-index: 70; box-shadow: 0 -8px 32px rgba(0,0,0,0.08);
   }
   #idea-sheet { flex-direction: column; overflow: visible; height: calc(70vh); max-height: calc(70vh); }
   #todo-sheet { overflow-y: auto; padding: 20px 20px 24px; }
@@ -673,7 +673,7 @@
         </svg>
       </div>
     </button>
-    <button class="nav-tab" onclick="navigate('calendar')" id="tab-calendar">
+    <button class="nav-tab" onclick="navigate('calendar', true)" id="tab-calendar">
       <svg viewBox="0 0 24 24" width="22" height="22" stroke="#b0a090" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" id="icon-calendar">
         <rect x="3" y="4" width="18" height="18" rx="2"/>
         <line x1="16" y1="2" x2="16" y2="6"/>
@@ -681,7 +681,7 @@
         <line x1="3" y1="10" x2="21" y2="10"/>
       </svg>
     </button>
-    <button class="nav-tab" onclick="navigate('todo')" id="tab-todo">
+    <button class="nav-tab" onclick="navigate('todo', true)" id="tab-todo">
       <svg viewBox="0 0 24 24" width="22" height="22" stroke="#b0a090" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" id="icon-todo"><rect x="3" y="3" width="18" height="18" rx="3"/><polyline points="9 12 11 14 15 10"/></svg>
     </button>
   </div><!-- /bottom-nav-inner -->
@@ -910,7 +910,7 @@
         </svg>
         <div style="flex:1;min-width:0">
           <div id="date-picker-wrap" style="position:relative;margin-bottom:8px">
-            <div id="date-picker-scroll" style="overflow-x:scroll;overflow-y:visible;scrollbar-width:none;-ms-overflow-style:none;border-radius:14px;border:1px solid var(--border);background:var(--popup-week-bg);scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch">
+            <div id="date-picker-scroll" style="overflow-x:scroll;overflow-y:visible;scrollbar-width:none;-ms-overflow-style:none;border-radius:14px;border:1px solid var(--border);background:var(--popup-week-bg);scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;touch-action:pan-x">
               <div id="date-picker-inner" style="display:flex;width:max-content"></div>
             </div>
             <div id="date-picker-tooltip" class="picker-tooltip"></div>
@@ -2545,7 +2545,7 @@ function toggleDarkMode() {
   setAppearance(newMode);
 }
 
-function navigate(view) {
+function navigate(view, _fromTab) {
   // Check if todo sheet is open — treat same as idea sheet being open
   const _todoSheetEl = document.getElementById('todo-sheet');
   const _todoSheetOpen = _todoSheetEl && _todoSheetEl.style.display === 'block';
@@ -2576,6 +2576,11 @@ function navigate(view) {
     document.getElementById('app').classList.remove('ideas-nav');
   }
   render();
+  // When tapping a bottom nav tab directly, open the corresponding new popup
+  if (_fromTab) {
+    if (view === 'calendar') setTimeout(() => openSheet('date'), 0);
+    else if (view === 'todo') setTimeout(() => openTodoAdd(), 0);
+  }
 }
 
 function setIdeasFilter(f) {
@@ -7120,6 +7125,21 @@ function _initPickerStrip(prefix, targetPage) {
   if (!scroll._pickerScrollHandler) {
     scroll._pickerScrollHandler = () => _closePickerTooltip(prefix);
     scroll.addEventListener('scroll', scroll._pickerScrollHandler, { passive: true });
+  }
+
+  // iOS fix: stop parent vertical scroll from stealing horizontal swipes
+  if (!scroll._touchGuardAttached) {
+    scroll._touchGuardAttached = true;
+    let _tsX = 0, _tsY = 0;
+    scroll.addEventListener('touchstart', e => {
+      _tsX = e.touches[0].clientX;
+      _tsY = e.touches[0].clientY;
+    }, { passive: true });
+    scroll.addEventListener('touchmove', e => {
+      const dx = Math.abs(e.touches[0].clientX - _tsX);
+      const dy = Math.abs(e.touches[0].clientY - _tsY);
+      if (dx > dy) e.preventDefault();
+    }, { passive: false });
   }
 }
 
