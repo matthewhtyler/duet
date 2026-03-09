@@ -230,7 +230,6 @@
     background: var(--week-strip-bg);
     scroll-snap-type: x mandatory;
     -webkit-overflow-scrolling: touch;
-    touch-action: pan-x;
   }
   #week-strip-scroll::-webkit-scrollbar { display: none; }
   #week-strip-inner {
@@ -910,7 +909,7 @@
         </svg>
         <div style="flex:1;min-width:0">
           <div id="date-picker-wrap" style="position:relative;margin-bottom:8px">
-            <div id="date-picker-scroll" style="overflow-x:scroll;overflow-y:visible;scrollbar-width:none;-ms-overflow-style:none;border-radius:14px;border:1px solid var(--border);background:var(--popup-week-bg);scroll-snap-type:x mandatory;touch-action:pan-x">
+            <div id="date-picker-scroll" style="overflow-x:scroll;overflow-y:visible;scrollbar-width:none;-ms-overflow-style:none;border-radius:14px;border:1px solid var(--border);background:var(--popup-week-bg);scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch">
               <div id="date-picker-inner" style="display:flex;width:max-content"></div>
             </div>
             <div id="date-picker-tooltip" class="picker-tooltip"></div>
@@ -6902,21 +6901,6 @@ function _initWeekStrip() {
     requestAnimationFrame(() => { scroll.style.scrollSnapType = 'x mandatory'; });
   }
   scroll.addEventListener('scroll', closeWeekTooltip, { passive: true });
-
-  // iOS fix: prevent parent vertical scroller from stealing horizontal swipes
-  if (!scroll._touchGuardAttached) {
-    scroll._touchGuardAttached = true;
-    let _tsX = 0, _tsY = 0;
-    scroll.addEventListener('touchstart', e => {
-      _tsX = e.touches[0].clientX;
-      _tsY = e.touches[0].clientY;
-    }, { passive: true });
-    scroll.addEventListener('touchmove', e => {
-      const dx = Math.abs(e.touches[0].clientX - _tsX);
-      const dy = Math.abs(e.touches[0].clientY - _tsY);
-      if (dx > dy) e.stopPropagation(); // horizontal — keep it
-    }, { passive: true });
-  }
 }
 
 function selectWeekDate(idx) {
@@ -7120,27 +7104,6 @@ function _initPickerStrip(prefix, targetPage) {
   if (!scroll._pickerScrollHandler) {
     scroll._pickerScrollHandler = () => _closePickerTooltip(prefix);
     scroll.addEventListener('scroll', scroll._pickerScrollHandler, { passive: true });
-  }
-
-  // iOS: intercept at the wrap level with non-passive touchstart so we get to preventDefault
-  // before the browser commits the gesture to a scroll container
-  const wrap = document.getElementById(prefix + '-picker-wrap');
-  if (wrap && !wrap._touchGuardAttached) {
-    wrap._touchGuardAttached = true;
-    let _gx = 0, _gy = 0, _decided = false, _isH = false;
-    wrap.addEventListener('touchstart', e => {
-      _gx = e.touches[0].clientX;
-      _gy = e.touches[0].clientY;
-      _decided = false; _isH = false;
-    }, { passive: false });
-    wrap.addEventListener('touchmove', e => {
-      if (!_decided) {
-        const dx = Math.abs(e.touches[0].clientX - _gx);
-        const dy = Math.abs(e.touches[0].clientY - _gy);
-        if (dx > 4 || dy > 4) { _decided = true; _isH = dx > dy; }
-      }
-      if (_isH) e.preventDefault();
-    }, { passive: false });
   }
 }
 
@@ -7726,8 +7689,8 @@ function renderDateSheetUI() {
   _sheet.style.maxHeight = 'calc(90vh)';
   _sheet.style.overflow = 'hidden';
   const _body = document.getElementById('idea-sheet-body');
-  _body.style.flex = '';
-  _body.style.overflowY = 'visible';
+  _body.style.flex = '1';
+  _body.style.overflowY = 'auto';
   _body.style.paddingBottom = '36px';
   document.getElementById('sheet-title').textContent = 'New Date';
   const toggle = document.getElementById('sheet-type-toggle');
