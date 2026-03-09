@@ -673,7 +673,7 @@
         </svg>
       </div>
     </button>
-    <button class="nav-tab" onclick="navigate('calendar', true)" id="tab-calendar">
+    <button class="nav-tab" onclick="navigate('calendar')" id="tab-calendar">
       <svg viewBox="0 0 24 24" width="22" height="22" stroke="#b0a090" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" id="icon-calendar">
         <rect x="3" y="4" width="18" height="18" rx="2"/>
         <line x1="16" y1="2" x2="16" y2="6"/>
@@ -681,7 +681,7 @@
         <line x1="3" y1="10" x2="21" y2="10"/>
       </svg>
     </button>
-    <button class="nav-tab" onclick="navigate('todo', true)" id="tab-todo">
+    <button class="nav-tab" onclick="navigate('todo')" id="tab-todo">
       <svg viewBox="0 0 24 24" width="22" height="22" stroke="#b0a090" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" id="icon-todo"><rect x="3" y="3" width="18" height="18" rx="3"/><polyline points="9 12 11 14 15 10"/></svg>
     </button>
   </div><!-- /bottom-nav-inner -->
@@ -910,7 +910,7 @@
         </svg>
         <div style="flex:1;min-width:0">
           <div id="date-picker-wrap" style="position:relative;margin-bottom:8px">
-            <div id="date-picker-scroll" style="overflow-x:scroll;overflow-y:visible;scrollbar-width:none;-ms-overflow-style:none;border-radius:14px;border:1px solid var(--border);background:var(--popup-week-bg);scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;touch-action:pan-x">
+            <div id="date-picker-scroll" style="overflow-x:scroll;overflow-y:visible;scrollbar-width:none;-ms-overflow-style:none;border-radius:14px;border:1px solid var(--border);background:var(--popup-week-bg);scroll-snap-type:x mandatory;touch-action:pan-x">
               <div id="date-picker-inner" style="display:flex;width:max-content"></div>
             </div>
             <div id="date-picker-tooltip" class="picker-tooltip"></div>
@@ -2545,7 +2545,7 @@ function toggleDarkMode() {
   setAppearance(newMode);
 }
 
-function navigate(view, _fromTab) {
+function navigate(view) {
   // Check if todo sheet is open — treat same as idea sheet being open
   const _todoSheetEl = document.getElementById('todo-sheet');
   const _todoSheetOpen = _todoSheetEl && _todoSheetEl.style.display === 'block';
@@ -2576,11 +2576,6 @@ function navigate(view, _fromTab) {
     document.getElementById('app').classList.remove('ideas-nav');
   }
   render();
-  // When tapping a bottom nav tab directly, open the corresponding new popup
-  if (_fromTab) {
-    if (view === 'calendar') setTimeout(() => openSheet('date'), 0);
-    else if (view === 'todo') setTimeout(() => openTodoAdd(), 0);
-  }
 }
 
 function setIdeasFilter(f) {
@@ -7127,18 +7122,24 @@ function _initPickerStrip(prefix, targetPage) {
     scroll.addEventListener('scroll', scroll._pickerScrollHandler, { passive: true });
   }
 
-  // iOS fix: stop parent vertical scroll from stealing horizontal swipes
-  if (!scroll._touchGuardAttached) {
-    scroll._touchGuardAttached = true;
-    let _tsX = 0, _tsY = 0;
-    scroll.addEventListener('touchstart', e => {
-      _tsX = e.touches[0].clientX;
-      _tsY = e.touches[0].clientY;
-    }, { passive: true });
-    scroll.addEventListener('touchmove', e => {
-      const dx = Math.abs(e.touches[0].clientX - _tsX);
-      const dy = Math.abs(e.touches[0].clientY - _tsY);
-      if (dx > dy) e.preventDefault();
+  // iOS: intercept at the wrap level with non-passive touchstart so we get to preventDefault
+  // before the browser commits the gesture to a scroll container
+  const wrap = document.getElementById(prefix + '-picker-wrap');
+  if (wrap && !wrap._touchGuardAttached) {
+    wrap._touchGuardAttached = true;
+    let _gx = 0, _gy = 0, _decided = false, _isH = false;
+    wrap.addEventListener('touchstart', e => {
+      _gx = e.touches[0].clientX;
+      _gy = e.touches[0].clientY;
+      _decided = false; _isH = false;
+    }, { passive: false });
+    wrap.addEventListener('touchmove', e => {
+      if (!_decided) {
+        const dx = Math.abs(e.touches[0].clientX - _gx);
+        const dy = Math.abs(e.touches[0].clientY - _gy);
+        if (dx > 4 || dy > 4) { _decided = true; _isH = dx > dy; }
+      }
+      if (_isH) e.preventDefault();
     }, { passive: false });
   }
 }
@@ -7387,23 +7388,6 @@ function openSheet(type) {
   document.getElementById('btn-new-icon-check').style.display = 'block';
   setTimeout(() => { document.getElementById('sheet-overlay').style.display = 'block'; }, 0);
   _syncAllClearable();
-  // iOS: attach sheet-level guard once to prevent window scroll stealing picker swipes
-  const _sheet = document.getElementById('idea-sheet');
-  if (_sheet && !_sheet._pickerSwipeGuard) {
-    _sheet._pickerSwipeGuard = true;
-    let _gStartX = 0, _gStartY = 0, _gInPicker = false;
-    _sheet.addEventListener('touchstart', e => {
-      _gStartX = e.touches[0].clientX;
-      _gStartY = e.touches[0].clientY;
-      _gInPicker = !!e.target.closest('#date-picker-scroll');
-    }, { passive: true });
-    _sheet.addEventListener('touchmove', e => {
-      if (!_gInPicker) return;
-      const dx = Math.abs(e.touches[0].clientX - _gStartX);
-      const dy = Math.abs(e.touches[0].clientY - _gStartY);
-      if (dx > dy) e.preventDefault();
-    }, { passive: false });
-  }
 }
 
 function switchSheetType(type) {
