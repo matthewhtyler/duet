@@ -1466,6 +1466,15 @@
           <option value="favorites">Favorites</option>
         </select>
       </div>
+      <div style="padding:0 20px 20px">
+        <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer">
+          <input type="checkbox" id="editideas-incomplete-mode" style="margin-top:3px;flex-shrink:0;accent-color:#a05268;width:15px;height:15px;cursor:pointer">
+          <div>
+            <div style="font-family:sans-serif;font-size:14px;font-weight:600;color:var(--text-primary)">Incomplete mode</div>
+            <div style="font-family:sans-serif;font-size:12px;color:var(--text-secondary);margin-top:2px">Shows only incomplete ideas for easier completion.</div>
+          </div>
+        </label>
+      </div>
       <div style="padding:14px 20px;flex-shrink:0;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px">
         <button onclick="closeEditIdeasScreen()" style="padding:10px 16px;background:none;border:1.5px solid #ede9e2;border-radius:10px;font-family:sans-serif;font-size:13px;font-weight:600;color:#9a8a7a;cursor:pointer" class="btn-outline">Cancel</button>
         <button onclick="saveEditIdeasScreen()" style="padding:10px 20px;background:#a05268;border:none;border-radius:10px;font-family:sans-serif;font-size:13px;font-weight:600;color:#fff;cursor:pointer">Save</button>
@@ -2228,6 +2237,7 @@ let partnerAddress = appSettings.partnerAddress || '';
 let partnerPronouns = appSettings.partnerPronouns || 'she/her';
 let hidePrivate = appSettings.hidePrivate || false;
 let additionalTab = appSettings.additionalTab || 'neighborhood'; // 'favorites' | 'neighborhood'
+let incompleteMode = appSettings.incompleteMode === true ? true : false;
 let homeIdeasFilter = appSettings.homeIdeasFilter || 'out'; // 'out' | 'in' | 'all'
 // Month calendar on home screen — separate month/year state from Calendar screen
 let _homeMonthCalYear  = new Date().getFullYear();
@@ -3432,6 +3442,12 @@ function renderIdeas() {
   if (ideasFilter === 'in')   pool = pool.filter(i => i.type === 'in');
   if (ideasFilter === 'favs') pool = pool.filter(i => i.saved);
 
+  // Incomplete mode: when All tab selected, show only Out ideas missing image URLs
+  if (incompleteMode && ideasFilter === 'all') {
+    const outNoImages = pool.filter(i => i.type === 'out' && (!i.imageUrls || i.imageUrls.filter(Boolean).length === 0));
+    if (outNoImages.length > 0) pool = outNoImages;
+  }
+
 
   // ── Control bar: toggle LEFT, search pill RIGHT
   const _isDarkMode = document.body.classList.contains('dark-mode');
@@ -3983,6 +3999,12 @@ function _renderIdeasBody() {
   if (ideasFilter === 'in')   pool = pool.filter(i => i.type === 'in');
   if (ideasFilter === 'favs') pool = pool.filter(i => i.saved);
 
+  // Incomplete mode: when All tab selected, show only Out ideas missing image URLs
+  if (incompleteMode && ideasFilter === 'all') {
+    const outNoImages = pool.filter(i => i.type === 'out' && (!i.imageUrls || i.imageUrls.filter(Boolean).length === 0));
+    if (outNoImages.length > 0) pool = outNoImages;
+  }
+
   // Update clear button
   const inp = document.getElementById('ideas-search-input');
   const pill = inp && inp.parentElement;
@@ -4282,11 +4304,12 @@ function _todoRow(t, noDivider) {
   // Sub line: in idea-group mode show priority; otherwise show attachment title
   const _isResTickets = t.task === 'Make a reservation' || t.task === 'Buy tickets';
   const _linkColor = t.done ? '#b0a090' : (document.body.classList.contains('dark-mode') ? '#dcd6ce' : '#2a1f1f');
+  const _isHomeCtx = noDivider === 'home';
   let subHtml;
-  if (noDivider === 'showPriority' || _todoGroupBy === 'idea') {
+  if (!_isHomeCtx && (_todoGroupBy === 'idea') && currentView === 'todo') {
     const PRIORITY_LABELS2 = { high: 'Next', normal: 'Soon', low: 'Eventually' };
     const _priLabel = PRIORITY_LABELS2[t.priority] || 'Soon';
-    subHtml = `<div style="font-size:11px;margin-top:3px;font-family:sans-serif;font-weight:500;letter-spacing:0.03em;color:#9a8a7a">${_priLabel}</div>`;
+    subHtml = `<div style="font-size:11px;margin-top:3px;font-family:sans-serif;font-weight:500;letter-spacing:0.03em;color:${textColor}">${_priLabel}</div>`;
   } else if (_ideaTitle && _ideaClick) {
     const _subLink = `<a onclick="event.stopPropagation();${_ideaClick}" style="color:${t.done?'#b0a090':textColor};font-weight:500;cursor:pointer;text-decoration:none">${_ideaTitle}</a>`;
     subHtml = `<div style="font-size:11px;margin-top:3px;font-family:sans-serif;font-weight:500;letter-spacing:0.03em">${_subLink}</div>`;
@@ -5218,7 +5241,7 @@ function renderHome() {
           '<span class="section-label">To Do</span>' +
           '<span style="font-size:11px;color:#9a8a7a;font-family:sans-serif;letter-spacing:0.05em;line-height:1">›</span>' +
         '</button>' +
-        '<div style="padding:0 10px">' + visible.map(t => _todoRow(t)).join('') + '</div>' +
+        '<div style="padding:0 10px">' + visible.map(t => _todoRow(t, 'home')).join('') + '</div>' +
         '</div>';
     }
     return '';
@@ -10360,6 +10383,7 @@ async function exportAllData() {
       appearance: _appearance,
       homeScreenConfig: homeScreenConfig,
       homeIdeasFilter: homeIdeasFilter,
+      incompleteMode: incompleteMode,
     },
     appearance: _appearance,
   };
@@ -10428,6 +10452,8 @@ function openEditMainScreen() {
 function openEditIdeasScreen() {
   const sel = document.getElementById('editideas-additional-tab');
   if (sel) sel.value = additionalTab || 'neighborhood';
+  const cb = document.getElementById('editideas-incomplete-mode');
+  if (cb) cb.checked = incompleteMode === true;
   document.getElementById('editideas-overlay').style.display = 'flex';
 }
 function closeEditIdeasScreen() {
@@ -10435,7 +10461,10 @@ function closeEditIdeasScreen() {
 }
 function saveEditIdeasScreen() {
   const sel = document.getElementById('editideas-additional-tab');
-  if (sel) { additionalTab = sel.value; appSettings.additionalTab = additionalTab; saveSettings(appSettings); }
+  if (sel) { additionalTab = sel.value; appSettings.additionalTab = additionalTab; }
+  const cb = document.getElementById('editideas-incomplete-mode');
+  if (cb) { incompleteMode = cb.checked; appSettings.incompleteMode = incompleteMode; }
+  saveSettings(appSettings);
   closeEditIdeasScreen();
   if (currentView === 'ideas') render();
 }
@@ -11317,6 +11346,7 @@ function handleImportFile(e) {
       if (s.additionalTab !== undefined) additionalTab         = s.additionalTab;
       if (s.homeIdeasFilter !== undefined) homeIdeasFilter      = s.homeIdeasFilter;
       if (s.homeScreenConfig !== undefined) { homeScreenConfig = s.homeScreenConfig; appSettings.homeScreenConfig = homeScreenConfig; }
+      if (s.incompleteMode !== undefined) { incompleteMode = s.incompleteMode === true; appSettings.incompleteMode = incompleteMode; }
       // Sync appSettings and persist
       appSettings.homeAddress          = homeAddress;
       appSettings.partnerAddress       = partnerAddress;
@@ -11326,6 +11356,7 @@ function handleImportFile(e) {
       appSettings.additionalTab        = additionalTab;
       appSettings.homeIdeasFilter      = homeIdeasFilter;
       appSettings.homeScreenConfig     = homeScreenConfig;
+      appSettings.incompleteMode       = incompleteMode;
       saveSettings(appSettings);
       // Refresh Settings popup fields if open
       const _saEl = document.getElementById('settings-overlay');
