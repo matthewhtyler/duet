@@ -4279,11 +4279,15 @@ function _todoRow(t, noDivider) {
     mainHtml = `<span style="${baseStyle}">${t.task}</span>`;
   }
 
-  // Sub line: always show attachment title if present; never show priority
+  // Sub line: in idea-group mode show priority; otherwise show attachment title
   const _isResTickets = t.task === 'Make a reservation' || t.task === 'Buy tickets';
   const _linkColor = t.done ? '#b0a090' : (document.body.classList.contains('dark-mode') ? '#dcd6ce' : '#2a1f1f');
   let subHtml;
-  if (_ideaTitle && _ideaClick) {
+  if (noDivider === 'showPriority' || _todoGroupBy === 'idea') {
+    const PRIORITY_LABELS2 = { high: 'Next', normal: 'Soon', low: 'Eventually' };
+    const _priLabel = PRIORITY_LABELS2[t.priority] || 'Soon';
+    subHtml = `<div style="font-size:11px;margin-top:3px;font-family:sans-serif;font-weight:500;letter-spacing:0.03em;color:#9a8a7a">${_priLabel}</div>`;
+  } else if (_ideaTitle && _ideaClick) {
     const _subLink = `<a onclick="event.stopPropagation();${_ideaClick}" style="color:${t.done?'#b0a090':textColor};font-weight:500;cursor:pointer;text-decoration:none">${_ideaTitle}</a>`;
     subHtml = `<div style="font-size:11px;margin-top:3px;font-family:sans-serif;font-weight:500;letter-spacing:0.03em">${_subLink}</div>`;
   } else {
@@ -9383,7 +9387,9 @@ function openDateInfo(u, memoryMode) {
 
   // Commute — pull from matched idea (subwayRoute / walkDriveTime live on idea, not date)
   const commuteIdea = ideas.find(i => i.name && u.venue && i.name.toLowerCase() === u.venue.toLowerCase());
-  const skipCommute = u.inLocation === 'my_place' || (commuteIdea && commuteIdea.type === 'in' && !u.inLocation);
+  const _diDateObj = u.year && u.month && u.day ? new Date(u.year, (MONTH_NUMS[u.month]||0), u.day) : null;
+  const _diIsPast = memoryMode || (_diDateObj && _diDateObj < new Date(new Date().setHours(0,0,0,0)));
+  const skipCommute = _diIsPast || u.inLocation === 'my_place' || (commuteIdea && commuteIdea.type === 'in' && !u.inLocation);
   const subwayVal = !skipCommute && commuteIdea ? (commuteIdea.subwayRoute || '') : '';
   const wdVal = !skipCommute && commuteIdea ? (commuteIdea.walkDriveTime || '') : '';
   const commuteRow = document.getElementById('di-commute-row');
