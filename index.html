@@ -2620,6 +2620,7 @@ function setInTabFilter(f) {
 }
 function goToNeighborhood(name) {
   closeDetail();
+  closeDateInfo();
   currentView = 'ideas';
   ideasFilter = 'favs'; // 'favs' triggers the additionalTab content
   additionalTab = 'neighborhood';
@@ -9365,6 +9366,8 @@ function openDateInfo(u, memoryMode) {
   const neighRow = document.getElementById('di-neighborhood-row');
   const neighSpan = document.getElementById('di-neighborhood');
   if (neighRow) neighRow.style.display = _neighVal ? 'flex' : 'none';
+  if (neighRow && _neighVal) neighRow.onclick = () => goToNeighborhood(_neighVal);
+  if (neighRow) neighRow.style.cursor = _neighVal ? 'pointer' : '';
   if (neighSpan) neighSpan.textContent = _neighVal;
   const addrRow = document.getElementById('di-address-row');
   if (addrVal) {
