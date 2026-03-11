@@ -3650,7 +3650,7 @@ function _buildIdeasBody(pool, q, byName, isFavFilter) {
     const subLine = sub
       ? `<div class="quick-row-sub" style="display:flex;align-items:center;color:${_subColor}">${sub}${calIcon}</div>`
       : (hasDate ? `<div class="quick-row-sub" style="display:flex;align-items:center">${calIcon}</div>` : '');
-    return `<div class="quick-row" onclick="editIdea(${item.id})" style="cursor:pointer;overflow:hidden">
+    return `<div class="quick-row" onclick="editIdea(${item.id});setTimeout(()=>{const b=document.getElementById('pf-img-count-box');if(b)b.click();},120)" style="cursor:pointer;overflow:hidden">
       <div style="flex:1;min-width:0">
         <div style="display:flex;align-items:center;gap:7px;margin-bottom:${subLine?'4px':'0'}">
           ${ideaIcon(item, 14, accent)}
@@ -3661,8 +3661,8 @@ function _buildIdeasBody(pool, q, byName, isFavFilter) {
     </div>`;
   }
 
-  const turnOffLink = `<div style="display:flex;justify-content:center;margin-top:12px;margin-bottom:8px">
-    <span style="font-size:14px;font-style:italic;color:#b0a090;cursor:pointer" onclick="incompleteMode=false;appSettings.incompleteMode=false;saveSettings(appSettings);_renderIdeasBody()">Turn incomplete mode off ›</span>
+  const turnOffLink = `<div style="display:flex;justify-content:center;margin-top:30px;margin-bottom:8px">
+    <span style="font-size:14px;font-style:italic;color:${ROSE};cursor:pointer" onclick="incompleteMode=false;appSettings.incompleteMode=false;saveSettings(appSettings);_renderIdeasBody()">Turn incomplete mode off ›</span>
   </div>`;
 
   let sectionsHtml = '';
