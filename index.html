@@ -903,22 +903,8 @@
         <input class="field-input" id="date-custom-name" type="text" placeholder="Place / activity" style="flex:1;margin-bottom:0">
       </div>
       <div id="date-custom-cat-wrap" style="display:none;align-items:center;gap:10px;margin-bottom:18px">
-        <div style="width:18px;flex-shrink:0"></div>
-        <select class="field-input" id="date-custom-category" style="flex:1;margin-bottom:0">
-          <option value="restaurant">Restaurant</option>
-          <option value="bar">Bar</option>
-          <option value="cafe">Cafe</option>
-          <option value="movie">Movie</option>
-          <option value="museum">Museum</option>
-          <option value="bookstore">Bookstore</option>
-          <option value="livemusic">Live Music</option>
-          <option value="livejazz">Live Jazz</option>
-          <option value="concert">Concert</option>
-          <option value="livecomedy">Live Comedy</option>
-          <option value="theatre">Theatre</option>
-          <option value="venue">Venue</option>
-          <option value="park">Park</option>
-          <option value="other">Other</option>
+        <button id="date-custom-cat-icon" onclick="openCustomDateIconPicker('new')" title="Change icon" style="width:18px;height:18px;flex-shrink:0;background:none;border:none;cursor:pointer;padding:0;display:flex;align-items:center;justify-content:center"></button>
+        <select class="field-input" id="date-custom-category" style="flex:1;margin-bottom:0" onchange="if(this.value==='__edit_custom_cats__'){this.value=this.dataset.prev||'';openEditCategories('custom');}else{this.dataset.prev=this.value;_customDateCustomIconKey=null;_renderCustomDateCatIcon('new');}">
         </select>
       </div>
       <!-- Calendar icon + week picker on same row -->
@@ -1198,22 +1184,8 @@
           <input class="field-input" id="ed-custom-name" type="text" placeholder="Place / activity" style="flex:1;margin-bottom:0">
         </div>
         <div id="ed-custom-cat-wrap" style="display:none;align-items:center;gap:10px;margin-bottom:18px">
-          <div style="width:18px;flex-shrink:0"></div>
-          <select class="field-input" id="ed-custom-category" style="flex:1;margin-bottom:0">
-            <option value="restaurant">Restaurant</option>
-            <option value="bar">Bar</option>
-            <option value="cafe">Cafe</option>
-            <option value="movie">Movie</option>
-            <option value="museum">Museum</option>
-            <option value="bookstore">Bookstore</option>
-            <option value="livemusic">Live Music</option>
-            <option value="livejazz">Live Jazz</option>
-            <option value="concert">Concert</option>
-            <option value="livecomedy">Live Comedy</option>
-            <option value="theatre">Theatre</option>
-            <option value="venue">Venue</option>
-            <option value="park">Park</option>
-            <option value="other">Other</option>
+          <button id="ed-custom-cat-icon" onclick="openCustomDateIconPicker('edit')" title="Change icon" style="width:18px;height:18px;flex-shrink:0;background:none;border:none;cursor:pointer;padding:0;display:flex;align-items:center;justify-content:center"></button>
+          <select class="field-input" id="ed-custom-category" style="flex:1;margin-bottom:0" onchange="if(this.value==='__edit_custom_cats__'){this.value=this.dataset.prev||'';openEditCategories('custom');}else{this.dataset.prev=this.value;_edCustomDateCustomIconKey=null;_renderCustomDateCatIcon('edit');}">
           </select>
         </div>
 
@@ -1460,8 +1432,9 @@
         <div style="font-size:17px;font-weight:700;color:var(--popup-title);margin-bottom:14px">Edit Categories</div>
         <!-- Out/In toggle -->
         <div id="editcats-toggle" style="display:flex;background:var(--toggle-bg);border-radius:8px;padding:3px;gap:2px">
-          <button onclick="editCatsSetType('out')" id="editcats-btn-out" style="flex:1;padding:6px;border:none;border-radius:6px;font-family:sans-serif;font-size:13px;font-weight:600;cursor:pointer;background:var(--toggle-active-bg);color:var(--toggle-active-color);box-shadow:0 1px 3px rgba(0,0,0,0.1)">Going Out</button>
-          <button onclick="editCatsSetType('in')" id="editcats-btn-in" style="flex:1;padding:6px;border:none;border-radius:6px;font-family:sans-serif;font-size:13px;font-weight:600;cursor:pointer;background:transparent;color:var(--text-secondary)">Staying In</button>
+          <button onclick="editCatsSetType('out')" id="editcats-btn-out" style="flex:1;padding:6px;border:none;border-radius:6px;font-family:sans-serif;font-size:13px;font-weight:600;cursor:pointer;background:var(--toggle-active-bg);color:var(--toggle-active-color);box-shadow:0 1px 3px rgba(0,0,0,0.1)">Out</button>
+          <button onclick="editCatsSetType('in')" id="editcats-btn-in" style="flex:1;padding:6px;border:none;border-radius:6px;font-family:sans-serif;font-size:13px;font-weight:600;cursor:pointer;background:transparent;color:var(--text-secondary)">In</button>
+          <button onclick="editCatsSetType('custom')" id="editcats-btn-custom" style="flex:1;padding:6px;border:none;border-radius:6px;font-family:sans-serif;font-size:13px;font-weight:600;cursor:pointer;background:transparent;color:var(--text-secondary)">Custom</button>
         </div>
       </div>
       <!-- List -->
@@ -2107,22 +2080,32 @@ const DEFAULT_IN_CATS = [
   {id:'game',       label:'Game',      iconKey:'game'},
   {id:'otherin',    label:'Other',     iconKey:'sofa'},
 ];
+const DEFAULT_CUSTOM_CATS = [
+  {id:'custom_dinner',    label:'Dinner',    iconKey:'dinner'},
+  {id:'custom_lunch',     label:'Lunch',     iconKey:'dinner'},
+  {id:'custom_coffee',    label:'Coffee',    iconKey:'coffee'},
+  {id:'custom_drinks',    label:'Drinks',    iconKey:'wine'},
+  {id:'custom_brunch',    label:'Brunch',    iconKey:'coffee'},
+  {id:'custom_breakfast', label:'Breakfast', iconKey:'coffee'},
+  {id:'custom_movie',     label:'Movie',     iconKey:'movie'},
+];
 
 const DEFAULT_SELECTED_CAT_IDS = ['restaurant','bar','cafe','museum','livecomedy','livejazz','theatre'];
 
 function loadCats() {
   try {
     const s = localStorage.getItem('ll_cats');
-    if (s) { const p = JSON.parse(s); return {out: p.out||DEFAULT_OUT_CATS, in: p.in||DEFAULT_IN_CATS, selectedCats: p.selectedCats||DEFAULT_SELECTED_CAT_IDS}; }
+    if (s) { const p = JSON.parse(s); return {out: p.out||DEFAULT_OUT_CATS, in: p.in||DEFAULT_IN_CATS, custom: p.custom||DEFAULT_CUSTOM_CATS.map(c=>({...c})), selectedCats: p.selectedCats||DEFAULT_SELECTED_CAT_IDS}; }
   } catch(e) {}
-  return {out: DEFAULT_OUT_CATS.map(c=>({...c})), in: DEFAULT_IN_CATS.map(c=>({...c})), selectedCats: [...DEFAULT_SELECTED_CAT_IDS]};
+  return {out: DEFAULT_OUT_CATS.map(c=>({...c})), in: DEFAULT_IN_CATS.map(c=>({...c})), custom: DEFAULT_CUSTOM_CATS.map(c=>({...c})), selectedCats: [...DEFAULT_SELECTED_CAT_IDS]};
 }
 function saveCats() {
-  try { localStorage.setItem('ll_cats', JSON.stringify({out: OUT_CATS, in: IN_CATS, selectedCats: [...SELECTED_CATS]})); } catch(e) {}
+  try { localStorage.setItem('ll_cats', JSON.stringify({out: OUT_CATS, in: IN_CATS, custom: CUSTOM_CATS, selectedCats: [...SELECTED_CATS]})); } catch(e) {}
 }
 const _loadedCats = loadCats();
 let OUT_CATS = _loadedCats.out;
 let IN_CATS  = _loadedCats.in;
+let CUSTOM_CATS = _loadedCats.custom;
 let SELECTED_CATS = new Set(_loadedCats.selectedCats || DEFAULT_SELECTED_CAT_IDS);
 
 // Lookup by id or label (for backward compat with old string-based data)
@@ -2403,6 +2386,14 @@ const ICONS = {
   mask: (s,c) => `<svg viewBox="-20 -10 459.9 299.81" width="${s}" height="${s}" fill="none" overflow="visible" stroke="${c}" stroke-width="35" stroke-linecap="round" stroke-linejoin="round"><path d="M418.97,65.7c1.54,24.87,1.28,57.72-1.64,82.55-4.01,34.04-15.4,63.1-37.28,89.44-6.22,7.49-12.91,13.64-20.68,19.46-22.29,16.69-47.52,24.62-75.5,22.25-14.16-1.19-27.29-5.77-39.35-13.15l-13.71-8.38c-13.83-8.46-30.92-7.46-44.68,1.01l-11.46,7.05c-11.8,7.26-24.58,11.81-38.49,13.27-14.73,1.55-28.98,0-42.96-4.86-20.04-6.98-37.65-19.16-51.7-35.06-17.13-19.39-28.92-42.52-34.89-67.7C.99,147.79.11,122.36,0,97.9-.11,70.83,2.15,32.69,11.47,7.41c.9-2.44,2.45-4.76,4.43-6.31,2.2-1.72,4.98-1.33,6.85.53l10.17,10.11c17.65,17.54,43.67,31.65,67.81,37.59l25.92,6.38c11.56,2.84,22.82,5.05,34.24,8.45s21.24,7.39,31.06,13.15l13.2,7.74c3.09,1.81,6.7,1.43,9.64-.3l11.7-6.89c39.14-23.07,86.77-19.31,131.09-43.89,14.78-8.2,27.34-18.99,38.45-31.59,2.31-2.62,5.85-3.3,8.4-.7,1.75,1.78,3.08,4.21,4.02,6.64,6.56,16.95,9.39,39.21,10.52,57.38ZM167.81,188.66c8.06-1.32,2.56-13.73.53-18.22-7.53-16.65-21.83-28.87-39.33-34.34-12.01-3.75-24.35-4.42-36.93-3.08-8.55.91-16.68,1.21-25.14-.15-2.71-.44-5.41-.79-8.18-.76s-4.47,2.88-4.05,5.33c.34,1.98.81,3.82,1.61,5.62,4.92,11.12,12.47,20.44,22.15,27.8,19.37,14.73,44.52,19.57,68.48,19.37,7.09-.06,13.69-.39,20.86-1.56ZM251.42,188.33c7.65,1.83,14.85,1.8,22.47,1.86,14.01.11,27.5-1.45,40.88-5.53,22.27-6.78,41.44-21.63,49.8-43.79.7-1.86.93-4.08.45-5.94-.98-3.78-7.32-2.8-10.57-2.27-20.49,3.3-28.12-1.55-46.1.1-10.31.95-20.04,3.41-29.17,8.24-15.74,8.33-27.39,22.72-31.38,40.05-.66,2.88.71,6.59,3.62,7.29Z"/></svg>`,
   webapp: (s,c) => svgIcon('<rect x="3" y="3" width="18" height="18" rx="4" ry="4"/>',s,c),
 };
+
+// Resolve a category id (e.g. 'custom_dinner') to its display label (e.g. 'Dinner')
+function _catIdToLabel(id) {
+  if (!id) return '';
+  const all = [...(OUT_CATS||[]), ...(IN_CATS||[]), ...(CUSTOM_CATS||[])];
+  const found = all.find(c => c.id === id);
+  return found ? found.label : id;
+}
 
 function activityIcon(cat, size, color, type) {
   // Try to find iconKey from category definitions first
@@ -3446,7 +3437,7 @@ function _buildBannerCard(u, opts) {
       ${dateBadge}
       <div style="flex:1;min-width:0">
         <div style="display:flex;align-items:center;gap:7px;margin-bottom:${subLine?'3px':'0'}">
-          ${ideaIcon(idea, 14, accent)}
+          ${idea ? ideaIcon(idea, 14, accent) : activityIcon(u.activity, 14, accent)}
           <div class="quick-row-name" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${u.venue||''}</div>
         </div>
         ${subLine ? `<div class="quick-row-sub" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${subLine}</div>` : ''}
@@ -4933,6 +4924,12 @@ function _dateCardSubNote(u) {
   // If the date has a note, show it (replaces shortdesc in the subline)
   if (u.note && u.note.trim()) return u.note.trim();
   const idea = u.ideaId ? ideas.find(i => i.id === u.ideaId) : ideas.find(i => i.name && u.venue && i.name.toLowerCase() === u.venue.toLowerCase());
+  // Custom-idea date: show category label
+  if (!idea && u.activity) {
+    const label = _catIdToLabel(u.activity);
+    if (label && label !== u.activity) return label; // resolved to a real label
+    if (u.activity && u.activity !== 'Other') return _catIdToLabel(u.activity);
+  }
   if (idea && idea.neighborhood && idea.neighborhood.trim()) return idea.neighborhood.trim();
   if (idea && idea.shortdesc && idea.shortdesc.trim()) return idea.shortdesc.trim();
   // Fall back to cuisine+category label for restaurant/cafe
@@ -5933,7 +5930,7 @@ function renderCalendar() {
 
     // Build header HTML for a given date entry
     function _buildIpHeader(u, accent, idea, clickable) {
-      const _ipIcon = ideaIcon(idea, 13, accent);
+      const _ipIcon = idea ? ideaIcon(idea, 13, accent) : activityIcon(u.activity, 13, accent);
       const _ipMonthAbbr = new Date(currentCalYear, currentCalMonth, selectedCalDay).toLocaleString('en-US',{month:'short'});
       const _ipTime = u.time ? _shortTime(u.time) : '';
       const _ipDateTimeParts = [`${_ipMonthAbbr} ${selectedCalDay}`, _ipTime].filter(Boolean);
@@ -7510,6 +7507,7 @@ function _resetDateForm() {
   _dateIsPrivate = null;
   _renderPrivacyBox('date-lock-icon', 'date-privacy-box', false, false);
   populateDateImageFields([]);
+  _customDateCustomIconKey = null;
   delete _imgSearchTermOverrides['date-image-fields'];
   const _dcs = document.getElementById('date-custom-category'); if (_dcs) _dcs.value = 'other';
 }
@@ -8379,6 +8377,7 @@ function selectCustomActivity() {
     document.getElementById('ed-activity-btn').style.borderColor = '#b0a090';
     document.getElementById('ed-custom-wrap').style.display = 'flex';
     { const _el = document.getElementById('ed-custom-cat-wrap'); if (_el) _el.style.display = 'flex'; }
+    _rebuildCustomDateDropdown('ed-custom-category', 'ed-custom-cat-icon');
     document.getElementById('ed-custom-name').value = '';
     document.getElementById('ed-location-wrap').style.display = 'block';
     _updateInLocationVisibility('ed', false);
@@ -8397,6 +8396,7 @@ function selectCustomActivity() {
   const _daib2 = document.getElementById('date-activity-info-btn'); if (_daib2) _daib2.style.display = 'none';
   document.getElementById('date-custom-wrap').style.display = 'flex';
   { const _el = document.getElementById('date-custom-cat-wrap'); if (_el) _el.style.display = 'flex'; }
+  _rebuildCustomDateDropdown('date-custom-category', 'date-custom-cat-icon');
   document.getElementById('date-custom-name').value = '';
   document.getElementById('date-custom-name').focus();
   showLocationText('');
@@ -9359,7 +9359,7 @@ function openDateInfo(u, memoryMode) {
     else { subtitle.style.display = 'none'; }
   } else {
     const catVal = u.category || u.activity || '';
-    if (catVal) { subtitle.textContent = catVal; subtitle.style.display = 'block'; }
+    if (catVal) { subtitle.textContent = _catIdToLabel(catVal); subtitle.style.display = 'block'; }
     else { subtitle.style.display = 'none'; }
   }
 
@@ -9749,10 +9749,16 @@ function populateEditDateFields(u) {
     document.getElementById('ed-activity-label').style.fontSize = '16px';
     document.getElementById('ed-activity-label').style.color = 'var(--text-primary)';
     document.getElementById('ed-custom-name').value = u.venue;
+    _rebuildCustomDateDropdown('ed-custom-category', 'ed-custom-cat-icon');
     const _edCatSel = document.getElementById('ed-custom-category');
-    if (_edCatSel) _edCatSel.value = u.activity || 'other';
+    if (_edCatSel) {
+      if (CUSTOM_CATS.find(c => c.id === u.activity)) _edCatSel.value = u.activity;
+      else _edCatSel.value = CUSTOM_CATS[0] ? CUSTOM_CATS[0].id : '';
+      _updateCustomCatIcon(_edCatSel.value, 'ed-custom-cat-icon');
+    }
     document.getElementById('ed-custom-wrap').style.display = 'flex';
     { const _el = document.getElementById('ed-custom-cat-wrap'); if (_el) _el.style.display = 'flex'; }
+    _rebuildCustomDateDropdown('ed-custom-category', 'ed-custom-cat-icon');
     document.getElementById('ed-location-wrap').style.display = 'block';
     _updateInLocationVisibility('ed', false);
     _edUpdateActivityEditBtn(false);
@@ -9845,6 +9851,7 @@ function closeEditDate() {
   document.getElementById('edit-date-overlay').style.display = 'none';
   ideasPickerContext = 'sheet';
   _editingMemory = null;
+  _edCustomDateCustomIconKey = null;
 }
 
 function saveEditDate() {
@@ -10436,7 +10443,7 @@ async function exportAllData() {
     staticPastDates: STATIC_PAST_DATES,
     memoryNotes: (() => { try { return JSON.parse(localStorage.getItem('ll_memories') || '{}'); } catch(e) { return {}; } })(),
     todos: todos.filter(t => !t.done),
-    categories: { out: OUT_CATS, in: IN_CATS, selectedCats: [...SELECTED_CATS] },
+    categories: { out: OUT_CATS, in: IN_CATS, custom: CUSTOM_CATS, selectedCats: [...SELECTED_CATS] },
     reservedDateKeys: [..._reservedDateKeys],
     settings: {
       homeAddress: homeAddress,
@@ -10483,6 +10490,7 @@ async function exportAllData() {
 let _ecType = 'out';
 let _ecOut = [];
 let _ecIn  = [];
+let _ecCustom = [];
 let _ecDragIdx = null;
 let _ecDragOverIdx = null;
 let _ecDelIdx = null;
@@ -10493,6 +10501,9 @@ let _ideaIconMode = false; // true when icon picker opened from Edit Idea
 let _pfCustomIconKey = null; // temp custom icon key while editing an idea (Edit Idea modal)
 let _ideaCustomIconKey = null; // temp custom icon key for New Idea sheet
 let _ideaIconNewMode = false; // true when icon picker opened from New Idea sheet
+let _customDateIconMode = null; // 'new' | 'edit' — tracks which date popup opened icon picker
+let _customDateCustomIconKey = null; // per-session custom icon override for New Date custom
+let _edCustomDateCustomIconKey = null; // per-session custom icon override for Edit Date custom
 let _webappIconKey = 'webapp'; // icon key for New Idea webapp icon
 let _pfWebappIconKey = 'webapp'; // icon key for Edit Idea webapp icon
 let _webappIconPickerMode = null; // 'new' | 'edit' — tracks which popup opened icon picker
@@ -10735,7 +10746,8 @@ function _emsAttachDrag() {
 function openEditCategories(startType) {
   _ecOut = OUT_CATS.map(c => ({...c}));
   _ecIn  = IN_CATS.map(c => ({...c}));
-  _ecType = (startType === 'in') ? 'in' : 'out';
+  _ecCustom = CUSTOM_CATS.map(c => ({...c}));
+  _ecType = (startType === 'in') ? 'in' : (startType === 'custom') ? 'custom' : 'out';
   _renderEcToggle();
   _renderEcList();
   document.getElementById('editcats-overlay').style.display = 'flex';
@@ -10750,8 +10762,8 @@ function editCatsSetType(t) {
   _renderEcToggle();
   _renderEcList();
 }
-function _ecCats() { return _ecType === 'in' ? _ecIn : _ecOut; }
-function _ecSetCats(arr) { if (_ecType === 'in') _ecIn = arr; else _ecOut = arr; }
+function _ecCats() { return _ecType === 'in' ? _ecIn : _ecType === 'custom' ? _ecCustom : _ecOut; }
+function _ecSetCats(arr) { if (_ecType === 'in') _ecIn = arr; else if (_ecType === 'custom') _ecCustom = arr; else _ecOut = arr; }
 function _flushEcNames() {
   const cats = _ecCats();
   cats.forEach((c, i) => {
@@ -10764,16 +10776,17 @@ function _flushEcNames() {
   });
 }
 function _renderEcToggle() {
-  const btnOut = document.getElementById('editcats-btn-out');
-  const btnIn  = document.getElementById('editcats-btn-in');
-  if (!btnOut || !btnIn) return;
-  const isOut = _ecType === 'out';
-  btnOut.style.background    = isOut ? 'var(--toggle-active-bg)' : 'transparent';
-  btnOut.style.color         = isOut ? 'var(--toggle-active-color)' : 'var(--text-secondary)';
-  btnOut.style.boxShadow     = isOut ? '0 1px 3px rgba(0,0,0,0.1)' : 'none';
-  btnIn.style.background     = !isOut ? 'var(--toggle-active-bg)' : 'transparent';
-  btnIn.style.color          = !isOut ? 'var(--toggle-active-color)' : 'var(--text-secondary)';
-  btnIn.style.boxShadow      = !isOut ? '0 1px 3px rgba(0,0,0,0.1)' : 'none';
+  const btnOut    = document.getElementById('editcats-btn-out');
+  const btnIn     = document.getElementById('editcats-btn-in');
+  const btnCustom = document.getElementById('editcats-btn-custom');
+  [btnOut, btnIn, btnCustom].forEach((btn, i) => {
+    if (!btn) return;
+    const types = ['out', 'in', 'custom'];
+    const active = _ecType === types[i];
+    btn.style.background  = active ? 'var(--toggle-active-bg)' : 'transparent';
+    btn.style.color       = active ? 'var(--toggle-active-color)' : 'var(--text-secondary)';
+    btn.style.boxShadow   = active ? '0 1px 3px rgba(0,0,0,0.1)' : 'none';
+  });
 }
 function _renderEcList() {
   const list = document.getElementById('editcats-list');
@@ -10998,6 +11011,17 @@ function closeIconPicker(save) {
     const defaultKey = _ideaDefaultIconKey(typeVal);
     _pfCustomIconKey = (_ecIconSelected && _ecIconSelected !== defaultKey) ? _ecIconSelected : null;
     _updatePfTypeIcon();
+  } else if (save && _customDateIconMode) {
+    // New/Edit Date custom category icon
+    const isNew = _customDateIconMode === 'new';
+    const selId = isNew ? 'date-custom-category' : 'ed-custom-category';
+    const sel = document.getElementById(selId);
+    const val = sel ? sel.value : '';
+    const defaultKey = _customCatIconKey(val);
+    const newCustomKey = (_ecIconSelected && _ecIconSelected !== defaultKey) ? _ecIconSelected : null;
+    if (isNew) _customDateCustomIconKey = newCustomKey;
+    else _edCustomDateCustomIconKey = newCustomKey;
+    _renderCustomDateCatIcon(_customDateIconMode);
   } else if (save && _ecIconIdx !== null && _ecIconSelected) {
     const cats = _ecCats();
     if (cats[_ecIconIdx]) {
@@ -11010,6 +11034,7 @@ function closeIconPicker(save) {
   _ecIconIdx = null;
   _ideaIconMode = false;
   _ideaIconNewMode = false;
+  _customDateIconMode = null;
   if (save && _webappIconPickerMode === 'new') {
     _webappIconKey = _ecIconSelected || 'webapp';
     _renderWebappIconBtn('idea-webapp-icon-btn', _webappIconKey);
@@ -11141,7 +11166,8 @@ function saveEditCategories() {
   // Apply new cats
   OUT_CATS = _ecOut.map(c => ({...c}));
   IN_CATS  = _ecIn.map(c => ({...c}));
-  saveCats(); // saves OUT_CATS, IN_CATS, and SELECTED_CATS
+  CUSTOM_CATS = _ecCustom.map(c => ({...c}));
+  saveCats(); // saves OUT_CATS, IN_CATS, CUSTOM_CATS, and SELECTED_CATS
 
   // Build new id->label maps
   const outNewMap = {}; OUT_CATS.forEach(c => { outNewMap[c.id] = c.label; });
@@ -11196,9 +11222,80 @@ function saveEditCategories() {
   render();
 }
 
+function _customCatIconKey(val) {
+  const cat = CUSTOM_CATS.find(c => c.id === val);
+  return (cat && cat.iconKey) || 'dinner';
+}
+function _rebuildCustomDateDropdown(selId, iconId) {
+  const sel = document.getElementById(selId);
+  if (!sel) return;
+  const prev = sel.value;
+  sel.innerHTML = `<option value="__edit_custom_cats__" style="color:#9a8a7a;font-style:italic">Edit categories…</option>`
+    + CUSTOM_CATS.map(c => `<option value="${c.id}">${c.label}</option>`).join('');
+  if (CUSTOM_CATS.find(c => c.id === prev)) sel.value = prev;
+  else sel.value = CUSTOM_CATS[0] ? CUSTOM_CATS[0].id : '';
+  const mode = selId === 'date-custom-category' ? 'new' : 'edit';
+  _renderCustomDateCatIcon(mode);
+}
+function _updateCustomCatIcon(val, iconId) {
+  const iconEl = document.getElementById(iconId);
+  if (!iconEl) return;
+  if (!val || val === '__edit_custom_cats__') { iconEl.innerHTML = ''; return; }
+  const key = _customCatIconKey(val);
+  const _dm = document.body.classList.contains('dark-mode');
+  iconEl.innerHTML = ICONS[key] ? ICONS[key](18, '#9a8a7a') : '';
+}
+function _renderCustomDateCatIcon(mode) {
+  const isNew = mode === 'new';
+  const selId  = isNew ? 'date-custom-category' : 'ed-custom-category';
+  const iconId = isNew ? 'date-custom-cat-icon'  : 'ed-custom-cat-icon';
+  const customKey = isNew ? _customDateCustomIconKey : _edCustomDateCustomIconKey;
+  const sel = document.getElementById(selId);
+  const val = sel ? sel.value : '';
+  const defaultKey = _customCatIconKey(val);
+  const isCustom = customKey && customKey !== defaultKey;
+  const iconKey = isCustom ? customKey : defaultKey;
+  const _dm = document.body.classList.contains('dark-mode');
+  const color = isCustom ? (_dm ? ROSE : BURGUNDY) : '#9a8a7a';
+  const iconEl = document.getElementById(iconId);
+  if (iconEl) iconEl.innerHTML = ICONS[iconKey] ? ICONS[iconKey](18, color) : '';
+}
+function openCustomDateIconPicker(mode) {
+  _customDateIconMode = mode;
+  _ecIconIdx = null;
+  _ideaIconMode = false;
+  _ideaIconNewMode = false;
+  const isNew = mode === 'new';
+  const selId = isNew ? 'date-custom-category' : 'ed-custom-category';
+  const customKey = isNew ? _customDateCustomIconKey : _edCustomDateCustomIconKey;
+  const sel = document.getElementById(selId);
+  const val = sel ? sel.value : '';
+  const defaultKey = _customCatIconKey(val);
+  const currentKey = customKey || defaultKey;
+  _ecIconSelected = currentKey;
+  _ecIconPrev = currentKey;
+  const grid = document.getElementById('iconpicker-grid');
+  if (!grid) return;
+  const _dm = document.body.classList.contains('dark-mode');
+  const _selC = _dm ? ROSE : BURGUNDY;
+  grid.innerHTML = ALL_ICON_KEYS.map(key => {
+    const sel2 = key === currentKey;
+    const prev2 = key === _ecIconPrev && !sel2;
+    const iconColor = sel2 ? _selC : prev2 ? ROSE : '#b0a090';
+    const bg = sel2 ? (_dm ? 'rgba(192,122,138,0.12)' : 'rgba(139,58,82,0.08)') : 'transparent';
+    const border = sel2 ? _selC : 'transparent';
+    return `<button onclick="_ecSelectIcon('${key}')" id="iconpicker-btn-${key}"
+      style="display:flex;align-items:center;justify-content:center;aspect-ratio:1;background:${bg};border:2px solid ${border};border-radius:10px;cursor:pointer;padding:7px">
+      ${ICONS[key] ? ICONS[key](22, iconColor) : ''}
+    </button>`;
+  }).join('');
+  document.getElementById('iconpicker-overlay').style.display = 'flex';
+}
 function _rebuildAllCatDropdowns() {
   _rebuildCatDropdown('out');
   _rebuildCatDropdown('in');
+  _rebuildCustomDateDropdown('date-custom-category', 'date-custom-cat-icon');
+  _rebuildCustomDateDropdown('ed-custom-category',   'ed-custom-cat-icon');
   // pf-type (places modal)
   const pfType = document.getElementById('pf-type');
   if (pfType) {
@@ -11395,6 +11492,7 @@ function handleImportFile(e) {
         };
         OUT_CATS = _mergeCats(OUT_CATS, data.categories.out);
         IN_CATS  = _mergeCats(IN_CATS,  data.categories.in);
+        if (Array.isArray(data.categories.custom)) CUSTOM_CATS = _mergeCats(CUSTOM_CATS, data.categories.custom);
         if (Array.isArray(data.categories.selectedCats)) {
           SELECTED_CATS = new Set(data.categories.selectedCats);
         }
