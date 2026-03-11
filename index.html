@@ -902,6 +902,25 @@
         <div style="width:18px;flex-shrink:0"></div>
         <input class="field-input" id="date-custom-name" type="text" placeholder="Place / activity" style="flex:1;margin-bottom:0">
       </div>
+      <div id="date-custom-cat-wrap" style="display:none;align-items:center;gap:10px;margin-bottom:18px">
+        <div style="width:18px;flex-shrink:0"></div>
+        <select class="field-input" id="date-custom-category" style="flex:1;margin-bottom:0">
+          <option value="restaurant">Restaurant</option>
+          <option value="bar">Bar</option>
+          <option value="cafe">Cafe</option>
+          <option value="movie">Movie</option>
+          <option value="museum">Museum</option>
+          <option value="bookstore">Bookstore</option>
+          <option value="livemusic">Live Music</option>
+          <option value="livejazz">Live Jazz</option>
+          <option value="concert">Concert</option>
+          <option value="livecomedy">Live Comedy</option>
+          <option value="theatre">Theatre</option>
+          <option value="venue">Venue</option>
+          <option value="park">Park</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
       <!-- Calendar icon + week picker on same row -->
       <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:8px">
         <svg viewBox="0 0 24 24" width="18" height="18" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:10px">
@@ -1177,6 +1196,25 @@
         <div id="ed-custom-wrap" style="display:none;align-items:center;gap:10px;margin-bottom:18px">
           <div style="width:18px;flex-shrink:0"></div>
           <input class="field-input" id="ed-custom-name" type="text" placeholder="Place / activity" style="flex:1;margin-bottom:0">
+        </div>
+        <div id="ed-custom-cat-wrap" style="display:none;align-items:center;gap:10px;margin-bottom:18px">
+          <div style="width:18px;flex-shrink:0"></div>
+          <select class="field-input" id="ed-custom-category" style="flex:1;margin-bottom:0">
+            <option value="restaurant">Restaurant</option>
+            <option value="bar">Bar</option>
+            <option value="cafe">Cafe</option>
+            <option value="movie">Movie</option>
+            <option value="museum">Museum</option>
+            <option value="bookstore">Bookstore</option>
+            <option value="livemusic">Live Music</option>
+            <option value="livejazz">Live Jazz</option>
+            <option value="concert">Concert</option>
+            <option value="livecomedy">Live Comedy</option>
+            <option value="theatre">Theatre</option>
+            <option value="venue">Venue</option>
+            <option value="park">Park</option>
+            <option value="other">Other</option>
+          </select>
         </div>
 
         <!-- Calendar icon + week picker on same row; date+time fields below -->
@@ -7473,6 +7511,7 @@ function _resetDateForm() {
   _renderPrivacyBox('date-lock-icon', 'date-privacy-box', false, false);
   populateDateImageFields([]);
   delete _imgSearchTermOverrides['date-image-fields'];
+  const _dcs = document.getElementById('date-custom-category'); if (_dcs) _dcs.value = 'other';
 }
 
 function _resetTodoForm() {
@@ -7772,6 +7811,7 @@ function renderDateSheetUI() {
   document.getElementById('date-activity-label').style.color = 'var(--text-placeholder)';
   document.getElementById('date-activity-btn').style.borderColor = document.body.classList.contains('dark-mode') ? 'var(--border)' : '#ede9e2';
   document.getElementById('date-custom-wrap').style.display = 'none';
+  { const _el = document.getElementById('date-custom-cat-wrap'); if (_el) _el.style.display = 'none'; }
   const _daib3 = document.getElementById('date-activity-info-btn'); if (_daib3) _daib3.style.display = 'none';
   document.getElementById('date-custom-name').value = '';
   // Hide location until Custom is selected
@@ -8338,6 +8378,7 @@ function selectCustomActivity() {
     document.getElementById('ed-activity-label').style.color = 'var(--text-primary)';
     document.getElementById('ed-activity-btn').style.borderColor = '#b0a090';
     document.getElementById('ed-custom-wrap').style.display = 'flex';
+    { const _el = document.getElementById('ed-custom-cat-wrap'); if (_el) _el.style.display = 'flex'; }
     document.getElementById('ed-custom-name').value = '';
     document.getElementById('ed-location-wrap').style.display = 'block';
     _updateInLocationVisibility('ed', false);
@@ -8355,6 +8396,7 @@ function selectCustomActivity() {
   document.getElementById('date-activity-btn').style.borderColor = '#b0a090';
   const _daib2 = document.getElementById('date-activity-info-btn'); if (_daib2) _daib2.style.display = 'none';
   document.getElementById('date-custom-wrap').style.display = 'flex';
+  { const _el = document.getElementById('date-custom-cat-wrap'); if (_el) _el.style.display = 'flex'; }
   document.getElementById('date-custom-name').value = '';
   document.getElementById('date-custom-name').focus();
   showLocationText('');
@@ -8401,6 +8443,7 @@ function selectActivity(id) {
     document.getElementById('ed-activity-label').style.color = document.body.classList.contains('dark-mode') ? 'var(--text-primary)' : '#2a1f1f';
     document.getElementById('ed-activity-btn').style.borderColor = accent;
     document.getElementById('ed-custom-wrap').style.display = 'none';
+    { const _el = document.getElementById('ed-custom-cat-wrap'); if (_el) _el.style.display = 'none'; }
     document.getElementById('ed-location-wrap').style.display = 'none';
     _updateInLocationVisibility('ed', item.type === 'in');
     _edUpdateActivityEditBtn(true);
@@ -8422,6 +8465,7 @@ function selectActivity(id) {
   const _daib = document.getElementById('date-activity-info-btn');
   if (_daib) { _daib.style.display = 'flex'; _daib.dataset.ideaId = item.id; }
   document.getElementById('date-custom-wrap').style.display = 'none';
+  { const _el = document.getElementById('date-custom-cat-wrap'); if (_el) _el.style.display = 'none'; }
   // Hide out/custom location fields
   document.getElementById('date-location-text-wrap').style.display = 'none';
   document.getElementById('date-neighborhood-wrap').style.display = 'none';
@@ -8558,7 +8602,8 @@ function saveNewDate() {
   if (isCustom) {
     venue = document.getElementById('date-custom-name').value.trim();
     if (!venue) return;
-    activity = 'Other';
+    const _catSel = document.getElementById('date-custom-category');
+    activity = (_catSel && _catSel.value) ? _catSel.value : 'other';
     const locText = document.getElementById('date-location-text').value.trim();
     const neighText = document.getElementById('date-neighborhood').value.trim();
     const locSel = document.getElementById('date-location-select');
@@ -8641,6 +8686,7 @@ function saveNewDate() {
   document.getElementById('date-activity-icon').style.display = 'none';
   document.getElementById('date-activity-btn').style.borderColor = document.body.classList.contains('dark-mode') ? 'var(--border)' : '#ede9e2';
   document.getElementById('date-custom-wrap').style.display = 'none';
+  { const _el = document.getElementById('date-custom-cat-wrap'); if (_el) _el.style.display = 'none'; }
   const _daib4 = document.getElementById('date-activity-info-btn'); if (_daib4) _daib4.style.display = 'none';
   populateDateImageFields([]);
   closeSheet();
@@ -9003,6 +9049,7 @@ function selectIdeaFromDetail(ideaId) {
     document.getElementById('ed-activity-label').style.color = document.body.classList.contains('dark-mode') ? 'var(--text-primary)' : '#2a1f1f';
     document.getElementById('ed-activity-btn').style.borderColor = accent;
     document.getElementById('ed-custom-wrap').style.display = 'none';
+    { const _el = document.getElementById('ed-custom-cat-wrap'); if (_el) _el.style.display = 'none'; }
     document.getElementById('ed-location-wrap').style.display = 'none';
     _updateInLocationVisibility('ed', item.type === 'in');
     _edUpdateActivityEditBtn(true);
@@ -9020,6 +9067,7 @@ function selectIdeaFromDetail(ideaId) {
     const _daib = document.getElementById('date-activity-info-btn');
     if (_daib) { _daib.style.display = 'flex'; _daib.dataset.ideaId = item.id; }
     document.getElementById('date-custom-wrap').style.display = 'none';
+  { const _el = document.getElementById('date-custom-cat-wrap'); if (_el) _el.style.display = 'none'; }
     document.getElementById('date-location-text-wrap').style.display = 'none';
     document.getElementById('date-neighborhood-wrap').style.display = 'none';
     _updateInLocationVisibility('date', item.type === 'in');
@@ -9063,6 +9111,7 @@ function planDateFromIdea(ideaId) {
       document.getElementById('date-activity-label').style.fontSize = '16px';
       document.getElementById('date-activity-label').style.color = document.body.classList.contains('dark-mode') ? 'var(--text-primary)' : '#2a1f1f';
       document.getElementById('date-custom-wrap').style.display = 'none';
+  { const _el = document.getElementById('date-custom-cat-wrap'); if (_el) _el.style.display = 'none'; }
       document.getElementById('date-location-text-wrap').style.display = 'none';
       document.getElementById('date-neighborhood-wrap').style.display = 'none';
     }
@@ -9674,6 +9723,7 @@ function populateEditDateFields(u) {
     document.getElementById('ed-activity-label').style.color = document.body.classList.contains('dark-mode') ? 'var(--text-primary)' : '#2a1f1f';
     document.getElementById('ed-activity-btn').style.borderColor = accent;
     document.getElementById('ed-custom-wrap').style.display = 'none';
+    { const _el = document.getElementById('ed-custom-cat-wrap'); if (_el) _el.style.display = 'none'; }
     document.getElementById('ed-location-wrap').style.display = 'none';
     _updateInLocationVisibility('ed', matched.type === 'in');
     if (matched.type === 'in') {
@@ -9699,7 +9749,10 @@ function populateEditDateFields(u) {
     document.getElementById('ed-activity-label').style.fontSize = '16px';
     document.getElementById('ed-activity-label').style.color = 'var(--text-primary)';
     document.getElementById('ed-custom-name').value = u.venue;
+    const _edCatSel = document.getElementById('ed-custom-category');
+    if (_edCatSel) _edCatSel.value = u.activity || 'other';
     document.getElementById('ed-custom-wrap').style.display = 'flex';
+    { const _el = document.getElementById('ed-custom-cat-wrap'); if (_el) _el.style.display = 'flex'; }
     document.getElementById('ed-location-wrap').style.display = 'block';
     _updateInLocationVisibility('ed', false);
     _edUpdateActivityEditBtn(false);
@@ -9711,6 +9764,7 @@ function populateEditDateFields(u) {
     document.getElementById('ed-activity-icon').innerHTML = '';
     document.getElementById('ed-activity-icon').style.display = 'none';
     document.getElementById('ed-custom-wrap').style.display = 'none';
+    { const _el = document.getElementById('ed-custom-cat-wrap'); if (_el) _el.style.display = 'none'; }
     document.getElementById('ed-location-wrap').style.display = 'none';
     _updateInLocationVisibility('ed', false);
     _edUpdateActivityEditBtn(false);
@@ -9830,7 +9884,9 @@ function saveEditDate() {
         const cName = ((document.getElementById('ed-custom-name') || {}).value || '').trim();
         const locText = ((document.getElementById('ed-location') || {}).value || '').trim();
         const neighText = ((document.getElementById('ed-neighborhood') || {}).value || '').trim();
+        const _catSel = document.getElementById('ed-custom-category');
         if (cName) u.venue = cName;
+        u.activity = (_catSel && _catSel.value) ? _catSel.value : (u.activity || 'other');
         u.address = locText || undefined;
         u.neighborhood = neighText || locText;
       }
@@ -9860,7 +9916,9 @@ function saveEditDate() {
         const cName = ((document.getElementById('ed-custom-name') || {}).value || '').trim();
         const locText = ((document.getElementById('ed-location') || {}).value || '').trim();
         const neighText = ((document.getElementById('ed-neighborhood') || {}).value || '').trim();
+        const _catSel = document.getElementById('ed-custom-category');
         if (cName) u.venue = cName;
+        u.activity = (_catSel && _catSel.value) ? _catSel.value : (u.activity || 'other');
         u.address = locText || undefined;
         u.neighborhood = neighText || locText;
       }
