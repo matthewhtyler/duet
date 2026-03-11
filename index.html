@@ -3583,6 +3583,10 @@ function _buildIdeasBody(pool, q, byName, isFavFilter) {
     </div>`;
   }
 
+  // ── Incomplete mode: skip Featured, rename section, open edit on click, add turn-off footer
+  const _isIncompleteMode = incompleteMode && ideasFilter === 'all' &&
+    pool.filter(i => i.type === 'out' && (!i.imageUrls || i.imageUrls.filter(Boolean).length === 0)).length > 0;
+
   if (!pool.length) {
     const _openNew = `<a onclick="event.stopPropagation();openSheet('out')" style="color:${ROSE};cursor:pointer;text-decoration:none">&#8239;Create one ›</a>`;
     const _emptyText = q ? 'No matches.' : 'No ideas.';
@@ -3622,7 +3626,7 @@ function _buildIdeasBody(pool, q, byName, isFavFilter) {
              : ideasFilter === 'in'  ? shuffledFavsIn
              : [...shuffledFavsOut, ...shuffledFavsIn];
   let favsHtml = '';
-  if (!q && favs.length) {
+  if (!q && favs.length && !_isIncompleteMode) {
     _featuredNavOrder = favs.map(i => i.id); // capture current shuffle order for swipe nav
     favsHtml = `<div style="margin-bottom:20px">
       <div class="section-label" style="margin-bottom:8px">Featured</div>
@@ -3636,11 +3640,41 @@ function _buildIdeasBody(pool, q, byName, isFavFilter) {
   const outIdeas = pool.filter(i => i.type === 'out' && ideasFilter !== 'in').sort(byName);
   const inIdeas  = pool.filter(i => i.type === 'in'  && ideasFilter !== 'out').sort(byName);
 
+  // In incomplete mode, clicking opens edit instead of detail
+  function incompleteSmallCard(item) {
+    const sub = itemSubLine(item);
+    const accent = accentColor('out');
+    const _subColor = subColor(item.type);
+    const hasDate = !!_nextUpcomingDateForIdea(item);
+    const calIcon = hasDate ? `<svg viewBox="0 0 24 24" width="12" height="12" stroke="${accent}" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-left:4px"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>` : '';
+    const subLine = sub
+      ? `<div class="quick-row-sub" style="display:flex;align-items:center;color:${_subColor}">${sub}${calIcon}</div>`
+      : (hasDate ? `<div class="quick-row-sub" style="display:flex;align-items:center">${calIcon}</div>` : '');
+    return `<div class="quick-row" onclick="editIdea(${item.id})" style="cursor:pointer;overflow:hidden">
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;align-items:center;gap:7px;margin-bottom:${subLine?'4px':'0'}">
+          ${ideaIcon(item, 14, accent)}
+          <div class="quick-row-name">${item.name}</div>
+        </div>
+        ${subLine}
+      </div>
+    </div>`;
+  }
+
+  const turnOffLink = `<div style="display:flex;justify-content:center;margin-top:12px;margin-bottom:8px">
+    <span style="font-size:14px;font-style:italic;color:#b0a090;cursor:pointer" onclick="incompleteMode=false;appSettings.incompleteMode=false;saveSettings(appSettings);_renderIdeasBody()">Turn incomplete mode off ›</span>
+  </div>`;
+
   let sectionsHtml = '';
   if (outIdeas.length) {
+    const outLabel = _isIncompleteMode ? 'Incomplete' : 'Going Out';
+    const outCards = _isIncompleteMode
+      ? outIdeas.map(i => incompleteSmallCard(i)).join('')
+      : outIdeas.map(i => smallCard(i, accentColor('out'), 'out')).join('');
     sectionsHtml += `<div style="margin-bottom:20px">
-      <div class="section-label" style="margin-bottom:8px">Going Out</div>
-      <div style="display:flex;flex-direction:column;gap:8px">${outIdeas.map(i => smallCard(i, accentColor('out'), 'out')).join('')}</div>
+      <div class="section-label" style="margin-bottom:8px">${outLabel}</div>
+      <div style="display:flex;flex-direction:column;gap:8px">${outCards}</div>
+      ${_isIncompleteMode ? turnOffLink : ''}
     </div>`;
   }
   if (inIdeas.length) {
