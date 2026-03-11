@@ -4656,7 +4656,7 @@ function _updateActivityBtn(btnId, iconId, labelId, customWrapId, item) {
   if (item && item.custom) {
     iconEl.innerHTML = '<svg viewBox="0 0 24 24" width="16" height="16" stroke="#9a8a7a" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>';
     labelEl.textContent = 'Custom';
-    labelEl.style.color = '#9a8a7a';
+    labelEl.style.color = 'var(--text-primary)';
     btn.style.borderColor = '#b0a090';
     if (customWrap) customWrap.style.display = 'block';
     if (infoBtn) infoBtn.style.display = 'none';
@@ -8335,7 +8335,7 @@ function selectCustomActivity() {
     document.getElementById('ed-activity-icon').innerHTML = plusIcon;
     document.getElementById('ed-activity-icon').style.display = 'flex'; document.getElementById('ed-activity-icon').style.alignItems = 'center';
     document.getElementById('ed-activity-label').textContent = 'Custom';
-    document.getElementById('ed-activity-label').style.color = '#9a8a7a';
+    document.getElementById('ed-activity-label').style.color = 'var(--text-primary)';
     document.getElementById('ed-activity-btn').style.borderColor = '#b0a090';
     document.getElementById('ed-custom-wrap').style.display = 'flex';
     document.getElementById('ed-custom-name').value = '';
@@ -8351,7 +8351,7 @@ function selectCustomActivity() {
   document.getElementById('date-activity-icon').innerHTML = plusIcon;
   document.getElementById('date-activity-icon').style.display = 'flex'; document.getElementById('date-activity-icon').style.alignItems = 'center';
   document.getElementById('date-activity-label').textContent = 'Custom';
-  document.getElementById('date-activity-label').style.color = '#9a8a7a';
+  document.getElementById('date-activity-label').style.color = 'var(--text-primary)';
   document.getElementById('date-activity-btn').style.borderColor = '#b0a090';
   const _daib2 = document.getElementById('date-activity-info-btn'); if (_daib2) _daib2.style.display = 'none';
   document.getElementById('date-custom-wrap').style.display = 'flex';
@@ -8606,6 +8606,7 @@ function saveNewDate() {
   const newDate = {
     day: dd, month: monthName, year: yyyy,
     activity, venue, neighborhood,
+    address: isCustom ? (document.getElementById('date-location-text').value.trim() || undefined) : undefined,
     time: timeVal || '',
     note,
     imageUrls: imageUrls.length ? imageUrls : undefined,
@@ -9690,11 +9691,11 @@ function populateEditDateFields(u) {
     _edUpdateActivityEditBtn(true);
   } else if (u.venue) {
     edSelectedActivity = { custom: true };
-    document.getElementById('ed-activity-icon').innerHTML = '';
-    document.getElementById('ed-activity-icon').style.display = 'none';
-    document.getElementById('ed-activity-label').textContent = u.venue;
+    document.getElementById('ed-activity-icon').innerHTML = '<svg viewBox="0 0 24 24" width="16" height="16" stroke="#9a8a7a" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>';
+    document.getElementById('ed-activity-icon').style.display = 'flex';
+    document.getElementById('ed-activity-label').textContent = 'Custom';
     document.getElementById('ed-activity-label').style.fontSize = '16px';
-    document.getElementById('ed-activity-label').style.color = '#2a1f1f';
+    document.getElementById('ed-activity-label').style.color = 'var(--text-primary)';
     document.getElementById('ed-custom-name').value = u.venue;
     document.getElementById('ed-custom-wrap').style.display = 'flex';
     document.getElementById('ed-location-wrap').style.display = 'block';
@@ -9828,8 +9829,10 @@ function saveEditDate() {
         const locText = ((document.getElementById('ed-location') || {}).value || '').trim();
         const neighText = ((document.getElementById('ed-neighborhood') || {}).value || '').trim();
         if (cName) u.venue = cName;
+        u.address = locText || undefined;
         u.neighborhood = neighText || locText;
       }
+      u.imageUrls = imageUrls.length ? imageUrls : undefined;
       saveDates(UPCOMING_DATES);
       FUTURE_DATES = buildFutureDates();
     }
@@ -9856,8 +9859,10 @@ function saveEditDate() {
         const locText = ((document.getElementById('ed-location') || {}).value || '').trim();
         const neighText = ((document.getElementById('ed-neighborhood') || {}).value || '').trim();
         if (cName) u.venue = cName;
+        u.address = locText || undefined;
         u.neighborhood = neighText || locText;
       }
+      u.imageUrls = imageUrls.length ? imageUrls : undefined;
       u.isPrivate = _edIsPrivate;  // null = inherit from idea
       saveDates(UPCOMING_DATES);
       FUTURE_DATES = buildFutureDates();
