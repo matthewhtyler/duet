@@ -10248,8 +10248,9 @@ function savePlace() {
   const fromEditDate = !!window._editIdeaFromEditDate;
   closePlaces();
   render();
-  // Re-open Idea Info popup only if not coming from Edit Date context
-  if (!fromEditDate) openDetail(savedId);
+  // Re-open Idea Info popup only if not coming from Edit Date context,
+  // and not in incomplete mode (where we just want to return to the list)
+  if (!fromEditDate && !incompleteMode) openDetail(savedId);
 }
 
 function promptRemoveIdea() {
