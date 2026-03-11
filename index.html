@@ -5900,7 +5900,7 @@ function renderCalendar() {
       }
 
       // Panel: Address
-      const _ipAddress = _ipIdea && _ipIdea.address ? _ipIdea.address.trim() : '';
+      const _ipAddress = (_ipIdea && _ipIdea.address ? _ipIdea.address.trim() : '') || (u.address ? u.address.trim() : '');
       if (_ipAddress) {
         const _ipStreet = _ipAddress.split(',')[0].trim();
         const _ipAddrOnclick = `_openExternal('https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(_ipAddress)}')`;
