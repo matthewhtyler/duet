@@ -9224,9 +9224,11 @@ function openDateInfo(u, memoryMode) {
   // Image banner — in memoryMode use memory's own image URLs (own first, then idea's); else use matched idea's images
   const diBanner = document.getElementById('di-banner');
   const matchedIdeaForBanner = ideas.find(i => i.name && u.venue && i.name.toLowerCase() === u.venue.toLowerCase());
+  const _dateOwnImgs = (u.imageUrls || []).filter(Boolean);
+  const _ideaImgs = matchedIdeaForBanner ? (matchedIdeaForBanner.imageUrls || []).filter(Boolean) : [];
   const diImgUrls = memoryMode
-    ? (u._memoryImageUrls && u._memoryImageUrls.length ? u._memoryImageUrls : (matchedIdeaForBanner ? (matchedIdeaForBanner.imageUrls || []).filter(Boolean) : []))
-    : (matchedIdeaForBanner ? (matchedIdeaForBanner.imageUrls || []).filter(Boolean) : []);
+    ? (u._memoryImageUrls && u._memoryImageUrls.length ? u._memoryImageUrls : [..._dateOwnImgs, ..._ideaImgs])
+    : [..._dateOwnImgs, ..._ideaImgs];
   _diImgIdx = 0;
   _diImgUrlsActive = diImgUrls;
   // Build chronological nav list for date swiping
