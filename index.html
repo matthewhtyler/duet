@@ -1486,6 +1486,14 @@
           </div>
         </label>
       </div>
+      <div style="padding:0 20px 20px">
+        <label style="display:flex;align-items:flex-start;gap:8px;cursor:pointer;flex-shrink:0">
+          <input type="checkbox" id="editideas-only-selected-cats" class="showtype-check" style="margin-top:2px">
+          <div>
+            <div style="font-size:14px;font-family:sans-serif;color:var(--text-primary)">Only selected categories in menu</div>
+          </div>
+        </label>
+      </div>
       <div style="padding:14px 20px;flex-shrink:0;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px">
         <button onclick="closeEditIdeasScreen()" style="padding:10px 16px;background:none;border:1.5px solid #ede9e2;border-radius:10px;font-family:sans-serif;font-size:13px;font-weight:600;color:#9a8a7a;cursor:pointer" class="btn-outline">Cancel</button>
         <button onclick="saveEditIdeasScreen()" style="padding:10px 20px;background:#a05268;border:none;border-radius:10px;font-family:sans-serif;font-size:13px;font-weight:600;color:#fff;cursor:pointer">Save</button>
@@ -2261,6 +2269,7 @@ let partnerPronouns = appSettings.partnerPronouns || 'she/her';
 let hidePrivate = appSettings.hidePrivate || false;
 let additionalTab = appSettings.additionalTab || 'neighborhood'; // 'favorites' | 'neighborhood'
 let incompleteMode = appSettings.incompleteMode === true ? true : false;
+let onlySelectedCatsInMenu = appSettings.onlySelectedCatsInMenu === true ? true : false;
 let homeIdeasFilter = appSettings.homeIdeasFilter || 'out'; // 'out' | 'in' | 'all'
 // Month calendar on home screen — separate month/year state from Calendar screen
 let _homeMonthCalYear  = new Date().getFullYear();
@@ -3893,9 +3902,12 @@ function _buildOutTabBody() {
   const pillInactiveColor = '#9a8a7a';
   const accent = accentColor('out');
 
-  // Pills: All + selected Out cats in OUT_CATS order (fallback to all if none selected)
+  // Pills: when onlySelectedCatsInMenu ON → selected cats only; otherwise → cats that have ideas
   const selOut = OUT_CATS.filter(c => SELECTED_CATS.has(c.id));
-  const outPillCats = selOut.length ? selOut : OUT_CATS;
+  const _outIdeasPool = ideas.filter(i => !i.archived && !_isHiddenPrivate(i) && i.type === 'out');
+  const outPillCats = onlySelectedCatsInMenu
+    ? (selOut.length ? selOut : OUT_CATS)
+    : OUT_CATS.filter(c => _outIdeasPool.some(i => (i.category || '').toLowerCase() === c.label.toLowerCase() || i.category === c.id));
   const pills = [
     { id: 'all', label: 'All', iconKey: null },
     ...outPillCats.map(c => ({ id: c.id, label: c.label, iconKey: c.iconKey })),
@@ -3978,9 +3990,12 @@ function _buildInTabBody() {
   const pillInactiveColor = '#9a8a7a';
   const accent = accentColor('in');
 
-  // Pills: All + selected In cats in IN_CATS order (fallback to all if none selected)
+  // Pills: when onlySelectedCatsInMenu ON → selected cats only; otherwise → cats that have ideas
   const selIn = IN_CATS.filter(c => SELECTED_CATS.has(c.id));
-  const inPillCats = selIn.length ? selIn : IN_CATS;
+  const _inIdeasPool = ideas.filter(i => !i.archived && !_isHiddenPrivate(i) && i.type === 'in');
+  const inPillCats = onlySelectedCatsInMenu
+    ? (selIn.length ? selIn : IN_CATS)
+    : IN_CATS.filter(c => _inIdeasPool.some(i => (i.category || '').toLowerCase() === c.label.toLowerCase() || i.category === c.id));
   const pills = [
     { id: 'all', label: 'All', iconKey: null },
     ...inPillCats.map(c => ({ id: c.id, label: c.label, iconKey: c.iconKey })),
@@ -10493,6 +10508,7 @@ async function exportAllData() {
       homeScreenConfig: homeScreenConfig,
       homeIdeasFilter: homeIdeasFilter,
       incompleteMode: incompleteMode,
+      onlySelectedCatsInMenu: onlySelectedCatsInMenu,
     },
     appearance: _appearance,
   };
@@ -10567,6 +10583,8 @@ function openEditIdeasScreen() {
   if (sel) sel.value = additionalTab || 'neighborhood';
   const cb = document.getElementById('editideas-incomplete-mode');
   if (cb) cb.checked = incompleteMode === true;
+  const cb2 = document.getElementById('editideas-only-selected-cats');
+  if (cb2) cb2.checked = onlySelectedCatsInMenu === true;
   document.getElementById('editideas-overlay').style.display = 'flex';
 }
 function closeEditIdeasScreen() {
@@ -10577,6 +10595,8 @@ function saveEditIdeasScreen() {
   if (sel) { additionalTab = sel.value; appSettings.additionalTab = additionalTab; }
   const cb = document.getElementById('editideas-incomplete-mode');
   if (cb) { incompleteMode = cb.checked; appSettings.incompleteMode = incompleteMode; }
+  const cb2 = document.getElementById('editideas-only-selected-cats');
+  if (cb2) { onlySelectedCatsInMenu = cb2.checked; appSettings.onlySelectedCatsInMenu = onlySelectedCatsInMenu; }
   saveSettings(appSettings);
   closeEditIdeasScreen();
   if (currentView === 'ideas') render();
@@ -11547,6 +11567,7 @@ function handleImportFile(e) {
       if (s.homeIdeasFilter !== undefined) homeIdeasFilter      = s.homeIdeasFilter;
       if (s.homeScreenConfig !== undefined) { homeScreenConfig = s.homeScreenConfig; appSettings.homeScreenConfig = homeScreenConfig; }
       if (s.incompleteMode !== undefined) { incompleteMode = s.incompleteMode === true; appSettings.incompleteMode = incompleteMode; }
+      if (s.onlySelectedCatsInMenu !== undefined) { onlySelectedCatsInMenu = s.onlySelectedCatsInMenu === true; appSettings.onlySelectedCatsInMenu = onlySelectedCatsInMenu; }
       // Sync appSettings and persist
       appSettings.homeAddress          = homeAddress;
       appSettings.partnerAddress       = partnerAddress;
@@ -11557,6 +11578,7 @@ function handleImportFile(e) {
       appSettings.homeIdeasFilter      = homeIdeasFilter;
       appSettings.homeScreenConfig     = homeScreenConfig;
       appSettings.incompleteMode       = incompleteMode;
+      appSettings.onlySelectedCatsInMenu = onlySelectedCatsInMenu;
       saveSettings(appSettings);
       // Refresh Settings popup fields if open
       const _saEl = document.getElementById('settings-overlay');
