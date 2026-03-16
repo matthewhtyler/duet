@@ -1366,15 +1366,15 @@
   <!-- MORE MENU POPUP -->
   <div id="more-menu-overlay" class="popup-overlay" onclick="closeMoreMenu()" style="position:fixed;inset:0;background:rgba(30,20,20,0.45);z-index:450;display:none;align-items:center;justify-content:center;padding:20px">
     <div onclick="event.stopPropagation()" style="background:var(--bg);border-radius:18px;padding:16px;box-shadow:0 12px 48px rgba(0,0,0,0.18);display:flex;flex-direction:column;gap:8px;min-width:220px">
-      <button onclick="closeMoreMenu();openEditCategories()" style="display:flex;align-items:center;gap:10px;padding:11px 14px;background:none;border:1.5px solid #ede9e2;border-radius:10px;font-family:sans-serif;font-size:13px;font-weight:600;color:#9a8a7a;cursor:pointer;text-align:left;width:100%" class="btn-outline">
+      <button onclick="openEditCategories()" style="display:flex;align-items:center;gap:10px;padding:11px 14px;background:none;border:1.5px solid #ede9e2;border-radius:10px;font-family:sans-serif;font-size:13px;font-weight:600;color:#9a8a7a;cursor:pointer;text-align:left;width:100%" class="btn-outline">
         <svg viewBox="0 0 24 24" width="15" height="15" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>
         Edit Categories
       </button>
-      <button onclick="closeMoreMenu();openEditMainScreen()" style="display:flex;align-items:center;gap:10px;padding:11px 14px;background:none;border:1.5px solid #ede9e2;border-radius:10px;font-family:sans-serif;font-size:13px;font-weight:600;color:#9a8a7a;cursor:pointer;text-align:left;width:100%" class="btn-outline">
+      <button onclick="openEditMainScreen()" style="display:flex;align-items:center;gap:10px;padding:11px 14px;background:none;border:1.5px solid #ede9e2;border-radius:10px;font-family:sans-serif;font-size:13px;font-weight:600;color:#9a8a7a;cursor:pointer;text-align:left;width:100%" class="btn-outline">
         <svg viewBox="0 0 24 24" width="15" height="15" fill="none"><circle cx="12" cy="12" r="8.5" stroke="#9a8a7a" stroke-width="2"/></svg>
         Edit Main Screen
       </button>
-      <button onclick="closeMoreMenu();openEditIdeasScreen()" style="display:flex;align-items:center;gap:10px;padding:11px 14px;background:none;border:1.5px solid #ede9e2;border-radius:10px;font-family:sans-serif;font-size:13px;font-weight:600;color:#9a8a7a;cursor:pointer;text-align:left;width:100%" class="btn-outline">
+      <button onclick="openEditIdeasScreen()" style="display:flex;align-items:center;gap:10px;padding:11px 14px;background:none;border:1.5px solid #ede9e2;border-radius:10px;font-family:sans-serif;font-size:13px;font-weight:600;color:#9a8a7a;cursor:pointer;text-align:left;width:100%" class="btn-outline">
         <svg viewBox="0 0 24 24" width="15" height="15" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M8 22h8"/><path d="M12 15.8v6.2"/><path d="M5 3h14l-1.5 9a5 5 0 0 1-5 4h-1a5 5 0 0 1-5-4L5 3z"/></svg>
         Edit Ideas Screen
       </button>
@@ -1425,7 +1425,7 @@
   <!-- Hidden file input for import -->
   <input type="file" id="import-file-input" accept=".json" style="display:none" onchange="handleImportFile(event)">
   <!-- EDIT CATEGORIES POPUP -->
-  <div id="editcats-overlay" class="popup-overlay" onclick="closeEditCategories()" style="position:fixed;inset:0;background:rgba(30,20,20,0.5);z-index:500;display:none;align-items:center;justify-content:center;padding:max(12px,env(safe-area-inset-top)) 16px max(12px,env(safe-area-inset-bottom))">
+  <div id="editcats-overlay" class="popup-overlay" onclick="closeEditCategories()" style="position:fixed;inset:0;background:rgba(30,20,20,0.5);z-index:510;display:none;align-items:center;justify-content:center;padding:max(12px,env(safe-area-inset-top)) 16px max(12px,env(safe-area-inset-bottom))">
     <div id="editcats-modal" onclick="event.stopPropagation()" style="width:100%;max-width:390px;background:var(--bg);border-radius:20px;display:flex;flex-direction:column;height:min(88vh,calc(100dvh - max(24px,env(safe-area-inset-top) + env(safe-area-inset-bottom)) - 24px));box-shadow:0 12px 48px rgba(0,0,0,0.18)">
       <!-- Header -->
       <div style="padding:20px 20px 14px;flex-shrink:0;border-bottom:1px solid var(--border)">
@@ -1448,7 +1448,7 @@
   </div>
 
   <!-- EDIT MAIN SCREEN POPUP -->
-  <div id="editmain-overlay" class="popup-overlay" onclick="closeEditMainScreen()" style="position:fixed;inset:0;background:rgba(30,20,20,0.5);z-index:500;display:none;align-items:center;justify-content:center;padding:max(12px,env(safe-area-inset-top)) 16px max(12px,env(safe-area-inset-bottom))">
+  <div id="editmain-overlay" class="popup-overlay" onclick="closeEditMainScreen()" style="position:fixed;inset:0;background:rgba(30,20,20,0.5);z-index:510;display:none;align-items:center;justify-content:center;padding:max(12px,env(safe-area-inset-top)) 16px max(12px,env(safe-area-inset-bottom))">
     <div id="editmain-modal" onclick="event.stopPropagation()" style="width:100%;max-width:390px;background:var(--bg);border-radius:20px;display:flex;flex-direction:column;height:min(88vh,calc(100dvh - max(24px,env(safe-area-inset-top) + env(safe-area-inset-bottom)) - 24px));box-shadow:0 12px 48px rgba(0,0,0,0.18)">h;box-shadow:0 12px 48px rgba(0,0,0,0.18)">
       <!-- Header -->
       <div style="padding:20px 20px 16px;flex-shrink:0;border-bottom:1px solid var(--border)">
@@ -1465,7 +1465,7 @@
   </div>
 
   <!-- EDIT IDEAS SCREEN POPUP -->
-  <div id="editideas-overlay" class="popup-overlay" onclick="closeEditIdeasScreen()" style="position:fixed;inset:0;background:rgba(30,20,20,0.5);z-index:500;display:none;align-items:center;justify-content:center;padding:20px">
+  <div id="editideas-overlay" class="popup-overlay" onclick="closeEditIdeasScreen()" style="position:fixed;inset:0;background:rgba(30,20,20,0.5);z-index:510;display:none;align-items:center;justify-content:center;padding:20px">
     <div onclick="event.stopPropagation()" style="width:100%;max-width:390px;background:var(--bg);border-radius:20px;display:flex;flex-direction:column;box-shadow:0 12px 48px rgba(0,0,0,0.18)">
       <div style="padding:20px 20px 16px;flex-shrink:0;border-bottom:1px solid var(--border)">
         <div style="font-size:17px;font-weight:700;color:var(--popup-title)">Edit Ideas Screen</div>
@@ -1487,12 +1487,11 @@
         </label>
       </div>
       <div style="padding:0 20px 20px">
-        <label style="display:flex;align-items:flex-start;gap:8px;cursor:pointer;flex-shrink:0">
-          <input type="checkbox" id="editideas-only-selected-cats" class="showtype-check" style="margin-top:2px">
-          <div>
-            <div style="font-size:14px;font-family:sans-serif;color:var(--text-primary)">Only selected categories in menu</div>
-          </div>
-        </label>
+        <div style="font-family:sans-serif;font-size:13px;color:var(--text-secondary);margin-bottom:10px">Categories Menu</div>
+        <select id="editideas-cats-menu" style="font-family:sans-serif;font-size:14px;padding:6px 10px;border:1.5px solid var(--border);border-radius:8px;background:var(--bg-input);color:var(--text-primary);cursor:pointer;width:100%" onchange="if(this.value==='selected'){onlySelectedCatsInMenu=true;appSettings.onlySelectedCatsInMenu=true;saveSettings(appSettings);openEditCategories(_ecType||'out');}else{onlySelectedCatsInMenu=false;appSettings.onlySelectedCatsInMenu=false;saveSettings(appSettings);}">
+          <option value="all">All</option>
+          <option value="selected">Selected</option>
+        </select>
       </div>
       <div style="padding:14px 20px;flex-shrink:0;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px">
         <button onclick="closeEditIdeasScreen()" style="padding:10px 16px;background:none;border:1.5px solid #ede9e2;border-radius:10px;font-family:sans-serif;font-size:13px;font-weight:600;color:#9a8a7a;cursor:pointer" class="btn-outline">Cancel</button>
@@ -10585,6 +10584,8 @@ function openEditIdeasScreen() {
   if (cb) cb.checked = incompleteMode === true;
   const cb2 = document.getElementById('editideas-only-selected-cats');
   if (cb2) cb2.checked = onlySelectedCatsInMenu === true;
+  const catsMenu = document.getElementById('editideas-cats-menu');
+  if (catsMenu) catsMenu.value = onlySelectedCatsInMenu ? 'selected' : 'all';
   document.getElementById('editideas-overlay').style.display = 'flex';
 }
 function closeEditIdeasScreen() {
@@ -10597,6 +10598,8 @@ function saveEditIdeasScreen() {
   if (cb) { incompleteMode = cb.checked; appSettings.incompleteMode = incompleteMode; }
   const cb2 = document.getElementById('editideas-only-selected-cats');
   if (cb2) { onlySelectedCatsInMenu = cb2.checked; appSettings.onlySelectedCatsInMenu = onlySelectedCatsInMenu; }
+  const catsMenu = document.getElementById('editideas-cats-menu');
+  if (catsMenu) { onlySelectedCatsInMenu = catsMenu.value === 'selected'; appSettings.onlySelectedCatsInMenu = onlySelectedCatsInMenu; }
   saveSettings(appSettings);
   closeEditIdeasScreen();
   if (currentView === 'ideas') render();
@@ -10852,7 +10855,7 @@ function _renderEcList() {
   list.innerHTML = cats.map((cat, i) => {
     const iconSvg = ICONS[cat.iconKey] ? ICONS[cat.iconKey](18,'#9a8a7a') : ICONS.wine(18,'#9a8a7a');
     const checked = SELECTED_CATS.has(cat.id);
-    const cbStyle = `width:18px;height:18px;border-radius:4px;border:2px solid ${checked?'#c07a8a':'#c8bfb8'};background:${checked?'#c07a8a':'transparent'};display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:background 0.15s`;
+    const cbStyle = `width:18px;height:18px;border-radius:4px;border:2px solid ${checked?'#c07a8a':'#c8bfb8'};background:${checked?'#c07a8a':'transparent'};display:${onlySelectedCatsInMenu?'flex':'none'};align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:background 0.15s`;
     const checkSvg = checked ? `<svg viewBox="0 0 12 12" width="10" height="10" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="2,6 5,9 10,3"/></svg>` : '';
     return `<div id="ec-row-${i}" class="ec-row" draggable="true"
       ondragstart="_ecDragStart(event,${i})" ondragover="_ecDragOver(event,${i})"
