@@ -12490,7 +12490,7 @@ function _renderPeoplePills(ctx) {
   container.innerHTML = entries.map((e, i) => {
     const p = e.id ? people.find(x => x.id === e.id) : null;
     const photoHtml = (p && p.photoUrl)
-      ? `<div style="width:20px;height:20px;border-radius:50%;overflow:hidden;flex-shrink:0"><img src="${p.photoUrl}" style="width:100%;height:100%;object-fit:cover" onerror="this.parentNode.style.background='var(--toggle-bg)'"></div>`
+      ? `<div style="width:20px;height:20px;border-radius:50%;overflow:hidden;flex-shrink:0;position:relative">${_personAvatarInner(p, 20)}</div>`
       : `<div style="width:20px;height:20px;border-radius:50%;background:var(--toggle-bg);display:flex;align-items:center;justify-content:center;flex-shrink:0">${_personIconSvg(11,'#b0a090')}</div>`;
     const label = p ? (p.firstName || _personFullName(p).split(' ')[0]) : e.name;
     return `<div style="display:inline-flex;align-items:center;gap:5px;background:var(--bg-card2);border:1px solid var(--border);border-radius:20px;padding:3px 8px 3px 4px;font-size:12px;font-family:sans-serif;color:var(--text-primary);white-space:nowrap;flex-shrink:0">
@@ -12543,9 +12543,9 @@ function _peopleSuggest(ctx) {
   if (!matches.length) { sug.style.display = 'none'; return; }
   sug.innerHTML = matches.map(p => {
     const photoHtml = (p.photoUrl)
-      ? `<div style="width:26px;height:26px;border-radius:50%;overflow:hidden;flex-shrink:0"><img src="${p.photoUrl}" style="width:100%;height:100%;object-fit:cover"></div>`
+      ? `<div style="width:26px;height:26px;border-radius:50%;overflow:hidden;flex-shrink:0;position:relative">${_personAvatarInner(p, 26)}</div>`
       : `<div style="width:26px;height:26px;border-radius:50%;background:var(--toggle-bg);display:flex;align-items:center;justify-content:center;flex-shrink:0">${_personIconSvg(14,'#b0a090')}</div>`;
-    return `<div onclick="_selectPersonSuggestion('${ctx}','${p.id}')" style="display:flex;align-items:center;gap:10px;padding:8px 12px;cursor:pointer;font-size:14px;font-family:sans-serif;color:var(--text-primary)" onmouseover="this.style.background='var(--toggle-bg)'" onmouseout="this.style.background='none'">
+    return `<div onclick="_selectPersonSuggestion('${ctx}','${p.id}')" style="display:flex;align-items:center;gap:10px;padding:8px 12px;cursor:pointer;font-size:14px;color:var(--text-primary)">
       ${photoHtml}
       <span>${_personFullName(p)}</span>
     </div>`;
@@ -12557,6 +12557,14 @@ function _selectPersonSuggestion(ctx, personId) {
   const p = people.find(x => x.id === personId);
   if (!p) return;
   _datePeopleEntries[ctx] = _datePeopleEntries[ctx] || [];
+  // Prevent duplicates
+  if (_datePeopleEntries[ctx].some(e => e.id === p.id)) {
+    const inp = document.getElementById(ctx + '-people-input');
+    if (inp) { inp.value = ''; }
+    const sug = document.getElementById(ctx + '-people-suggest');
+    if (sug) sug.style.display = 'none';
+    return;
+  }
   _datePeopleEntries[ctx].push({ id: p.id, name: _personFullName(p), custom: false });
   _renderPeoplePills(ctx);
   const inp = document.getElementById(ctx + '-people-input');
@@ -12661,38 +12669,50 @@ _resetDateForm = function() {
 function _diPeoplePhotosHtml(u) {
   const peeps = (u.people || []).slice(0, 3);
   if (!peeps.length) return '';
-  const SIZE = 30;
-  const OVERLAP = 10;
+  const SIZE = 28;
+  const OVERLAP = 8;
   const totalW = SIZE + (peeps.length - 1) * (SIZE - OVERLAP);
   const circles = peeps.map((e, i) => {
     const p = e.id ? people.find(x => x.id === e.id) : null;
     const left = i * (SIZE - OVERLAP);
     const zIndex = peeps.length - i;
     const inner = (p && p.photoUrl)
-      ? `<img src="${_resolveImageUrl(p.photoUrl)}" style="width:100%;height:100%;object-fit:cover;border-radius:50%" onerror="this.style.display='none'">`
-      : _personIconSvg(Math.round(SIZE * 0.55), '#fff');
-    return `<div style="position:absolute;left:${left}px;top:0;width:${SIZE}px;height:${SIZE}px;border-radius:50%;background:#6b2340;border:2px solid #fff;overflow:hidden;z-index:${zIndex};display:flex;align-items:center;justify-content:center">${inner}</div>`;
+      ? `<div style="position:relative;width:${SIZE}px;height:${SIZE}px;border-radius:50%;overflow:hidden;flex-shrink:0">${_personAvatarInner(p, SIZE)}</div>`
+      : `<div style="width:${SIZE}px;height:${SIZE}px;border-radius:50%;background:#6b2340;display:flex;align-items:center;justify-content:center">${_personIconSvg(Math.round(SIZE*0.55),'#fff')}</div>`;
+    return `<div style="position:absolute;left:${left}px;top:0;width:${SIZE}px;height:${SIZE}px;border-radius:50%;border:2px solid rgba(255,255,255,0.6);overflow:hidden;z-index:${zIndex}">${inner}</div>`;
   }).join('');
-  return `<div onclick="event.stopPropagation();openDatePeoplePopup()" style="position:absolute;bottom:8px;left:8px;width:${totalW + 4}px;height:${SIZE + 4}px;cursor:pointer;z-index:3">${circles}</div>`;
+  return `<div id="di-people-circles" onclick="event.stopPropagation();openDatePeoplePopup()" style="position:relative;width:${totalW}px;height:${SIZE}px;cursor:pointer;flex-shrink:0;margin-left:8px;margin-right:4px">${circles}</div>`;
 }
 
 // ── Patch openDateInfo to inject people photos ────────
 const _origOpenDateInfo = openDateInfo;
 openDateInfo = function(u, memoryMode) {
   _origOpenDateInfo.call(this, u, memoryMode);
-  const banner = document.getElementById('di-banner');
-  if (!banner || !u) return;
   const old = document.getElementById('di-people-circles');
   if (old) old.remove();
-  const peeps = u.people || [];
-  if (!peeps.length) return;
-  const html = _diPeoplePhotosHtml(u);
-  if (!html) return;
-  const wrapper = document.createElement('div');
-  wrapper.innerHTML = html;
-  const inner = wrapper.firstChild;
-  if (inner && banner.style.display !== 'none') banner.appendChild(inner);
-  window._diCurrentDatePeople = peeps;
+  if (!u || !(u.people || []).length) return;
+  window._diCurrentDatePeople = u.people || [];
+  const banner = document.getElementById('di-banner');
+  if (!banner || banner.style.display === 'none') return;
+  const peeps = (u.people || []).slice(0, 3);
+  const SIZE = 28;
+  const OVERLAP = 8;
+  const totalW = SIZE + (peeps.length - 1) * (SIZE - OVERLAP);
+  const circles = peeps.map((e, i) => {
+    const p = e.id ? people.find(x => x.id === e.id) : null;
+    const left = i * (SIZE - OVERLAP);
+    const zIdx = peeps.length - i;
+    const inner = (p && p.photoUrl)
+      ? `<div style="position:relative;width:${SIZE}px;height:${SIZE}px;border-radius:50%;overflow:hidden">${_personAvatarInner(p, SIZE)}</div>`
+      : `<div style="width:${SIZE}px;height:${SIZE}px;border-radius:50%;background:rgba(0,0,0,0.32);display:flex;align-items:center;justify-content:center">${_personIconSvg(Math.round(SIZE*0.55),'rgba(255,255,255,0.8)')}</div>`;
+    return `<div style="position:absolute;left:${left}px;top:0;width:${SIZE}px;height:${SIZE}px;border-radius:50%;overflow:hidden;z-index:${zIdx};border:1.5px solid rgba(255,255,255,0.85)">${inner}</div>`;
+  }).join('');
+  const el = document.createElement('div');
+  el.id = 'di-people-circles';
+  el.onclick = (ev) => { ev.stopPropagation(); openDatePeoplePopup(); };
+  el.style.cssText = `position:absolute;bottom:8px;right:${8 + 26 + 10}px;width:${totalW}px;height:${SIZE}px;cursor:pointer;z-index:2`;
+  el.innerHTML = circles;
+  banner.appendChild(el);
 };
 
 // ── Date People Popup ─────────────────────────────────
@@ -12703,16 +12723,24 @@ function openDatePeoplePopup() {
   list.innerHTML = peeps.map(e => {
     const p = e.id ? people.find(x => x.id === e.id) : null;
     const photoHtml = (p && p.photoUrl)
-      ? `<div style="width:36px;height:36px;border-radius:50%;overflow:hidden;flex-shrink:0"><img src="${p.photoUrl}" style="width:100%;height:100%;object-fit:cover"></div>`
+      ? `<div style="width:36px;height:36px;border-radius:50%;overflow:hidden;flex-shrink:0;position:relative">${_personAvatarInner(p, 36)}</div>`
       : `<div style="width:36px;height:36px;border-radius:50%;background:var(--toggle-bg);display:flex;align-items:center;justify-content:center;flex-shrink:0">${_personIconSvg(20,'#b0a090')}</div>`;
-    const name = p ? _personFullName(p) : (e.name || 'Unknown');
+    const name = p ? (p.firstName || _personFullName(p)) : (e.name || 'Unknown');
     const clickable = !!p;
-    return `<div onclick="${clickable ? `closeDatePeoplePopup();openPersonInfo('${p.id}')` : ''}" style="display:flex;align-items:center;gap:12px;padding:10px 16px;cursor:${clickable?'pointer':'default'}${clickable?';' : ''}" ${clickable ? `onmouseover="this.style.background='var(--toggle-bg)'" onmouseout="this.style.background='none'"` : ''}>
+    return `<div onmousedown="event.stopPropagation();${clickable ? `closeDatePeoplePopup();openPersonInfo('${p.id}')` : ''}" style="display:flex;align-items:center;gap:12px;padding:10px 16px;cursor:${clickable?'pointer':'default'}">
       ${photoHtml}
-      <span style="font-size:15px;font-weight:600;color:var(--text-primary);font-family:sans-serif">${name}</span>
+      <span style="font-size:15px;font-weight:600;color:var(--text-primary)">${name}</span>
     </div>`;
   }).join('');
   document.getElementById('date-people-popup').style.display = 'flex';
+  const diOvl = document.getElementById('date-info-overlay');
+  if (diOvl) diOvl.style.pointerEvents = 'none';
+}
+
+function closeDatePeoplePopup() {
+  document.getElementById('date-people-popup').style.display = 'none';
+  const diOvl = document.getElementById('date-info-overlay');
+  if (diOvl) diOvl.style.pointerEvents = '';
 }
 
 function _epRenderSubwayBadges() {
@@ -12846,6 +12874,11 @@ function _locationPersonSuggest(ctx) {
   const q = inp.value.trim().toLowerCase();
   if (!q) { sug.style.display = 'none'; return; }
 
+  // Check if matches "my place" or "home"
+  const myPlaceTerms = ['my place', 'my', 'home'];
+  const showMyPlace = myPlaceTerms.some(t => t.startsWith(q) || q.startsWith(t.slice(0,3)));
+  const sofaIcon = `<div style="width:26px;height:26px;border-radius:50%;background:var(--toggle-bg);display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg viewBox="0 0 24 24" width="14" height="14" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M20 9V7a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v2"/><path d="M2 11v5a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-5a2 2 0 0 0-4 0v2H6v-2a2 2 0 0 0-4 0z"/><path d="M4 18v2"/><path d="M20 18v2"/></svg></div>`;
+
   // Trigger on pronoun shorthand: "her", "his", "their" → show all people in field order
   const pronounTriggers = ['her', 'his', 'their'];
   const isPronounTrigger = pronounTriggers.some(t => t.startsWith(q) || q === t);
@@ -12857,7 +12890,6 @@ function _locationPersonSuggest(ctx) {
 
   let matches;
   if (isPronounTrigger) {
-    // Show all people from pool in order, no filtering
     matches = pool.slice(0, 5);
   } else {
     matches = pool.filter(p => {
@@ -12865,15 +12897,19 @@ function _locationPersonSuggest(ctx) {
       return label.includes(q) || (p.firstName || '').toLowerCase().includes(q);
     }).slice(0, 5);
   }
-  if (!matches.length) { sug.style.display = 'none'; return; }
-  sug.innerHTML = matches.map((p, i) => {
+
+  const myPlaceRow = (showMyPlace && !isPronounTrigger)
+    ? `<div onclick="_selectMyPlace('${ctx}')" style="display:flex;align-items:center;gap:10px;padding:8px 12px;cursor:pointer;font-size:14px;color:var(--text-primary)">${sofaIcon}<span>My place</span></div>`
+    : '';
+
+  if (!matches.length && !myPlaceRow) { sug.style.display = 'none'; return; }
+
+  sug.innerHTML = myPlaceRow + matches.map((p, i) => {
     const photoHtml = p.photoUrl
-      ? `<div style="width:26px;height:26px;border-radius:50%;overflow:hidden;flex-shrink:0"><img src="${p.photoUrl}" style="width:100%;height:100%;object-fit:cover"></div>`
+      ? `<div style="width:26px;height:26px;border-radius:50%;overflow:hidden;flex-shrink:0;position:relative">${_personAvatarInner(p, 26)}</div>`
       : `<div style="width:26px;height:26px;border-radius:50%;background:var(--toggle-bg);display:flex;align-items:center;justify-content:center;flex-shrink:0">${_personIconSvg(14,'#b0a090')}</div>`;
     const label = (p.firstName || _personFullName(p)) + "'s place";
-    const isFirst = i === 0;
-    const rowBg = isFirst ? 'var(--toggle-bg)' : 'transparent';
-    return `<div data-location-suggest-idx="${i}" onclick="_selectLocationPerson('${ctx}','${p.id}')" style="display:flex;align-items:center;gap:10px;padding:8px 12px;cursor:pointer;font-size:14px;font-family:sans-serif;color:var(--text-primary);background:${rowBg}" onmouseover="this.style.background='var(--toggle-bg)'" onmouseout="this.style.background='${isFirst ? 'var(--toggle-bg)' : 'transparent'}'">${photoHtml}<span>${label}</span></div>`;
+    return `<div data-location-suggest-idx="${i}" onclick="_selectLocationPerson('${ctx}','${p.id}')" style="display:flex;align-items:center;gap:10px;padding:8px 12px;cursor:pointer;font-size:14px;color:var(--text-primary)">${photoHtml}<span>${label}</span></div>`;
   }).join('');
   sug.style.display = 'block';
 }
@@ -13414,6 +13450,42 @@ function _planSomethingWithPerson() {
     }, 100);
   }, 50);
 }
+
+function _buildUpcomingPeopleHtml(u) {
+  const peeps = (u.people || []).slice(0, 3);
+  if (!peeps.length) return '';
+  const SIZE = 28;
+  const OVERLAP = 8;
+  const totalW = SIZE + (peeps.length - 1) * (SIZE - OVERLAP);
+  const circles = peeps.map((e, i) => {
+    const p = e.id ? people.find(x => x.id === e.id) : null;
+    const left = i * (SIZE - OVERLAP);
+    const zIdx = peeps.length - i;
+    const inner = (p && p.photoUrl)
+      ? `<div style="position:relative;width:${SIZE}px;height:${SIZE}px;border-radius:50%;overflow:hidden">${_personAvatarInner(p, SIZE)}</div>`
+      : `<div style="width:${SIZE}px;height:${SIZE}px;border-radius:50%;background:var(--toggle-bg);display:flex;align-items:center;justify-content:center">${_personIconSvg(Math.round(SIZE*0.55),'#b0a090')}</div>`;
+    return `<div style="position:absolute;left:${left}px;top:0;width:${SIZE}px;height:${SIZE}px;border-radius:50%;overflow:hidden;z-index:${zIdx};border:2px solid var(--bg)">${inner}</div>`;
+  }).join('');
+  return `<div style="position:relative;width:${totalW}px;height:${SIZE}px;flex-shrink:0;margin-right:8px">${circles}</div>`;
+}
+
+function _selectMyPlace(ctx) {
+  const sug = document.getElementById(ctx + '-location-suggest');
+  if (sug) sug.style.display = 'none';
+  // Set the location select to my_place
+  const locSel = document.getElementById(ctx === 'date' ? 'date-location-select' : 'ed-location-select');
+  if (locSel) {
+    locSel.value = 'my_place';
+    locSel.style.display = 'block';
+  }
+  const inp = document.getElementById(ctx === 'date' ? 'date-location-text' : 'ed-location');
+  if (inp) { inp.value = ''; inp.placeholder = 'Address…'; }
+  // Clear pill
+  const pillEl = document.getElementById(ctx + '-location-pill');
+  if (pillEl) pillEl.innerHTML = '';
+  _locationPersonId[ctx] = null;
+  _syncLocationClearBtn(ctx);
+}
 </script>
 
 <!-- PLACE FINDER PREVIEW POPUP — z-index 460 -->
@@ -13504,7 +13576,7 @@ function _planSomethingWithPerson() {
       </div>
       <!-- Fields -->
       <div id="pi-fields" style="display:flex;flex-direction:column;gap:16px;padding:16px 18px 0"></div>
-      <div style="display:flex;justify-content:center;padding:20px 18px 4px">
+      <div style="display:flex;justify-content:center;padding:28px 18px 4px">
         <button onclick="_planSomethingWithPerson()" style="display:flex;align-items:center;gap:7px;height:34px;padding:0 16px;border:none;border-radius:17px;font-family:sans-serif;font-size:13px;font-weight:600;color:#fff;background:#c07a8a;cursor:pointer;line-height:1"><svg viewBox="0 0 24 24" width="12" height="12" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-left:4px"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Plan Something</button>
       </div>
     </div>
@@ -13668,12 +13740,10 @@ function _planSomethingWithPerson() {
   </div>
 </div>
 <!-- PEOPLE LIST POPUP (from Date Info banner) -->
-<div id="date-people-popup" onclick="closeDatePeoplePopup()" style="position:fixed;inset:0;background:rgba(30,20,20,0.5);z-index:450;display:none;align-items:center;justify-content:center;padding:20px">
-  <div onclick="event.stopPropagation()" style="width:100%;max-width:320px;background:var(--bg);border-radius:18px;overflow:hidden;box-shadow:0 12px 48px rgba(0,0,0,0.18)">
-    <div style="display:flex;justify-content:flex-end;padding:12px 14px 0">
-      <button onclick="closeDatePeoplePopup()" style="background:none;border:none;cursor:pointer;padding:4px;line-height:0;color:#9a8a7a"><svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
-    </div>
-    <div id="date-people-popup-list" style="padding:4px 0 16px"></div>
+<div id="date-people-popup" onmousedown="if(event.target===this)closeDatePeoplePopup()" style="position:fixed;inset:0;background:rgba(30,20,20,0.5);z-index:500;display:none;align-items:center;justify-content:center;padding:20px">
+  <div onclick="event.stopPropagation()" style="width:100%;max-width:320px;background:var(--bg);border-radius:18px;overflow:hidden;box-shadow:0 12px 48px rgba(0,0,0,0.18);position:relative">
+    <button onmousedown="event.stopPropagation();closeDatePeoplePopup()" style="position:absolute;top:10px;right:10px;background:none;border:none;cursor:pointer;padding:4px;line-height:0;color:#9a8a7a;z-index:1"><svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    <div id="date-people-popup-list" style="padding:8px 0 12px"></div>
   </div>
 </div>
 
