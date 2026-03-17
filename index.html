@@ -142,7 +142,7 @@
   /* Edit Person popup */
   #edit-person-overlay { position:fixed;inset:0;background:rgba(30,20,20,0.5);z-index:430;align-items:center;justify-content:center;padding:max(20px,env(safe-area-inset-top)) 20px max(20px,env(safe-area-inset-bottom)); }
   /* Edit Profile Photo popup */
-  #edit-person-photo-overlay { position:fixed;inset:0;background:rgba(30,20,20,0.5);z-index:440;display:none;align-items:center;justify-content:center;padding:20px; }
+  #edit-person-photo-overlay { position:fixed;inset:0;background:rgba(30,20,20,0.5);z-index:460;display:none;align-items:center;justify-content:center;padding:20px; }
   #nav-logo { display: flex; align-items: center; gap: 8px; background: none; border: none; outline: none; cursor: pointer; }
   #nav-logo span { font-size: 17px; font-weight: 600; letter-spacing: 0.02em; color: var(--text-primary); }
   body.dark-mode #logo-circle-dark { stroke: #845764; }
@@ -593,6 +593,11 @@
   body.dark-mode .icon-close-fill { fill: var(--icon-close) !important; }
   body.dark-mode .btn-outline { border-color: #9a8a7a !important; }
   body.dark-mode .popup-overlay { background: rgba(10,8,8,0.75) !important; }
+  #photo-crop-zoom { accent-color: #c07a8a; }
+  #photo-crop-zoom::-webkit-slider-runnable-track { background: var(--border); border-radius: 4px; height: 4px; }
+  #photo-crop-zoom::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%; background: #c07a8a; margin-top: -7px; cursor: pointer; }
+  #photo-crop-zoom::-moz-range-track { background: var(--border); border-radius: 4px; height: 4px; }
+  #photo-crop-zoom::-moz-range-thumb { width: 18px; height: 18px; border-radius: 50%; background: #c07a8a; border: none; cursor: pointer; }
 </style>
 </head>
 <body>
