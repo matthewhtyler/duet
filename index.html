@@ -13472,18 +13472,25 @@ function _buildUpcomingPeopleHtml(u) {
 function _selectMyPlace(ctx) {
   const sug = document.getElementById(ctx + '-location-suggest');
   if (sug) sug.style.display = 'none';
-  // Set the location select to my_place
-  const locSel = document.getElementById(ctx === 'date' ? 'date-location-select' : 'ed-location-select');
-  if (locSel) {
-    locSel.value = 'my_place';
-    locSel.style.display = 'block';
-  }
+  _locationPersonId[ctx] = null;
+  // Clear and hide text input
   const inp = document.getElementById(ctx === 'date' ? 'date-location-text' : 'ed-location');
-  if (inp) { inp.value = ''; inp.placeholder = 'Address…'; }
-  // Clear pill
+  if (inp) { inp.value = homeAddress || ''; inp.placeholder = 'Address…'; }
+  // Build pill with sofa icon
+  const pillEl = document.getElementById(ctx + '-location-pill');
+  if (pillEl) {
+    const sofaIcon = `<div style="width:20px;height:20px;border-radius:50%;background:var(--toggle-bg);display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg viewBox="0 0 24 24" width="11" height="11" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M20 9V7a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v2"/><path d="M2 11v5a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-5a2 2 0 0 0-4 0v2H6v-2a2 2 0 0 0-4 0z"/><path d="M4 18v2"/><path d="M20 18v2"/></svg></div>`;
+    pillEl.innerHTML = `<div style="display:inline-flex;align-items:center;gap:5px;background:var(--bg-card2);border:1px solid var(--border);border-radius:20px;padding:3px 8px 3px 4px;font-size:12px;font-family:sans-serif;color:var(--text-primary);white-space:nowrap;flex-shrink:0">${sofaIcon}<span>My place</span><button onclick="_clearMyPlace('${ctx}')" style="background:none;border:none;cursor:pointer;padding:0;line-height:0;color:#9a8a7a;margin-left:2px"><svg viewBox="0 0 24 24" width="10" height="10" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>`;
+  }
+  if (inp) inp.placeholder = '';
+  _syncLocationClearBtn(ctx);
+}
+
+function _clearMyPlace(ctx) {
   const pillEl = document.getElementById(ctx + '-location-pill');
   if (pillEl) pillEl.innerHTML = '';
-  _locationPersonId[ctx] = null;
+  const inp = document.getElementById(ctx === 'date' ? 'date-location-text' : 'ed-location');
+  if (inp) { inp.value = ''; inp.placeholder = 'Address…'; }
   _syncLocationClearBtn(ctx);
 }
 </script>
