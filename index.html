@@ -7054,8 +7054,19 @@ function _nextDateCommuteHtml(date, cardColor) {
   const idea = ideas.find(i => i.name === date.venue);
   if (idea && idea.type === 'in' && !date.inLocation) return null;
 
-  const subway = idea && idea.subwayRoute ? idea.subwayRoute.trim() : '';
-  const walkdrive = idea && idea.walkDriveTime ? idea.walkDriveTime.trim() : '';
+  // Get commute data: from idea, or from the person whose place this is
+  let subway = idea && idea.subwayRoute ? idea.subwayRoute.trim() : '';
+  let walkdrive = idea && idea.walkDriveTime ? idea.walkDriveTime.trim() : '';
+  let commuteAddress = idea && idea.address ? idea.address.trim() : (date.venue || '');
+
+  if (!subway && !walkdrive && date.locationPersonId) {
+    const lp = people.find(x => x.id === date.locationPersonId);
+    if (lp) {
+      subway = (lp.subwayRoute || '').trim();
+      walkdrive = (lp.walkDriveTime || '').trim();
+      commuteAddress = (lp.address || '').trim() || commuteAddress;
+    }
+  }
 
   let commuteMin = null;
   let commuteHtml = '';
@@ -7097,7 +7108,7 @@ function _nextDateCommuteHtml(date, cardColor) {
   if (!commuteHtml) return null;
 
   // Determine travel mode and destination for Maps link
-  const dest = idea && idea.address ? idea.address.trim() : (date.venue || '');
+  const dest = commuteAddress;
   let travelMode = 'transit'; // default for subway
   if (!subway && walkdrive) {
     const walkMatch2 = walkdrive.match(/(\d+)\s*min\s*walk/i);
@@ -8963,15 +8974,32 @@ function saveNewDate() {
   let neighborhood = '';
   if (isCustom) {
     venue = document.getElementById('date-custom-name').value.trim();
-    if (!venue) return;
     const _catSel = document.getElementById('date-custom-category');
     activity = (_catSel && _catSel.value) ? _catSel.value : 'other';
     const locText = _getLocationAddress('date');
     const neighText = document.getElementById('date-neighborhood').value.trim();
     const locSel = document.getElementById('date-location-select');
     const locVal = locText || (locSel && locSel.style.display === 'block' ? locSel.value : '') || '';
-    // Use explicit neighborhood if entered, else parse from address
     neighborhood = neighText || locVal;
+    // Auto-generate venue if blank
+    if (!venue) {
+      const catLabel = _catSel && _catSel.options[_catSel.selectedIndex] ? _catSel.options[_catSel.selectedIndex].text : (activity || 'Date');
+      const locPid = _locationPersonId['date'];
+      if (locPid) {
+        const lp = people.find(x => x.id === locPid);
+        const lpName = lp ? (lp.firstName || _personFullName(lp)) : null;
+        venue = lpName ? catLabel + " at " + lpName + "'s" : catLabel;
+      } else {
+        const locSelVal = locSel && locSel.style.display === 'block' ? locSel.value : '';
+        if (locSelVal === 'my_place') {
+          venue = catLabel + ' at Home';
+        } else if (locText) {
+          venue = catLabel + ' at ' + locText;
+        } else {
+          venue = catLabel;
+        }
+      }
+    }
   } else {
     venue = selectedActivity.name || '';
     activity = selectedActivity.category || 'Other';
@@ -12138,7 +12166,7 @@ function _renderPersonInfoPopup(p) {
     const handle = p.instagram.replace(/^@/,'');
     html += row(`<svg viewBox="0 0 24 24" width="16" height="16" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M16 8v0"/><rect x="2" y="2" width="20" height="20" rx="5"/></svg>`, `<span>@${handle}</span>`, `_openExternal('https://instagram.com/${handle}')`);
   }
-  fields.innerHTML = html || `<div style="color:#b0a090;font-size:14px;font-style:italic">No details yet.</div>`;
+  fields.innerHTML = html || '';
 
   // Notes row (above commute) — clickable, opens Edit Person and scrolls to notes
   if (p.notes) {
@@ -12592,13 +12620,12 @@ function _loadPeopleEntries(ctx, arr) {
 // ── Hook into saveNewDate ─────────────────────────────
 const _origSaveNewDate = saveNewDate;
 saveNewDate = function() {
-  // Capture people before form resets
   const _newDatePeople = _serializePeopleEntries('date');
+  const _idsBefore = new Set(UPCOMING_DATES.map(d => d.id));
   _origSaveNewDate.call(this);
-  // Patch the last-added date with people
   if (_newDatePeople) {
-    const last = UPCOMING_DATES[UPCOMING_DATES.length - 1];
-    if (last) { last.people = _newDatePeople; saveDates(UPCOMING_DATES); }
+    const saved = UPCOMING_DATES.find(d => !_idsBefore.has(d.id));
+    if (saved) { saved.people = _newDatePeople; saveDates(UPCOMING_DATES); }
   }
   _datePeopleEntries['date'] = [];
   _renderPeoplePills('date');
@@ -12642,7 +12669,7 @@ function _diPeoplePhotosHtml(u) {
     const left = i * (SIZE - OVERLAP);
     const zIndex = peeps.length - i;
     const inner = (p && p.photoUrl)
-      ? `<img src="${p.photoUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:50%" onerror="this.style.display='none'">`
+      ? `<img src="${_resolveImageUrl(p.photoUrl)}" style="width:100%;height:100%;object-fit:cover;border-radius:50%" onerror="this.style.display='none'">`
       : _personIconSvg(Math.round(SIZE * 0.55), '#fff');
     return `<div style="position:absolute;left:${left}px;top:0;width:${SIZE}px;height:${SIZE}px;border-radius:50%;background:#6b2340;border:2px solid #fff;overflow:hidden;z-index:${zIndex};display:flex;align-items:center;justify-content:center">${inner}</div>`;
   }).join('');
@@ -12653,24 +12680,18 @@ function _diPeoplePhotosHtml(u) {
 const _origOpenDateInfo = openDateInfo;
 openDateInfo = function(u, memoryMode) {
   _origOpenDateInfo.call(this, u, memoryMode);
-  // After banner is built, inject people circles
   const banner = document.getElementById('di-banner');
   if (!banner || !u) return;
-  // Remove old people overlay if any
   const old = document.getElementById('di-people-circles');
   if (old) old.remove();
   const peeps = u.people || [];
   if (!peeps.length) return;
-  const el = document.createElement('div');
-  el.id = 'di-people-circles';
-  el.style.cssText = 'position:absolute;bottom:8px;left:8px;z-index:3;display:flex;';
-  el.innerHTML = _diPeoplePhotosHtml(u).replace(/^<div[^>]*>/, '').replace(/<\/div>$/, '');
-  // Wrap properly
+  const html = _diPeoplePhotosHtml(u);
+  if (!html) return;
   const wrapper = document.createElement('div');
-  wrapper.id = 'di-people-circles';
-  wrapper.innerHTML = _diPeoplePhotosHtml(u);
-  if (banner.style.display !== 'none') banner.appendChild(wrapper);
-  // Store reference for people popup
+  wrapper.innerHTML = html;
+  const inner = wrapper.firstChild;
+  if (inner && banner.style.display !== 'none') banner.appendChild(inner);
   window._diCurrentDatePeople = peeps;
 };
 
@@ -12807,59 +12828,11 @@ saveEditPerson = function() {
   }
 };
 
-// Also show commute in Person Info popup — same style as Idea Info popup
+// Also show commute in Person Info popup — HIDDEN FOR NOW
 const _origRenderPersonInfoPopup = _renderPersonInfoPopup;
 _renderPersonInfoPopup = function(p) {
   _origRenderPersonInfoPopup.call(this, p);
-  const fields = document.getElementById('pi-fields');
-  if (!fields) return;
-  const subway    = (p.subwayRoute    || '').trim();
-  const walkdrive = (p.walkDriveTime  || '').trim();
-  if (!subway && !walkdrive) return;
-
-  const dest = (p.address || '').trim();
-  let commuteRows = '';
-
-  if (subway) {
-    const subwayClean = subway.replace(/\s*\?\s*$/, '').trim();
-    const badgesHtml = buildSubwayBadgesHtml(subwayClean);
-    const mapsUrl = (homeAddress && dest)
-      ? `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(homeAddress)}&destination=${encodeURIComponent(dest)}&travelmode=transit`
-      : '';
-    const onclick = mapsUrl ? `onclick="event.stopPropagation();_openExternal('${mapsUrl}')"` : '';
-    commuteRows += `<div style="display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap;margin-top:16px;${mapsUrl?'cursor:pointer':''}" ${onclick}>${badgesHtml}</div>`;
-  }
-
-  if (walkdrive) {
-    const wdClean = walkdrive.replace(/\s*\?\s*$/, '').trim();
-    const wm = wdClean.match(/(\d+)\s*min\s*walk/i);
-    const dm = wdClean.match(/(\d+)\s*min\s*drive/i);
-    if (wm || dm) {
-      const pSvg = `<svg viewBox="0 0 24 24" width="13" height="13" fill="#b0a090"><path d="M13.5 5.5c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zM9.8 8.9L7 23h2.1l1.8-8 2.1 2v6h2v-7.5l-2.1-2 .6-3C14.8 12 16.8 13 19 13v-2c-1.9 0-3.5-1-4.3-2.4l-1-1.6c-.4-.6-1-1-1.7-1-.3 0-.5.1-.8.1L6 8.3V13h2V9.6l1.8-.7"/></svg>`;
-      const cSvg = `<svg viewBox="0 0 24 24" width="13" height="13" fill="#b0a090"><path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z"/></svg>`;
-      const walkUrl  = (homeAddress && dest) ? `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(homeAddress)}&destination=${encodeURIComponent(dest)}&travelmode=walking`  : '';
-      const driveUrl = (homeAddress && dest) ? `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(homeAddress)}&destination=${encodeURIComponent(dest)}&travelmode=driving` : '';
-      const marginTop = subway ? '6px' : '16px';
-      let wdHtml = `<div style="display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap;margin-top:${marginTop}">`;
-      if (wm) {
-        const wc = walkUrl ? `onclick="event.stopPropagation();_openExternal('${walkUrl}')" style="display:flex;align-items:center;gap:3px;font-size:12px;color:#b0a090;font-family:sans-serif;cursor:pointer"` : `style="display:flex;align-items:center;gap:3px;font-size:12px;color:#b0a090;font-family:sans-serif"`;
-        wdHtml += `<span ${wc}>${pSvg}${wm[1]} min</span>`;
-      }
-      if (wm && dm) wdHtml += `<span style="color:#b0a090;font-size:12px;font-family:sans-serif">/</span>`;
-      if (dm) {
-        const dc = driveUrl ? `onclick="event.stopPropagation();_openExternal('${driveUrl}')" style="display:flex;align-items:center;gap:3px;font-size:12px;color:#b0a090;font-family:sans-serif;cursor:pointer"` : `style="display:flex;align-items:center;gap:3px;font-size:12px;color:#b0a090;font-family:sans-serif"`;
-        wdHtml += `<span ${dc}>${cSvg}${dm[1]} min</span>`;
-      }
-      wdHtml += '</div>';
-      commuteRows += wdHtml;
-    }
-  }
-
-  if (commuteRows) {
-    const wrap = document.createElement('div');
-    wrap.innerHTML = commuteRows;
-    fields.appendChild(wrap);
-  }
+  // commute hidden for now
 };
 
 // ── Location address person autocomplete ─────────────
@@ -13413,6 +13386,34 @@ function _openPersonPhotoViewer() {
   }
   viewer.style.display = 'flex';
 }
+
+function _planSomethingWithPerson() {
+  const personId = _currentPersonId;
+  closePersonInfo();
+  // Navigate to calendar with today selected
+  const today = new Date();
+  selectedCalDay = today.getDate();
+  currentCalMonth = today.getMonth();
+  currentCalYear = today.getFullYear();
+  navigate('calendar');
+  setTimeout(() => {
+    openSheet('date');
+    // Add person to the people field after sheet opens
+    setTimeout(() => {
+      if (personId) {
+        _datePeopleEntries['date'] = _datePeopleEntries['date'] || [];
+        if (!_datePeopleEntries['date'].some(e => e.id === personId)) {
+          const p = people.find(x => x.id === personId);
+          if (p) {
+            _datePeopleEntries['date'].push({ id: p.id, name: _personFullName(p), custom: false });
+            _renderPeoplePills('date');
+            _updatePartnerPlaceLabel('date');
+          }
+        }
+      }
+    }, 100);
+  }, 50);
+}
 </script>
 
 <!-- PLACE FINDER PREVIEW POPUP — z-index 460 -->
@@ -13502,7 +13503,10 @@ function _openPersonPhotoViewer() {
         </div>
       </div>
       <!-- Fields -->
-      <div id="pi-fields" style="display:flex;flex-direction:column;gap:12px"></div>
+      <div id="pi-fields" style="display:flex;flex-direction:column;gap:16px;padding:16px 18px 0"></div>
+      <div style="display:flex;justify-content:center;padding:20px 18px 4px">
+        <button onclick="_planSomethingWithPerson()" style="display:flex;align-items:center;gap:7px;height:34px;padding:0 16px;border:none;border-radius:17px;font-family:sans-serif;font-size:13px;font-weight:600;color:#fff;background:#c07a8a;cursor:pointer;line-height:1"><svg viewBox="0 0 24 24" width="12" height="12" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-left:4px"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Plan Something</button>
+      </div>
     </div>
   </div>
 </div>
