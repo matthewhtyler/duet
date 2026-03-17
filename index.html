@@ -11976,7 +11976,7 @@ function _personAvatarHtml(person, size) {
     // object-position: shift center by offset as percentage of displayed size
     const pctX = 50 - (ox / (size * zoom)) * 100;
     const pctY = 50 - (oy / (size * zoom)) * 100;
-    return `<div style="width:${size}px;height:${size}px;border-radius:50%;overflow:hidden;flex-shrink:0;background:var(--toggle-bg)"><img src="${person.photoUrl}" style="width:${zoom*100}%;height:${zoom*100}%;object-fit:cover;object-position:${pctX.toFixed(1)}% ${pctY.toFixed(1)}%;margin-left:${-((zoom-1)*size/2 - ox)}px;margin-top:${-((zoom-1)*size/2 - oy)}px" onerror="this.parentNode.innerHTML='${_personIconSvg(Math.round(size*0.55),'#b0a090').replace(/'/g,"\\'")}'" loading="lazy"></div>`;
+    return `<div style="width:${size}px;height:${size}px;border-radius:50%;overflow:hidden;flex-shrink:0;background:var(--toggle-bg)"><img src="${_resolveImageUrl(person.photoUrl)}" style="width:${zoom*100}%;height:${zoom*100}%;object-fit:cover;object-position:${pctX.toFixed(1)}% ${pctY.toFixed(1)}%;margin-left:${-((zoom-1)*size/2 - ox)}px;margin-top:${-((zoom-1)*size/2 - oy)}px" onerror="this.parentNode.innerHTML='${_personIconSvg(Math.round(size*0.55),'#b0a090').replace(/'/g,"\\'")}'" loading="lazy"></div>`;
   }
   return `<div style="width:${size}px;height:${size}px;border-radius:50%;background:var(--toggle-bg);display:flex;align-items:center;justify-content:center;flex-shrink:0">${_personIconSvg(Math.round(size*0.55), '#b0a090')}</div>`;
 }
@@ -12258,7 +12258,7 @@ function openEditPersonPhoto() {
   window._photoSnapshot = p ? { photoUrl: p.photoUrl, photoZoom: p.photoZoom, photoX: p.photoX, photoY: p.photoY } : null;
   _photoCropImg = null;
   if (p && p.photoUrl) {
-    _loadPhotoCropImage(p.photoUrl);
+    _loadPhotoCropImage(_resolveImageUrl(p.photoUrl));
   } else {
     _photoCropShowPlaceholder();
   }
