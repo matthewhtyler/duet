@@ -11972,19 +11972,34 @@ function _personAvatarHtml(person, size) {
     const zoom = person.photoZoom || 1;
     const ox = person.photoX || 0;
     const oy = person.photoY || 0;
-    const CANVAS = 180; // canvas size used during crop
-    // Replicate canvas math: image scaled to cover CANVAS*CANVAS then zoomed
-    // At display size `size`, scale everything proportionally
+    const CANVAS = 180;
     const ratio = size / CANVAS;
-    // Image is drawn centered at (CANVAS/2 + ox, CANVAS/2 + oy) in canvas coords
-    // Convert to display coords
-    const imgSize = size * zoom; // scaled image size (square approximation for cover)
+    const imgSize = size * zoom;
     const imgLeft = size / 2 + ox * ratio - imgSize / 2;
     const imgTop  = size / 2 + oy * ratio - imgSize / 2;
     const resolvedUrl = _resolveImageUrl(person.photoUrl);
-    return `<div style="width:${size}px;height:${size}px;border-radius:50%;overflow:hidden;flex-shrink:0;background:var(--toggle-bg);position:relative"><img src="${resolvedUrl}" style="position:absolute;width:${imgSize}px;height:${imgSize}px;left:${imgLeft.toFixed(1)}px;top:${imgTop.toFixed(1)}px;object-fit:cover;border-radius:0" onerror="this.parentNode.innerHTML='${_personIconSvg(Math.round(size*0.55),'#b0a090').replace(/'/g,"\\'")}'" loading="lazy"></div>`;
+    const imgTag = `<img src="${resolvedUrl}" style="position:absolute;width:${imgSize}px;height:${imgSize}px;left:${imgLeft.toFixed(1)}px;top:${imgTop.toFixed(1)}px;object-fit:cover;border-radius:0" onerror="this.parentNode.innerHTML='${_personIconSvg(Math.round(size*0.55),'#b0a090').replace(/'/g,"\\'")}'" loading="lazy">`;
+    return `<div style="width:${size}px;height:${size}px;border-radius:50%;overflow:hidden;flex-shrink:0;background:var(--toggle-bg);position:relative">${imgTag}</div>`;
   }
   return `<div style="width:${size}px;height:${size}px;border-radius:50%;background:var(--toggle-bg);display:flex;align-items:center;justify-content:center;flex-shrink:0">${_personIconSvg(Math.round(size*0.55), '#b0a090')}</div>`;
+}
+
+// Returns just the inner content (img tag) for injecting into an existing circle container
+function _personAvatarInner(person, size) {
+  size = size || 44;
+  if (person && person.photoUrl) {
+    const zoom = person.photoZoom || 1;
+    const ox = person.photoX || 0;
+    const oy = person.photoY || 0;
+    const CANVAS = 180;
+    const ratio = size / CANVAS;
+    const imgSize = size * zoom;
+    const imgLeft = size / 2 + ox * ratio - imgSize / 2;
+    const imgTop  = size / 2 + oy * ratio - imgSize / 2;
+    const resolvedUrl = _resolveImageUrl(person.photoUrl);
+    return `<img src="${resolvedUrl}" style="position:absolute;width:${imgSize}px;height:${imgSize}px;left:${imgLeft.toFixed(1)}px;top:${imgTop.toFixed(1)}px;object-fit:cover;border-radius:0" onerror="this.parentNode.innerHTML='${_personIconSvg(Math.round(size*0.55),'#b0a090').replace(/'/g,"\\'")}'" loading="lazy">`;
+  }
+  return _personIconSvg(Math.round(size*0.55), '#b0a090');
 }
 
 function _personFullName(p) {
@@ -12094,15 +12109,7 @@ function _renderPersonInfoPopup(p) {
   if (nameEl) nameEl.textContent = _personFullName(p);
 
   const avatarEl = document.getElementById('pi-avatar');
-  if (avatarEl) {
-    if (p.photoUrl) {
-      const t = document.createElement('div');
-      t.innerHTML = _personAvatarHtml(p, 52);
-      avatarEl.innerHTML = t.firstChild ? t.firstChild.innerHTML : '';
-    } else {
-      avatarEl.innerHTML = _personIconSvg(28, '#b0a090');
-    }
-  }
+  if (avatarEl) avatarEl.innerHTML = _personAvatarInner(p, 52);
 
   // No favorite heart on Person Info popup
 
@@ -12405,9 +12412,7 @@ function savePersonPhoto() {
     savePeople(people);
     // Refresh ep-photo-circle with correct crop
     const circle = document.getElementById('ep-photo-circle');
-    if (circle) circle.innerHTML = p.photoUrl
-      ? (() => { const t=document.createElement('div'); t.innerHTML=_personAvatarHtml(p,72); return t.firstChild ? t.firstChild.innerHTML : ''; })()
-      : _personIconSvg(36, '#b0a090');
+    if (circle) circle.innerHTML = _personAvatarInner(p, 72);
     // Refresh Person Info popup if open
     const piOverlay = document.getElementById('person-info-overlay');
     if (piOverlay && piOverlay.style.display !== 'none') _renderPersonInfoPopup(p);
@@ -12737,15 +12742,7 @@ openEditPerson = function(id) {
   _updateEpFavIcon();
   // Populate photo circle
   const circle = document.getElementById('ep-photo-circle');
-  if (circle) {
-    if (p.photoUrl) {
-      const t = document.createElement('div');
-      t.innerHTML = _personAvatarHtml(p, 72);
-      circle.innerHTML = t.firstChild ? t.firstChild.innerHTML : _personIconSvg(36, '#b0a090');
-    } else {
-      circle.innerHTML = _personIconSvg(36, '#b0a090');
-    }
-  }
+  if (circle) circle.innerHTML = _personAvatarInner(p, 72);
   // Scroll to top
   const epOvl = document.getElementById('edit-person-overlay');
   if (epOvl) { const sb = epOvl.querySelector('[style*="overflow-y"]'); if (sb) sb.scrollTop = 0; }
@@ -13492,7 +13489,7 @@ function _openPersonPhotoViewer() {
       <!-- Header row: avatar + name, edit + close -->
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
         <div style="display:flex;align-items:center;gap:12px;flex:1;min-width:0">
-          <div id="pi-avatar" onclick="_openPersonPhotoViewer()" style="width:52px;height:52px;border-radius:50%;overflow:hidden;flex-shrink:0;background:var(--toggle-bg);display:flex;align-items:center;justify-content:center;cursor:pointer"></div>
+          <div id="pi-avatar" onclick="_openPersonPhotoViewer()" style="width:52px;height:52px;border-radius:50%;overflow:hidden;flex-shrink:0;background:var(--toggle-bg);display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative"></div>
           <div id="pi-name" onclick="openEditPersonFromInfo()" style="font-size:18px;font-weight:700;color:var(--popup-title);cursor:pointer;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></div>
         </div>
         <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
@@ -13532,7 +13529,7 @@ function _openPersonPhotoViewer() {
     <div style="padding:20px;display:flex;flex-direction:column;gap:14px;overflow-y:auto;-webkit-overflow-scrolling:touch">
       <!-- Profile photo circle -->
       <div style="display:flex;justify-content:center;margin-bottom:4px">
-        <div id="ep-photo-circle" onclick="_epPhotoCircleClick()" style="width:72px;height:72px;border-radius:50%;overflow:hidden;background:var(--toggle-bg);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;border:2px solid var(--border)"></div>
+        <div id="ep-photo-circle" onclick="_epPhotoCircleClick()" style="width:72px;height:72px;border-radius:50%;overflow:hidden;background:var(--toggle-bg);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;border:2px solid var(--border);position:relative"></div>
       </div>
       <!-- Name row -->
       <div style="display:flex;align-items:center;gap:10px">
