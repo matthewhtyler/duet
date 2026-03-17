@@ -1146,7 +1146,7 @@
           <!-- People row (shown when no banner image) -->
           <div id="di-people-row" style="display:none;align-items:center;gap:10px;margin-bottom:14px">
             <svg viewBox="0 0 24 24" width="18" height="18" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
-            <span id="di-people-names" style="font-size:14px;color:#9a8a7a"></span>
+            <span id="di-people-names" style="font-size:14px;font-family:sans-serif;color:#9a8a7a"></span>
           </div>
           <!-- In-location row (My place / Her place, shown for my_place and partner_place) -->
           <div id="di-in-location-row" style="display:none;align-items:center;gap:10px;margin-bottom:14px">
@@ -9053,12 +9053,12 @@ function saveNewDate() {
     day: dd, month: monthName, year: yyyy,
     activity, venue, neighborhood,
     address: isCustom ? (_getLocationAddress('date') || undefined) : (inLocation === 'partner_place' ? (_getPartnerPlaceAddress('date') || undefined) : undefined),
-    locationPersonId: isCustom ? (_locationPersonId['date'] || undefined) : (inLocation === 'partner_place' ? ((_getDateFirstPerson('date') || {}).id || undefined) : undefined),
+    locationPersonId: _locationPersonId['date'] || (inLocation === 'partner_place' ? ((_getDateFirstPerson('date') || {}).id || undefined) : undefined),
     time: timeVal || '',
     note,
     imageUrls: imageUrls.length ? imageUrls : undefined,
     imgSearchTerm: window._imgsPopupPendingSearchTerm || undefined,
-    inLocation: inLocation || undefined,
+    inLocation: (isCustom && window._locationIsMyPlace && window._locationIsMyPlace['date']) ? 'my_place' : (inLocation || undefined),
     inLocationOther: inLocationOther || undefined,
     inLocationOtherName: inLocationOtherName || undefined,
     isFeb,
@@ -9835,15 +9835,19 @@ function openDateInfo(u, memoryMode) {
     }
     diInLocRow.style.display = 'flex';
   } else if (diInLocRow && (u.inLocation === 'my_place' || _isPartnerLoc)) {
+    const _sofaSvgLarge = `<svg viewBox="0 0 24 24" width="18" height="18" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M20 9V7a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v2"/><path d="M2 11v5a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-5a2 2 0 0 0-4 0v2H6v-2a2 2 0 0 0-4 0z"/><path d="M4 18v2"/><path d="M20 18v2"/></svg>`;
     const _locLabel = _isPartnerLoc ? _pLbl : 'My place';
     const _pinSvg = `<svg viewBox="0 0 24 24" width="18" height="18" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>`;
-    const _homeSvg = `<svg viewBox="0 0 24 24" width="18" height="18" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>`;
-    if (diInLocIcon) diInLocIcon.innerHTML = _isPartnerLoc ? _pinSvg : _homeSvg;
+    if (diInLocIcon) diInLocIcon.innerHTML = _isPartnerLoc ? _pinSvg : _sofaSvgLarge;
     if (diInLocLabel) {
       diInLocLabel.textContent = _locLabel;
       if (_isPartnerLoc && partnerAddress) {
         const _partnerUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(partnerAddress)}`;
         diInLocLabel.onclick = () => _openExternal(_partnerUrl);
+        diInLocLabel.style.cursor = 'pointer';
+      } else if (!_isPartnerLoc && homeAddress) {
+        const _homeUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(homeAddress)}`;
+        diInLocLabel.onclick = () => _openExternal(_homeUrl);
         diInLocLabel.style.cursor = 'pointer';
       } else {
         diInLocLabel.onclick = null;
@@ -9887,7 +9891,7 @@ function openDateInfo(u, memoryMode) {
   if (neighRow) neighRow.style.cursor = _neighVal ? 'pointer' : '';
   if (neighSpan) neighSpan.textContent = _neighVal;
   const addrRow = document.getElementById('di-address-row');
-  if (addrVal) {
+  if (addrVal && u.inLocation !== 'my_place') {
     const dest = encodeURIComponent(addrVal);
     const dirUrl = `https://www.google.com/maps/search/?api=1&query=${dest}`;
     const _addrClick = () => _openExternal(dirUrl);
@@ -10334,13 +10338,30 @@ function saveEditDate() {
         u.activity = edSelectedActivity.category;
         u.neighborhood = _ideaNeighborhood(edSelectedActivity);
         _applyEdInLocation(u);
+        if (_locationPersonId['ed']) u.locationPersonId = _locationPersonId['ed'];
       } else if (isCustom) {
         const cName = ((document.getElementById('ed-custom-name') || {}).value || '').trim();
         const locText = _getLocationAddress('ed');
         const neighText = ((document.getElementById('ed-neighborhood') || {}).value || '').trim();
         const _catSel = document.getElementById('ed-custom-category');
-        if (cName) u.venue = cName;
         u.activity = (_catSel && _catSel.value) ? _catSel.value : (u.activity || 'other');
+        if (cName) {
+          u.venue = cName;
+        } else {
+          const catLabel = _catSel && _catSel.options[_catSel.selectedIndex] ? _catSel.options[_catSel.selectedIndex].text : (u.activity || 'Date');
+          const locPid = _locationPersonId['ed'];
+          if (locPid) {
+            const lp = people.find(x => x.id === locPid);
+            const lpName = lp ? (lp.firstName || _personFullName(lp)) : null;
+            u.venue = lpName ? catLabel + " at " + lpName + "'s" : catLabel;
+          } else if (window._locationIsMyPlace && window._locationIsMyPlace['ed']) {
+            u.venue = catLabel + ' at Home';
+          } else if (locText) {
+            u.venue = catLabel + ' at ' + locText;
+          } else {
+            u.venue = catLabel;
+          }
+        }
         u.address = locText || undefined;
         u.locationPersonId = _locationPersonId['ed'] || undefined;
         u.neighborhood = neighText || locText;
@@ -10367,13 +10388,30 @@ function saveEditDate() {
         u.activity = edSelectedActivity.category;
         u.neighborhood = _ideaNeighborhood(edSelectedActivity);
         _applyEdInLocation(u);
+        if (_locationPersonId['ed']) u.locationPersonId = _locationPersonId['ed'];
       } else if (isCustom) {
         const cName = ((document.getElementById('ed-custom-name') || {}).value || '').trim();
         const locText = _getLocationAddress('ed');
         const neighText = ((document.getElementById('ed-neighborhood') || {}).value || '').trim();
         const _catSel = document.getElementById('ed-custom-category');
-        if (cName) u.venue = cName;
         u.activity = (_catSel && _catSel.value) ? _catSel.value : (u.activity || 'other');
+        if (cName) {
+          u.venue = cName;
+        } else {
+          const catLabel = _catSel && _catSel.options[_catSel.selectedIndex] ? _catSel.options[_catSel.selectedIndex].text : (u.activity || 'Date');
+          const locPid = _locationPersonId['ed'];
+          if (locPid) {
+            const lp = people.find(x => x.id === locPid);
+            const lpName = lp ? (lp.firstName || _personFullName(lp)) : null;
+            u.venue = lpName ? catLabel + " at " + lpName + "'s" : catLabel;
+          } else if (window._locationIsMyPlace && window._locationIsMyPlace['ed']) {
+            u.venue = catLabel + ' at Home';
+          } else if (locText) {
+            u.venue = catLabel + ' at ' + locText;
+          } else {
+            u.venue = catLabel;
+          }
+        }
         u.address = locText || undefined;
         u.locationPersonId = _locationPersonId['ed'] || undefined;
         u.neighborhood = neighText || locText;
@@ -12585,8 +12623,12 @@ function _peopleSuggest(ctx) {
   const q = inp.value.trim().toLowerCase();
   if (!q) { sug.style.display = 'none'; return; }
   const already = new Set((_datePeopleEntries[ctx] || []).map(e => e.id).filter(Boolean));
+  const _seenIds = new Set();
   const matches = people.filter(p => {
+    if (!p.firstName && !p.lastName) return false; // skip empty stubs
     if (already.has(p.id)) return false;
+    if (_seenIds.has(p.id)) return false;
+    _seenIds.add(p.id);
     return _personFullName(p).toLowerCase().includes(q);
   }).slice(0, 6);
   if (!matches.length) { sug.style.display = 'none'; return; }
@@ -12686,6 +12728,7 @@ saveNewDate = function() {
   }
   _datePeopleEntries['date'] = [];
   _renderPeoplePills('date');
+  if (window._locationIsMyPlace) window._locationIsMyPlace['date'] = false;
 };
 
 // ── Hook into saveEditDate ────────────────────────────
@@ -13522,16 +13565,17 @@ function _selectMyPlace(ctx) {
   const sug = document.getElementById(ctx + '-location-suggest');
   if (sug) sug.style.display = 'none';
   _locationPersonId[ctx] = null;
-  // Clear and hide text input
+  window._locationIsMyPlace = window._locationIsMyPlace || {};
+  window._locationIsMyPlace[ctx] = true;
+  // Hide text input, clear value so address isn't saved
   const inp = document.getElementById(ctx === 'date' ? 'date-location-text' : 'ed-location');
-  if (inp) { inp.value = homeAddress || ''; inp.placeholder = 'Address…'; }
+  if (inp) { inp.value = ''; inp.placeholder = ''; }
   // Build pill with sofa icon
   const pillEl = document.getElementById(ctx + '-location-pill');
   if (pillEl) {
     const sofaIcon = `<div style="width:20px;height:20px;border-radius:50%;background:var(--toggle-bg);display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg viewBox="0 0 24 24" width="11" height="11" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M20 9V7a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v2"/><path d="M2 11v5a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-5a2 2 0 0 0-4 0v2H6v-2a2 2 0 0 0-4 0z"/><path d="M4 18v2"/><path d="M20 18v2"/></svg></div>`;
     pillEl.innerHTML = `<div style="display:inline-flex;align-items:center;gap:5px;background:var(--bg-card2);border:1px solid var(--border);border-radius:20px;padding:3px 8px 3px 4px;font-size:12px;font-family:sans-serif;color:var(--text-primary);white-space:nowrap;flex-shrink:0">${sofaIcon}<span>My place</span><button onclick="_clearMyPlace('${ctx}')" style="background:none;border:none;cursor:pointer;padding:0;line-height:0;color:#9a8a7a;margin-left:2px"><svg viewBox="0 0 24 24" width="10" height="10" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>`;
   }
-  if (inp) inp.placeholder = '';
   _syncLocationClearBtn(ctx);
 }
 
