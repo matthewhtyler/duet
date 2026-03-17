@@ -12256,6 +12256,9 @@ function openEditPersonPhoto() {
     _photoCropShowPlaceholder();
   }
   document.getElementById('edit-person-photo-overlay').style.display = 'flex';
+  // Suppress edit-person overlay pointer events so photo popup buttons are tappable
+  const epOvl = document.getElementById('edit-person-overlay');
+  if (epOvl) epOvl.style.pointerEvents = 'none';
   // Wire drag events on canvas
   const canvas = document.getElementById('photo-crop-canvas');
   if (canvas) {
@@ -12378,15 +12381,19 @@ function savePersonPhoto() {
 }
 
 function cancelPersonPhoto() {
-  // Restore snapshot — do not save anything
+  // Restore observed -- do not save anything
   document.getElementById('edit-person-photo-overlay').style.display = 'none';
   _photoCropImg = null;
   window._photoSnapshot = null;
+  const epOvl = document.getElementById('edit-person-overlay');
+  if (epOvl) epOvl.style.pointerEvents = '';
 }
 
 function closeEditPersonPhoto() {
   document.getElementById('edit-person-photo-overlay').style.display = 'none';
   _photoCropImg = null;
+  const epOvl = document.getElementById('edit-person-overlay');
+  if (epOvl) epOvl.style.pointerEvents = '';
 }
 
 // ═══════════════════════════════════════════════════════
