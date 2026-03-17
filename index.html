@@ -125,6 +125,24 @@
     justify-content: center;
   }
   #app.past-nav { padding-top: 107px; }
+  #top-nav-people-row {
+    display: none;
+    padding: 0 20px 12px;
+    justify-content: center;
+  }
+  #app.people-nav { padding-top: 107px; }
+  /* People list */
+  .person-row { display:flex;align-items:center;gap:14px;padding:12px 20px;cursor:pointer;border-bottom:1px solid var(--border-light); }
+  .person-row:last-child { border-bottom:none; }
+  .person-avatar { width:44px;height:44px;border-radius:50%;overflow:hidden;flex-shrink:0;background:var(--toggle-bg);display:flex;align-items:center;justify-content:center; }
+  .person-avatar img { width:100%;height:100%;object-fit:cover;object-position:center; }
+  /* Person Info popup */
+  #person-info-overlay { position:fixed;inset:0;background:rgba(30,20,20,0.5);z-index:420;display:none;align-items:flex-start;justify-content:center;padding-top:66px; }
+  #person-info-modal { width:calc(100% - 24px);max-width:390px;background:var(--bg);border-radius:20px;overflow:hidden;max-height:80vh;overflow-y:auto;box-shadow:0 12px 48px rgba(0,0,0,0.18); }
+  /* Edit Person popup */
+  #edit-person-overlay { position:fixed;inset:0;background:rgba(30,20,20,0.5);z-index:430;display:none;align-items:center;justify-content:center;padding:20px; }
+  /* Edit Profile Photo popup */
+  #edit-person-photo-overlay { position:fixed;inset:0;background:rgba(30,20,20,0.5);z-index:440;display:none;align-items:center;justify-content:center;padding:20px; }
   #nav-logo { display: flex; align-items: center; gap: 8px; background: none; border: none; outline: none; cursor: pointer; }
   #nav-logo span { font-size: 17px; font-weight: 600; letter-spacing: 0.02em; color: var(--text-primary); }
   body.dark-mode #logo-circle-dark { stroke: #845764; }
@@ -618,6 +636,10 @@
           </svg>
           Open…
         </button>
+        <button onclick="navigate('people');closeMenu()">
+          <svg id="person-icon" viewBox="0 0 24 24" width="16" height="16" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+          People
+        </button>
         <button onclick="navigate('past');closeMenu()" style="border-bottom:none">
           <svg viewBox="0 0 24 24" width="16" height="16" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
             <path d="M2.5 8A9 9 0 1 1 3.5 15"/><polyline points="2 4 2.5 8 7 7.5"/>
@@ -642,6 +664,7 @@
   <div id="top-nav-ideas-row"></div>
   <div id="top-nav-todo-row"></div>
   <div id="top-nav-past-row"></div>
+  <div id="top-nav-people-row"></div>
   </div>
   </div>
 
@@ -959,14 +982,36 @@
         </div>
       </div>
       <!-- Location: text input for Out/Custom -->
-      <div id="date-location-text-wrap" style="display:none;align-items:center;gap:10px;margin-top:18px;margin-bottom:12px">
+      <div id="date-location-text-wrap" style="display:none;align-items:center;gap:10px;margin-top:12px;margin-bottom:12px">
         <svg viewBox="0 0 24 24" width="18" height="18" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-        <input class="field-input" id="date-location-text" type="text" placeholder="Address (e.g. 123 Metropolitan Ave, Brooklyn, NY)" style="flex:1;margin-bottom:0">
+        <div style="position:relative;flex:1;min-width:0">
+          <div id="date-location-field" style="display:flex;align-items:center;gap:6px;border:1.5px solid var(--border);border-radius:10px;background:var(--bg-input);padding:8px 12px;min-height:40px;box-sizing:border-box;cursor:text;overflow:hidden" onclick="document.getElementById('date-location-text').focus()">
+            <div id="date-location-pill" style="display:contents"></div>
+            <input id="date-location-text" type="text" placeholder="Address…" style="border:none;background:transparent;outline:none;font-size:16px;font-family:sans-serif;color:var(--text-primary);min-width:60px;flex:1;padding:0;line-height:1" oninput="_locationPersonSuggest('date')" onkeydown="_locationPersonKeydown(event,'date')">
+          </div>
+          <div id="date-location-suggest" style="display:none;position:absolute;top:100%;left:0;right:0;background:var(--bg);border:1.5px solid var(--border);border-radius:10px;z-index:9999;overflow:hidden;box-shadow:0 4px 16px rgba(0,0,0,0.12);margin-top:4px"></div>
+        </div>
       </div>
       <!-- Neighborhood (Custom activity only) -->
       <div id="date-neighborhood-wrap" style="display:none;align-items:center;gap:10px;margin-bottom:12px">
         <svg viewBox="0 0 24 24" width="18" height="18" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/></svg>
         <input class="field-input" id="date-neighborhood" type="text" placeholder="Neighborhood (e.g. Williamsburg)" style="flex:1;margin-bottom:0">
+      </div>
+      <!-- People -->
+      <div data-people-row="date" style="display:flex;align-items:center;gap:10px;margin-top:12px;margin-bottom:0;position:relative">
+        <button onclick="_addFavoritePersonToDate('date')" style="background:none;border:none;cursor:pointer;padding:0;display:flex;align-items:center;flex-shrink:0;line-height:0">
+          <svg viewBox="0 0 24 24" width="18" height="18" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+        </button>
+        <div style="position:relative;flex:1;min-width:0">
+          <div id="date-people-field" style="display:flex;align-items:center;gap:6px;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none;-webkit-overflow-scrolling:touch;border:1.5px solid var(--border);border-radius:10px;background:var(--bg-input);padding:8px 32px 8px 12px;min-height:40px;box-sizing:border-box;cursor:text" onclick="document.getElementById('date-people-input').focus()">
+            <div id="date-people-pills" style="display:contents"></div>
+            <input id="date-people-input" type="text" placeholder="People…" style="border:none;background:transparent;outline:none;font-size:16px;font-family:sans-serif;color:var(--text-primary);min-width:80px;flex-shrink:0;padding:0;line-height:1" oninput="_peopleSuggest('date')" onkeydown="_peoplePillKeydown(event,'date')">
+          </div>
+          <button type="button" id="date-people-clear" onmousedown="event.preventDefault();_clearDatePeople('date')" style="display:none;position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;padding:2px;line-height:0;color:#b0a090">
+            <svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+          <div id="date-people-suggest" style="display:none;position:absolute;top:100%;left:0;right:0;background:var(--bg);border:1.5px solid var(--border);border-radius:10px;z-index:9999;overflow:hidden;box-shadow:0 4px 16px rgba(0,0,0,0.12);margin-top:4px"></div>
+        </div>
       </div>
       <div style="display:flex;align-items:center;gap:10px;margin-top:12px;margin-bottom:12px">
 <svg viewBox="0 0 24 24" width="18" height="18" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><line x1="17" y1="10" x2="3" y2="10"/><line x1="21" y1="6" x2="3" y2="6"/><line x1="21" y1="14" x2="3" y2="14"/><line x1="17" y1="18" x2="3" y2="18"/></svg>
@@ -1119,14 +1164,6 @@
             <span id="di-address" style="font-size:14px;font-family:sans-serif;color:#9a8a7a;text-decoration:none;cursor:pointer"></span>
           </div>
           <!-- Subway row -->
-          <!-- Commute row (subway + walk/drive on same line, centered, clickable) -->
-          <div id="di-commute-row" style="display:none;margin-top:40px;margin-bottom:14px">
-            <div style="display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap" id="di-commute-inner"></div>
-            <div id="di-leaveby-row" style="display:none;margin-top:6px;text-align:center">
-              <span style="font-size:13px;font-family:sans-serif;color:#9a8a7a">Leave by </span>
-              <span id="di-leaveby-time" style="font-size:13px;font-family:sans-serif;color:var(--popup-title);font-weight:600"></span>
-            </div>
-          </div>
           <!-- About row -->
           <div id="di-about-row" style="display:none;align-items:flex-start;gap:10px;margin-bottom:14px">
             <svg style="margin-top:2px;flex-shrink:0" viewBox="0 0 24 24" width="18" height="18" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="17" x2="12" y2="11"/><circle cx="12" cy="7" r="1.2" fill="#9a8a7a" stroke="none"/></svg>
@@ -1134,7 +1171,15 @@
           </div>
         </div>
 
-        <!-- Action buttons (Reserve + Reschedule) -->
+        <!-- Commute row (subway + walk/drive on same line, centered, clickable) -->
+          <div id="di-commute-row" style="display:none;margin-top:40px;margin-bottom:14px">
+            <div style="display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap" id="di-commute-inner"></div>
+            <div id="di-leaveby-row" style="display:none;margin-top:6px;text-align:center">
+              <span style="font-size:13px;font-family:sans-serif;color:#9a8a7a">Leave by </span>
+              <span id="di-leaveby-time" style="font-size:13px;font-family:sans-serif;color:var(--popup-title);font-weight:600"></span>
+            </div>
+          </div>
+          <!-- Action buttons (Reserve + Reschedule) -->
         <div id="di-btns-wrap" style="display:none;margin-top:40px;justify-content:center;gap:10px;min-height:34px;align-items:center"></div>
 
       </div><!-- /di-padded -->
@@ -1243,10 +1288,16 @@
         </div>
 
         <!-- Location (only for Custom activity) -->
-        <div id="ed-location-wrap" style="display:none;margin-top:18px">
+        <div id="ed-location-wrap" style="display:none;margin-top:12px">
           <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
             <svg viewBox="0 0 24 24" width="18" height="18" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-            <input class="field-input" id="ed-location" type="text" placeholder="Address (e.g. 123 Metropolitan Ave, Brooklyn, NY)" style="flex:1;margin-bottom:0">
+            <div style="position:relative;flex:1;min-width:0">
+              <div id="ed-location-field" style="display:flex;align-items:center;gap:6px;border:1.5px solid var(--border);border-radius:10px;background:var(--bg-input);padding:8px 12px;min-height:40px;box-sizing:border-box;cursor:text;overflow:hidden" onclick="document.getElementById('ed-location').focus()">
+                <div id="ed-location-pill" style="display:contents"></div>
+                <input id="ed-location" type="text" placeholder="Address…" style="border:none;background:transparent;outline:none;font-size:16px;font-family:sans-serif;color:var(--text-primary);min-width:60px;flex:1;padding:0;line-height:1" oninput="_locationPersonSuggest('ed')" onkeydown="_locationPersonKeydown(event,'ed')">
+              </div>
+              <div id="ed-location-suggest" style="display:none;position:absolute;top:100%;left:0;right:0;background:var(--bg);border:1.5px solid var(--border);border-radius:10px;z-index:9999;overflow:hidden;box-shadow:0 4px 16px rgba(0,0,0,0.12);margin-top:4px"></div>
+            </div>
           </div>
           <!-- Neighborhood -->
           <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
@@ -1259,6 +1310,23 @@
         <div style="display:flex;align-items:center;gap:10px;margin-top:12px;margin-bottom:12px">
           <svg viewBox="0 0 24 24" width="18" height="18" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><line x1="17" y1="10" x2="3" y2="10"/><line x1="21" y1="6" x2="3" y2="6"/><line x1="21" y1="14" x2="3" y2="14"/><line x1="17" y1="18" x2="3" y2="18"/></svg>
           <input class="field-input" id="ed-note" type="text" placeholder="Note…" style="flex:1;margin-bottom:0">
+        </div>
+
+        <!-- People (inserted above note) -->
+        <div data-people-row="ed" style="display:flex;align-items:center;gap:10px;margin-bottom:12px;position:relative;order:-1">
+          <button onclick="_addFavoritePersonToDate('ed')" style="background:none;border:none;cursor:pointer;padding:0;display:flex;align-items:center;flex-shrink:0;line-height:0">
+            <svg viewBox="0 0 24 24" width="18" height="18" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+          </button>
+          <div style="position:relative;flex:1;min-width:0">
+            <div id="ed-people-field" style="display:flex;align-items:center;gap:6px;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none;-webkit-overflow-scrolling:touch;border:1.5px solid var(--border);border-radius:10px;background:var(--bg-input);padding:8px 32px 8px 12px;min-height:40px;box-sizing:border-box;cursor:text" onclick="document.getElementById('ed-people-input').focus()">
+              <div id="ed-people-pills" style="display:contents"></div>
+              <input id="ed-people-input" type="text" placeholder="People…" style="border:none;background:transparent;outline:none;font-size:16px;font-family:sans-serif;color:var(--text-primary);min-width:80px;flex-shrink:0;padding:0;line-height:1" oninput="_peopleSuggest('ed')" onkeydown="_peoplePillKeydown(event,'ed')">
+            </div>
+            <button type="button" id="ed-people-clear" onmousedown="event.preventDefault();_clearDatePeople('ed')" style="display:none;position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;padding:2px;line-height:0;color:#b0a090">
+              <svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+            <div id="ed-people-suggest" style="display:none;position:absolute;top:100%;left:0;right:0;background:var(--bg);border:1.5px solid var(--border);border-radius:10px;z-index:9999;overflow:hidden;box-shadow:0 4px 16px rgba(0,0,0,0.12);margin-top:4px"></div>
+          </div>
         </div>
 
         <!-- Image Links -->
@@ -1303,29 +1371,31 @@
         Home Address
       </div>
       <input class="field-input" id="settings-home-address" type="text" placeholder="e.g. 123 Main St, Brooklyn">
-      <!-- Secondary Address -->
+      <!-- Images Host -->
       <div class="field-label" style="display:flex;align-items:center;gap:6px;margin-top:16px">
-        <svg viewBox="0 0 24 24" width="14" height="14" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-        Secondary Address
-        <div style="position:relative;margin-left:auto">
-          <button id="settings-gender-btn" onclick="_toggleGenderMenu(event)" style="background:none;border:none;cursor:pointer;padding:2px;display:flex;align-items:center;opacity:0.7;line-height:0"></button>
-          <div id="settings-gender-menu" style="display:none;position:absolute;right:0;top:calc(100% + 6px);background:var(--bg);border:1.5px solid var(--border);border-radius:12px;padding:4px;z-index:9999;min-width:140px;box-shadow:0 4px 16px rgba(0,0,0,0.12)">
-            <button data-pronouns="she/her" onclick="_selectGender('she/her')" style="display:flex;align-items:center;gap:8px;width:100%;background:none;border:none;cursor:pointer;padding:8px 10px;border-radius:8px;font-size:13px;color:var(--text-primary);font-family:sans-serif" onmouseover="this.style.background='var(--bg-input)'" onmouseout="this.style.background='none'">
-              <svg viewBox="0 0 24 24" width="15" height="15" stroke="#9a8a7a" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="5"/><line x1="12" y1="13" x2="12" y2="21"/><line x1="9" y1="18" x2="15" y2="18"/></svg>
-              Her place
-            </button>
-            <button data-pronouns="he/him" onclick="_selectGender('he/him')" style="display:flex;align-items:center;gap:8px;width:100%;background:none;border:none;cursor:pointer;padding:8px 10px;border-radius:8px;font-size:13px;color:var(--text-primary);font-family:sans-serif" onmouseover="this.style.background='var(--bg-input)'" onmouseout="this.style.background='none'">
-              <svg viewBox="0 0 24 24" width="15" height="15" stroke="#9a8a7a" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="13" r="5"/><line x1="15" y1="9" x2="21" y2="3"/><polyline points="17 3 21 3 21 7"/></svg>
-              His place
-            </button>
-            <button data-pronouns="they/them" onclick="_selectGender('they/them')" style="display:flex;align-items:center;gap:8px;width:100%;background:none;border:none;cursor:pointer;padding:8px 10px;border-radius:8px;font-size:13px;color:var(--text-primary);font-family:sans-serif" onmouseover="this.style.background='var(--bg-input)'" onmouseout="this.style.background='none'">
-              <svg viewBox="0 0 24 24" width="15" height="15" stroke="#9a8a7a" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/></svg>
-              Their place
-            </button>
-          </div>
-        </div>
+        <svg viewBox="0 0 24 24" width="14" height="14" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+        Images Host
       </div>
-      <input class="field-input" id="settings-partner-address" type="text" placeholder="e.g. 456 Park Ave, Brooklyn">
+      <input class="field-input" id="settings-images-host" type="text" placeholder="Host URL (e.g. https://user.github.io/duet/)">
+      <!-- Edit shortcuts -->
+      <div class="field-label" style="display:flex;align-items:center;gap:6px;margin-top:16px">
+        <svg viewBox="0 0 24 24" width="14" height="14" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        Edit
+      </div>
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <button onclick="openEditCategories()" style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:9px 6px;background:none;border:1.5px solid var(--border);border-radius:10px;font-family:sans-serif;font-size:12px;color:#9a8a7a;cursor:pointer" class="btn-outline">
+          <svg viewBox="0 0 24 24" width="14" height="14" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>
+          Categories
+        </button>
+        <button onclick="openEditMainScreen()" style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:9px 6px;background:none;border:1.5px solid var(--border);border-radius:10px;font-family:sans-serif;font-size:12px;color:#9a8a7a;cursor:pointer" class="btn-outline">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none"><circle cx="12" cy="12" r="8.5" stroke="#9a8a7a" stroke-width="2"/></svg>
+          Main
+        </button>
+        <button onclick="openEditIdeasScreen()" style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:9px 6px;background:none;border:1.5px solid var(--border);border-radius:10px;font-family:sans-serif;font-size:12px;color:#9a8a7a;cursor:pointer" class="btn-outline">
+          <svg viewBox="0 0 24 24" width="14" height="14" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M8 22h8"/><path d="M12 15.8v6.2"/><path d="M5 3h14l-1.5 9a5 5 0 0 1-5 4h-1a5 5 0 0 1-5-4L5 3z"/></svg>
+          Ideas
+        </button>
+      </div>
 
       <!-- Appearance -->
       <div class="field-label" style="display:flex;align-items:center;gap:6px;margin-top:32px">
@@ -2027,6 +2097,10 @@ let ideaType = 'out';
 let ideasFilter = 'all';
 let ideasSearch = '';
 let memoriesSearch = '';
+let peopleSearch = '';
+let _currentPersonId = null;
+let _editPersonId = null;
+let people = []; // populated after loadPeople is defined below
 let catTabFilter  = 'all'; // active pill in the Categories tab: 'all' | <catId> | '_in'
 let outTabFilter  = 'all'; // active pill in the Out tab: 'all' | <catId>
 let inTabFilter   = 'all'; // active pill in the In tab:  'all' | <catId>
@@ -2264,6 +2338,7 @@ function saveSettings(obj) {
 }
 let appSettings = loadSettings();
 let homeAddress = appSettings.homeAddress || '';
+let imagesHost  = appSettings.imagesHost  || '';
 let homeLayout  = appSettings.homeLayout  || 'full';
 let partnerAddress = appSettings.partnerAddress || '';
 let partnerPronouns = appSettings.partnerPronouns || 'she/her';
@@ -2487,6 +2562,7 @@ function render() {
   else if (currentView === 'todo')     main.innerHTML = renderTodo();
   else if (currentView === 'past')     main.innerHTML = renderPastDates();
   else if (currentView === 'archive')  main.innerHTML = renderArchive();
+  else if (currentView === 'people')   main.innerHTML = renderPeople();
   renderNav();
   // Initialize scroll positions after DOM update
   if (currentView === 'home') {
@@ -2524,7 +2600,7 @@ function renderNav() {
     if (currentView === 'ideas') {
       center.innerHTML = `<span onclick="toggleDarkMode()" style="font-size:13px;color:#9a8a7a;letter-spacing:0.05em;text-transform:uppercase;font-family:sans-serif;cursor:pointer">Ideas</span>`;
     } else {
-      const titles = { calendar:'Calendar', todo:'To Do', home:'', past:'Memories', archive:'Archive' };
+      const titles = { calendar:'Calendar', todo:'To Do', home:'', past:'Memories', archive:'Archive', people:'People' };
       const t = titles[currentView] || '';
       center.innerHTML = t ? `<span onclick="toggleDarkMode()" style="font-size:13px;color:#9a8a7a;letter-spacing:0.05em;text-transform:uppercase;font-family:sans-serif;cursor:pointer">${t}</span>` : '';
     }
@@ -2574,6 +2650,7 @@ function renderNav() {
     const icon = document.getElementById('icon-'+t);
     if (icon) icon.style.stroke = currentView === t ? ROSE : '#b0a090';
   });
+  _updatePeopleNavRow();
   _applyTestcolor();
 }
 
@@ -7684,6 +7761,7 @@ function _resetDateForm() {
   _customDateCustomIconKey = null;
   delete _imgSearchTermOverrides['date-image-fields'];
   const _dcs = document.getElementById('date-custom-category'); if (_dcs) _dcs.value = 'other';
+  _resetLocationField('date');
 }
 
 function _resetTodoForm() {
@@ -7773,6 +7851,8 @@ function handleNewBtn() {
     if (_ts && _ts.style.display === 'block') { closeTodoSheet(); return; }
     openTodoAdd();
     return;
+  } else if (currentView === 'people') {
+    openNewPerson();
   } else {
     openSheet('out');
   }
@@ -8554,6 +8634,7 @@ function selectCustomActivity() {
     _rebuildCustomDateDropdown('ed-custom-category', 'ed-custom-cat-icon');
     document.getElementById('ed-custom-name').value = '';
     document.getElementById('ed-location-wrap').style.display = 'block';
+    (function(){ const _w=document.getElementById('ed-location-wrap'); const _p=document.querySelector('[data-people-row="ed"]'); if(_p&&_w&&_w.parentNode) _w.parentNode.insertBefore(_p,_w); })();
     _updateInLocationVisibility('ed', false);
     closeIdeasPicker();
     ideasPickerContext = 'sheet';
@@ -8653,8 +8734,17 @@ function selectActivity(id) {
 }
 
 function showLocationText(val) {
-  document.getElementById('date-location-text-wrap').style.display = 'flex';
-  document.getElementById('date-location-text').value = val;
+  const wrap = document.getElementById('date-location-text-wrap');
+  wrap.style.display = 'flex';
+  // Move people field above address
+  const peopleRow = document.querySelector('[data-people-row="date"]');
+  if (peopleRow && wrap.parentNode && wrap.parentNode !== peopleRow.parentNode) {
+    wrap.parentNode.insertBefore(peopleRow, wrap);
+  } else if (peopleRow && wrap.parentNode) {
+    wrap.parentNode.insertBefore(peopleRow, wrap);
+  }
+  const inp = document.getElementById('date-location-text');
+  if (inp) inp.value = val;
 }
 
 function showLocationSelect() {
@@ -8778,7 +8868,7 @@ function saveNewDate() {
     if (!venue) return;
     const _catSel = document.getElementById('date-custom-category');
     activity = (_catSel && _catSel.value) ? _catSel.value : 'other';
-    const locText = document.getElementById('date-location-text').value.trim();
+    const locText = _getLocationAddress('date');
     const neighText = document.getElementById('date-neighborhood').value.trim();
     const locSel = document.getElementById('date-location-select');
     const locVal = locText || (locSel && locSel.style.display === 'block' ? locSel.value : '') || '';
@@ -8825,7 +8915,8 @@ function saveNewDate() {
   const newDate = {
     day: dd, month: monthName, year: yyyy,
     activity, venue, neighborhood,
-    address: isCustom ? (document.getElementById('date-location-text').value.trim() || undefined) : undefined,
+    address: isCustom ? (_getLocationAddress('date') || undefined) : undefined,
+    locationPersonId: isCustom ? (_locationPersonId['date'] || undefined) : undefined,
     time: timeVal || '',
     note,
     imageUrls: imageUrls.length ? imageUrls : undefined,
@@ -9934,6 +10025,7 @@ function populateEditDateFields(u) {
     { const _el = document.getElementById('ed-custom-cat-wrap'); if (_el) _el.style.display = 'flex'; }
     _rebuildCustomDateDropdown('ed-custom-category', 'ed-custom-cat-icon');
     document.getElementById('ed-location-wrap').style.display = 'block';
+    (function(){ const _w=document.getElementById('ed-location-wrap'); const _p=document.querySelector('[data-people-row="ed"]'); if(_p&&_w&&_w.parentNode) _w.parentNode.insertBefore(_p,_w); })();
     _updateInLocationVisibility('ed', false);
     _edUpdateActivityEditBtn(false);
   } else {
@@ -9970,7 +10062,12 @@ function populateEditDateFields(u) {
   document.getElementById('ed-time').value = u.time || '';
   // For custom activity: ed-location = address stored in u.address, ed-neighborhood = u.neighborhood
   // For idea activity: location wrap is hidden, so values don't matter but pre-fill anyway
-  document.getElementById('ed-location').value = u.address || '';
+  if (u.locationPersonId) {
+    setTimeout(() => _selectLocationPerson('ed', u.locationPersonId), 0);
+  } else {
+    _resetLocationField('ed');
+    document.getElementById('ed-location').value = u.address || '';
+  }
   if (document.getElementById('ed-neighborhood')) {
     document.getElementById('ed-neighborhood').value = u.neighborhood || '';
   }
@@ -10026,6 +10123,7 @@ function closeEditDate() {
   ideasPickerContext = 'sheet';
   _editingMemory = null;
   _edCustomDateCustomIconKey = null;
+  _resetLocationField('ed');
 }
 
 function saveEditDate() {
@@ -10063,12 +10161,13 @@ function saveEditDate() {
         _applyEdInLocation(u);
       } else if (isCustom) {
         const cName = ((document.getElementById('ed-custom-name') || {}).value || '').trim();
-        const locText = ((document.getElementById('ed-location') || {}).value || '').trim();
+        const locText = _getLocationAddress('ed');
         const neighText = ((document.getElementById('ed-neighborhood') || {}).value || '').trim();
         const _catSel = document.getElementById('ed-custom-category');
         if (cName) u.venue = cName;
         u.activity = (_catSel && _catSel.value) ? _catSel.value : (u.activity || 'other');
         u.address = locText || undefined;
+        u.locationPersonId = _locationPersonId['ed'] || undefined;
         u.neighborhood = neighText || locText;
       }
       u.imageUrls = imageUrls.length ? imageUrls : undefined;
@@ -10095,12 +10194,13 @@ function saveEditDate() {
         _applyEdInLocation(u);
       } else if (isCustom) {
         const cName = ((document.getElementById('ed-custom-name') || {}).value || '').trim();
-        const locText = ((document.getElementById('ed-location') || {}).value || '').trim();
+        const locText = _getLocationAddress('ed');
         const neighText = ((document.getElementById('ed-neighborhood') || {}).value || '').trim();
         const _catSel = document.getElementById('ed-custom-category');
         if (cName) u.venue = cName;
         u.activity = (_catSel && _catSel.value) ? _catSel.value : (u.activity || 'other');
         u.address = locText || undefined;
+        u.locationPersonId = _locationPersonId['ed'] || undefined;
         u.neighborhood = neighText || locText;
       }
       u.imageUrls = imageUrls.length ? imageUrls : undefined;
@@ -10471,13 +10571,11 @@ function placesNav(dir) {
 // ═══════════════════════════════════════════════════════
 function openSettings() {
   document.getElementById('settings-home-address').value = homeAddress;
+  const imagesHostEl = document.getElementById('settings-images-host');
+  if (imagesHostEl) imagesHostEl.value = imagesHost;
   const hpCb = document.getElementById('settings-hide-private');
   if (hpCb) hpCb.checked = hidePrivate;
-  document.getElementById('settings-partner-address').value = partnerAddress;
-  const atSel = document.getElementById('settings-additional-tab');
-  if (atSel) atSel.value = additionalTab || 'neighborhood';
   document.getElementById('settings-overlay').style.display = 'flex';
-  _renderGenderBtn();
   // Sync radio buttons to current appearance
   setTimeout(() => _applyAppearance(_appearance), 0);
 }
@@ -10541,8 +10639,8 @@ function closeSettings() {
 function saveSettingsData() {
   homeAddress = document.getElementById('settings-home-address').value.trim();
   appSettings.homeAddress = homeAddress;
-  partnerAddress = document.getElementById('settings-partner-address').value.trim();
-  appSettings.partnerAddress = partnerAddress;
+  const imagesHostEl = document.getElementById('settings-images-host');
+  if (imagesHostEl) { imagesHost = imagesHostEl.value.trim(); appSettings.imagesHost = imagesHost; }
   const hpEl = document.getElementById('settings-hide-private');
   if (hpEl) { hidePrivate = hpEl.checked; appSettings.hidePrivate = hidePrivate; }
   const atEl = document.getElementById('settings-additional-tab');
@@ -10614,6 +10712,7 @@ async function exportAllData() {
   const data = {
     exportedAt: new Date().toISOString(),
     ideas: ideas,
+    people: people,
     upcomingDates: UPCOMING_DATES,
     staticPastDates: STATIC_PAST_DATES,
     memoryNotes: (() => { try { return JSON.parse(localStorage.getItem('ll_memories') || '{}'); } catch(e) { return {}; } })(),
@@ -10622,8 +10721,7 @@ async function exportAllData() {
     reservedDateKeys: [..._reservedDateKeys],
     settings: {
       homeAddress: homeAddress,
-      partnerAddress: partnerAddress,
-      partnerPronouns: partnerPronouns,
+      imagesHost: imagesHost,
       hidePrivate: hidePrivate,
       homeLayout: homeLayout,
       additionalTab: additionalTab,
@@ -11639,6 +11737,15 @@ function handleImportFile(e) {
         });
         saveIdeas(ideas);
       }
+      // Merge people
+      if (Array.isArray(data.people)) {
+        data.people.forEach(imp => {
+          const match = people.find(p => p.id === imp.id)
+                     || people.find(p => _personFullName(p).toLowerCase() === _personFullName(imp).toLowerCase());
+          if (match) { _mergeFields(match, imp); } else { people.push(imp); }
+        });
+        savePeople(people);
+      }
       // Merge upcoming dates: patch existing matches, add new ones
       if (Array.isArray(data.upcomingDates)) {
         data.upcomingDates.forEach(imp => {
@@ -11685,10 +11792,9 @@ function handleImportFile(e) {
       }
       // Restore settings
       const s = data.settings || {};
-      if (s.homeAddress   !== undefined) homeAddress          = s.homeAddress;
-      if (s.partnerAddress !== undefined) partnerAddress       = s.partnerAddress;
-      if (s.partnerPronouns !== undefined) partnerPronouns     = s.partnerPronouns;
-      if (s.hidePrivate   !== undefined) hidePrivate           = s.hidePrivate;
+      if (s.homeAddress   !== undefined) homeAddress = s.homeAddress;
+      if (s.imagesHost    !== undefined) { imagesHost = s.imagesHost; appSettings.imagesHost = imagesHost; }
+      if (s.hidePrivate   !== undefined) hidePrivate = s.hidePrivate;
       if (s.homeLayout    !== undefined) homeLayout            = s.homeLayout;
       if (s.additionalTab !== undefined) additionalTab         = s.additionalTab;
       if (s.homeIdeasFilter !== undefined) homeIdeasFilter      = s.homeIdeasFilter;
@@ -11697,8 +11803,6 @@ function handleImportFile(e) {
       if (s.onlySelectedCatsInMenu !== undefined) { onlySelectedCatsInMenu = s.onlySelectedCatsInMenu === true; appSettings.onlySelectedCatsInMenu = onlySelectedCatsInMenu; }
       // Sync appSettings and persist
       appSettings.homeAddress          = homeAddress;
-      appSettings.partnerAddress       = partnerAddress;
-      appSettings.partnerPronouns      = partnerPronouns;
       appSettings.hidePrivate          = hidePrivate;
       appSettings.homeLayout           = homeLayout;
       appSettings.additionalTab        = additionalTab;
@@ -11742,6 +11846,891 @@ _renderLockBtn('idea-lock-btn', false);
 _renderLockBtn('pf-lock-btn', false);
 _renderPrivacyBox('date-lock-icon', 'date-privacy-box', false, false);
 _renderPrivacyBox('ts-lock-icon', 'ts-privacy-box', false, false);
+
+// ═══════════════════════════════════════════════════════
+// PEOPLE
+// ═══════════════════════════════════════════════════════
+
+// ── Storage ──────────────────────────────────────────
+function loadPeople() {
+  try { const s = localStorage.getItem('ll_people'); if (s) return JSON.parse(s); } catch(e) {}
+  return [];
+}
+function savePeople(arr) {
+  try { localStorage.setItem('ll_people', JSON.stringify(arr)); } catch(e) {}
+}
+people = loadPeople(); // reassign - declared early above
+// (peopleSearch, _currentPersonId, _editPersonId declared early above)
+
+// ── SVG helpers ──────────────────────────────────────
+function _personIconSvg(size, color) {
+  const c = color || '#9a8a7a';
+  return `<svg viewBox="0 0 24 24" width="${size}" height="${size}" stroke="${c}" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>`;
+}
+
+function _personAvatarHtml(person, size) {
+  size = size || 44;
+  if (person && person.photoUrl) {
+    return `<div style="width:${size}px;height:${size}px;border-radius:50%;overflow:hidden;flex-shrink:0;background:var(--toggle-bg)"><img src="${person.photoUrl}" style="width:100%;height:100%;object-fit:cover;object-position:center;transform:scale(${person.photoZoom||1}) translate(${person.photoX||0}px,${person.photoY||0}px)" onerror="this.parentNode.innerHTML='${_personIconSvg(Math.round(size*0.55),'#b0a090').replace(/'/g,"\\'")}'"></div>`;
+  }
+  return `<div style="width:${size}px;height:${size}px;border-radius:50%;background:var(--toggle-bg);display:flex;align-items:center;justify-content:center;flex-shrink:0">${_personIconSvg(Math.round(size*0.55), '#b0a090')}</div>`;
+}
+
+function _personFullName(p) {
+  return [p.firstName, p.lastName].filter(Boolean).join(' ') || 'Unnamed';
+}
+
+// ── Render People screen ─────────────────────────────
+function renderPeople() {
+  const q = (peopleSearch || '').trim().toLowerCase();
+  const list = people.filter(p => {
+    if (q) {
+      const name = _personFullName(p).toLowerCase();
+      return name.includes(q);
+    }
+    return true;
+  }).sort((a,b) => _personFullName(a).localeCompare(_personFullName(b)));
+
+  if (!list.length && !q) {
+    return `<div style="position:fixed;top:calc(50% - 60px);left:50%;transform:translateX(-50%);text-align:center;color:#b0a090;font-size:15px;font-style:italic;pointer-events:none;width:80%;z-index:1">No people yet.</div>`;
+  }
+  if (!list.length && q) {
+    return `<div style="position:fixed;top:calc(50% - 60px);left:50%;transform:translateX(-50%);text-align:center;color:#b0a090;font-size:15px;font-style:italic;pointer-events:none;width:80%;z-index:1">No matches.</div>`;
+  }
+
+  const favId = people.find(p => p.favorite) ? people.find(p => p.favorite).id : null;
+  const rows = list.map(p => {
+    const isFav = p.favorite && !hidePrivate;
+    const heartColor = isFav ? ROSE : '#c8bfb8';
+    const heartFill = isFav ? ROSE : 'none';
+    const heartBtn = hidePrivate ? '' : `<button onclick="event.stopPropagation();togglePersonFavorite('${p.id}')" style="background:none;border:none;cursor:pointer;padding:6px;flex-shrink:0;line-height:0"><svg viewBox="0 0 24 24" width="18" height="18" stroke="${heartColor}" stroke-width="2" fill="${heartFill}" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></button>`;
+    return `<div class="person-row" onclick="openPersonInfo('${p.id}')">
+      ${_personAvatarHtml(p, 44)}
+      <div style="flex:1;min-width:0">
+        <div style="font-size:15px;font-weight:600;color:var(--text-primary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${_personFullName(p)}</div>
+      </div>
+      ${heartBtn}
+    </div>`;
+  }).join('');
+
+  return `<div style="padding-bottom:80px">
+    <div style="background:var(--bg);border-radius:16px;overflow:hidden;margin:0">${rows}</div>
+    <div style="display:flex;justify-content:center;margin-top:24px">
+      <button onclick="openNewPerson()" style="display:flex;align-items:center;gap:8px;padding:10px 20px;background:none;border:1.5px solid var(--border);border-radius:20px;font-family:sans-serif;font-size:14px;color:#9a8a7a;cursor:pointer">
+        <svg viewBox="0 0 24 24" width="14" height="14" stroke="#9a8a7a" stroke-width="2.5" fill="none" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        New Person
+      </button>
+    </div>
+  </div>`;
+}
+
+function _renderPeople() {
+  const main = document.getElementById('main-content');
+  if (main && currentView === 'people') main.innerHTML = renderPeople();
+}
+
+// ── People screen nav row ─────────────────────────────
+function _updatePeopleNavRow() {
+  const row = document.getElementById('top-nav-people-row');
+  const appEl = document.getElementById('app');
+  if (!row) return;
+  if (currentView === 'people') {
+    const q = peopleSearch || '';
+    const clearBtn = q ? `<button onclick="peopleSearch='';_renderPeople();document.getElementById('people-search-input').value=''" style="background:none;border:none;cursor:pointer;padding:0;display:flex;flex-shrink:0;line-height:0"><svg viewBox="0 0 24 24" width="14" height="14" stroke="#9a8a7a" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>` : '';
+    row.innerHTML = `<div style="display:flex;align-items:center;background:var(--toggle-bg);border-radius:20px;padding:5px 10px;gap:6px;width:200px;flex-shrink:0">
+      <svg viewBox="0 0 24 24" width="13" height="13" stroke="#9a8a7a" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input id="people-search-input" type="text" value="${q.replace(/"/g,'&quot;')}" oninput="peopleSearch=this.value;_renderPeople()" placeholder="" style="border:none;background:transparent;outline:none;font-size:16px;font-family:sans-serif;color:var(--text-primary);width:100%;line-height:1;padding:0;min-width:0">
+      ${clearBtn}
+    </div>`;
+    row.style.display = 'flex';
+    if (appEl) appEl.classList.add('people-nav');
+  } else {
+    row.style.display = 'none';
+    row.innerHTML = '';
+    if (appEl) appEl.classList.remove('people-nav');
+    peopleSearch = '';
+  }
+}
+
+// ── Toggle favorite ──────────────────────────────────
+function togglePersonFavorite(id) {
+  const p = people.find(x => x.id === id);
+  if (!p) return;
+  if (p.favorite) {
+    p.favorite = false;
+  } else {
+    people.forEach(x => { x.favorite = false; });
+    p.favorite = true;
+  }
+  savePeople(people);
+  _renderPeople();
+}
+
+// ── Person Info popup ─────────────────────────────────
+function openPersonInfo(id) {
+  const p = people.find(x => x.id === id);
+  if (!p) return;
+  _currentPersonId = id;
+  _renderPersonInfoPopup(p);
+  document.getElementById('person-info-overlay').style.display = 'flex';
+  document.body.classList.add('overlay-open');
+}
+
+function _renderPersonInfoPopup(p) {
+  const nameEl = document.getElementById('pi-name');
+  if (nameEl) nameEl.textContent = _personFullName(p);
+
+  const avatarEl = document.getElementById('pi-avatar');
+  if (avatarEl) avatarEl.innerHTML = p.photoUrl
+    ? `<img src="${p.photoUrl}" style="width:100%;height:100%;object-fit:cover;object-position:center" onerror="this.style.display='none'">`
+    : _personIconSvg(28, '#b0a090');
+
+  const fields = document.getElementById('pi-fields');
+  if (!fields) return;
+  let html = '';
+  const row = (iconSvg, content, onclick) =>
+    `<div style="display:flex;align-items:flex-start;gap:12px${onclick?';cursor:pointer':''}" ${onclick?`onclick="${onclick}"`:''}>${iconSvg}<div style="flex:1;font-size:14px;color:var(--text-primary);font-family:sans-serif;padding-top:1px">${content}</div></div>`;
+
+  if (p.pronouns) {
+    html += row(_genderIconSvg(p.pronouns, 16), `<span style="color:#9a8a7a">${p.pronouns === 'she/her' ? 'She / Her' : p.pronouns === 'he/him' ? 'He / Him' : 'They / Their'}</span>`, '');
+  }
+  if (p.address) {
+    const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(p.address)}`;
+    html += row(`<svg viewBox="0 0 24 24" width="16" height="16" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>`, `<span style="color:${ROSE}">${p.address}</span>`, `_openExternal('${mapsUrl.replace(/'/g, "\\'")}')`);
+  }
+  if (p.neighborhood) {
+    html += row(`<svg viewBox="0 0 24 24" width="16" height="16" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/></svg>`, `<span style="color:#9a8a7a">${p.neighborhood}</span>`, '');
+  }
+  if (p.phone) {
+    html += row(`<svg viewBox="0 0 24 24" width="16" height="16" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12" y2="18" stroke-width="3"/></svg>`, `<span style="color:${ROSE}">${p.phone}</span>`, `_openExternal('sms:${p.phone}')`);
+  }
+  if (p.whatsapp) {
+    const waNum = p.whatsapp.replace(/\D/g,'');
+    html += row(`<svg viewBox="0 0 24 24" width="16" height="16" fill="#9a8a7a"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/></svg>`, `<span style="color:${ROSE}">${p.whatsapp}</span>`, `_openExternal('https://wa.me/${waNum}')`);
+  }
+  if (p.instagram) {
+    const handle = p.instagram.replace(/^@/,'');
+    html += row(`<svg viewBox="0 0 24 24" width="16" height="16" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M16 8v0"/><rect x="2" y="2" width="20" height="20" rx="5"/></svg>`, `<span style="color:${ROSE}">@${handle}</span>`, `_openExternal('https://instagram.com/${handle}')`);
+  }
+  fields.innerHTML = html || `<div style="color:#b0a090;font-size:14px;font-style:italic">No details yet.</div>`;
+}
+
+function closePersonInfo() {
+  document.getElementById('person-info-overlay').style.display = 'none';
+  document.body.classList.remove('overlay-open');
+  _currentPersonId = null;
+}
+
+// ── New / Edit Person ─────────────────────────────────
+function openNewPerson() {
+  _editPersonId = null;
+  document.getElementById('ep-first-name').value = '';
+  document.getElementById('ep-last-name').value = '';
+  document.getElementById('ep-pronouns').value = 'she/her';
+  document.getElementById('ep-address').value = '';
+  const _epNn = document.getElementById('ep-neighborhood'); if (_epNn) _epNn.value = '';
+  document.getElementById('ep-whatsapp').value = '';
+  document.getElementById('ep-instagram').value = '';
+  document.getElementById('ep-delete-btn').style.display = 'none';
+  _updateEpPronounsIcon();
+  // Set title to "New Person"
+  const titleEl = document.querySelector('#edit-person-overlay [style*="font-size:17px"]');
+  if (titleEl) titleEl.textContent = 'New Person';
+  document.getElementById('edit-person-overlay').style.display = 'flex';
+}
+
+function openEditPersonFromInfo() {
+  if (!_currentPersonId) return;
+  openEditPerson(_currentPersonId);
+}
+
+function openEditPerson(id) {
+  const p = people.find(x => x.id === id);
+  if (!p) return;
+  _editPersonId = id;
+  document.getElementById('ep-first-name').value = p.firstName || '';
+  document.getElementById('ep-last-name').value = p.lastName || '';
+  document.getElementById('ep-pronouns').value = p.pronouns || 'she/her';
+  document.getElementById('ep-address').value = p.address || '';
+  const _epNeigh = document.getElementById('ep-neighborhood'); if (_epNeigh) _epNeigh.value = p.neighborhood || '';
+  document.getElementById('ep-phone').value = p.phone || '';
+  document.getElementById('ep-whatsapp').value = p.whatsapp || '';
+  document.getElementById('ep-instagram').value = p.instagram || '';
+  document.getElementById('ep-delete-btn').style.display = 'inline-flex';
+  _updateEpPronounsIcon();
+  const _epTitleEl = document.querySelector('#edit-person-overlay [style*="font-size:17px"]');
+  if (_epTitleEl) _epTitleEl.textContent = 'Edit Person';
+  document.getElementById('edit-person-overlay').style.display = 'flex';
+}
+
+function _updateEpPronounsIcon() {
+  const sel = document.getElementById('ep-pronouns');
+  const iconEl = document.getElementById('ep-pronouns-icon');
+  if (sel && iconEl) iconEl.innerHTML = _genderIconSvg(sel.value, 18);
+}
+
+function closeEditPerson() {
+  document.getElementById('edit-person-overlay').style.display = 'none';
+}
+
+function saveEditPerson() {
+  const firstName = (document.getElementById('ep-first-name').value || '').trim();
+  const lastName  = (document.getElementById('ep-last-name').value  || '').trim();
+  if (!firstName && !lastName) return;
+  const pronouns  = document.getElementById('ep-pronouns').value;
+  const address      = (document.getElementById('ep-address').value      || '').trim();
+  const neighborhood = (document.getElementById('ep-neighborhood') ? document.getElementById('ep-neighborhood').value : '').trim();
+  const phone     = (document.getElementById('ep-phone').value     || '').trim();
+  const whatsapp  = (document.getElementById('ep-whatsapp').value  || '').trim();
+  const instagram = (document.getElementById('ep-instagram').value || '').trim();
+
+  if (_editPersonId) {
+    const p = people.find(x => x.id === _editPersonId);
+    if (p) { p.firstName = firstName; p.lastName = lastName; p.pronouns = pronouns; p.address = address; p.neighborhood = neighborhood; p.phone = phone; p.whatsapp = whatsapp; p.instagram = instagram; }
+  } else {
+    people.push({ id: 'p_' + Date.now(), firstName, lastName, pronouns, address, neighborhood, phone, whatsapp, instagram, favorite: false, photoUrl: '', photoZoom: 1, photoX: 0, photoY: 0 });
+  }
+  savePeople(people);
+  closeEditPerson();
+  // Refresh info popup if open
+  if (_currentPersonId) {
+    const p = people.find(x => x.id === _currentPersonId);
+    if (p) _renderPersonInfoPopup(p);
+  }
+  _renderPeople();
+}
+
+function deleteCurrentPerson() {
+  if (!_editPersonId) return;
+  people = people.filter(x => x.id !== _editPersonId);
+  savePeople(people);
+  closeEditPerson();
+  closePersonInfo();
+  _renderPeople();
+}
+
+// ── Edit Profile Photo popup ──────────────────────────
+let _photoCropImg = null;
+let _photoCropDragging = false;
+let _photoCropDragStartX = 0;
+let _photoCropDragStartY = 0;
+let _photoCropOffsetX = 0;
+let _photoCropOffsetY = 0;
+
+function openEditPersonPhoto() {
+  const p = _currentPersonId ? people.find(x => x.id === _currentPersonId) : null;
+  const urlInput = document.getElementById('photo-url-input');
+  const zoomSlider = document.getElementById('photo-crop-zoom');
+  if (urlInput) urlInput.value = (p && p.photoUrl) ? p.photoUrl : '';
+  if (zoomSlider) { zoomSlider.value = (p && p.photoZoom) ? p.photoZoom : 1; }
+  _photoCropOffsetX = (p && p.photoX) ? p.photoX : 0;
+  _photoCropOffsetY = (p && p.photoY) ? p.photoY : 0;
+  // Save snapshot for cancel
+  window._photoSnapshot = p ? { photoUrl: p.photoUrl, photoZoom: p.photoZoom, photoX: p.photoX, photoY: p.photoY } : null;
+  _photoCropImg = null;
+  if (p && p.photoUrl) {
+    _loadPhotoCropImage(p.photoUrl);
+  } else {
+    _photoCropShowPlaceholder();
+  }
+  document.getElementById('edit-person-photo-overlay').style.display = 'flex';
+  // Wire drag events on canvas
+  const canvas = document.getElementById('photo-crop-canvas');
+  if (canvas) {
+    canvas.onmousedown  = _photoCropMouseDown;
+    canvas.onmousemove  = _photoCropMouseMove;
+    canvas.onmouseup    = _photoCropMouseUp;
+    canvas.onmouseleave = _photoCropMouseUp;
+    canvas.ontouchstart = _photoCropTouchStart;
+    canvas.ontouchmove  = _photoCropTouchMove;
+    canvas.ontouchend   = _photoCropMouseUp;
+  }
+}
+
+function _photoCropShowPlaceholder() {
+  const canvas = document.getElementById('photo-crop-canvas');
+  const placeholder = document.getElementById('photo-crop-placeholder');
+  const zoom = document.getElementById('photo-crop-zoom');
+  if (canvas) canvas.style.display = 'none';
+  if (placeholder) placeholder.style.display = 'flex';
+  if (zoom) zoom.style.display = 'none';
+  _photoCropImg = null;
+}
+
+function _loadPhotoCropImage(url) {
+  const img = new Image();
+  img.crossOrigin = 'anonymous';
+  img.onload = () => {
+    _photoCropImg = img;
+    const canvas = document.getElementById('photo-crop-canvas');
+    const placeholder = document.getElementById('photo-crop-placeholder');
+    const zoom = document.getElementById('photo-crop-zoom');
+    if (canvas) canvas.style.display = 'block';
+    if (placeholder) placeholder.style.display = 'none';
+    if (zoom) zoom.style.display = 'block';
+    _photoCropDraw();
+  };
+  img.onerror = () => { _photoCropShowPlaceholder(); };
+  img.src = url;
+}
+
+function _photoCropDraw() {
+  const canvas = document.getElementById('photo-crop-canvas');
+  if (!canvas || !_photoCropImg) return;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  const zoom = parseFloat(document.getElementById('photo-crop-zoom').value) || 1;
+  const iw = _photoCropImg.naturalWidth, ih = _photoCropImg.naturalHeight;
+  const scale = Math.max(W / iw, H / ih) * zoom;
+  const dw = iw * scale, dh = ih * scale;
+  const cx = W / 2 + _photoCropOffsetX, cy = H / 2 + _photoCropOffsetY;
+  ctx.clearRect(0, 0, W, H);
+  // Draw image
+  ctx.drawImage(_photoCropImg, cx - dw/2, cy - dh/2, dw, dh);
+  // Dark overlay with circular cutout
+  ctx.save();
+  ctx.fillStyle = 'rgba(0,0,0,0.45)';
+  ctx.fillRect(0, 0, W, H);
+  ctx.globalCompositeOperation = 'destination-out';
+  ctx.beginPath();
+  ctx.arc(W/2, H/2, W/2 - 1, 0, Math.PI*2);
+  ctx.fill();
+  ctx.restore();
+}
+
+function _resolveImageUrl(val) {
+  if (!val) return '';
+  val = val.trim();
+  // Already a full URL
+  if (val.startsWith('http://') || val.startsWith('https://') || val.startsWith('//') || val.startsWith('data:')) return val;
+  // Filename — prepend imagesHost if set
+  if (imagesHost) {
+    const base = imagesHost.endsWith('/') ? imagesHost : imagesHost + '/';
+    return base + val;
+  }
+  return val;
+}
+
+function _onPhotoUrlInput(val) {
+  const resolved = _resolveImageUrl(val);
+  if (resolved) {
+    _photoCropOffsetX = 0; _photoCropOffsetY = 0;
+    const zoom = document.getElementById('photo-crop-zoom');
+    if (zoom) zoom.value = 1;
+    _loadPhotoCropImage(resolved);
+  } else {
+    _photoCropShowPlaceholder();
+  }
+}
+
+function _photoCropMouseDown(e) { _photoCropDragging = true; _photoCropDragStartX = e.clientX - _photoCropOffsetX; _photoCropDragStartY = e.clientY - _photoCropOffsetY; }
+function _photoCropMouseMove(e) { if (!_photoCropDragging) return; _photoCropOffsetX = e.clientX - _photoCropDragStartX; _photoCropOffsetY = e.clientY - _photoCropDragStartY; _photoCropDraw(); }
+function _photoCropMouseUp() { _photoCropDragging = false; }
+function _photoCropTouchStart(e) { if (e.touches.length === 1) { e.preventDefault(); _photoCropDragging = true; _photoCropDragStartX = e.touches[0].clientX - _photoCropOffsetX; _photoCropDragStartY = e.touches[0].clientY - _photoCropOffsetY; } }
+function _photoCropTouchMove(e) { if (!_photoCropDragging || e.touches.length !== 1) return; e.preventDefault(); _photoCropOffsetX = e.touches[0].clientX - _photoCropDragStartX; _photoCropOffsetY = e.touches[0].clientY - _photoCropDragStartY; _photoCropDraw(); }
+
+function savePersonPhoto() {
+  const rawUrl = (document.getElementById('photo-url-input').value || '').trim();
+  const url = _resolveImageUrl(rawUrl);
+  const zoom = parseFloat(document.getElementById('photo-crop-zoom').value) || 1;
+  if (!_currentPersonId) return;
+  const p = people.find(x => x.id === _currentPersonId);
+  if (p) {
+    p.photoUrl  = url;
+    p.photoZoom = zoom;
+    p.photoX    = _photoCropOffsetX;
+    p.photoY    = _photoCropOffsetY;
+    savePeople(people);
+    _renderPersonInfoPopup(p);
+    _renderPeople();
+  }
+  closeEditPersonPhoto();
+}
+
+function cancelPersonPhoto() {
+  // Restore snapshot — do not save anything
+  document.getElementById('edit-person-photo-overlay').style.display = 'none';
+  _photoCropImg = null;
+  window._photoSnapshot = null;
+}
+
+function closeEditPersonPhoto() {
+  document.getElementById('edit-person-photo-overlay').style.display = 'none';
+  _photoCropImg = null;
+}
+
+// ═══════════════════════════════════════════════════════
+// STAGE 2 — PEOPLE ON DATES
+// ═══════════════════════════════════════════════════════
+
+// ── Per-context state ────────────────────────────────
+// _datePeopleEntries['date'] and _datePeopleEntries['ed'] hold arrays of
+// { id: string|null, name: string, custom: bool }
+const _datePeopleEntries = { date: [], ed: [] };
+
+// ── Pill rendering ────────────────────────────────────
+function _renderPeoplePills(ctx) {
+  const container = document.getElementById(ctx + '-people-pills');
+  if (!container) return;
+  const entries = _datePeopleEntries[ctx] || [];
+  const inp = document.getElementById(ctx + '-people-input');
+  container.innerHTML = entries.map((e, i) => {
+    const p = e.id ? people.find(x => x.id === e.id) : null;
+    const photoHtml = (p && p.photoUrl)
+      ? `<div style="width:20px;height:20px;border-radius:50%;overflow:hidden;flex-shrink:0"><img src="${p.photoUrl}" style="width:100%;height:100%;object-fit:cover" onerror="this.parentNode.style.background='var(--toggle-bg)'"></div>`
+      : `<div style="width:20px;height:20px;border-radius:50%;background:var(--toggle-bg);display:flex;align-items:center;justify-content:center;flex-shrink:0">${_personIconSvg(11,'#b0a090')}</div>`;
+    const label = p ? (p.firstName || _personFullName(p).split(' ')[0]) : e.name;
+    return `<div style="display:inline-flex;align-items:center;gap:5px;background:var(--toggle-bg);border-radius:20px;padding:3px 8px 3px 4px;font-size:12px;font-family:sans-serif;color:var(--text-primary);white-space:nowrap;flex-shrink:0">
+      ${photoHtml}
+      <span>${label}</span>
+      <button onclick="_removeDatePerson('${ctx}',${i})" style="background:none;border:none;cursor:pointer;padding:0;line-height:0;color:#9a8a7a;margin-left:2px"><svg viewBox="0 0 24 24" width="10" height="10" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>`;
+  }).join('');
+  // Show placeholder only when no pills and no input text
+  if (inp) inp.placeholder = entries.length ? '' : 'People\u2026';
+  // Scroll field to end after adding a pill
+  const field = document.getElementById(ctx + '-people-field');
+  if (field) setTimeout(() => { field.scrollLeft = field.scrollWidth; }, 0);
+}
+
+function _removeDatePerson(ctx, idx) {
+  _datePeopleEntries[ctx].splice(idx, 1);
+  _renderPeoplePills(ctx);
+}
+
+function _clearDatePeople(ctx) {
+  _datePeopleEntries[ctx] = [];
+  _renderPeoplePills(ctx);
+  const inp = document.getElementById(ctx + '-people-input');
+  if (inp) { inp.value = ''; inp.placeholder = 'People\u2026'; }
+  const sug = document.getElementById(ctx + '-people-suggest');
+  if (sug) { sug.style.display = 'none'; sug.innerHTML = ''; }
+  const clearBtn = document.getElementById(ctx + '-people-clear');
+  if (clearBtn) clearBtn.style.display = 'none';
+}
+
+// ── Autocomplete ─────────────────────────────────────
+function _peopleSuggest(ctx) {
+  // Show/hide clear button based on input value
+  const clearBtn = document.getElementById(ctx + '-people-clear');
+  const inp2 = document.getElementById(ctx + '-people-input');
+  if (clearBtn) clearBtn.style.display = (inp2 && inp2.value) ? 'block' : 'none';
+  const inp = document.getElementById(ctx + '-people-input');
+  const sug = document.getElementById(ctx + '-people-suggest');
+  if (!inp || !sug) return;
+  const q = inp.value.trim().toLowerCase();
+  if (!q) { sug.style.display = 'none'; return; }
+  const already = new Set((_datePeopleEntries[ctx] || []).map(e => e.id).filter(Boolean));
+  const matches = people.filter(p => {
+    if (already.has(p.id)) return false;
+    return _personFullName(p).toLowerCase().includes(q);
+  }).slice(0, 6);
+  if (!matches.length) { sug.style.display = 'none'; return; }
+  sug.innerHTML = matches.map(p => {
+    const photoHtml = (p.photoUrl)
+      ? `<div style="width:26px;height:26px;border-radius:50%;overflow:hidden;flex-shrink:0"><img src="${p.photoUrl}" style="width:100%;height:100%;object-fit:cover"></div>`
+      : `<div style="width:26px;height:26px;border-radius:50%;background:var(--toggle-bg);display:flex;align-items:center;justify-content:center;flex-shrink:0">${_personIconSvg(14,'#b0a090')}</div>`;
+    return `<div onclick="_selectPersonSuggestion('${ctx}','${p.id}')" style="display:flex;align-items:center;gap:10px;padding:8px 12px;cursor:pointer;font-size:14px;font-family:sans-serif;color:var(--text-primary)" onmouseover="this.style.background='var(--toggle-bg)'" onmouseout="this.style.background='none'">
+      ${photoHtml}
+      <span>${_personFullName(p)}</span>
+    </div>`;
+  }).join('');
+  sug.style.display = 'block';
+}
+
+function _selectPersonSuggestion(ctx, personId) {
+  const p = people.find(x => x.id === personId);
+  if (!p) return;
+  _datePeopleEntries[ctx] = _datePeopleEntries[ctx] || [];
+  _datePeopleEntries[ctx].push({ id: p.id, name: _personFullName(p), custom: false });
+  _renderPeoplePills(ctx);
+  const inp = document.getElementById(ctx + '-people-input');
+  if (inp) { inp.value = ''; inp.focus(); }
+  const sug = document.getElementById(ctx + '-people-suggest');
+  if (sug) { sug.style.display = 'none'; }
+}
+
+function _peoplePillKeydown(e, ctx) {
+  if (e.key === 'Enter' || e.key === ',') {
+    e.preventDefault();
+    const inp = document.getElementById(ctx + '-people-input');
+    if (!inp) return;
+    const val = inp.value.trim().replace(/,$/, '');
+    if (!val) return;
+    // Check if there's a highlighted suggestion first
+    const sug = document.getElementById(ctx + '-people-suggest');
+    const firstSug = sug && sug.querySelector('div');
+    if (firstSug && sug.style.display !== 'none') {
+      firstSug.click(); return;
+    }
+    // Otherwise add as custom name
+    _datePeopleEntries[ctx] = _datePeopleEntries[ctx] || [];
+    _datePeopleEntries[ctx].push({ id: null, name: val, custom: true });
+    _renderPeoplePills(ctx);
+    inp.value = '';
+    if (sug) { sug.style.display = 'none'; }
+  } else if (e.key === 'Escape') {
+    const sug = document.getElementById(ctx + '-people-suggest');
+    if (sug) sug.style.display = 'none';
+  }
+}
+
+function _addFavoritePersonToDate(ctx) {
+  const fav = people.find(p => p.favorite);
+  if (!fav) return;
+  _datePeopleEntries[ctx] = _datePeopleEntries[ctx] || [];
+  if (_datePeopleEntries[ctx].some(e => e.id === fav.id)) return; // already added
+  _datePeopleEntries[ctx].push({ id: fav.id, name: _personFullName(fav), custom: false });
+  _renderPeoplePills(ctx);
+}
+
+// ── Serialize people for saving ───────────────────────
+function _serializePeopleEntries(ctx) {
+  const entries = _datePeopleEntries[ctx] || [];
+  if (!entries.length) return undefined;
+  return entries.map(e => ({ id: e.id || null, name: e.name }));
+}
+
+function _loadPeopleEntries(ctx, arr) {
+  _datePeopleEntries[ctx] = (arr || []).map(e => ({
+    id: e.id || null,
+    name: e.name || '',
+    custom: !e.id
+  }));
+  _renderPeoplePills(ctx);
+}
+
+// ── Hook into saveNewDate ─────────────────────────────
+const _origSaveNewDate = saveNewDate;
+saveNewDate = function() {
+  // Capture people before form resets
+  const _newDatePeople = _serializePeopleEntries('date');
+  _origSaveNewDate.call(this);
+  // Patch the last-added date with people
+  if (_newDatePeople) {
+    const last = UPCOMING_DATES[UPCOMING_DATES.length - 1];
+    if (last) { last.people = _newDatePeople; saveDates(UPCOMING_DATES); }
+  }
+  _datePeopleEntries['date'] = [];
+  _renderPeoplePills('date');
+};
+
+// ── Hook into saveEditDate ────────────────────────────
+const _origSaveEditDate = saveEditDate;
+saveEditDate = function() {
+  const _edPeople = _serializePeopleEntries('ed');
+  _origSaveEditDate.call(this);
+  // The date was already saved — patch it
+  const u = (edDateId != null ? UPCOMING_DATES.find(d => d.id === edDateId) : null) || UPCOMING_DATES[edDateIdx];
+  if (u) { u.people = _edPeople || undefined; saveDates(UPCOMING_DATES); }
+};
+
+// ── Populate people in Edit Date ──────────────────────
+const _origPopulateEditDateFields = populateEditDateFields;
+populateEditDateFields = function(u) {
+  _origPopulateEditDateFields.call(this, u);
+  _loadPeopleEntries('ed', u.people || []);
+};
+
+// Also reset new date people when sheet closes
+const _origResetDateForm = _resetDateForm;
+_resetDateForm = function() {
+  _origResetDateForm.call(this);
+  _datePeopleEntries['date'] = [];
+  _renderPeoplePills('date');
+};
+
+// ── Banner circle photos in Date Info popup ───────────
+function _diPeoplePhotosHtml(u) {
+  const peeps = (u.people || []).slice(0, 3);
+  if (!peeps.length) return '';
+  const SIZE = 30;
+  const OVERLAP = 10;
+  const totalW = SIZE + (peeps.length - 1) * (SIZE - OVERLAP);
+  const circles = peeps.map((e, i) => {
+    const p = e.id ? people.find(x => x.id === e.id) : null;
+    const left = i * (SIZE - OVERLAP);
+    const zIndex = peeps.length - i;
+    const inner = (p && p.photoUrl)
+      ? `<img src="${p.photoUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:50%" onerror="this.style.display='none'">`
+      : _personIconSvg(Math.round(SIZE * 0.55), '#fff');
+    return `<div style="position:absolute;left:${left}px;top:0;width:${SIZE}px;height:${SIZE}px;border-radius:50%;background:#6b2340;border:2px solid #fff;overflow:hidden;z-index:${zIndex};display:flex;align-items:center;justify-content:center">${inner}</div>`;
+  }).join('');
+  return `<div onclick="event.stopPropagation();openDatePeoplePopup()" style="position:absolute;bottom:8px;left:8px;width:${totalW + 4}px;height:${SIZE + 4}px;cursor:pointer;z-index:3">${circles}</div>`;
+}
+
+// ── Patch openDateInfo to inject people photos ────────
+const _origOpenDateInfo = openDateInfo;
+openDateInfo = function(u, memoryMode) {
+  _origOpenDateInfo.call(this, u, memoryMode);
+  // After banner is built, inject people circles
+  const banner = document.getElementById('di-banner');
+  if (!banner || !u) return;
+  // Remove old people overlay if any
+  const old = document.getElementById('di-people-circles');
+  if (old) old.remove();
+  const peeps = u.people || [];
+  if (!peeps.length) return;
+  const el = document.createElement('div');
+  el.id = 'di-people-circles';
+  el.style.cssText = 'position:absolute;bottom:8px;left:8px;z-index:3;display:flex;';
+  el.innerHTML = _diPeoplePhotosHtml(u).replace(/^<div[^>]*>/, '').replace(/<\/div>$/, '');
+  // Wrap properly
+  const wrapper = document.createElement('div');
+  wrapper.id = 'di-people-circles';
+  wrapper.innerHTML = _diPeoplePhotosHtml(u);
+  if (banner.style.display !== 'none') banner.appendChild(wrapper);
+  // Store reference for people popup
+  window._diCurrentDatePeople = peeps;
+};
+
+// ── Date People Popup ─────────────────────────────────
+function openDatePeoplePopup() {
+  const peeps = window._diCurrentDatePeople || [];
+  const list = document.getElementById('date-people-popup-list');
+  if (!list) return;
+  list.innerHTML = peeps.map(e => {
+    const p = e.id ? people.find(x => x.id === e.id) : null;
+    const photoHtml = (p && p.photoUrl)
+      ? `<div style="width:36px;height:36px;border-radius:50%;overflow:hidden;flex-shrink:0"><img src="${p.photoUrl}" style="width:100%;height:100%;object-fit:cover"></div>`
+      : `<div style="width:36px;height:36px;border-radius:50%;background:var(--toggle-bg);display:flex;align-items:center;justify-content:center;flex-shrink:0">${_personIconSvg(20,'#b0a090')}</div>`;
+    const name = p ? _personFullName(p) : (e.name || 'Unknown');
+    const clickable = !!p;
+    return `<div onclick="${clickable ? `closeDatePeoplePopup();openPersonInfo('${p.id}')` : ''}" style="display:flex;align-items:center;gap:12px;padding:10px 16px;cursor:${clickable?'pointer':'default'}${clickable?';' : ''}" ${clickable ? `onmouseover="this.style.background='var(--toggle-bg)'" onmouseout="this.style.background='none'"` : ''}>
+      ${photoHtml}
+      <span style="font-size:15px;font-weight:600;color:var(--text-primary);font-family:sans-serif">${name}</span>
+    </div>`;
+  }).join('');
+  document.getElementById('date-people-popup').style.display = 'flex';
+}
+
+function _epRenderSubwayBadges() {
+  const val = (document.getElementById('ep-subway') || {}).value || '';
+  const wrap = document.getElementById('ep-subway-badges');
+  if (!wrap) return;
+  if (!val.trim()) { wrap.innerHTML = ''; wrap.style.marginTop = '0'; return; }
+  wrap.innerHTML = buildSubwayBadgesHtml(val);
+  wrap.style.marginTop = '4px';
+}
+function _epRenderWalkDriveBadges() {
+  const val = (document.getElementById('ep-walkdrive') || {}).value || '';
+  const wrap = document.getElementById('ep-walkdrive-badges');
+  if (!wrap) return;
+  if (!val.trim()) { wrap.innerHTML = ''; wrap.style.marginTop = '0'; return; }
+  wrap.innerHTML = buildWalkDriveBadgesHtml(val);
+  wrap.style.marginTop = '4px';
+}
+function _epOpenTransitDirections() {
+  const addr = (document.getElementById('ep-address') || {}).value || '';
+  if (homeAddress && addr) _openExternal(`https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(homeAddress)}&destination=${encodeURIComponent(addr)}&travelmode=transit`);
+}
+function _epOpenWalkingDirections() {
+  const addr = (document.getElementById('ep-address') || {}).value || '';
+  if (homeAddress && addr) _openExternal(`https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(homeAddress)}&destination=${encodeURIComponent(addr)}&travelmode=walking`);
+}
+
+// Patch openEditPerson to populate commute fields
+const _origOpenEditPerson = openEditPerson;
+openEditPerson = function(id) {
+  _origOpenEditPerson.call(this, id);
+  const p = people.find(x => x.id === id);
+  if (!p) return;
+  const subEl = document.getElementById('ep-subway');
+  if (subEl) { subEl.value = p.subwayRoute || ''; _epRenderSubwayBadges(); }
+  const wdEl = document.getElementById('ep-walkdrive');
+  if (wdEl) { wdEl.value = p.walkDriveTime || ''; _epRenderWalkDriveBadges(); }
+  // Populate photo circle
+  const circle = document.getElementById('ep-photo-circle');
+  if (circle) {
+    circle.innerHTML = (p.photoUrl)
+      ? `<img src="${p.photoUrl}" style="width:100%;height:100%;object-fit:cover" onerror="this.style.display='none'">`
+      : _personIconSvg(36, '#b0a090');
+  }
+};
+
+// Patch openNewPerson to clear commute fields
+const _origOpenNewPerson = openNewPerson;
+openNewPerson = function() {
+  _origOpenNewPerson.call(this);
+  const subEl = document.getElementById('ep-subway'); if (subEl) { subEl.value = ''; }
+  const wdEl  = document.getElementById('ep-walkdrive'); if (wdEl)  { wdEl.value = ''; }
+  const sbEl  = document.getElementById('ep-subway-badges'); if (sbEl) sbEl.innerHTML = '';
+  const wbEl  = document.getElementById('ep-walkdrive-badges'); if (wbEl) wbEl.innerHTML = '';
+  // Clear photo circle
+  const circle = document.getElementById('ep-photo-circle');
+  if (circle) circle.innerHTML = _personIconSvg(36, '#b0a090');
+};
+
+// Patch saveEditPerson to include commute fields
+const _origSaveEditPerson = saveEditPerson;
+saveEditPerson = function() {
+  // Grab commute values before the original save runs
+  const subway    = (document.getElementById('ep-subway')    || {}).value || '';
+  const walkdrive = (document.getElementById('ep-walkdrive') || {}).value || '';
+  _origSaveEditPerson.call(this);
+  // After save, patch the newly saved person
+  const targetId = _editPersonId || (people.length ? people[people.length - 1].id : null);
+  const p = targetId ? people.find(x => x.id === targetId) : null;
+  if (p) {
+    p.subwayRoute  = subway.trim() || undefined;
+    p.walkDriveTime = walkdrive.trim() || undefined;
+    savePeople(people);
+  }
+};
+
+// Also show commute in Person Info popup — same style as Idea Info popup
+const _origRenderPersonInfoPopup = _renderPersonInfoPopup;
+_renderPersonInfoPopup = function(p) {
+  _origRenderPersonInfoPopup.call(this, p);
+  const fields = document.getElementById('pi-fields');
+  if (!fields) return;
+  const subway    = (p.subwayRoute    || '').trim();
+  const walkdrive = (p.walkDriveTime  || '').trim();
+  if (!subway && !walkdrive) return;
+
+  const dest = (p.address || '').trim();
+  let commuteRows = '';
+
+  if (subway) {
+    const subwayClean = subway.replace(/\s*\?\s*$/, '').trim();
+    const badgesHtml = buildSubwayBadgesHtml(subwayClean);
+    const mapsUrl = (homeAddress && dest)
+      ? `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(homeAddress)}&destination=${encodeURIComponent(dest)}&travelmode=transit`
+      : '';
+    const onclick = mapsUrl ? `onclick="event.stopPropagation();_openExternal('${mapsUrl}')"` : '';
+    commuteRows += `<div style="display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap;margin-top:16px;${mapsUrl?'cursor:pointer':''}" ${onclick}>${badgesHtml}</div>`;
+  }
+
+  if (walkdrive) {
+    const wdClean = walkdrive.replace(/\s*\?\s*$/, '').trim();
+    const wm = wdClean.match(/(\d+)\s*min\s*walk/i);
+    const dm = wdClean.match(/(\d+)\s*min\s*drive/i);
+    if (wm || dm) {
+      const pSvg = `<svg viewBox="0 0 24 24" width="13" height="13" fill="#b0a090"><path d="M13.5 5.5c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zM9.8 8.9L7 23h2.1l1.8-8 2.1 2v6h2v-7.5l-2.1-2 .6-3C14.8 12 16.8 13 19 13v-2c-1.9 0-3.5-1-4.3-2.4l-1-1.6c-.4-.6-1-1-1.7-1-.3 0-.5.1-.8.1L6 8.3V13h2V9.6l1.8-.7"/></svg>`;
+      const cSvg = `<svg viewBox="0 0 24 24" width="13" height="13" fill="#b0a090"><path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z"/></svg>`;
+      const walkUrl  = (homeAddress && dest) ? `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(homeAddress)}&destination=${encodeURIComponent(dest)}&travelmode=walking`  : '';
+      const driveUrl = (homeAddress && dest) ? `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(homeAddress)}&destination=${encodeURIComponent(dest)}&travelmode=driving` : '';
+      const marginTop = subway ? '6px' : '16px';
+      let wdHtml = `<div style="display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap;margin-top:${marginTop}">`;
+      if (wm) {
+        const wc = walkUrl ? `onclick="event.stopPropagation();_openExternal('${walkUrl}')" style="display:flex;align-items:center;gap:3px;font-size:12px;color:#b0a090;font-family:sans-serif;cursor:pointer"` : `style="display:flex;align-items:center;gap:3px;font-size:12px;color:#b0a090;font-family:sans-serif"`;
+        wdHtml += `<span ${wc}>${pSvg}${wm[1]} min</span>`;
+      }
+      if (wm && dm) wdHtml += `<span style="color:#b0a090;font-size:12px;font-family:sans-serif">/</span>`;
+      if (dm) {
+        const dc = driveUrl ? `onclick="event.stopPropagation();_openExternal('${driveUrl}')" style="display:flex;align-items:center;gap:3px;font-size:12px;color:#b0a090;font-family:sans-serif;cursor:pointer"` : `style="display:flex;align-items:center;gap:3px;font-size:12px;color:#b0a090;font-family:sans-serif"`;
+        wdHtml += `<span ${dc}>${cSvg}${dm[1]} min</span>`;
+      }
+      wdHtml += '</div>';
+      commuteRows += wdHtml;
+    }
+  }
+
+  if (commuteRows) {
+    const wrap = document.createElement('div');
+    wrap.innerHTML = commuteRows;
+    fields.appendChild(wrap);
+  }
+};
+
+// ── Location address person autocomplete ─────────────
+const _locationPersonId = { date: null, ed: null };
+
+function _locationPersonSuggest(ctx) {
+  const inp = document.getElementById(ctx === 'date' ? 'date-location-text' : 'ed-location');
+  const sug = document.getElementById(ctx + '-location-suggest');
+  if (!inp || !sug) return;
+  if (_locationPersonId[ctx]) { sug.style.display = 'none'; return; }
+  const q = inp.value.trim().toLowerCase();
+  if (!q) { sug.style.display = 'none'; return; }
+  const dateEntries = _datePeopleEntries[ctx] || [];
+  const pool = dateEntries.length
+    ? dateEntries.map(e => e.id ? people.find(x => x.id === e.id) : null).filter(Boolean)
+    : people;
+  const matches = pool.filter(p => {
+    const label = ((p.firstName || _personFullName(p)) + "'s place").toLowerCase();
+    return label.includes(q) || (p.firstName || '').toLowerCase().includes(q);
+  }).slice(0, 5);
+  if (!matches.length) { sug.style.display = 'none'; return; }
+  sug.innerHTML = matches.map(p => {
+    const photoHtml = p.photoUrl
+      ? `<div style="width:26px;height:26px;border-radius:50%;overflow:hidden;flex-shrink:0"><img src="${p.photoUrl}" style="width:100%;height:100%;object-fit:cover"></div>`
+      : `<div style="width:26px;height:26px;border-radius:50%;background:var(--toggle-bg);display:flex;align-items:center;justify-content:center;flex-shrink:0">${_personIconSvg(14,'#b0a090')}</div>`;
+    const label = (p.firstName || _personFullName(p)) + "'s place";
+    return `<div onclick="_selectLocationPerson('${ctx}','${p.id}')" style="display:flex;align-items:center;gap:10px;padding:8px 12px;cursor:pointer;font-size:14px;font-family:sans-serif;color:var(--text-primary)" onmouseover="this.style.background='var(--toggle-bg)'" onmouseout="this.style.background='none'">${photoHtml}<span>${label}</span></div>`;
+  }).join('');
+  sug.style.display = 'block';
+}
+
+function _selectLocationPerson(ctx, personId) {
+  const p = people.find(x => x.id === personId);
+  if (!p) return;
+  _locationPersonId[ctx] = personId;
+  const pillId = ctx + '-location-pill';
+  const pillEl = document.getElementById(pillId);
+  if (pillEl) {
+    const photoHtml = p.photoUrl
+      ? `<div style="width:20px;height:20px;border-radius:50%;overflow:hidden;flex-shrink:0"><img src="${p.photoUrl}" style="width:100%;height:100%;object-fit:cover"></div>`
+      : `<div style="width:20px;height:20px;border-radius:50%;background:var(--toggle-bg);display:flex;align-items:center;justify-content:center;flex-shrink:0">${_personIconSvg(11,'#b0a090')}</div>`;
+    const label = (p.firstName || _personFullName(p)) + "'s place";
+    pillEl.innerHTML = `<div style="display:inline-flex;align-items:center;gap:5px;background:var(--toggle-bg);border-radius:20px;padding:3px 8px 3px 4px;font-size:12px;font-family:sans-serif;color:var(--text-primary);white-space:nowrap;flex-shrink:0">${photoHtml}<span>${label}</span><button onclick="_clearLocationPerson('${ctx}')" style="background:none;border:none;cursor:pointer;padding:0;line-height:0;color:#9a8a7a;margin-left:2px"><svg viewBox="0 0 24 24" width="10" height="10" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>`;
+  }
+  const inp = document.getElementById(ctx === 'date' ? 'date-location-text' : 'ed-location');
+  if (inp) { inp.value = ''; inp.placeholder = ''; }
+  const sug = document.getElementById(ctx + '-location-suggest');
+  if (sug) sug.style.display = 'none';
+  // Populate + lock neighborhood if person has one
+  const neighId = ctx === 'date' ? 'date-neighborhood' : 'ed-neighborhood';
+  const neighEl = document.getElementById(neighId);
+  if (neighEl && p.neighborhood) {
+    neighEl.value = p.neighborhood;
+    neighEl.readOnly = true;
+    neighEl.style.opacity = '0.6';
+    neighEl.style.cursor = 'default';
+  }
+}
+
+function _clearLocationPerson(ctx) {
+  _locationPersonId[ctx] = null;
+  const pillEl = document.getElementById(ctx + '-location-pill');
+  if (pillEl) pillEl.innerHTML = '';
+  const inp = document.getElementById(ctx === 'date' ? 'date-location-text' : 'ed-location');
+  if (inp) { inp.value = ''; inp.placeholder = 'Address\u2026'; }
+  // Unlock neighborhood
+  const neighId = ctx === 'date' ? 'date-neighborhood' : 'ed-neighborhood';
+  const neighEl = document.getElementById(neighId);
+  if (neighEl) {
+    neighEl.readOnly = false;
+    neighEl.style.opacity = '';
+    neighEl.style.cursor = '';
+  }
+}
+
+function _locationPersonKeydown(e, ctx) {
+  if (e.key === 'Escape') { const s = document.getElementById(ctx+'-location-suggest'); if(s) s.style.display='none'; }
+  else if (e.key === 'Enter') { const s = document.getElementById(ctx+'-location-suggest'); const f = s&&s.querySelector('div'); if(f&&s.style.display!=='none'){e.preventDefault();f.click();} }
+}
+
+function _getLocationAddress(ctx) {
+  const pid = _locationPersonId[ctx];
+  if (pid) { const p = people.find(x => x.id === pid); return p ? (p.address || '') : ''; }
+  const inp = document.getElementById(ctx === 'date' ? 'date-location-text' : 'ed-location');
+  return inp ? inp.value.trim() : '';
+}
+
+function _resetLocationField(ctx) {
+  _locationPersonId[ctx] = null;
+  const pillEl = document.getElementById(ctx + '-location-pill');
+  if (pillEl) pillEl.innerHTML = '';
+  const inp = document.getElementById(ctx === 'date' ? 'date-location-text' : 'ed-location');
+  if (inp) { inp.value = ''; inp.placeholder = 'Address\u2026'; }
+  const sug = document.getElementById(ctx + '-location-suggest');
+  if (sug) sug.style.display = 'none';
+  // Unlock neighborhood
+  const neighId = ctx === 'date' ? 'date-neighborhood' : 'ed-neighborhood';
+  const neighEl = document.getElementById(neighId);
+  if (neighEl) { neighEl.readOnly = false; neighEl.style.opacity = ''; neighEl.style.cursor = ''; }
+}
 </script>
 
 <!-- PLACE FINDER PREVIEW POPUP — z-index 460 -->
@@ -11801,6 +12790,150 @@ _renderPrivacyBox('ts-lock-icon', 'ts-privacy-box', false, false);
       <button onclick="_closeEditCommute()" style="padding:10px 16px;background:none;border:1.5px solid #ede9e2;border-radius:10px;font-family:sans-serif;font-size:13px;font-weight:600;color:#9a8a7a;cursor:pointer" class="btn-outline">Cancel</button>
       <button onclick="_saveEditCommute()" style="padding:10px 20px;background:#c07a8a;border:none;border-radius:10px;font-family:sans-serif;font-size:13px;font-weight:600;color:#fff;cursor:pointer">Save</button>
     </div>
+  </div>
+</div>
+
+<!-- PERSON INFO POPUP -->
+<div id="person-info-overlay" onclick="closePersonInfo()">
+  <div id="person-info-modal" onclick="event.stopPropagation()">
+    <!-- Banner header -->
+    <div id="pi-banner" style="display:none;height:100px;background:#6b2340;position:relative;flex-shrink:0;overflow:hidden"></div>
+    <div style="padding:20px 20px 28px;background:var(--bg)">
+      <!-- Header row: avatar + name, edit + close -->
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+        <div style="display:flex;align-items:center;gap:12px;flex:1;min-width:0">
+          <div id="pi-avatar" onclick="openEditPersonPhoto()" style="width:52px;height:52px;border-radius:50%;overflow:hidden;flex-shrink:0;background:var(--toggle-bg);display:flex;align-items:center;justify-content:center;cursor:pointer"></div>
+          <div id="pi-name" onclick="openEditPersonFromInfo()" style="font-size:18px;font-weight:700;color:var(--popup-title);cursor:pointer;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
+          <button id="pi-edit-btn" onclick="openEditPersonFromInfo()" style="background:none;border:none;cursor:pointer;padding:4px;display:flex;align-items:center;line-height:0;color:#9a8a7a">
+            <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
+          </button>
+          <button onclick="closePersonInfo()" style="background:none;border:none;cursor:pointer;padding:4px;display:flex;align-items:center;line-height:0;color:#9a8a7a">
+            <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+      </div>
+      <!-- Fields -->
+      <div id="pi-fields" style="display:flex;flex-direction:column;gap:12px"></div>
+    </div>
+  </div>
+</div>
+
+<!-- EDIT PERSON POPUP -->
+<div id="edit-person-overlay" onclick="closeEditPerson()">
+  <div onclick="event.stopPropagation()" style="width:100%;max-width:390px;background:var(--bg);border-radius:20px;display:flex;flex-direction:column;max-height:88vh;overflow:hidden;box-shadow:0 12px 48px rgba(0,0,0,0.18)">
+    <div style="padding:20px 20px 14px;flex-shrink:0;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--bg);border-radius:20px 20px 0 0">
+      <div style="font-size:17px;font-weight:700;color:var(--popup-title)">Edit Person</div>
+      <button onclick="closeEditPerson()" style="background:none;border:none;cursor:pointer;padding:4px;line-height:0;color:#9a8a7a"><svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div style="padding:20px;display:flex;flex-direction:column;gap:14px;overflow-y:auto;-webkit-overflow-scrolling:touch">
+      <!-- Profile photo circle -->
+      <div style="display:flex;justify-content:center;margin-bottom:4px">
+        <div id="ep-photo-circle" onclick="openEditPersonPhoto()" style="width:72px;height:72px;border-radius:50%;overflow:hidden;background:var(--toggle-bg);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;border:2px solid var(--border)"></div>
+      </div>
+      <!-- Name row -->
+      <div style="display:flex;align-items:center;gap:10px">
+        <svg viewBox="0 0 24 24" width="18" height="18" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+        <input class="field-input" id="ep-first-name" type="text" placeholder="First Name" style="flex:1;margin-bottom:0">
+        <input class="field-input" id="ep-last-name" type="text" placeholder="Last Name" style="flex:1;margin-bottom:0">
+      </div>
+      <!-- Pronouns -->
+      <div style="display:flex;align-items:center;gap:10px">
+        <div id="ep-pronouns-icon" style="width:18px;height:18px;flex-shrink:0;display:flex;align-items:center;justify-content:center"></div>
+        <select class="field-input" id="ep-pronouns" style="flex:1;margin-bottom:0" onchange="_updateEpPronounsIcon()">
+          <option value="she/her">She / Her</option>
+          <option value="he/him">He / Him</option>
+          <option value="they/them">They / Their</option>
+        </select>
+      </div>
+      <!-- Address -->
+      <div style="display:flex;align-items:center;gap:10px">
+        <svg viewBox="0 0 24 24" width="18" height="18" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+        <input class="field-input" id="ep-address" type="text" placeholder="Address" style="flex:1;margin-bottom:0">
+      </div>
+      <!-- Neighborhood -->
+      <div style="display:flex;align-items:center;gap:10px">
+        <svg viewBox="0 0 24 24" width="18" height="18" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/></svg>
+        <input class="field-input" id="ep-neighborhood" type="text" placeholder="Neighborhood" style="flex:1;margin-bottom:0">
+      </div>
+      <!-- Transit -->
+      <div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <button onclick="_epOpenTransitDirections()" title="Get transit directions" style="background:none;border:none;cursor:pointer;padding:0;display:flex;flex-shrink:0">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#9a8a7a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><text x="12" y="16.5" text-anchor="middle" font-family="'Helvetica Neue','Arial Black',Arial,sans-serif" font-weight="900" font-size="13" fill="#9a8a7a" stroke="none">A</text></svg>
+          </button>
+          <input class="field-input" id="ep-subway" type="text" placeholder="Transit (e.g. A C to 14th St 25min)" oninput="_epRenderSubwayBadges()" style="flex:1;margin-bottom:0">
+        </div>
+        <div id="ep-subway-badges" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:4px;margin-left:28px;min-height:0"></div>
+      </div>
+      <!-- Walk/Drive -->
+      <div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <button onclick="_epOpenWalkingDirections()" title="Get walking directions" style="background:none;border:none;cursor:pointer;padding:0;display:flex;flex-shrink:0">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="#9a8a7a"><path d="M13.5 5.5c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zM9.8 8.9L7 23h2.1l1.8-8 2.1 2v6h2v-7.5l-2.1-2 .6-3C14.8 12 16.8 13 19 13v-2c-1.9 0-3.5-1-4.3-2.4l-1-1.6c-.4-.6-1-1-1.7-1-.3 0-.5.1-.8.1L6 8.3V13h2V9.6l1.8-.7"/></svg>
+          </button>
+          <input class="field-input" id="ep-walkdrive" type="text" placeholder="Walk / Drive (e.g. 20min walk / 8min drive)" oninput="_epRenderWalkDriveBadges()" style="flex:1;margin-bottom:0">
+        </div>
+        <div id="ep-walkdrive-badges" style="display:flex;align-items:center;gap:8px;margin-top:4px;margin-left:28px;min-height:0"></div>
+      </div>
+      <!-- Phone -->
+      <div style="display:flex;align-items:center;gap:10px">
+        <svg viewBox="0 0 24 24" width="18" height="18" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12" y2="18" stroke-width="3"/></svg>
+        <input class="field-input" id="ep-phone" type="text" placeholder="Phone" style="flex:1;margin-bottom:0">
+      </div>
+      <!-- WhatsApp -->
+      <div style="display:flex;align-items:center;gap:10px">
+        <svg viewBox="0 0 24 24" width="18" height="18" style="flex-shrink:0" fill="#9a8a7a"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/></svg>
+        <input class="field-input" id="ep-whatsapp" type="text" placeholder="WhatsApp" style="flex:1;margin-bottom:0">
+      </div>
+      <!-- Instagram -->
+      <div style="display:flex;align-items:center;gap:10px">
+        <svg viewBox="0 0 24 24" width="18" height="18" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><circle cx="12" cy="12" r="4"/><path d="M16 8v0"/><rect x="2" y="2" width="20" height="20" rx="5"/></svg>
+        <input class="field-input" id="ep-instagram" type="text" placeholder="Instagram" style="flex:1;margin-bottom:0">
+      </div>
+    </div>
+    <div style="padding:14px 20px 20px;flex-shrink:0;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;background:var(--bg);border-radius:0 0 20px 20px">
+      <button id="ep-delete-btn" onclick="deleteCurrentPerson()" style="padding:10px 14px;background:none;border:1.5px solid #e8c0c8;border-radius:10px;font-family:sans-serif;font-size:13px;font-weight:600;color:#c07a8a;cursor:pointer">Delete</button>
+      <div style="display:flex;gap:8px;margin-left:auto">
+        <button onclick="closeEditPerson()" style="padding:10px 16px;background:none;border:1.5px solid #ede9e2;border-radius:10px;font-family:sans-serif;font-size:13px;font-weight:600;color:#9a8a7a;cursor:pointer" class="btn-outline">Cancel</button>
+        <button onclick="saveEditPerson()" style="padding:10px 20px;background:#c07a8a;border:none;border-radius:10px;font-family:sans-serif;font-size:13px;font-weight:600;color:#fff;cursor:pointer">Save</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- EDIT PROFILE PHOTO POPUP -->
+<div id="edit-person-photo-overlay" onclick="cancelPersonPhoto()">
+  <div onclick="event.stopPropagation()" style="width:100%;max-width:260px;background:var(--bg);border-radius:20px;padding:0;overflow:hidden;box-shadow:0 12px 48px rgba(0,0,0,0.18)">
+    <!-- Crop preview -->
+    <div style="display:flex;flex-direction:column;align-items:center;padding:20px 20px 0;gap:14px">
+      <div id="photo-crop-container" style="position:relative;width:180px;height:180px;flex-shrink:0">
+        <!-- Dark overlay with circular cutout -->
+        <canvas id="photo-crop-canvas" width="180" height="180" style="border-radius:50%;overflow:hidden;display:block;cursor:move;touch-action:none"></canvas>
+        <div id="photo-crop-placeholder" style="width:180px;height:180px;border-radius:50%;background:var(--toggle-bg);display:flex;align-items:center;justify-content:center">
+          <svg viewBox="0 0 24 24" width="60" height="60" stroke="#b0a090" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+        </div>
+      </div>
+      <!-- Zoom slider — hidden when no image -->
+      <input id="photo-crop-zoom" type="range" min="1" max="3" step="0.01" value="1" style="width:100%;display:none" oninput="_photoCropDraw()">
+      <!-- URL field -->
+      <input class="field-input" id="photo-url-input" type="text" placeholder="Image URL or filename" style="width:100%;margin-bottom:0;box-sizing:border-box" oninput="_onPhotoUrlInput(this.value)">
+    </div>
+    <!-- Footer -->
+    <div style="padding:14px 20px 20px;display:flex;justify-content:center;gap:8px;margin-top:4px">
+      <button onclick="cancelPersonPhoto()" style="padding:10px 16px;background:none;border:1.5px solid #ede9e2;border-radius:10px;font-family:sans-serif;font-size:13px;font-weight:600;color:#9a8a7a;cursor:pointer" class="btn-outline">Cancel</button>
+      <button onclick="savePersonPhoto()" style="padding:10px 20px;background:#c07a8a;border:none;border-radius:10px;font-family:sans-serif;font-size:13px;font-weight:600;color:#fff;cursor:pointer">Save</button>
+    </div>
+  </div>
+</div>
+<!-- PEOPLE LIST POPUP (from Date Info banner) -->
+<div id="date-people-popup" onclick="closeDatePeoplePopup()" style="position:fixed;inset:0;background:rgba(30,20,20,0.5);z-index:450;display:none;align-items:center;justify-content:center;padding:20px">
+  <div onclick="event.stopPropagation()" style="width:100%;max-width:320px;background:var(--bg);border-radius:18px;overflow:hidden;box-shadow:0 12px 48px rgba(0,0,0,0.18)">
+    <div style="display:flex;justify-content:flex-end;padding:12px 14px 0">
+      <button onclick="closeDatePeoplePopup()" style="background:none;border:none;cursor:pointer;padding:4px;line-height:0;color:#9a8a7a"><svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div id="date-people-popup-list" style="padding:4px 0 16px"></div>
   </div>
 </div>
 
