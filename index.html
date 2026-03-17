@@ -140,7 +140,7 @@
   #person-info-overlay { position:fixed;inset:0;background:rgba(30,20,20,0.5);z-index:420;display:none;align-items:flex-start;justify-content:center;padding-top:66px; }
   #person-info-modal { width:calc(100% - 24px);max-width:390px;background:var(--bg);border-radius:20px;overflow:hidden;max-height:80vh;overflow-y:auto;box-shadow:0 12px 48px rgba(0,0,0,0.18); }
   /* Edit Person popup */
-  #edit-person-overlay { position:fixed;inset:0;background:rgba(30,20,20,0.5);z-index:430;display:none;align-items:center;justify-content:center;padding:max(20px,env(safe-area-inset-top)) 20px max(20px,env(safe-area-inset-bottom)); }
+  #edit-person-overlay { position:fixed;inset:0;background:rgba(30,20,20,0.5);z-index:430;align-items:center;justify-content:center;padding:max(20px,env(safe-area-inset-top)) 20px max(20px,env(safe-area-inset-bottom)); }
   /* Edit Profile Photo popup */
   #edit-person-photo-overlay { position:fixed;inset:0;background:rgba(30,20,20,0.5);z-index:440;display:none;align-items:center;justify-content:center;padding:20px; }
   #nav-logo { display: flex; align-items: center; gap: 8px; background: none; border: none; outline: none; cursor: pointer; }
@@ -703,7 +703,7 @@
         <line x1="3" y1="10" x2="21" y2="10"/>
       </svg>
     </button>
-    <button class="nav-tab" onclick="if(currentView==='todo'&&document.getElementById('todo-sheet')?.style.display==='block'){closeTodoSheet();}else{navigate('todo');}" id="tab-todo">
+    <button class="nav-tab" onclick="_handleLastTabTap()" id="tab-todo">
       <svg viewBox="0 0 24 24" width="22" height="22" stroke="#b0a090" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" id="icon-todo"><rect x="3" y="3" width="18" height="18" rx="3"/><polyline points="9 12 11 14 15 10"/></svg>
     </button>
   </div><!-- /bottom-nav-inner -->
@@ -985,17 +985,22 @@
       <div id="date-location-text-wrap" style="display:none;align-items:center;gap:10px;margin-top:12px;margin-bottom:12px">
         <svg viewBox="0 0 24 24" width="18" height="18" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
         <div style="position:relative;flex:1;min-width:0">
-          <div id="date-location-field" style="display:flex;align-items:center;gap:6px;border:1.5px solid var(--border);border-radius:10px;background:var(--bg-input);padding:8px 12px;min-height:40px;box-sizing:border-box;cursor:text;overflow:hidden" onclick="document.getElementById('date-location-text').focus()">
+          <div id="date-location-field" style="display:flex;align-items:center;gap:6px;border:1.5px solid var(--border);border-radius:10px;background:var(--bg-input);padding:8px 32px 8px 12px;min-height:40px;box-sizing:border-box;cursor:text;overflow:hidden" onclick="document.getElementById('date-location-text').focus()">
             <div id="date-location-pill" style="display:contents"></div>
-            <input id="date-location-text" type="text" placeholder="Address…" style="border:none;background:transparent;outline:none;font-size:16px;font-family:sans-serif;color:var(--text-primary);min-width:60px;flex:1;padding:0;line-height:1" oninput="_locationPersonSuggest('date')" onkeydown="_locationPersonKeydown(event,'date')">
+            <input id="date-location-text" type="text" placeholder="Address…" style="border:none;background:transparent;outline:none;font-size:16px;font-family:sans-serif;color:var(--text-primary);min-width:60px;flex:1;padding:0;line-height:1" oninput="_locationPersonSuggest('date');_syncLocationClearBtn('date')" onkeydown="_locationPersonKeydown(event,'date')">
           </div>
+          <button type="button" id="date-location-clear" onmousedown="event.preventDefault();_clearLocationField('date')" style="display:none;position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;padding:2px;line-height:0;color:#b0a090">
+            <svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
           <div id="date-location-suggest" style="display:none;position:absolute;top:100%;left:0;right:0;background:var(--bg);border:1.5px solid var(--border);border-radius:10px;z-index:9999;overflow:hidden;box-shadow:0 4px 16px rgba(0,0,0,0.12);margin-top:4px"></div>
         </div>
       </div>
       <!-- Neighborhood (Custom activity only) -->
       <div id="date-neighborhood-wrap" style="display:none;align-items:center;gap:10px;margin-bottom:12px">
         <svg viewBox="0 0 24 24" width="18" height="18" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/></svg>
-        <input class="field-input" id="date-neighborhood" type="text" placeholder="Neighborhood (e.g. Williamsburg)" style="flex:1;margin-bottom:0">
+        <div class="clearable-wrap" style="flex:1">
+          <input class="field-input" id="date-neighborhood" type="text" placeholder="Neighborhood (e.g. Williamsburg)" style="flex:1;margin-bottom:0">
+        </div>
       </div>
       <!-- People -->
       <div data-people-row="date" style="display:flex;align-items:center;gap:10px;margin-top:12px;margin-bottom:0;position:relative">
@@ -1292,17 +1297,22 @@
           <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
             <svg viewBox="0 0 24 24" width="18" height="18" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
             <div style="position:relative;flex:1;min-width:0">
-              <div id="ed-location-field" style="display:flex;align-items:center;gap:6px;border:1.5px solid var(--border);border-radius:10px;background:var(--bg-input);padding:8px 12px;min-height:40px;box-sizing:border-box;cursor:text;overflow:hidden" onclick="document.getElementById('ed-location').focus()">
+              <div id="ed-location-field" style="display:flex;align-items:center;gap:6px;border:1.5px solid var(--border);border-radius:10px;background:var(--bg-input);padding:8px 32px 8px 12px;min-height:40px;box-sizing:border-box;cursor:text;overflow:hidden" onclick="document.getElementById('ed-location').focus()">
                 <div id="ed-location-pill" style="display:contents"></div>
-                <input id="ed-location" type="text" placeholder="Address…" style="border:none;background:transparent;outline:none;font-size:16px;font-family:sans-serif;color:var(--text-primary);min-width:60px;flex:1;padding:0;line-height:1" oninput="_locationPersonSuggest('ed')" onkeydown="_locationPersonKeydown(event,'ed')">
+                <input id="ed-location" type="text" placeholder="Address…" style="border:none;background:transparent;outline:none;font-size:16px;font-family:sans-serif;color:var(--text-primary);min-width:60px;flex:1;padding:0;line-height:1" oninput="_locationPersonSuggest('ed');_syncLocationClearBtn('ed')" onkeydown="_locationPersonKeydown(event,'ed')">
               </div>
+              <button type="button" id="ed-location-clear" onmousedown="event.preventDefault();_clearLocationField('ed')" style="display:none;position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;padding:2px;line-height:0;color:#b0a090">
+                <svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              </button>
               <div id="ed-location-suggest" style="display:none;position:absolute;top:100%;left:0;right:0;background:var(--bg);border:1.5px solid var(--border);border-radius:10px;z-index:9999;overflow:hidden;box-shadow:0 4px 16px rgba(0,0,0,0.12);margin-top:4px"></div>
             </div>
           </div>
           <!-- Neighborhood -->
           <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
             <svg viewBox="0 0 24 24" width="18" height="18" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/></svg>
-            <input class="field-input" id="ed-neighborhood" type="text" placeholder="Neighborhood (e.g. Williamsburg)" style="flex:1;margin-bottom:0">
+            <div class="clearable-wrap" style="flex:1">
+              <input class="field-input" id="ed-neighborhood" type="text" placeholder="Neighborhood (e.g. Williamsburg)" style="flex:1;margin-bottom:0">
+            </div>
           </div>
         </div>
 
@@ -1377,7 +1387,8 @@
         Media Host
       </div>
       <input class="field-input" id="settings-images-host" type="text" placeholder="Host URL (e.g. https://user.github.io/duet/)">
-      <!-- Edit shortcuts -->
+      <!-- Edit shortcuts (hidden) -->
+      <div style="display:none">
       <div class="field-label" style="display:flex;align-items:center;gap:6px;margin-top:16px">
         <svg viewBox="0 0 24 24" width="14" height="14" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
         Edit
@@ -1395,6 +1406,7 @@
           <svg viewBox="0 0 24 24" width="14" height="14" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M8 22h8"/><path d="M12 15.8v6.2"/><path d="M5 3h14l-1.5 9a5 5 0 0 1-5 4h-1a5 5 0 0 1-5-4L5 3z"/></svg>
           Ideas
         </button>
+      </div>
       </div>
 
       <!-- Appearance -->
@@ -1958,6 +1970,53 @@
 </div>
 
 <script>
+
+// ── Last-tab cycling: todo → people → memories → todo ──
+var _LAST_TAB_CYCLE = ['todo', 'people', 'memories'];
+var _lastTabMode = (function() {
+  try { return localStorage.getItem('ll_last_tab') || 'todo'; } catch(e) { return 'todo'; }
+})();
+
+var _LAST_TAB_ICONS = {
+  todo:     '<rect x="3" y="3" width="18" height="18" rx="3"/><polyline points="9 12 11 14 15 10"/>',
+  people:   '<circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>',
+  memories: '<path d="M2.5 8A9 9 0 1 1 3.5 15"/><polyline points="2 4 2.5 8 7 7.5"/>'
+};
+
+// The view name each mode navigates to
+var _LAST_TAB_VIEW = { todo: 'todo', people: 'people', memories: 'past' };
+
+function _handleLastTabTap() {
+  const view = _LAST_TAB_VIEW[_lastTabMode];
+  // If already on this view, cycle to next mode
+  if (currentView === view) {
+    const idx = _LAST_TAB_CYCLE.indexOf(_lastTabMode);
+    _lastTabMode = _LAST_TAB_CYCLE[(idx + 1) % _LAST_TAB_CYCLE.length];
+    try { localStorage.setItem('ll_last_tab', _lastTabMode); } catch(e) {}
+    // Close todo sheet if open
+    const ts = document.getElementById('todo-sheet');
+    if (ts && ts.style.display === 'block') closeTodoSheet();
+    navigate(_LAST_TAB_VIEW[_lastTabMode]);
+  } else {
+    // Close todo sheet if open
+    const ts = document.getElementById('todo-sheet');
+    if (ts && ts.style.display === 'block' && _lastTabMode === 'todo') {
+      closeTodoSheet();
+    } else {
+      navigate(view);
+    }
+  }
+}
+
+function _updateLastTabIcon() {
+  const icon = document.getElementById('icon-todo');
+  if (!icon) return;
+  icon.innerHTML = _LAST_TAB_ICONS[_lastTabMode] || _LAST_TAB_ICONS.todo;
+  const view = _LAST_TAB_VIEW[_lastTabMode];
+  const isActive = currentView === view;
+  icon.style.stroke = isActive ? ROSE : '#b0a090';
+}
+
 // ═══════════════════════════════════════════════════════
 // STATE
 // ═══════════════════════════════════════════════════════
@@ -1998,6 +2057,8 @@ const _CLEARABLE_IDS = [
   'pf-webapp-label','pf-webapp-url',
   // New/Edit Date note
   'date-note','ed-note',
+  // New/Edit Date neighborhood (custom)
+  'date-neighborhood','ed-neighborhood',
   // New/Edit Todo note
   'ts-note','et-note',
   // Edit Commute
@@ -2650,6 +2711,8 @@ function renderNav() {
     const icon = document.getElementById('icon-'+t);
     if (icon) icon.style.stroke = currentView === t ? ROSE : '#b0a090';
   });
+  // Update last-tab icon and active highlight based on current mode
+  if (typeof _updateLastTabIcon === 'function') _updateLastTabIcon();
   _updatePeopleNavRow();
   _applyTestcolor();
 }
@@ -5339,6 +5402,7 @@ function _homeMonthCalNav(dir) {
 }
 
 function _homeMonthCalSelectDate(fdIdx, day) {
+  _hideBirthdayTooltip();
   if (fdIdx < 0 || fdIdx >= FUTURE_DATES.length) return;
   _homeMonthCalSelectedDay = { year: _homeMonthCalYear, month: _homeMonthCalMonth, day };
   dateIdx = fdIdx;
@@ -5352,6 +5416,7 @@ function _homeMonthCalSelectDate(fdIdx, day) {
 }
 
 function _homeMonthCalTooltip(e, day, month, year) {
+  _hideBirthdayTooltip();
   e.stopPropagation();
   const cal  = document.getElementById('home-month-cal');
   const tt   = document.getElementById('home-month-tooltip');
@@ -5498,14 +5563,19 @@ function renderHome() {
         .filter(u => !_isDateHiddenPrivate(u))
         .sort((a,b) => new Date((a.year||2026),MONTH_NUMS[a.month]||0,a.day) - new Date((b.year||2026),MONTH_NUMS[b.month]||0,b.day));
       const limit = sec.show === 'all' ? all.length : parseInt(sec.show)||3;
-      const upcoming = all.slice(0, limit);
+      // Merge with birthday cards
+      const _homeBdCards = _upcomingBirthdayCards();
+      const _homeBdItems = _homeBdCards.map(r => ({ date: r.date, isBd: true, r }));
+      const _homeDateItems = all.map(u => ({ date: new Date((u.year||2026),MONTH_NUMS[u.month]||0,u.day), isBd: false, u }));
+      const _homeMerged = [..._homeDateItems, ..._homeBdItems].sort((a,b) => a.date - b.date);
+      const upcoming = _homeMerged.slice(0, limit);
       if (!upcoming.length) return '';
       return '<div style="padding:22px 20px 16px">' +
         '<button onclick="navigate(\'calendar\')" style="background:none;border:none;cursor:pointer;padding:0;display:flex;align-items:center;gap:4px;margin-bottom:12px">' +
           '<span class="section-label">Upcoming</span>' +
           '<span style="font-size:11px;color:#9a8a7a;font-family:sans-serif;letter-spacing:0.05em;line-height:1">›</span>' +
         '</button>' +
-        upcoming.map(u => _buildUpcomingCardHtml(u, '', false, true)).join('') +
+        upcoming.map(item => item.isBd ? _buildBirthdayCardHtml(item.r) : _buildUpcomingCardHtml(item.u, '', false, true)).join('') +
         '</div>';
     }
 
@@ -5594,7 +5664,7 @@ function renderWeekStrip() {
   // Build pages HTML
   const pagesHtml = weeks.map(week => {
     const daysHtml = week.map(day => {
-      const dotColor = day.hasFutureDate ? (day.fdIdx === 0 ? BURGUNDY : ROSE) : 'transparent';
+      const dotColor = day.hasFutureDate ? ROSE : 'transparent';
       const _isDark = document.body.classList.contains('dark-mode');
       const numColor = day.isSelected ? '#fff' : day.isToday ? ROSE : (_isDark ? '#f0ede9' : '#2a1f1f');
       const numWeight = (day.isSelected || day.isToday) ? 700 : 400;
@@ -6281,22 +6351,7 @@ function renderCalendar() {
   }
 
   // Upcoming list
-  const upcomingHTML = UPCOMING_DATES
-    .filter(u => {
-      const dt = new Date((u.year||2026), MONTH_NUMS[u.month]||0, u.day); dt.setHours(0,0,0,0);
-      return dt >= _now;
-    })
-    .filter(u => !_isDateHiddenPrivate(u))
-    .sort((a,b) => new Date((a.year||2026),MONTH_NUMS[a.month]||0,a.day) - new Date((b.year||2026),MONTH_NUMS[b.month]||0,b.day))
-    .map(u => {
-      const isSelected = u.month === monthAbbr && (u.year||2026) === currentCalYear && u.day === selectedCalDay;
-      if (!isSelected) return _buildUpcomingCardHtml(u, '');
-      // On a multi-date day: accent border only for the currently-active date; others get muted outline
-      const _dayDates = _selDayVisible;
-      const isActive = _dayDates.length <= 1 || String(u.id) === window._calActiveDateId;
-      return _buildUpcomingCardHtml(u, isActive ? `border-color:${ROSE};` : 'border-color:var(--text-secondary);');
-    }).join('');
-
+  
   return `
   <div id="cal-wrap">
     <div id="cal-card">
@@ -6314,8 +6369,25 @@ function renderCalendar() {
     </div>
     ${selectedCardHTML}
     <div id="cal-upcoming">
-      ${upcomingHTML ? '<div class="section-label" style="margin-bottom:12px">Upcoming</div>' : ''}
-      ${upcomingHTML}
+      ${(() => {
+        const _bdCards = _upcomingBirthdayCards();
+        const _dateItems = UPCOMING_DATES
+          .filter(u => { const dt=new Date((u.year||2026),MONTH_NUMS[u.month]||0,u.day); dt.setHours(0,0,0,0); return dt>=_now && !_isDateHiddenPrivate(u); })
+          .map(u => ({ date: new Date((u.year||2026),MONTH_NUMS[u.month]||0,u.day), isBd: false, u }));
+        const _bdItems = _bdCards.map(r => ({ date: r.date, isBd: true, r }));
+        const _allItems = [..._dateItems, ..._bdItems].sort((a,b) => a.date - b.date);
+        if (!_allItems.length) return '';
+        const _mergedHtml = _allItems.map(item => {
+          if (item.isBd) return _buildBirthdayCardHtml(item.r);
+          const u = item.u;
+          const isSelected = u.month === monthAbbr && (u.year||2026) === currentCalYear && u.day === selectedCalDay;
+          if (!isSelected) return _buildUpcomingCardHtml(u, '');
+          const _dayDates = _selDayVisible;
+          const isActive = _dayDates.length <= 1 || String(u.id) === window._calActiveDateId;
+          return _buildUpcomingCardHtml(u, isActive ? `border-color:${ROSE};` : 'border-color:var(--text-secondary);');
+        }).join('');
+        return '<div class="section-label" style="margin-bottom:12px">Upcoming</div>' + _mergedHtml;
+      })()}
     </div>
     ${(() => {
       const past3 = _computeMemories().filter(d => !_isDateHiddenPrivate(d)).slice(0, 3);
@@ -6407,6 +6479,7 @@ function openNewDateFromCal(day, month, year) {
 }
 
 function selectCalDay(day) {
+  _hideBirthdayTooltip();
   selectedCalDay = day;
   _calBannerIdx = 0;
   _calInfoPanelIdx = 0;
@@ -7211,7 +7284,12 @@ function _initWeekStrip() {
   if (!scroll) return;
   const pages = scroll.querySelectorAll('.week-page');
   if (!pages.length) return;
-  const w = scroll.offsetWidth;
+  // Use the scroll container's own clientWidth — read AFTER setting inner to not expand it
+  const inner = document.getElementById('week-strip-inner');
+  const savedInnerWidth = inner ? inner.style.width : '';
+  if (inner) inner.style.width = '0';
+  const w = scroll.clientWidth || (outer ? outer.clientWidth : 0);
+  if (inner) inner.style.width = savedInnerWidth;
   pages.forEach(p => { p.style.width = w + 'px'; });
   const page = parseInt(scroll.getAttribute('data-init-page') || '0');
   scroll.style.scrollSnapType = 'none';
@@ -7762,6 +7840,7 @@ function _resetDateForm() {
   delete _imgSearchTermOverrides['date-image-fields'];
   const _dcs = document.getElementById('date-custom-category'); if (_dcs) _dcs.value = 'other';
   _resetLocationField('date');
+  _updatePartnerPlaceLabel('date');
 }
 
 function _resetTodoForm() {
@@ -7853,6 +7932,13 @@ function handleNewBtn() {
     return;
   } else if (currentView === 'people') {
     openNewPerson();
+  } else if (currentView === 'memories') {
+    const today = new Date();
+    selectedCalDay = today.getDate();
+    currentCalMonth = today.getMonth();
+    currentCalYear = today.getFullYear();
+    navigate('calendar');
+    setTimeout(() => openSheet('date'), 50);
   } else {
     openSheet('out');
   }
@@ -8044,7 +8130,7 @@ function onIdeaReservationChange(manual) {
 function renderDateSheetUI() {
   const _sheet = document.getElementById('idea-sheet');
   _sheet.style.height = 'auto';
-  _sheet.style.maxHeight = 'calc(90vh)';
+  _sheet.style.maxHeight = 'min(75vh, calc(100dvh - max(48px, env(safe-area-inset-top)) - max(48px, env(safe-area-inset-bottom)) - 48px))';
   _sheet.style.overflow = 'hidden';
   const _body = document.getElementById('idea-sheet-body');
   _body.style.flex = '1';
@@ -8083,6 +8169,7 @@ function renderDateSheetUI() {
   if (_textEl) _textEl.value = _displayVal;
   document.getElementById('date-time-select').value = '';
   setTimeout(() => { _buildPickerStrip('date'); _initPickerStrip('date'); }, 0);
+  _updatePartnerPlaceLabel('date');
 }
 
 
@@ -8812,6 +8899,12 @@ function _applyEdInLocation(u) {
   if (sel.value === 'other') {
     u.inLocationOtherName = (document.getElementById('ed-in-location-other-name') || {}).value?.trim() || '';
     u.inLocationOther = (document.getElementById('ed-in-location-other') || {}).value?.trim() || '';
+  } else if (sel.value === 'partner_place') {
+    u.inLocationOtherName = '';
+    u.inLocationOther = '';
+    const _pp = _getDateFirstPerson('ed');
+    u.address = (_pp && _pp.address) ? _pp.address : (u.address || undefined);
+    u.locationPersonId = (_pp && _pp.id) ? _pp.id : undefined;
   } else {
     u.inLocationOtherName = '';
     u.inLocationOther = '';
@@ -8915,8 +9008,8 @@ function saveNewDate() {
   const newDate = {
     day: dd, month: monthName, year: yyyy,
     activity, venue, neighborhood,
-    address: isCustom ? (_getLocationAddress('date') || undefined) : undefined,
-    locationPersonId: isCustom ? (_locationPersonId['date'] || undefined) : undefined,
+    address: isCustom ? (_getLocationAddress('date') || undefined) : (inLocation === 'partner_place' ? (_getPartnerPlaceAddress('date') || undefined) : undefined),
+    locationPersonId: isCustom ? (_locationPersonId['date'] || undefined) : (inLocation === 'partner_place' ? ((_getDateFirstPerson('date') || {}).id || undefined) : undefined),
     time: timeVal || '',
     note,
     imageUrls: imageUrls.length ? imageUrls : undefined,
@@ -11890,7 +11983,8 @@ function _personFullName(p) {
 // ── Render People screen ─────────────────────────────
 function renderPeople() {
   const q = (peopleSearch || '').trim().toLowerCase();
-  const list = people.filter(p => {
+  let list = people.filter(p => {
+    if (!hidePrivate && p.family) return false; // hide family when safe mode is off
     if (q) {
       const name = _personFullName(p).toLowerCase();
       return name.includes(q);
@@ -11905,19 +11999,26 @@ function renderPeople() {
     return `<div style="position:fixed;top:calc(50% - 60px);left:50%;transform:translateX(-50%);text-align:center;color:#b0a090;font-size:15px;font-style:italic;pointer-events:none;width:80%;z-index:1">No matches.</div>`;
   }
 
-  const favId = people.find(p => p.favorite) ? people.find(p => p.favorite).id : null;
-  const rows = list.map(p => {
+  // When Safe Mode is OFF, float the favorite to the top
+  const favPerson = !hidePrivate ? list.find(p => p.favorite) : null;
+  if (favPerson) {
+    list = [favPerson, ...list.filter(p => p.id !== favPerson.id)];
+  }
+
+  const rows = list.map((p, i) => {
     const isFav = p.favorite && !hidePrivate;
-    const heartColor = isFav ? ROSE : '#c8bfb8';
-    const heartFill = isFav ? ROSE : 'none';
-    const heartBtn = hidePrivate ? '' : `<button onclick="event.stopPropagation();togglePersonFavorite('${p.id}')" style="background:none;border:none;cursor:pointer;padding:6px;flex-shrink:0;line-height:0"><svg viewBox="0 0 24 24" width="18" height="18" stroke="${heartColor}" stroke-width="2" fill="${heartFill}" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></button>`;
+    const heartBtn = '';
+    // Divider after favorite row (when it's pinned at top)
+    const divider = (favPerson && i === 0 && list.length > 1)
+      ? `<div style="height:1px;background:var(--border);margin:0 16px"></div>`
+      : '';
     return `<div class="person-row" onclick="openPersonInfo('${p.id}')">
       ${_personAvatarHtml(p, 44)}
       <div style="flex:1;min-width:0">
-        <div style="font-size:15px;font-weight:600;color:var(--text-primary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${_personFullName(p)}</div>
+        <div style="font-size:15px;font-weight:600;color:var(--text-primary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.firstName || _personFullName(p)}</div>
       </div>
       ${heartBtn}
-    </div>`;
+    </div>${divider}`;
   }).join('');
 
   return `<div style="padding-bottom:80px">
@@ -11986,16 +12087,7 @@ function _renderPersonInfoPopup(p) {
     ? `<img src="${p.photoUrl}" style="width:100%;height:100%;object-fit:cover;object-position:center" onerror="this.style.display='none'">`
     : _personIconSvg(28, '#b0a090');
 
-  // Favorite heart next to name (outline, accent color, when not safe mode)
-  const existingHeart = document.querySelector('.pi-fav-heart');
-  if (existingHeart) existingHeart.remove();
-  if (p.favorite && !hidePrivate && nameEl) {
-    const heart = document.createElement('span');
-    heart.className = 'pi-fav-heart';
-    heart.style.cssText = 'display:inline-flex;align-items:center;margin-left:6px;flex-shrink:0;vertical-align:middle';
-    heart.innerHTML = `<svg viewBox="0 0 24 24" width="15" height="15" stroke="${ROSE}" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>`;
-    nameEl.parentNode.insertBefore(heart, nameEl.nextSibling);
-  }
+  // No favorite heart on Person Info popup
 
   const fields = document.getElementById('pi-fields');
   if (!fields) return;
@@ -12009,20 +12101,36 @@ function _renderPersonInfoPopup(p) {
     html += row(`<svg viewBox="0 0 24 24" width="16" height="16" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>`, `<span style="color:var(--text-primary)">${p.address}</span>`, `_openExternal('${mapsUrl.replace(/'/g, "\\'")}')`);
   }
   if (p.neighborhood) {
-    html += row(`<svg viewBox="0 0 24 24" width="16" height="16" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/></svg>`, `<span style="color:#9a8a7a">${p.neighborhood}</span>`, '');
+    html += row(`<svg viewBox="0 0 24 24" width="16" height="16" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/></svg>`, `<span style="color:var(--text-primary)">${p.neighborhood}</span>`, `closePersonInfo();goToNeighborhood('${p.neighborhood.replace(/'/g, "\\'")}')`);
   }
   if (p.phone) {
-    html += row(`<svg viewBox="0 0 24 24" width="16" height="16" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12" y2="18" stroke-width="3"/></svg>`, `<span style="color:${ROSE}">${p.phone}</span>`, `_openExternal('sms:${p.phone}')`);
+    html += row(`<svg viewBox="0 0 24 24" width="16" height="16" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12" y2="18" stroke-width="3"/></svg>`, `<span>${p.phone}</span>`, `_openExternal('sms:${p.phone}')`);
   }
   if (p.whatsapp) {
     const waNum = p.whatsapp.replace(/\D/g,'');
-    html += row(`<svg viewBox="0 0 24 24" width="16" height="16" fill="#9a8a7a"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/></svg>`, `<span style="color:${ROSE}">${p.whatsapp}</span>`, `_openExternal('https://wa.me/${waNum}')`);
+    html += row(`<svg viewBox="0 0 24 24" width="16" height="16" fill="#9a8a7a"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/></svg>`, `<span>${p.whatsapp}</span>`, `_openExternal('https://wa.me/${waNum}')`);
   }
   if (p.instagram) {
     const handle = p.instagram.replace(/^@/,'');
-    html += row(`<svg viewBox="0 0 24 24" width="16" height="16" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M16 8v0"/><rect x="2" y="2" width="20" height="20" rx="5"/></svg>`, `<span style="color:${ROSE}">@${handle}</span>`, `_openExternal('https://instagram.com/${handle}')`);
+    html += row(`<svg viewBox="0 0 24 24" width="16" height="16" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M16 8v0"/><rect x="2" y="2" width="20" height="20" rx="5"/></svg>`, `<span>@${handle}</span>`, `_openExternal('https://instagram.com/${handle}')`);
   }
   fields.innerHTML = html || `<div style="color:#b0a090;font-size:14px;font-style:italic">No details yet.</div>`;
+
+  // Notes row (above commute) — clickable, opens Edit Person and scrolls to notes
+  if (p.notes) {
+    const notesRow = document.createElement('div');
+    notesRow.style.cssText = 'display:flex;align-items:flex-start;gap:12px;cursor:pointer';
+    notesRow.onclick = () => {
+      openEditPersonFromInfo();
+      setTimeout(() => {
+        const el = document.getElementById('ep-notes');
+        if (el) { el.focus(); el.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+      }, 80);
+    };
+    const notesSvg = `<svg viewBox="0 0 24 24" width="16" height="16" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:2px"><line x1="17" y1="10" x2="3" y2="10"/><line x1="21" y1="6" x2="3" y2="6"/><line x1="21" y1="14" x2="3" y2="14"/><line x1="17" y1="18" x2="3" y2="18"/></svg>`;
+    notesRow.innerHTML = notesSvg + `<div style="flex:1;font-size:14px;color:#9a8a7a;font-family:sans-serif;line-height:1.5;white-space:pre-wrap">${p.notes}</div>`;
+    fields.appendChild(notesRow);
+  }
 }
 function closePersonInfo() {
   document.getElementById('person-info-overlay').style.display = 'none';
@@ -12297,7 +12405,7 @@ function _renderPeoplePills(ctx) {
       ? `<div style="width:20px;height:20px;border-radius:50%;overflow:hidden;flex-shrink:0"><img src="${p.photoUrl}" style="width:100%;height:100%;object-fit:cover" onerror="this.parentNode.style.background='var(--toggle-bg)'"></div>`
       : `<div style="width:20px;height:20px;border-radius:50%;background:var(--toggle-bg);display:flex;align-items:center;justify-content:center;flex-shrink:0">${_personIconSvg(11,'#b0a090')}</div>`;
     const label = p ? (p.firstName || _personFullName(p).split(' ')[0]) : e.name;
-    return `<div style="display:inline-flex;align-items:center;gap:5px;background:var(--toggle-bg);border-radius:20px;padding:3px 8px 3px 4px;font-size:12px;font-family:sans-serif;color:var(--text-primary);white-space:nowrap;flex-shrink:0">
+    return `<div style="display:inline-flex;align-items:center;gap:5px;background:var(--bg-card2);border:1px solid var(--border);border-radius:20px;padding:3px 8px 3px 4px;font-size:12px;font-family:sans-serif;color:var(--text-primary);white-space:nowrap;flex-shrink:0">
       ${photoHtml}
       <span>${label}</span>
       <button onclick="_removeDatePerson('${ctx}',${i})" style="background:none;border:none;cursor:pointer;padding:0;line-height:0;color:#9a8a7a;margin-left:2px"><svg viewBox="0 0 24 24" width="10" height="10" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
@@ -12313,6 +12421,7 @@ function _renderPeoplePills(ctx) {
 function _removeDatePerson(ctx, idx) {
   _datePeopleEntries[ctx].splice(idx, 1);
   _renderPeoplePills(ctx);
+  _updatePartnerPlaceLabel(ctx);
 }
 
 function _clearDatePeople(ctx) {
@@ -12324,6 +12433,7 @@ function _clearDatePeople(ctx) {
   if (sug) { sug.style.display = 'none'; sug.innerHTML = ''; }
   const clearBtn = document.getElementById(ctx + '-people-clear');
   if (clearBtn) clearBtn.style.display = 'none';
+  _updatePartnerPlaceLabel(ctx);
 }
 
 // ── Autocomplete ─────────────────────────────────────
@@ -12365,6 +12475,7 @@ function _selectPersonSuggestion(ctx, personId) {
   if (inp) { inp.value = ''; inp.focus(); }
   const sug = document.getElementById(ctx + '-people-suggest');
   if (sug) { sug.style.display = 'none'; }
+  _updatePartnerPlaceLabel(ctx);
 }
 
 function _peoplePillKeydown(e, ctx) {
@@ -12399,6 +12510,7 @@ function _addFavoritePersonToDate(ctx) {
   if (_datePeopleEntries[ctx].some(e => e.id === fav.id)) return; // already added
   _datePeopleEntries[ctx].push({ id: fav.id, name: _personFullName(fav), custom: false });
   _renderPeoplePills(ctx);
+  _updatePartnerPlaceLabel(ctx);
 }
 
 // ── Serialize people for saving ───────────────────────
@@ -12447,6 +12559,7 @@ const _origPopulateEditDateFields = populateEditDateFields;
 populateEditDateFields = function(u) {
   _origPopulateEditDateFields.call(this, u);
   _loadPeopleEntries('ed', u.people || []);
+  _updatePartnerPlaceLabel('ed');
 };
 
 // Also reset new date people when sheet closes
@@ -12556,6 +12669,17 @@ openEditPerson = function(id) {
   if (subEl) { subEl.value = p.subwayRoute || ''; _epRenderSubwayBadges(); }
   const wdEl = document.getElementById('ep-walkdrive');
   if (wdEl) { wdEl.value = p.walkDriveTime || ''; _epRenderWalkDriveBadges(); }
+  const bdEl = document.getElementById('ep-birthday');
+  if (bdEl) bdEl.value = p.birthday || '';
+  const notesEl = document.getElementById('ep-notes');
+  if (notesEl) notesEl.value = p.notes || '';
+  const familyEl = document.getElementById('ep-family');
+  if (familyEl) familyEl.checked = !!p.family;
+  _epIsFamily = !!p.family;
+  _updateEpFamilyBox();
+  // Set favorite toggle state
+  _epIsFavorite = !!p.favorite;
+  _updateEpFavIcon();
   // Populate photo circle
   const circle = document.getElementById('ep-photo-circle');
   if (circle) {
@@ -12563,6 +12687,9 @@ openEditPerson = function(id) {
       ? `<img src="${p.photoUrl}" style="width:100%;height:100%;object-fit:cover" onerror="this.style.display='none'">`
       : _personIconSvg(36, '#b0a090');
   }
+  // Scroll to top
+  const epOvl = document.getElementById('edit-person-overlay');
+  if (epOvl) { const sb = epOvl.querySelector('[style*="overflow-y"]'); if (sb) sb.scrollTop = 0; }
 };
 
 // Patch openNewPerson to clear commute fields
@@ -12573,25 +12700,53 @@ openNewPerson = function() {
   const wdEl  = document.getElementById('ep-walkdrive'); if (wdEl)  { wdEl.value = ''; }
   const sbEl  = document.getElementById('ep-subway-badges'); if (sbEl) sbEl.innerHTML = '';
   const wbEl  = document.getElementById('ep-walkdrive-badges'); if (wbEl) wbEl.innerHTML = '';
+  const bdEl  = document.getElementById('ep-birthday'); if (bdEl) bdEl.value = '';
+  const notesEl = document.getElementById('ep-notes'); if (notesEl) notesEl.value = '';
+  const familyEl = document.getElementById('ep-family'); if (familyEl) familyEl.checked = false;
+  _epIsFamily = false;
+  _updateEpFamilyBox();
+  // Reset favorite toggle
+  _epIsFavorite = false;
+  _updateEpFavIcon();
   // Clear photo circle
   const circle = document.getElementById('ep-photo-circle');
   if (circle) circle.innerHTML = _personIconSvg(36, '#b0a090');
+  // Scroll to top
+  const epOvl = document.getElementById('edit-person-overlay');
+  if (epOvl) { const sb = epOvl.querySelector('[style*="overflow-y"]'); if (sb) sb.scrollTop = 0; }
 };
 
 // Patch saveEditPerson to include commute fields
 const _origSaveEditPerson = saveEditPerson;
 saveEditPerson = function() {
-  // Grab commute values before the original save runs
+  // Grab commute + birthday values before the original save runs
   const subway    = (document.getElementById('ep-subway')    || {}).value || '';
   const walkdrive = (document.getElementById('ep-walkdrive') || {}).value || '';
+  const birthdayRaw = (document.getElementById('ep-birthday') || {}).value || '';
+  const birthday = _parseBirthday(birthdayRaw);
+  const notes = ((document.getElementById('ep-notes') || {}).value || '').trim();
+  const isFamily = _epIsFamily;
+  const _savedCurrentPersonId = _currentPersonId;
   _origSaveEditPerson.call(this);
   // After save, patch the newly saved person
   const targetId = _editPersonId || (people.length ? people[people.length - 1].id : null);
   const p = targetId ? people.find(x => x.id === targetId) : null;
   if (p) {
-    p.subwayRoute  = subway.trim() || undefined;
+    p.subwayRoute   = subway.trim() || undefined;
     p.walkDriveTime = walkdrive.trim() || undefined;
+    p.birthday      = birthday || undefined;
+    p.notes         = notes || undefined;
+    p.family        = isFamily || undefined;
+    // If marking as favorite, unmark all others first
+    if (_epIsFavorite && !p.favorite) {
+      people.forEach(x => { x.favorite = false; });
+    }
+    p.favorite = _epIsFavorite;
     savePeople(people);
+    // Refresh Person Info popup with fully updated data
+    if (_savedCurrentPersonId && (_savedCurrentPersonId === p.id || _savedCurrentPersonId === targetId)) {
+      _renderPersonInfoPopup(p);
+    }
   }
 };
 
@@ -12660,25 +12815,38 @@ function _locationPersonSuggest(ctx) {
   if (_locationPersonId[ctx]) { sug.style.display = 'none'; return; }
   const q = inp.value.trim().toLowerCase();
   if (!q) { sug.style.display = 'none'; return; }
+
+  // Trigger on pronoun shorthand: "her", "his", "their" → show all people in field order
+  const pronounTriggers = ['her', 'his', 'their'];
+  const isPronounTrigger = pronounTriggers.some(t => t.startsWith(q) || q === t);
+
   const dateEntries = _datePeopleEntries[ctx] || [];
   const pool = dateEntries.length
     ? dateEntries.map(e => e.id ? people.find(x => x.id === e.id) : null).filter(Boolean)
     : people;
-  const matches = pool.filter(p => {
-    const label = ((p.firstName || _personFullName(p)) + "'s place").toLowerCase();
-    return label.includes(q) || (p.firstName || '').toLowerCase().includes(q);
-  }).slice(0, 5);
+
+  let matches;
+  if (isPronounTrigger) {
+    // Show all people from pool in order, no filtering
+    matches = pool.slice(0, 5);
+  } else {
+    matches = pool.filter(p => {
+      const label = ((p.firstName || _personFullName(p)) + "'s place").toLowerCase();
+      return label.includes(q) || (p.firstName || '').toLowerCase().includes(q);
+    }).slice(0, 5);
+  }
   if (!matches.length) { sug.style.display = 'none'; return; }
-  sug.innerHTML = matches.map(p => {
+  sug.innerHTML = matches.map((p, i) => {
     const photoHtml = p.photoUrl
       ? `<div style="width:26px;height:26px;border-radius:50%;overflow:hidden;flex-shrink:0"><img src="${p.photoUrl}" style="width:100%;height:100%;object-fit:cover"></div>`
       : `<div style="width:26px;height:26px;border-radius:50%;background:var(--toggle-bg);display:flex;align-items:center;justify-content:center;flex-shrink:0">${_personIconSvg(14,'#b0a090')}</div>`;
     const label = (p.firstName || _personFullName(p)) + "'s place";
-    return `<div onclick="_selectLocationPerson('${ctx}','${p.id}')" style="display:flex;align-items:center;gap:10px;padding:8px 12px;cursor:pointer;font-size:14px;font-family:sans-serif;color:var(--text-primary)" onmouseover="this.style.background='var(--toggle-bg)'" onmouseout="this.style.background='none'">${photoHtml}<span>${label}</span></div>`;
+    const isFirst = i === 0;
+    const rowBg = isFirst ? 'var(--toggle-bg)' : 'transparent';
+    return `<div data-location-suggest-idx="${i}" onclick="_selectLocationPerson('${ctx}','${p.id}')" style="display:flex;align-items:center;gap:10px;padding:8px 12px;cursor:pointer;font-size:14px;font-family:sans-serif;color:var(--text-primary);background:${rowBg}" onmouseover="this.style.background='var(--toggle-bg)'" onmouseout="this.style.background='${isFirst ? 'var(--toggle-bg)' : 'transparent'}'">${photoHtml}<span>${label}</span></div>`;
   }).join('');
   sug.style.display = 'block';
 }
-
 function _selectLocationPerson(ctx, personId) {
   const p = people.find(x => x.id === personId);
   if (!p) return;
@@ -12690,13 +12858,14 @@ function _selectLocationPerson(ctx, personId) {
       ? `<div style="width:20px;height:20px;border-radius:50%;overflow:hidden;flex-shrink:0"><img src="${p.photoUrl}" style="width:100%;height:100%;object-fit:cover"></div>`
       : `<div style="width:20px;height:20px;border-radius:50%;background:var(--toggle-bg);display:flex;align-items:center;justify-content:center;flex-shrink:0">${_personIconSvg(11,'#b0a090')}</div>`;
     const label = (p.firstName || _personFullName(p)) + "'s place";
-    pillEl.innerHTML = `<div style="display:inline-flex;align-items:center;gap:5px;background:var(--toggle-bg);border-radius:20px;padding:3px 8px 3px 4px;font-size:12px;font-family:sans-serif;color:var(--text-primary);white-space:nowrap;flex-shrink:0">${photoHtml}<span>${label}</span><button onclick="_clearLocationPerson('${ctx}')" style="background:none;border:none;cursor:pointer;padding:0;line-height:0;color:#9a8a7a;margin-left:2px"><svg viewBox="0 0 24 24" width="10" height="10" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>`;
+    pillEl.innerHTML = `<div style="display:inline-flex;align-items:center;gap:5px;background:var(--bg-card2);border:1px solid var(--border);border-radius:20px;padding:3px 8px 3px 4px;font-size:12px;font-family:sans-serif;color:var(--text-primary);white-space:nowrap;flex-shrink:0">${photoHtml}<span>${label}</span><button onclick="_clearLocationPerson('${ctx}')" style="background:none;border:none;cursor:pointer;padding:0;line-height:0;color:#9a8a7a;margin-left:2px"><svg viewBox="0 0 24 24" width="10" height="10" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>`;
   }
   const inp = document.getElementById(ctx === 'date' ? 'date-location-text' : 'ed-location');
   if (inp) { inp.value = ''; inp.placeholder = ''; }
   const sug = document.getElementById(ctx + '-location-suggest');
   if (sug) sug.style.display = 'none';
-  // Populate + lock neighborhood if person has one
+  // Show clear button since we now have a pill
+  _syncLocationClearBtn(ctx);
   const neighId = ctx === 'date' ? 'date-neighborhood' : 'ed-neighborhood';
   const neighEl = document.getElementById(neighId);
   if (neighEl && p.neighborhood) {
@@ -12713,14 +12882,16 @@ function _clearLocationPerson(ctx) {
   if (pillEl) pillEl.innerHTML = '';
   const inp = document.getElementById(ctx === 'date' ? 'date-location-text' : 'ed-location');
   if (inp) { inp.value = ''; inp.placeholder = 'Address\u2026'; }
-  // Unlock neighborhood
+  // Unlock and clear neighborhood
   const neighId = ctx === 'date' ? 'date-neighborhood' : 'ed-neighborhood';
   const neighEl = document.getElementById(neighId);
   if (neighEl) {
     neighEl.readOnly = false;
     neighEl.style.opacity = '';
     neighEl.style.cursor = '';
+    neighEl.value = '';
   }
+  _syncLocationClearBtn(ctx);
 }
 
 function _locationPersonKeydown(e, ctx) {
@@ -12747,6 +12918,383 @@ function _resetLocationField(ctx) {
   const neighId = ctx === 'date' ? 'date-neighborhood' : 'ed-neighborhood';
   const neighEl = document.getElementById(neighId);
   if (neighEl) { neighEl.readOnly = false; neighEl.style.opacity = ''; neighEl.style.cursor = ''; }
+}
+
+// ── Birthday helpers ──────────────────────────────────
+const _MONTH_NAMES_FULL = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+const _MONTH_ABBRS_BD = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+function _birthdayCakeSvg(size, color) {
+  const c = color || '#9a8a7a'; const s = size || 16;
+  return `<svg viewBox="0 0 24 24" width="${s}" height="${s}" fill="none" stroke="${c}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-8a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8"/><path d="M4 16s.5-1 2-1 2.5 2 4 2 2.5-2 4-2 2.5 2 4 2 2-1 2-1"/><path d="M2 21h20"/><path d="M7 8v3"/><path d="M12 8v3"/><path d="M17 8v3"/><path d="M7 4h.01"/><path d="M12 4h.01"/><path d="M17 4h.01"/></svg>`;
+}
+
+function _parseBirthday(raw) {
+  if (!raw || !raw.trim()) return '';
+  const s = raw.trim();
+  const numMatch = s.match(/^(\d{1,2})[\/\-](\d{1,2})(?:[\/\-](\d{4}))?$/);
+  if (numMatch) {
+    const m = parseInt(numMatch[1]) - 1, d = parseInt(numMatch[2]), y = numMatch[3] ? parseInt(numMatch[3]) : null;
+    if (m >= 0 && m <= 11 && d >= 1 && d <= 31) return _MONTH_ABBRS_BD[m] + ' ' + d + (y ? ', ' + y : '');
+  }
+  const wordMatch = s.match(/^([A-Za-z]+)\s+(\d{1,2})(?:[,\s]+(\d{4}))?$/);
+  if (wordMatch) {
+    const mIdx = _MONTH_NAMES_FULL.findIndex(n => n.toLowerCase().startsWith(wordMatch[1].toLowerCase().slice(0,3)));
+    const d = parseInt(wordMatch[2]), y = wordMatch[3] ? parseInt(wordMatch[3]) : null;
+    if (mIdx >= 0 && d >= 1 && d <= 31) return _MONTH_ABBRS_BD[mIdx] + ' ' + d + (y ? ', ' + y : '');
+  }
+  return s;
+}
+
+function _birthdayMonthDay(birthdayStr) {
+  if (!birthdayStr) return null;
+  const m = birthdayStr.match(/^([A-Za-z]{3})\s+(\d{1,2})/);
+  if (!m) return null;
+  const mIdx = _MONTH_ABBRS_BD.findIndex(a => a.toLowerCase() === m[1].toLowerCase());
+  if (mIdx < 0) return null;
+  return { month: mIdx, day: parseInt(m[2]) };
+}
+
+function _birthdaysInMonth(month0) {
+  return people.filter(p => p.birthday).map(p => {
+    const bd = _birthdayMonthDay(p.birthday);
+    if (!bd || bd.month !== month0) return null;
+    return { day: bd.day, firstName: p.firstName || _personFullName(p), id: p.id };
+  }).filter(Boolean);
+}
+
+// Birthday in Person Info popup
+const _origRPIPForBirthday = _renderPersonInfoPopup;
+_renderPersonInfoPopup = function(p) {
+  _origRPIPForBirthday.call(this, p);
+  if (!p.birthday) return;
+  const fields = document.getElementById('pi-fields');
+  if (!fields) return;
+  const bdRow = document.createElement('div');
+  bdRow.style.cssText = 'display:flex;align-items:center;gap:12px;cursor:pointer';
+  bdRow.onclick = () => _goToPersonBirthday(p.id);
+  bdRow.innerHTML = _birthdayCakeSvg(16,'#9a8a7a') + '<div style="flex:1;font-size:14px;color:var(--text-primary);font-family:sans-serif">' + p.birthday + '</div>';
+  fields.insertBefore(bdRow, fields.firstChild);
+};
+
+// Birthday dots on all calendars
+function _applyBirthdayDots() {
+  if (typeof currentCalYear === 'undefined') return;
+  const bdays = _birthdaysInMonth(currentCalMonth);
+  if (!bdays.length) return;
+  // Main calendar grid (id="cal-grid") and home month calendar (class="cal-grid" inside home-month-cal)
+  const grids = [
+    document.getElementById('cal-grid'),
+    ...Array.from((document.getElementById('home-month-cal') || document).querySelectorAll('.cal-grid'))
+  ].filter(Boolean);
+  grids.forEach(grid => {
+    grid.querySelectorAll('button.cal-day').forEach(btn => {
+      const dayNum = parseInt(btn.textContent);
+      const bd = bdays.filter(b => b.day === dayNum);
+      if (!bd.length || btn.querySelector('.cal-bday-dot')) return;
+      btn.style.position = 'relative';
+      const dot = document.createElement('div');
+      dot.className = 'cal-bday-dot';
+      dot.style.cssText = 'position:absolute;bottom:3px;left:50%;transform:translateX(-50%);width:5px;height:5px;border-radius:50%;background:' + BURGUNDY + ';cursor:pointer;z-index:2';
+      dot.onclick = function(e) { e.stopPropagation(); _showBirthdayTooltip(e, bd); };
+      btn.appendChild(dot);
+    });
+  });
+}
+
+function _applyBirthdayDotsWeek() {
+  const inner = document.getElementById('week-strip-inner');
+  if (!inner) return;
+  inner.querySelectorAll('.week-day').forEach(cell => {
+    const onclick = cell.getAttribute('onclick') || '';
+    // Only handle cells that show the tooltip (no planned date) or have a planned date
+    const tooltipMatch = onclick.match(/showWeekTooltip\(event,(\d+),(\d+),(\d+)\)/);
+    const selectMatch  = onclick.match(/selectWeekDate\((\d+)\)/);
+    let dayNum, month0;
+    if (tooltipMatch) {
+      dayNum = parseInt(tooltipMatch[1]); month0 = parseInt(tooltipMatch[2]);
+    } else if (selectMatch) {
+      const fd = FUTURE_DATES[parseInt(selectMatch[1])];
+      if (!fd) return;
+      const ref = fd._ref || fd;
+      dayNum = ref.day; month0 = MONTH_NUMS[ref.month] ?? 0;
+    } else return;
+    const bd = _birthdaysInMonth(month0).filter(b => b.day === dayNum);
+    if (!bd.length) return;
+    // Reuse the existing .week-day-dot so position is identical to planned-date dots
+    const existingDot = cell.querySelector('.week-day-dot');
+    if (existingDot) {
+      existingDot.style.background = BURGUNDY;
+      existingDot.style.cursor = 'pointer';
+      // Replace onclick: birthday tooltip takes priority
+      existingDot.onclick = function(e) { e.stopPropagation(); _showBirthdayTooltip(e, bd); };
+    }
+  });
+}
+
+let _bdTooltipEl = null;
+let _bdTooltipKey = null; // tracks which dot is showing tooltip for toggle
+
+function _showBirthdayTooltip(e, bdays) {
+  // Close any open "Plan a date" tooltips first
+  closeWeekTooltip();
+  const hmTt = document.getElementById('home-month-tooltip');
+  if (hmTt) { hmTt.style.display = 'none'; hmTt._openKey = null; }
+  const key = bdays.map(b => b.id).join(',');
+  // Toggle: if same dot tapped again, close and return
+  if (_bdTooltipEl && _bdTooltipKey === key) {
+    _hideBirthdayTooltip();
+    return;
+  }
+  _hideBirthdayTooltip();
+  _bdTooltipKey = key;
+  const label = bdays.map(b => b.firstName + "'s birthday").join(' · ');
+  const firstId = bdays[0] && bdays[0].id;
+  const tt = document.createElement('div');
+  tt.id = 'bd-tooltip';
+  tt.style.cssText = 'position:fixed;background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:8px 14px;box-shadow:0 6px 24px rgba(0,0,0,0.22);z-index:9999;white-space:nowrap;display:flex;align-items:center;gap:6px;font-size:14px;font-style:italic;color:var(--text-primary);font-family:sans-serif;cursor:pointer';
+  tt.innerHTML = _birthdayCakeSvg(14, ROSE) + '<span>' + label + '</span>';
+  if (firstId) {
+    tt.onclick = function(ev) {
+      ev.stopPropagation();
+      _hideBirthdayTooltip();
+      openPersonInfo(firstId);
+    };
+  }
+  document.body.appendChild(tt);
+  _bdTooltipEl = tt;
+  const dotRect = e.target.getBoundingClientRect();
+  tt.style.left = '0px'; tt.style.top = '0px';
+  requestAnimationFrame(function() {
+    let left = dotRect.left + dotRect.width/2 - tt.offsetWidth/2;
+    let top  = dotRect.bottom + 6;
+    if (left < 8) left = 8;
+    if (left + tt.offsetWidth > window.innerWidth - 8) left = window.innerWidth - tt.offsetWidth - 8;
+    if (top + tt.offsetHeight > window.innerHeight - 8) top = dotRect.top - tt.offsetHeight - 6;
+    tt.style.left = left + 'px'; tt.style.top = top + 'px';
+  });
+  setTimeout(function() { document.addEventListener('click', _hideBirthdayTooltip, { once: true }); }, 0);
+}
+function _hideBirthdayTooltip() {
+  if (_bdTooltipEl) { _bdTooltipEl.remove(); _bdTooltipEl = null; }
+  _bdTooltipKey = null;
+}
+
+const _origRenderForBirthday = render;
+render = function() {
+  _origRenderForBirthday.call(this);
+  setTimeout(function() { _applyBirthdayDots(); _applyBirthdayDotsWeek(); }, 0);
+};
+
+function _epFormatPhone(el) {
+  const digits = (el.value || '').replace(/\D/g, '');
+  if (digits.length === 10) {
+    el.value = digits.slice(0,3) + '-' + digits.slice(3,6) + '-' + digits.slice(6);
+  } else if (digits.length === 11 && digits[0] === '1') {
+    el.value = digits.slice(1,4) + '-' + digits.slice(4,7) + '-' + digits.slice(7);
+  }
+  // otherwise leave as-is
+}
+
+function _confirmDeletePerson() {
+  if (!_editPersonId) return;
+  const p = people.find(x => x.id === _editPersonId);
+  const name = p ? ((p.firstName || '') + (p.lastName ? ' ' + p.lastName : '')).trim() : 'this person';
+  const titleEl = document.getElementById('confirm-delete-person-title');
+  if (titleEl) titleEl.textContent = 'Delete ' + name + '?';
+  document.getElementById('confirm-delete-person-overlay').style.display = 'flex';
+}
+
+function closeConfirmDeletePerson() {
+  document.getElementById('confirm-delete-person-overlay').style.display = 'none';
+}
+
+// Patch deleteCurrentPerson to also close the confirm popup
+const _origDeleteCurrentPerson = deleteCurrentPerson;
+deleteCurrentPerson = function() {
+  closeConfirmDeletePerson();
+  _origDeleteCurrentPerson.call(this);
+};
+
+// Birthday click → navigate calendar to next upcoming birthday
+function _goToPersonBirthday(personId) {
+  const p = people.find(x => x.id === personId);
+  if (!p || !p.birthday) return;
+  const bd = _birthdayMonthDay(p.birthday);
+  if (!bd) return;
+  const now = new Date();
+  const nowMonth = now.getMonth();
+  const nowDay   = now.getDate();
+  const nowYear  = now.getFullYear();
+  // Next upcoming birthday month/day
+  let targetMonth = bd.month;
+  let targetYear  = nowYear;
+  // If birthday this year has already passed, go to next year
+  if (bd.month < nowMonth || (bd.month === nowMonth && bd.day < nowDay)) {
+    targetYear = nowYear + 1;
+  }
+  currentCalMonth = targetMonth;
+  currentCalYear  = targetYear;
+  selectedCalDay  = bd.day;
+  closePersonInfo();
+  navigate('calendar');
+}
+
+// ── Partner place label (pronoun-aware) ──────────────
+function _getDateFirstPerson(ctx) {
+  const entries = _datePeopleEntries[ctx] || [];
+  if (entries.length) {
+    const e = entries[0];
+    return e.id ? people.find(x => x.id === e.id) : null;
+  }
+  return people.find(p => p.favorite) || null;
+}
+
+function _partnerPronounLabel(p) {
+  if (!p) return 'Their';
+  const pr = (p.pronouns || '').toLowerCase();
+  if (pr === 'she/her') return 'Her';
+  if (pr === 'he/him') return 'His';
+  return 'Their';
+}
+
+function _updatePartnerPlaceLabel(ctx) {
+  const p = _getDateFirstPerson(ctx);
+  const label = _partnerPronounLabel(p) + ' place';
+  const optId = ctx === 'date' ? 'date-in-partner-option' : 'ed-in-partner-option';
+  const opt = document.getElementById(optId);
+  if (opt) opt.textContent = label;
+}
+
+function _getPartnerPlaceAddress(ctx) {
+  const p = _getDateFirstPerson(ctx);
+  return p ? (p.address || '') : '';
+}
+
+function _getPartnerPlaceNeighborhood(ctx) {
+  const p = _getDateFirstPerson(ctx);
+  return p ? (p.neighborhood || '') : '';
+}
+
+
+function _syncLocationClearBtn(ctx) {
+  const inp = document.getElementById(ctx === 'date' ? 'date-location-text' : 'ed-location');
+  const btn = document.getElementById(ctx + '-location-clear');
+  if (!btn) return;
+  const hasPill = !!_locationPersonId[ctx];
+  const hasText = inp && inp.value.trim().length > 0;
+  btn.style.display = (hasPill || hasText) ? 'block' : 'none';
+}
+
+function _clearLocationField(ctx) {
+  _clearLocationPerson(ctx);
+  _syncLocationClearBtn(ctx);
+}
+
+// ── Birthday upcoming cards ───────────────────────────
+const _DAY_NAMES = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+
+function _upcomingBirthdayCards() {
+  // Returns array of {person, date:Date, day, month0} for birthdays in the next 30 days
+  const now = new Date(); now.setHours(0,0,0,0);
+  const limit = new Date(now); limit.setDate(limit.getDate() + 30);
+  const result = [];
+  people.forEach(p => {
+    if (!p.birthday) return;
+    const bd = _birthdayMonthDay(p.birthday);
+    if (!bd) return;
+    // Try this year, then next year
+    [now.getFullYear(), now.getFullYear() + 1].forEach(yr => {
+      const d = new Date(yr, bd.month, bd.day); d.setHours(0,0,0,0);
+      if (d >= now && d <= limit) {
+        result.push({ person: p, date: d });
+      }
+    });
+  });
+  // Deduplicate (in case someone's birthday is right at the year boundary)
+  const seen = new Set();
+  return result.filter(r => {
+    const key = r.person.id + '-' + r.date.getTime();
+    if (seen.has(key)) return false;
+    seen.add(key); return true;
+  }).sort((a,b) => a.date - b.date);
+}
+
+function _birthdaySubline(date) {
+  const now = new Date(); now.setHours(0,0,0,0);
+  const diff = Math.round((date - now) / 86400000);
+  if (diff === 0) return 'Today';
+  if (diff === 1) return 'Tomorrow';
+  const dow = _DAY_NAMES[date.getDay()];
+  // Same week (Sunday-Saturday of current week)
+  const nowSun = new Date(now); nowSun.setDate(now.getDate() - now.getDay());
+  const thisSat = new Date(nowSun); thisSat.setDate(nowSun.getDate() + 6);
+  if (date >= nowSun && date <= thisSat) return 'This ' + dow;
+  // Next week
+  const nextSun = new Date(nowSun); nextSun.setDate(nowSun.getDate() + 7);
+  const nextSat = new Date(nextSun); nextSat.setDate(nextSun.getDate() + 6);
+  if (date >= nextSun && date <= nextSat) return 'Next ' + dow;
+  return 'On a ' + dow;
+}
+
+function _buildBirthdayCardHtml(r) {
+  const p = r.person;
+  const d = r.date;
+  const monthAbbrs = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const monthStr = monthAbbrs[d.getMonth()];
+  const dayNum = d.getDate();
+  const subline = _birthdaySubline(d);
+  const firstName = p.firstName || _personFullName(p);
+  const BROWN = '#9a8a7a';
+  const cakeIcon = _birthdayCakeSvg(14, ROSE);
+  return `
+    <div class="upcoming-item" onclick="openPersonInfo('${p.id}')" style="cursor:pointer">
+      <div class="upcoming-date-badge">
+        <span class="upcoming-month" style="color:${ROSE}">${monthStr}</span>
+        <span class="upcoming-day-num" style="color:${ROSE}">${dayNum}</span>
+      </div>
+      <div class="upcoming-divider"></div>
+      <div class="upcoming-info">
+        <div class="upcoming-venue-row">
+          ${cakeIcon}
+          <span class="upcoming-venue" style="color:${BROWN}">${firstName}'s birthday</span>
+        </div>
+        <span class="upcoming-sub">${subline}</span>
+      </div>
+    </div>`;
+}
+
+// ── Edit Person favorite toggle ───────────────────────
+// Tracks current favorite state while editing (not saved until Save is clicked)
+var _epIsFavorite = false;
+
+const _EP_PERSON_ICON = '<circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>';
+const _EP_HEART_ICON  = '<path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>';
+
+function _updateEpFavIcon() {
+  const icon = document.getElementById('ep-fav-icon');
+  if (!icon) return;
+  icon.innerHTML = _epIsFavorite ? _EP_HEART_ICON : _EP_PERSON_ICON;
+}
+
+function _toggleEpFavorite() {
+  _epIsFavorite = !_epIsFavorite;
+  _updateEpFavIcon();
+}
+
+// ── Family toggle box ─────────────────────────────────
+var _epIsFamily = false;
+
+function _updateEpFamilyBox() {
+  const label = document.getElementById('ep-family-label');
+  if (label) label.textContent = _epIsFamily ? 'Family' : '';
+  const icon = document.getElementById('ep-family-icon');
+  if (icon) icon.style.stroke = _epIsFamily ? ROSE : '#9a8a7a';
+}
+
+function _toggleEpFamily() {
+  _epIsFamily = !_epIsFamily;
+  _updateEpFamilyBox();
 }
 </script>
 
@@ -12819,7 +13367,7 @@ function _resetLocationField(ctx) {
       <!-- Header row: avatar + name, edit + close -->
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
         <div style="display:flex;align-items:center;gap:12px;flex:1;min-width:0">
-          <div id="pi-avatar" onclick="openEditPersonPhoto()" style="width:52px;height:52px;border-radius:50%;overflow:hidden;flex-shrink:0;background:var(--toggle-bg);display:flex;align-items:center;justify-content:center;cursor:pointer"></div>
+          <div id="pi-avatar" onclick="openEditPersonFromInfo();setTimeout(openEditPersonPhoto,50)" style="width:52px;height:52px;border-radius:50%;overflow:hidden;flex-shrink:0;background:var(--toggle-bg);display:flex;align-items:center;justify-content:center;cursor:pointer"></div>
           <div id="pi-name" onclick="openEditPersonFromInfo()" style="font-size:18px;font-weight:700;color:var(--popup-title);cursor:pointer;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></div>
         </div>
         <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
@@ -12838,8 +13386,20 @@ function _resetLocationField(ctx) {
 </div>
 
 <!-- EDIT PERSON POPUP -->
-<div id="edit-person-overlay" onclick="closeEditPerson()">
-  <div onclick="event.stopPropagation()" style="width:100%;max-width:390px;background:var(--bg);border-radius:20px;display:flex;flex-direction:column;max-height:min(75vh,calc(100dvh - max(48px,env(safe-area-inset-top) + env(safe-area-inset-bottom)) - 48px));overflow:hidden;box-shadow:0 12px 48px rgba(0,0,0,0.18)">
+<div id="confirm-delete-person-overlay" style="display:none;position:fixed;inset:0;background:rgba(30,20,20,0.5);z-index:435;align-items:center;justify-content:center;padding:20px">
+  <div onclick="event.stopPropagation()" style="width:100%;max-width:320px;background:var(--bg);border-radius:20px;padding:24px 20px 20px;box-shadow:0 12px 48px rgba(0,0,0,0.22)">
+    <div style="font-size:16px;font-weight:700;color:var(--popup-title);font-family:sans-serif;margin-bottom:6px" id="confirm-delete-person-title">Delete Person?</div>
+    <div style="font-size:13px;color:#9a8a7a;font-family:sans-serif;margin-bottom:20px">This cannot be undone.</div>
+    <div style="display:flex;justify-content:flex-end;gap:8px">
+      <button onclick="closeConfirmDeletePerson()" style="padding:10px 18px;background:#c07a8a;border:none;border-radius:10px;font-family:sans-serif;font-size:13px;font-weight:600;color:#fff;cursor:pointer">Cancel</button>
+      <button onclick="deleteCurrentPerson()" style="padding:10px 18px;background:none;border:1.5px solid #c07a8a;border-radius:10px;font-family:sans-serif;font-size:13px;font-weight:600;color:#c07a8a;cursor:pointer">Delete</button>
+    </div>
+  </div>
+</div>
+
+
+  <div id="edit-person-overlay" onclick="closeEditPerson()" style="display:none;position:fixed;inset:0;background:rgba(30,20,20,0.5);z-index:430;align-items:center;justify-content:center;padding:max(20px,env(safe-area-inset-top)) 20px max(20px,env(safe-area-inset-bottom))">
+    <div onclick="event.stopPropagation()" style="width:100%;max-width:390px;background:var(--bg);border-radius:20px;display:flex;flex-direction:column;max-height:min(75vh,calc(100dvh - max(48px,env(safe-area-inset-top) + env(safe-area-inset-bottom)) - 48px));overflow:hidden;box-shadow:0 12px 48px rgba(0,0,0,0.18)">
     <div style="padding:20px 20px 14px;flex-shrink:0;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--bg);border-radius:20px 20px 0 0">
       <div style="font-size:17px;font-weight:700;color:var(--popup-title)">Edit Person</div>
       <button onclick="closeEditPerson()" style="background:none;border:none;cursor:pointer;padding:4px;line-height:0;color:#9a8a7a"><svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
@@ -12851,7 +13411,9 @@ function _resetLocationField(ctx) {
       </div>
       <!-- Name row -->
       <div style="display:flex;align-items:center;gap:10px">
-        <svg viewBox="0 0 24 24" width="18" height="18" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+        <button id="ep-fav-btn" onclick="_toggleEpFavorite()" style="background:none;border:none;cursor:pointer;padding:0;display:flex;align-items:center;flex-shrink:0;line-height:0" title="Mark as favorite">
+          <svg id="ep-fav-icon" viewBox="0 0 24 24" width="18" height="18" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+        </button>
         <input class="field-input" id="ep-first-name" type="text" placeholder="First Name" style="flex:1;margin-bottom:0">
         <input class="field-input" id="ep-last-name" type="text" placeholder="Last Name" style="flex:1;margin-bottom:0">
       </div>
@@ -12897,7 +13459,7 @@ function _resetLocationField(ctx) {
       <!-- Phone -->
       <div style="display:flex;align-items:center;gap:10px">
         <svg viewBox="0 0 24 24" width="18" height="18" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12" y2="18" stroke-width="3"/></svg>
-        <input class="field-input" id="ep-phone" type="text" placeholder="Phone" style="flex:1;margin-bottom:0">
+        <input class="field-input" id="ep-phone" type="text" placeholder="Phone" style="flex:1;margin-bottom:0" onblur="_epFormatPhone(this)" onkeydown="if(event.key==='Enter'){_epFormatPhone(this);this.blur()}">
       </div>
       <!-- WhatsApp -->
       <div style="display:flex;align-items:center;gap:10px">
@@ -12909,9 +13471,35 @@ function _resetLocationField(ctx) {
         <svg viewBox="0 0 24 24" width="18" height="18" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><circle cx="12" cy="12" r="4"/><path d="M16 8v0"/><rect x="2" y="2" width="20" height="20" rx="5"/></svg>
         <input class="field-input" id="ep-instagram" type="text" placeholder="Instagram" style="flex:1;margin-bottom:0">
       </div>
-    </div>
+      <!-- Birthday -->
+      <div style="display:flex;align-items:center;gap:10px">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#9a8a7a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M20 21v-8a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8"/><path d="M4 16s.5-1 2-1 2.5 2 4 2 2.5-2 4-2 2.5 2 4 2 2-1 2-1"/><path d="M2 21h20"/><path d="M7 8v3"/><path d="M12 8v3"/><path d="M17 8v3"/><path d="M7 4h.01"/><path d="M12 4h.01"/><path d="M17 4h.01"/></svg>
+        <input class="field-input" id="ep-birthday" type="text" placeholder="Birthday (e.g. Jan 1 or 1/1/1990)" style="flex:1;margin-bottom:0" onblur="this.value=_parseBirthday(this.value)" onkeydown="if(event.key==='Enter'){this.value=_parseBirthday(this.value);this.blur()}">
+      </div>
+      <!-- Notes -->
+      <div style="display:flex;align-items:flex-start;gap:10px">
+        <svg viewBox="0 0 24 24" width="18" height="18" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:10px"><line x1="17" y1="10" x2="3" y2="10"/><line x1="21" y1="6" x2="3" y2="6"/><line x1="21" y1="14" x2="3" y2="14"/><line x1="17" y1="18" x2="3" y2="18"/></svg>
+        <textarea class="field-input" id="ep-notes" placeholder="Notes…" rows="3" style="flex:1;margin-bottom:0;resize:none;line-height:1.5"></textarea>
+      </div>
+      <!-- Family toggle -->
+      <div style="display:flex;align-items:center;gap:10px">
+        <svg id="ep-family-icon" onclick="_toggleEpFamily()" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#9a8a7a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;cursor:pointer">
+          <!-- Parent (larger, top center) -->
+          <circle cx="12" cy="4.5" r="2.5"/>
+          <path d="M8 10.5c0-2.2 1.8-3.5 4-3.5s4 1.3 4 3.5"/>
+          <!-- Child left -->
+          <circle cx="5.5" cy="14" r="2.2"/>
+          <path d="M2 19.5c0-2 1.5-3 3.5-3s3.5 1 3.5 3"/>
+          <!-- Child right -->
+          <circle cx="18.5" cy="14" r="2.2"/>
+          <path d="M15 19.5c0-2 1.5-3 3.5-3s3.5 1 3.5 3"/>
+        </svg>
+        <div id="ep-family-box" onclick="_toggleEpFamily()" class="field-input" style="flex:1;margin-bottom:0;cursor:pointer;color:#9a8a7a;user-select:none;min-height:40px;display:flex;align-items:center" title="Toggle family status">
+          <span id="ep-family-label"></span>
+        </div>
+      </div>
     <div style="padding:14px 20px 20px;flex-shrink:0;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;background:var(--bg);border-radius:0 0 20px 20px">
-      <button id="ep-delete-btn" onclick="deleteCurrentPerson()" style="padding:10px 14px;background:none;border:1.5px solid #e8c0c8;border-radius:10px;font-family:sans-serif;font-size:13px;font-weight:600;color:#c07a8a;cursor:pointer">Delete</button>
+      <button id="ep-delete-btn" onclick="_confirmDeletePerson()" style="padding:10px 14px;background:none;border:1.5px solid #c07a8a;border-radius:10px;font-family:sans-serif;font-size:13px;font-weight:600;color:#c07a8a;cursor:pointer">Delete</button>
       <div style="display:flex;gap:8px;margin-left:auto">
         <button onclick="closeEditPerson()" style="padding:10px 16px;background:none;border:1.5px solid #ede9e2;border-radius:10px;font-family:sans-serif;font-size:13px;font-weight:600;color:#9a8a7a;cursor:pointer" class="btn-outline">Cancel</button>
         <button onclick="saveEditPerson()" style="padding:10px 20px;background:#c07a8a;border:none;border-radius:10px;font-family:sans-serif;font-size:13px;font-weight:600;color:#fff;cursor:pointer">Save</button>
