@@ -12240,10 +12240,17 @@ let _photoCropOffsetX = 0;
 let _photoCropOffsetY = 0;
 
 function openEditPersonPhoto() {
-  const p = _currentPersonId ? people.find(x => x.id === _currentPersonId) : null;
+  const personId = _currentPersonId || _editPersonId;
+  const p = personId ? people.find(x => x.id === personId) : null;
   const urlInput = document.getElementById('photo-url-input');
   const zoomSlider = document.getElementById('photo-crop-zoom');
-  if (urlInput) urlInput.value = (p && p.photoUrl) ? p.photoUrl : '';
+  if (urlInput) {
+    urlInput.value = (p && p.photoUrl) ? p.photoUrl : '';
+    const reloadBtn = document.getElementById('photo-reload-btn');
+    const clearBtn = document.getElementById('photo-clear-btn');
+    if (reloadBtn) reloadBtn.style.opacity = urlInput.value ? '1' : '0.3';
+    if (clearBtn) clearBtn.style.display = urlInput.value ? 'block' : 'none';
+  }
   if (zoomSlider) { zoomSlider.value = (p && p.photoZoom) ? p.photoZoom : 1; }
   _photoCropOffsetX = (p && p.photoX) ? p.photoX : 0;
   _photoCropOffsetY = (p && p.photoY) ? p.photoY : 0;
@@ -12368,15 +12375,23 @@ function savePersonPhoto() {
   const rawUrl = (document.getElementById('photo-url-input').value || '').trim();
   const url = _resolveImageUrl(rawUrl);
   const zoom = parseFloat(document.getElementById('photo-crop-zoom').value) || 1;
-  if (!_currentPersonId) return;
-  const p = people.find(x => x.id === _currentPersonId);
+  const personId = _currentPersonId || _editPersonId;
+  if (!personId) return;
+  const p = people.find(x => x.id === personId);
   if (p) {
     p.photoUrl  = url;
     p.photoZoom = zoom;
     p.photoX    = _photoCropOffsetX;
     p.photoY    = _photoCropOffsetY;
     savePeople(people);
-    _renderPersonInfoPopup(p);
+    // Refresh circles
+    const circle = document.getElementById('ep-photo-circle');
+    if (circle) {
+      circle.innerHTML = url
+        ? `<img src="${url}" style="width:100%;height:100%;object-fit:cover" onerror="this.style.display='none'">`
+        : _personIconSvg(36, '#b0a090');
+    }
+    if (_currentPersonId) _renderPersonInfoPopup(p);
     _renderPeople();
   }
   closeEditPersonPhoto();
@@ -13314,6 +13329,28 @@ function _toggleEpFamily() {
   _epIsFamily = !_epIsFamily;
   _updateEpFamilyBox();
 }
+
+function _onPhotoUrlInputChange() {
+  const val = document.getElementById('photo-url-input').value;
+  const reloadBtn = document.getElementById('photo-reload-btn');
+  const clearBtn = document.getElementById('photo-clear-btn');
+  if (reloadBtn) reloadBtn.style.opacity = val ? '1' : '0.3';
+  if (clearBtn) clearBtn.style.display = val ? 'block' : 'none';
+  _onPhotoUrlInput(val);
+}
+
+function _reloadPhotoUrl() {
+  const val = document.getElementById('photo-url-input').value;
+  if (val) _onPhotoUrlInput(val);
+}
+
+function _clearPhotoUrl() {
+  const inp = document.getElementById('photo-url-input');
+  if (inp) inp.value = '';
+  const actions = document.getElementById('photo-url-actions');
+  if (actions) actions.style.display = 'none';
+  _photoCropShowPlaceholder();
+}
 </script>
 
 <!-- PLACE FINDER PREVIEW POPUP — z-index 460 -->
@@ -13541,7 +13578,15 @@ function _toggleEpFamily() {
       <!-- Zoom slider — hidden when no image -->
       <input id="photo-crop-zoom" type="range" min="1" max="3" step="0.01" value="1" style="width:100%;display:none" oninput="_photoCropDraw()">
       <!-- URL field -->
-      <input class="field-input" id="photo-url-input" type="text" placeholder="Image URL or filename" style="width:100%;margin-bottom:0;box-sizing:border-box" oninput="_onPhotoUrlInput(this.value)">
+      <div style="position:relative;width:100%;box-sizing:border-box">
+        <button type="button" id="photo-reload-btn" onmousedown="event.preventDefault();_reloadPhotoUrl()" style="position:absolute;left:8px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;padding:0;line-height:0;color:#b0a090;opacity:0.3;z-index:1;display:flex;align-items:center;justify-content:center">
+          <svg viewBox="0 0 24 24" width="12" height="12" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round" style="position:relative;top:2px;left:2px"><path d="M2.5 8A9 9 0 1 1 3.5 15"/><polyline points="2 4 2.5 8 7 7.5"/></svg>
+        </button>
+        <input class="field-input" id="photo-url-input" type="text" placeholder="Image URL or filename" style="width:100%;margin-bottom:0;box-sizing:border-box;padding-left:30px;padding-right:32px" oninput="_onPhotoUrlInputChange()">
+        <button type="button" id="photo-clear-btn" onmousedown="event.preventDefault();_clearPhotoUrl()" style="display:none;position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;padding:2px;line-height:0;color:#b0a090">
+          <svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
     </div>
     <!-- Footer -->
     <div style="padding:14px 20px 20px;display:flex;justify-content:center;gap:8px;margin-top:4px">
