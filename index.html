@@ -12391,15 +12391,16 @@ function savePersonPhoto() {
     p.photoX    = _photoCropOffsetX;
     p.photoY    = _photoCropOffsetY;
     savePeople(people);
-    // Refresh circles
+    // Refresh ep-photo-circle with correct crop
     const circle = document.getElementById('ep-photo-circle');
-    if (circle) {
-      circle.innerHTML = url
-        ? `<img src="${url}" style="width:100%;height:100%;object-fit:cover" onerror="this.style.display='none'">`
-        : _personIconSvg(36, '#b0a090');
-    }
-    if (_currentPersonId) _renderPersonInfoPopup(p);
+    if (circle) circle.innerHTML = p.photoUrl
+      ? _personAvatarHtml(p, 72).match(/<img[^>]*>/)?.[0] || ''
+      : _personIconSvg(36, '#b0a090');
+    // Refresh Person Info popup if open
+    const piOverlay = document.getElementById('person-info-overlay');
+    if (piOverlay && piOverlay.style.display !== 'none') _renderPersonInfoPopup(p);
     _renderPeople();
+    render();
   }
   closeEditPersonPhoto();
 }
