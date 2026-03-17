@@ -11969,14 +11969,20 @@ function _personIconSvg(size, color) {
 function _personAvatarHtml(person, size) {
   size = size || 44;
   if (person && person.photoUrl) {
-    // Convert stored offsets (pixels relative to 180px canvas center) to CSS object-position percentages
     const zoom = person.photoZoom || 1;
     const ox = person.photoX || 0;
     const oy = person.photoY || 0;
-    // object-position: shift center by offset as percentage of displayed size
-    const pctX = 50 - (ox / (size * zoom)) * 100;
-    const pctY = 50 - (oy / (size * zoom)) * 100;
-    return `<div style="width:${size}px;height:${size}px;border-radius:50%;overflow:hidden;flex-shrink:0;background:var(--toggle-bg)"><img src="${_resolveImageUrl(person.photoUrl)}" style="width:${zoom*100}%;height:${zoom*100}%;object-fit:cover;object-position:${pctX.toFixed(1)}% ${pctY.toFixed(1)}%;margin-left:${-((zoom-1)*size/2 - ox)}px;margin-top:${-((zoom-1)*size/2 - oy)}px" onerror="this.parentNode.innerHTML='${_personIconSvg(Math.round(size*0.55),'#b0a090').replace(/'/g,"\\'")}'" loading="lazy"></div>`;
+    const CANVAS = 180; // canvas size used during crop
+    // Replicate canvas math: image scaled to cover CANVAS*CANVAS then zoomed
+    // At display size `size`, scale everything proportionally
+    const ratio = size / CANVAS;
+    // Image is drawn centered at (CANVAS/2 + ox, CANVAS/2 + oy) in canvas coords
+    // Convert to display coords
+    const imgSize = size * zoom; // scaled image size (square approximation for cover)
+    const imgLeft = size / 2 + ox * ratio - imgSize / 2;
+    const imgTop  = size / 2 + oy * ratio - imgSize / 2;
+    const resolvedUrl = _resolveImageUrl(person.photoUrl);
+    return `<div style="width:${size}px;height:${size}px;border-radius:50%;overflow:hidden;flex-shrink:0;background:var(--toggle-bg);position:relative"><img src="${resolvedUrl}" style="position:absolute;width:${imgSize}px;height:${imgSize}px;left:${imgLeft.toFixed(1)}px;top:${imgTop.toFixed(1)}px;object-fit:cover;border-radius:0" onerror="this.parentNode.innerHTML='${_personIconSvg(Math.round(size*0.55),'#b0a090').replace(/'/g,"\\'")}'" loading="lazy"></div>`;
   }
   return `<div style="width:${size}px;height:${size}px;border-radius:50%;background:var(--toggle-bg);display:flex;align-items:center;justify-content:center;flex-shrink:0">${_personIconSvg(Math.round(size*0.55), '#b0a090')}</div>`;
 }
@@ -12393,9 +12399,12 @@ function savePersonPhoto() {
     savePeople(people);
     // Refresh ep-photo-circle with correct crop
     const circle = document.getElementById('ep-photo-circle');
-    if (circle) circle.innerHTML = p.photoUrl
-      ? _personAvatarHtml(p, 72).match(/<img[^>]*>/)?.[0] || ''
-      : _personIconSvg(36, '#b0a090');
+    if (circle) {
+      const avatarDiv = document.createElement('div');
+      avatarDiv.innerHTML = _personAvatarHtml(p, 72);
+      const inner = avatarDiv.firstChild;
+      if (inner) circle.innerHTML = inner.innerHTML;
+    }
     // Refresh Person Info popup if open
     const piOverlay = document.getElementById('person-info-overlay');
     if (piOverlay && piOverlay.style.display !== 'none') _renderPersonInfoPopup(p);
