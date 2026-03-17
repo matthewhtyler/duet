@@ -12094,9 +12094,15 @@ function _renderPersonInfoPopup(p) {
   if (nameEl) nameEl.textContent = _personFullName(p);
 
   const avatarEl = document.getElementById('pi-avatar');
-  if (avatarEl) avatarEl.innerHTML = p.photoUrl
-    ? `<img src="${p.photoUrl}" style="width:100%;height:100%;object-fit:cover;object-position:center" onerror="this.style.display='none'">`
-    : _personIconSvg(28, '#b0a090');
+  if (avatarEl) {
+    if (p.photoUrl) {
+      const t = document.createElement('div');
+      t.innerHTML = _personAvatarHtml(p, 52);
+      avatarEl.innerHTML = t.firstChild ? t.firstChild.innerHTML : '';
+    } else {
+      avatarEl.innerHTML = _personIconSvg(28, '#b0a090');
+    }
+  }
 
   // No favorite heart on Person Info popup
 
@@ -12399,12 +12405,9 @@ function savePersonPhoto() {
     savePeople(people);
     // Refresh ep-photo-circle with correct crop
     const circle = document.getElementById('ep-photo-circle');
-    if (circle) {
-      const avatarDiv = document.createElement('div');
-      avatarDiv.innerHTML = _personAvatarHtml(p, 72);
-      const inner = avatarDiv.firstChild;
-      if (inner) circle.innerHTML = inner.innerHTML;
-    }
+    if (circle) circle.innerHTML = p.photoUrl
+      ? (() => { const t=document.createElement('div'); t.innerHTML=_personAvatarHtml(p,72); return t.firstChild ? t.firstChild.innerHTML : ''; })()
+      : _personIconSvg(36, '#b0a090');
     // Refresh Person Info popup if open
     const piOverlay = document.getElementById('person-info-overlay');
     if (piOverlay && piOverlay.style.display !== 'none') _renderPersonInfoPopup(p);
@@ -12735,9 +12738,13 @@ openEditPerson = function(id) {
   // Populate photo circle
   const circle = document.getElementById('ep-photo-circle');
   if (circle) {
-    circle.innerHTML = (p.photoUrl)
-      ? `<img src="${p.photoUrl}" style="width:100%;height:100%;object-fit:cover" onerror="this.style.display='none'">`
-      : _personIconSvg(36, '#b0a090');
+    if (p.photoUrl) {
+      const t = document.createElement('div');
+      t.innerHTML = _personAvatarHtml(p, 72);
+      circle.innerHTML = t.firstChild ? t.firstChild.innerHTML : _personIconSvg(36, '#b0a090');
+    } else {
+      circle.innerHTML = _personIconSvg(36, '#b0a090');
+    }
   }
   // Scroll to top
   const epOvl = document.getElementById('edit-person-overlay');
@@ -13392,9 +13399,22 @@ function _epPhotoCircleClick() {
 function _openPersonPhotoViewer() {
   const p = _currentPersonId ? people.find(x => x.id === _currentPersonId) : null;
   if (!p || !p.photoUrl) return;
-  const img = document.getElementById('person-photo-viewer-img');
-  if (img) img.src = _resolveImageUrl(p.photoUrl);
-  document.getElementById('person-photo-viewer').style.display = 'flex';
+  const viewerSize = Math.min(window.innerWidth * 0.8, window.innerHeight * 0.8);
+  const viewer = document.getElementById('person-photo-viewer');
+  const container = document.getElementById('person-photo-viewer-img').parentNode;
+  // Replace img with a properly cropped avatar div
+  const t = document.createElement('div');
+  t.innerHTML = _personAvatarHtml(p, viewerSize);
+  const avatarDiv = t.firstChild;
+  if (avatarDiv) {
+    avatarDiv.style.width = viewerSize + 'px';
+    avatarDiv.style.height = viewerSize + 'px';
+    avatarDiv.style.flexShrink = '0';
+    // Replace the img element with the avatar div
+    const img = document.getElementById('person-photo-viewer-img');
+    if (img) img.replaceWith(avatarDiv);
+  }
+  viewer.style.display = 'flex';
 }
 </script>
 
