@@ -3847,14 +3847,14 @@ function _buildIdeasBody(pool, q, byName, isFavFilter) {
       ? outIdeas.map(i => incompleteSmallCard(i)).join('')
       : outIdeas.map(i => smallCard(i, accentColor('out'), 'out')).join('');
     sectionsHtml += `<div style="margin-bottom:20px">
-      <div class="section-label" style="margin-bottom:8px">${outLabel}</div>
+      <div class="section-label" style="margin-bottom:8px;color:#9a8a7a">${outLabel}</div>
       <div style="display:flex;flex-direction:column;gap:8px">${outCards}</div>
       ${_isIncompleteMode ? turnOffLink : ''}
     </div>`;
   }
   if (inIdeas.length) {
     sectionsHtml += `<div style="margin-bottom:20px">
-      <div class="section-label" style="margin-bottom:8px">Staying In</div>
+      <div class="section-label" style="margin-bottom:8px;color:#9a8a7a">Staying In</div>
       <div style="display:flex;flex-direction:column;gap:8px">${inIdeas.map(i => smallCard(i, accentColor('in'), 'in')).join('')}</div>
     </div>`;
   }
@@ -3949,10 +3949,10 @@ function _buildCatTabBody() {
     OUT_CATS.forEach(c => { if (map.has(c.id)) { contentHtml += catSection(c.id, map.get(c.id), 'out'); map.delete(c.id); } });
     map.forEach((its, cid) => { contentHtml += catSection(cid, its, 'out'); });
     if (inFavs.length) {
-      contentHtml += `<div style="margin-bottom:20px"><div class="section-label" style="margin-bottom:8px">Staying In</div><div style="display:flex;flex-direction:column;gap:8px">${inFavs.map(smallCard).join('')}</div></div>`;
+      contentHtml += `<div style="margin-bottom:20px"><div class="section-label" style="margin-bottom:8px;color:#9a8a7a">Staying In</div><div style="display:flex;flex-direction:column;gap:8px">${inFavs.map(smallCard).join('')}</div></div>`;
     }
   } else if (catTabFilter === '_in') {
-    contentHtml = `<div style="margin-bottom:20px"><div class="section-label" style="margin-bottom:8px">Staying In</div><div style="display:flex;flex-direction:column;gap:8px">${inFavs.map(smallCard).join('')}</div></div>`;
+    contentHtml = `<div style="margin-bottom:20px"><div class="section-label" style="margin-bottom:8px;color:#9a8a7a">Staying In</div><div style="display:flex;flex-direction:column;gap:8px">${inFavs.map(smallCard).join('')}</div></div>`;
   } else {
     // Single out category
     const items = outFavs.filter(i => (i.category||'other') === catTabFilter).sort(byName);
@@ -8728,7 +8728,7 @@ function renderPickerBody() {
 
   // Custom row — same quick-row style as Date Ideas screen cards
   const customRow = `
-    <div onclick="selectCustomActivity()" class="quick-row" style="cursor:pointer;overflow:hidden;border-style:dashed;margin-bottom:8px">
+    <div onclick="selectCustomActivity()" class="quick-row" style="cursor:pointer;overflow:hidden;border-style:dashed;margin-bottom:13px">
       <div style="flex:1;min-width:0">
         <div style="display:flex;align-items:center;gap:7px">
           <svg viewBox="0 0 24 24" width="14" height="14" stroke="#b0a090" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
@@ -8763,7 +8763,7 @@ function renderPickerBody() {
     if (!items.length) return '';
     const accent = accentColor(type);
     const label = type === 'out' ? 'Going Out' : 'Staying In';
-    return '<div style="font-size:11px;font-weight:700;color:' + accent + ';letter-spacing:0.08em;text-transform:uppercase;font-family:sans-serif;margin:0 0 8px">' + label + '</div>'
+    return '<div class="section-label" style="margin:0 0 8px">' + label + '</div>'
       + items.map(function(item){ return pickerCard(item, type); }).join('')
       + '<div style="height:8px"></div>';
   }
@@ -10798,7 +10798,7 @@ function renderArchive() {
     const accent = accentColor(type);
     const label = type === 'out' ? 'Going Out' : 'Staying In';
     return `<div style="margin-bottom:20px">
-      <div style="font-size:11px;font-weight:700;letter-spacing:.08em;color:#b0a090;font-family:sans-serif;text-transform:uppercase;margin-bottom:8px">${label}</div>
+      <div class="section-label" style="margin-bottom:8px">${label}</div>
       <div style="display:flex;flex-direction:column;gap:8px">
         ${items.sort(byName).map(item => renderQuickRow(item)).join('')}
       </div>
