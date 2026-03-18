@@ -12380,7 +12380,7 @@ people = loadPeople(); // reassign - declared early above
 // ── SVG helpers ──────────────────────────────────────
 function _personIconSvg(size, color) {
   const c = color || '#9a8a7a';
-  return `<svg viewBox="0 0 24 24" width="${size}" height="${size}" stroke="${c}" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>`;
+  return `<svg viewBox="0 0 24 24" width="${size}" height="${size}" stroke="${c}" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="display:block"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>`;
 }
 
 function _personAvatarHtml(person, size) {
@@ -12408,13 +12408,13 @@ function _personAvatarInner(person, size) {
     const zoom = person.photoZoom || 1;
     const ox = person.photoX || 0;
     const oy = person.photoY || 0;
-    const CANVAS = 180;
-    const ratio = size / CANVAS;
-    const imgSize = size * zoom;
-    const imgLeft = size / 2 + ox * ratio - imgSize / 2;
-    const imgTop  = size / 2 + oy * ratio - imgSize / 2;
+    const ratio = size / 180;
+    // Match canvas draw: image center at (size/2 + ox*ratio, size/2 + oy*ratio)
+    // object-fit:cover handles base scaling; zoom scales on top; translate applies offset
+    const tx = ox * ratio;
+    const ty = oy * ratio;
     const resolvedUrl = _resolveImageUrl(person.photoUrl);
-    return `<img src="${resolvedUrl}" style="position:absolute;width:${imgSize}px;height:${imgSize}px;left:${imgLeft.toFixed(1)}px;top:${imgTop.toFixed(1)}px;object-fit:cover;border-radius:0" onerror="this.parentNode.innerHTML='${_personIconSvg(Math.round(size*0.55),'#b0a090').replace(/'/g,"\\'")}'" loading="lazy">`;
+    return `<img src="${resolvedUrl}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transform-origin:center center;transform:translate(${tx.toFixed(1)}px,${ty.toFixed(1)}px) scale(${zoom});border-radius:0" onerror="this.parentNode.innerHTML='${_personIconSvg(Math.round(size*0.55),'#b0a090').replace(/'/g,"\\'")}'" loading="lazy">`;
   }
   return _personIconSvg(Math.round(size*0.55), '#b0a090');
 }
