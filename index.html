@@ -1075,9 +1075,9 @@
 
   <!-- DETAIL MODAL -->
   <div id="detail-overlay" class="popup-overlay" onclick="closeDetail()">
-    <div id="detail-modal" onclick="event.stopPropagation()">
+    <div id="detail-modal" onclick="event.stopPropagation()" style="display:flex;flex-direction:column;max-height:80vh">
       <div id="detail-banner"></div>
-      <div id="detail-padded" style="background:var(--bg)">
+      <div id="detail-padded" style="background:var(--bg);flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch">
       <div id="detail-header">
         <!-- Title row: title + heart, then 3-dot + X on right -->
         <div style="display:flex;align-items:center;flex:1;min-width:0">
@@ -1100,18 +1100,19 @@
       </div>
       <div id="detail-body"></div>
       </div><!-- /detail-padded -->
+      <div id="detail-footer" style="display:none;padding:14px 20px 20px;border-top:1px solid var(--border);background:var(--bg);flex-shrink:0;border-radius:0 0 20px 20px"></div>
     </div>
   </div>
 
   <!-- DATE INFO OVERLAY — same structure as detail modal -->
   <div id="date-info-overlay" class="popup-overlay" onclick="closeDateInfo()" style="position:fixed;inset:0;background:rgba(30,20,20,0.5);z-index:400;display:none;align-items:flex-start;justify-content:center;padding-top:66px">
-    <div id="date-info-modal" onclick="event.stopPropagation()" style="width:calc(100% - 24px);max-width:390px;background:var(--bg);border-radius:20px;overflow:hidden;max-height:80vh;overflow-y:auto;box-shadow:0 12px 48px rgba(0,0,0,0.18)">
+    <div id="date-info-modal" onclick="event.stopPropagation()" style="width:calc(100% - 24px);max-width:390px;background:var(--bg);border-radius:20px;overflow:hidden;max-height:80vh;display:flex;flex-direction:column;box-shadow:0 12px 48px rgba(0,0,0,0.18)">
 
       <!-- Banner slot (image if available) -->
       <div id="di-banner" style="display:none"></div>
 
       <!-- Padded content -->
-      <div id="di-padded" style="padding:20px 20px 32px;background:var(--bg)">
+      <div id="di-padded" style="padding:20px 20px 32px;background:var(--bg);flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch">
 
         <!-- Header: title + heart, 3-dot edit, close -->
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
@@ -1195,9 +1196,9 @@
             </div>
           </div>
           <!-- Action buttons (Reserve + Reschedule) -->
-        <div id="di-btns-wrap" style="display:none;margin-top:40px;justify-content:center;gap:10px;min-height:34px;align-items:center"></div>
 
       </div><!-- /di-padded -->
+      <div id="di-btns-wrap" style="display:none;padding:14px 20px 20px;border-top:1px solid var(--border);background:var(--bg);justify-content:center;gap:10px;min-height:34px;align-items:center;flex-shrink:0;border-radius:0 0 20px 20px"></div>
     </div>
   </div>
   <!-- EDIT DATE MODAL -->
@@ -2075,6 +2076,10 @@ const _CLEARABLE_IDS = [
   'ts-note','et-note',
   // Edit Commute
   'ec-subway','ec-walkdrive',
+  // Edit/New Person
+  'ep-first-name','ep-last-name','ep-address','ep-neighborhood',
+  'ep-subway','ep-walkdrive','ep-phone','ep-whatsapp','ep-instagram',
+  'ep-birthday','ep-notes',
 ];
 function _makeClearable(id) {
   const el = document.getElementById(id);
@@ -9442,12 +9447,18 @@ function openDetail(id, navContext) {
       }
     }
 
-    body += `<div style="margin-top:40px;display:flex;align-items:center;justify-content:center;gap:10px">
-      ${leftBtn}${rightBtn}
-    </div>`;
+    body += `<div style="height:8px"></div>`;
   }
 
   document.getElementById('detail-body').innerHTML = body;
+  const detailFooter = document.getElementById('detail-footer');
+  if (leftBtn || rightBtn) {
+    detailFooter.innerHTML = `<div style="display:flex;align-items:center;justify-content:center;gap:10px">${leftBtn}${rightBtn}</div>`;
+    detailFooter.style.display = 'block';
+  } else {
+    detailFooter.innerHTML = '';
+    detailFooter.style.display = 'none';
+  }
   document.getElementById('detail-overlay').style.display = 'flex';
   document.body.classList.add('overlay-open');
   // Attach swipe navigation to the padded body (not the image banner)
@@ -13530,7 +13541,13 @@ function _toggleEpFamily() {
 }
 
 function _onPhotoUrlInputChange() {
-  const val = document.getElementById('photo-url-input').value;
+  const inp = document.getElementById('photo-url-input');
+  if (inp && inp.value !== inp.value.toLowerCase()) {
+    const pos = inp.selectionStart;
+    inp.value = inp.value.toLowerCase();
+    inp.setSelectionRange(pos, pos);
+  }
+  const val = inp ? inp.value : '';
   const reloadBtn = document.getElementById('photo-reload-btn');
   const clearBtn = document.getElementById('photo-clear-btn');
   if (reloadBtn) reloadBtn.style.opacity = val ? '1' : '0.3';
@@ -13931,7 +13948,7 @@ function _resLabel(idea) {
         <button type="button" id="photo-reload-btn" onmousedown="event.preventDefault();_reloadPhotoUrl()" style="position:absolute;left:8px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;padding:0;line-height:0;color:#b0a090;opacity:0.3;z-index:1;display:flex;align-items:center;justify-content:center">
           <svg viewBox="0 0 24 24" width="12" height="12" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round" style="position:relative;top:2px;left:2px"><path d="M2.5 8A9 9 0 1 1 3.5 15"/><polyline points="2 4 2.5 8 7 7.5"/></svg>
         </button>
-        <input class="field-input" id="photo-url-input" type="text" placeholder="Image URL or filename" style="width:100%;margin-bottom:0;box-sizing:border-box;padding-left:30px;padding-right:32px" oninput="_onPhotoUrlInputChange()">
+        <input class="field-input" id="photo-url-input" type="text" placeholder="Image URL or filename" style="width:100%;margin-bottom:0;box-sizing:border-box;padding-left:30px;padding-right:32px;text-transform:lowercase" oninput="_onPhotoUrlInputChange()">
         <button type="button" id="photo-clear-btn" onmousedown="event.preventDefault();_clearPhotoUrl()" style="display:none;position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;padding:2px;line-height:0;color:#b0a090">
           <svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
         </button>
