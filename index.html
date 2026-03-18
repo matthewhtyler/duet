@@ -2378,7 +2378,8 @@ function _computeMemories() {
     const yr = u.year || new Date().getFullYear();
     const dt = new Date(yr, mNum, u.day); dt.setHours(0,0,0,0);
     if (dt < today) {
-      const id = 'u_' + yr + '_' + u.month + '_' + u.day + '_' + (u.venue || u.name || '').replace(/\s+/g,'').slice(0,8);
+      // Use real u.id as the key so ll_memories edits (saved by id) are found
+      const id = String(u.id);
       if (!existingIds.has(id)) {
         existingIds.add(id);
         all.push({ ...u, id, year: yr, ...(saved[id] || {}) });
@@ -3574,6 +3575,12 @@ function addEdImageField(btn) { _addImgFieldTo('ed-image-fields'); }
 // Resolve image URLs for a memory: own imageUrls > matched idea's imageUrls
 function _getMemoryImageUrls(d) {
   if (d.imageUrls && d.imageUrls.filter(Boolean).length) return d.imageUrls.filter(Boolean);
+  // Check ll_memories in case imageUrls were saved separately (e.g. from edit)
+  try {
+    const saved = JSON.parse(localStorage.getItem('ll_memories') || '{}');
+    const mem = saved[String(d.id)];
+    if (mem && mem.imageUrls && mem.imageUrls.filter(Boolean).length) return mem.imageUrls.filter(Boolean);
+  } catch(e) {}
   const matched = ideas.find(i => i.name && d.venue && i.name.toLowerCase() === d.venue.toLowerCase());
   return matched ? (matched.imageUrls || []).filter(Boolean) : [];
 }
