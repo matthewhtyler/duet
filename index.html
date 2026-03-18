@@ -5814,11 +5814,12 @@ function renderWeekStrip() {
 
   // Map all FUTURE_DATES to timestamps → index
   const futureDateMap = {};
+  const _isSearchingStrip = calMemSearch || calMemPeople.length;
   FUTURE_DATES.forEach((fd, idx) => {
     const mNum = MONTH_NUMS[fd._ref.month] ?? 0;
     const dt = new Date(fd._ref.year || new Date().getFullYear(), mNum, fd._ref.day);
     dt.setHours(0,0,0,0);
-    futureDateMap[dt.getTime()] = idx;
+    if (!_isSearchingStrip || _calMemMatchDate(fd._ref)) futureDateMap[dt.getTime()] = idx;
   });
 
   // Selected date timestamp
@@ -6285,7 +6286,9 @@ function renderCalendar() {
   const monthAbbr  = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][currentCalMonth];
 
   // Days in current month that have upcoming dates
-  const datesThisMonth = UPCOMING_DATES.filter(u => u.month === monthAbbr && (u.year || 2026) === currentCalYear);
+  // Upcoming dates
+  const _isSearchingCal = calMemSearch || calMemPeople.length;
+  const datesThisMonth = UPCOMING_DATES.filter(u => u.month === monthAbbr && (u.year || 2026) === currentCalYear && (!_isSearchingCal || _calMemMatchDate(u)));
   const markedDays = datesThisMonth.map(u => u.day);
 
   // Days that are in the past (before today in this month)
@@ -13712,7 +13715,20 @@ _renderPersonInfoPopup = function(p) {
 // Birthday dots on all calendars
 function _applyBirthdayDots() {
   if (typeof currentCalYear === 'undefined') return;
-  const bdays = _birthdaysInMonth(currentCalMonth);
+  const _isSearchingBd = calMemSearch || calMemPeople.length;
+  let bdays = _birthdaysInMonth(currentCalMonth);
+  // When searching by person pills, only show birthday dots for matching people
+  if (_isSearchingBd && calMemPeople.length) {
+    const matchIds = new Set(calMemPeople.map(e => e.id));
+    bdays = bdays.filter(b => matchIds.has(b.id));
+  } else if (_isSearchingBd && calMemSearch) {
+    // Text search: filter birthdays whose person name matches
+    const q = calMemSearch.toLowerCase();
+    bdays = bdays.filter(b => {
+      const p = people.find(x => x.id === b.id);
+      return p && _personFullName(p).toLowerCase().includes(q);
+    });
+  }
   if (!bdays.length) return;
   // Main calendar grid (id="cal-grid") and home month calendar (class="cal-grid" inside home-month-cal)
   const grids = [
@@ -13737,9 +13753,9 @@ function _applyBirthdayDots() {
 function _applyBirthdayDotsWeek() {
   const inner = document.getElementById('week-strip-inner');
   if (!inner) return;
+  const _isSearchingBdW = calMemSearch || calMemPeople.length;
   inner.querySelectorAll('.week-day').forEach(cell => {
     const onclick = cell.getAttribute('onclick') || '';
-    // Only handle cells that show the tooltip (no planned date) or have a planned date
     const tooltipMatch = onclick.match(/showWeekTooltip\(event,(\d+),(\d+),(\d+)\)/);
     const selectMatch  = onclick.match(/selectWeekDate\((\d+)\)/);
     let dayNum, month0;
@@ -13751,14 +13767,22 @@ function _applyBirthdayDotsWeek() {
       const ref = fd._ref || fd;
       dayNum = ref.day; month0 = MONTH_NUMS[ref.month] ?? 0;
     } else return;
-    const bd = _birthdaysInMonth(month0).filter(b => b.day === dayNum);
+    let bd = _birthdaysInMonth(month0).filter(b => b.day === dayNum);
+    // Filter by search
+    if (_isSearchingBdW && bd.length) {
+      if (calMemPeople.length) {
+        const matchIds = new Set(calMemPeople.map(e => e.id));
+        bd = bd.filter(b => matchIds.has(b.id));
+      } else if (calMemSearch) {
+        const q = calMemSearch.toLowerCase();
+        bd = bd.filter(b => { const p = people.find(x => x.id === b.id); return p && _personFullName(p).toLowerCase().includes(q); });
+      }
+    }
     if (!bd.length) return;
-    // Reuse the existing .week-day-dot so position is identical to planned-date dots
     const existingDot = cell.querySelector('.week-day-dot');
     if (existingDot) {
       existingDot.style.background = BURGUNDY;
       existingDot.style.cursor = 'pointer';
-      // Replace onclick: birthday tooltip takes priority
       existingDot.onclick = function(e) { e.stopPropagation(); _showBirthdayTooltip(e, bd); };
     }
   });
