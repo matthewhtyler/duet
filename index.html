@@ -125,6 +125,12 @@
     justify-content: center;
   }
   #app.past-nav { padding-top: 107px; }
+  #top-nav-cal-row {
+    display: none;
+    padding: 0 20px 12px;
+    justify-content: center;
+  }
+  #app.cal-nav { padding-top: 107px; }
   #top-nav-people-row {
     display: none;
     padding: 0 20px 12px;
@@ -669,6 +675,7 @@
   <div id="top-nav-ideas-row"></div>
   <div id="top-nav-todo-row"></div>
   <div id="top-nav-past-row"></div>
+  <div id="top-nav-cal-row"></div>
   <div id="top-nav-people-row"></div>
   </div>
   </div>
@@ -2175,6 +2182,8 @@ let ideaType = 'out';
 let ideasFilter = 'all';
 let ideasSearch = '';
 let memoriesSearch = '';
+let calMemSearch = '';      // shared text search between Calendar and Memories
+let calMemPeople = [];      // shared people-pill search [{id, name}]
 let peopleSearch = '';
 let _currentPersonId = null;
 let _editPersonId = null;
@@ -2687,32 +2696,8 @@ function renderNav() {
 
   // Show/hide todo nav row
   const _todoRow2 = document.getElementById('top-nav-todo-row');
-  const _pastRow = document.getElementById('top-nav-past-row');
   const _appEl2 = document.getElementById('app');
-  if (_pastRow) {
-    if (currentView === 'past') {
-      const _pq = memoriesSearch || '';
-      const _clearBtn = _pq ? `<button id="memories-search-clear" onclick="memoriesSearch='';document.getElementById('memories-search-input').value='';this.style.display='none';_renderPastDates()" style="background:none;border:none;cursor:pointer;padding:0;display:flex;flex-shrink:0;line-height:0;align-self:center"><svg viewBox="0 0 24 24" width="13" height="13" stroke="#9a8a7a" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>` : `<button id="memories-search-clear" style="display:none;background:none;border:none;cursor:pointer;padding:0;flex-shrink:0;line-height:0;align-self:center" onclick="memoriesSearch='';_renderPastDates();document.getElementById('memories-search-input').value=''"><svg viewBox="0 0 24 24" width="13" height="13" stroke="#9a8a7a" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>`;
-      if (document.getElementById('memories-search-input')) {
-        // Row already exists — just sync clear button visibility
-        const existingClear = document.getElementById('memories-search-clear');
-        if (existingClear) existingClear.style.display = _pq ? 'flex' : 'none';
-      } else {
-      _pastRow.innerHTML = `<div style="display:flex;align-items:center;background:var(--toggle-bg);border-radius:20px;padding:5px 10px;gap:6px;flex-shrink:0;width:200px;overflow:hidden">
-        <svg viewBox="0 0 24 24" width="13" height="13" stroke="#9a8a7a" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-        <input id="memories-search-input" type="text" value="${_pq.replace(/"/g,'&quot;')}" oninput="memoriesSearch=this.value;const c=document.getElementById('memories-search-clear');if(c)c.style.display=this.value?'flex':'none';_renderPastDates()" placeholder="" style="border:none;background:transparent;outline:none;font-size:16px;font-family:sans-serif;color:var(--text-primary);flex:1;line-height:1;padding:0;min-width:0">
-        ${_clearBtn}
-      </div>`;
-      }
-      _pastRow.style.display = 'flex';
-      if (_appEl2) _appEl2.classList.add('past-nav');
-    } else {
-      _pastRow.style.display = 'none';
-      _pastRow.innerHTML = '';
-      if (_appEl2) _appEl2.classList.remove('past-nav');
-      memoriesSearch = '';
-    }
-  }
+  _updatePastNavRow();
   if (_todoRow2) {
     if (currentView === 'todo') {
       const _priActive = _todoGroupBy === 'priority';
@@ -2737,6 +2722,7 @@ function renderNav() {
   });
   // Update last-tab icon and active highlight based on current mode
   if (typeof _updateLastTabIcon === 'function') _updateLastTabIcon();
+  _updateCalNavRow();
   _updatePeopleNavRow();
   _applyTestcolor();
 }
@@ -5975,22 +5961,28 @@ function renderCatalog(type) { return renderIdeas(); }
 let _editingMemory = null;
 
 function renderPastDates() {
-  const q = (memoriesSearch || '').trim().toLowerCase();
-  const all = _computeMemories().filter(d => !_isDateHiddenPrivate(d));
-  const memories = q ? all.filter(d => {
-    const idea = ideas.find(i => i.name && d.venue && i.name.toLowerCase() === d.venue.toLowerCase());
-    const peopleNames = (d.people || []).map(e => {
-      const p = e.id ? people.find(x => x.id === e.id) : null;
-      return p ? _personFullName(p) : (e.name || '');
-    });
-    return [
-      d.venue, d.activity, d.note, d.neighborhood, d.label, d.month,
-      d.time, d.inLocation, d.inLocationOtherName, d.address,
-      idea && idea.shortdesc, idea && idea.about, idea && idea.cuisine,
-      idea && idea.category, idea && idea.neighborhood, idea && idea.address,
-      idea && idea.subwayRoute, idea && idea.note,
-      ...peopleNames
-    ].some(f => f && typeof f === 'string' && f.toLowerCase().includes(q));
+    const all = _computeMemories().filter(d => !_isDateHiddenPrivate(d));
+  const _isSearchingMem = calMemSearch || calMemPeople.length;
+  // Also support legacy memoriesSearch for backward compat
+  const _legacyQ = (memoriesSearch || '').trim().toLowerCase();
+  const memories = (_isSearchingMem || _legacyQ) ? all.filter(d => {
+    if (_isSearchingMem && !_calMemMatchDate(d)) return false;
+    if (_legacyQ) {
+      const idea = ideas.find(i => i.name && d.venue && i.name.toLowerCase() === d.venue.toLowerCase());
+      const peopleNames = (d.people || []).map(e => {
+        const p = e.id ? people.find(x => x.id === e.id) : null;
+        return p ? _personFullName(p) : (e.name || '');
+      });
+      return [
+        d.venue, d.activity, d.note, d.neighborhood, d.label, d.month,
+        d.time, d.inLocation, d.inLocationOtherName, d.address,
+        idea && idea.shortdesc, idea && idea.about, idea && idea.cuisine,
+        idea && idea.category, idea && idea.neighborhood, idea && idea.address,
+        idea && idea.subwayRoute, idea && idea.note,
+        ...peopleNames
+      ].some(f => f && typeof f === 'string' && f.toLowerCase().includes(_legacyQ));
+    }
+    return true;
   }) : all;
   const BROWN = '#9a8a7a';
   if (memories.length === 0) {
@@ -6445,10 +6437,11 @@ function renderCalendar() {
     <div id="cal-upcoming">
       ${(() => {
         const _bdCards = _upcomingBirthdayCards();
+        const _isSearching = calMemSearch || calMemPeople.length;
         const _dateItems = UPCOMING_DATES
-          .filter(u => { const dt=new Date((u.year||2026),MONTH_NUMS[u.month]||0,u.day); dt.setHours(0,0,0,0); return dt>=_now && !_isDateHiddenPrivate(u); })
+          .filter(u => { const dt=new Date((u.year||2026),MONTH_NUMS[u.month]||0,u.day); dt.setHours(0,0,0,0); return dt>=_now && !_isDateHiddenPrivate(u) && (!_isSearching || _calMemMatchDate(u)); })
           .map(u => ({ date: new Date((u.year||2026),MONTH_NUMS[u.month]||0,u.day), isBd: false, u }));
-        const _bdItems = _bdCards.map(r => ({ date: r.date, isBd: true, r }));
+        const _bdItems = _isSearching ? [] : _bdCards.map(r => ({ date: r.date, isBd: true, r }));
         const _allItems = [..._dateItems, ..._bdItems].sort((a,b) => a.date - b.date);
         if (!_allItems.length) return '';
         const _mergedHtml = _allItems.map(item => {
@@ -6460,11 +6453,13 @@ function renderCalendar() {
           const isActive = _dayDates.length <= 1 || String(u.id) === window._calActiveDateId;
           return _buildUpcomingCardHtml(u, isActive ? `border-color:${ROSE};` : 'border-color:var(--text-secondary);');
         }).join('');
-        return '<div class="section-label" style="margin-bottom:12px">Upcoming</div>' + _mergedHtml;
+        return `<div class="section-label" style="margin-bottom:12px">${_isSearching ? 'Upcoming Results' : 'Upcoming'}</div>` + _mergedHtml;
       })()}
     </div>
     ${(() => {
-      const past3 = _computeMemories().filter(d => !_isDateHiddenPrivate(d)).slice(0, 3);
+      const _isSearchingPast = calMemSearch || calMemPeople.length;
+      const allPast = _computeMemories().filter(d => !_isDateHiddenPrivate(d));
+      const past3 = _isSearchingPast ? allPast.filter(d => _calMemMatchDate(d)) : allPast.slice(0, 3);
       if (past3.length === 0) return '';
       const BROWN = '#9a8a7a';
       const rows = past3.map(d => {
@@ -6488,7 +6483,7 @@ function renderCalendar() {
       }).join('');
       return `<div id="cal-past" style="margin-top:28px">
         <button onclick="navigate('past')" style="background:none;border:none;cursor:pointer;padding:0;display:flex;align-items:center;gap:4px;margin-bottom:12px">
-          <span class="section-label">Past Dates</span>
+          <span class="section-label">${_isSearchingPast ? 'Past Results' : 'Past Dates'}</span>
           <span style="font-size:11px;color:#9a8a7a;font-family:sans-serif;letter-spacing:0.1em;line-height:1">›</span>
         </button>
         ${rows}
@@ -12266,6 +12261,222 @@ function _renderPeople() {
 }
 
 // ── People screen nav row ─────────────────────────────
+// ── Cal/Memories shared search ────────────────────────
+
+function _calMemSearchHtml(ctx) {
+  const inputId = ctx + '-cmsearch-input';
+  const clearId = ctx + '-cmsearch-clear';
+  const sugId   = ctx + '-cmsearch-suggest';
+  const pillsId = ctx + '-cmsearch-pills';
+  const q = calMemSearch || '';
+  const onInput = `_calMemOnInput('${ctx}',this)`;
+  const onKeydown = `_calMemOnKeydown(event,'${ctx}')`;
+  const clearFn = `_calMemClear('${ctx}')`;
+  const pillsHtml = _calMemPillsHtml(ctx);
+  const showClear = (q || calMemPeople.length) ? 'flex' : 'none';
+  return `<div id="${ctx}-cmsearch-wrap" style="display:flex;align-items:center;background:var(--toggle-bg);border-radius:20px;padding:5px 10px;gap:6px;width:200px;box-sizing:border-box;flex-shrink:0;overflow:hidden">
+    <svg viewBox="0 0 24 24" width="13" height="13" stroke="#9a8a7a" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    <div id="${pillsId}" style="display:flex;align-items:center;gap:3px;flex-shrink:0;max-width:120px;overflow:hidden;height:18px">${pillsHtml}</div>
+    <input id="${inputId}" type="text" value="${q.replace(/"/g,'&quot;')}" oninput="${onInput}" onkeydown="${onKeydown}" placeholder="" autocomplete="off" style="border:none;background:transparent;outline:none;font-size:16px;font-family:sans-serif;color:var(--text-primary);width:0;flex:1;min-width:0;line-height:1;padding:0">
+    <button id="${clearId}" style="display:${showClear};background:none;border:none;cursor:pointer;padding:0;flex-shrink:0;line-height:0;align-self:center" onclick="${clearFn}"><svg viewBox="0 0 24 24" width="13" height="13" stroke="#9a8a7a" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+  </div>`;
+}
+
+
+function _calMemOnInput(ctx, inp) {
+  calMemSearch = inp.value;
+  const clearEl = document.getElementById(ctx + '-cmsearch-clear');
+  if (clearEl) clearEl.style.display = (calMemSearch || calMemPeople.length) ? 'flex' : 'none';
+  _calMemShowSuggest(ctx, inp);
+  if (ctx === 'past') _renderPastDates();
+  else _renderCalUpcoming(); // only re-render the upcoming section, not whole calendar
+}
+
+function _calMemOnKeydown(e, ctx) {
+  const sug = document.getElementById('cmsearch-suggest');
+  if (e.key === 'Enter') {
+    const first = sug && sug.querySelector('[data-person-id]');
+    if (first) { _calMemSelectPerson(first.dataset.personId, first.dataset.personName, ctx); }
+    e.preventDefault();
+  } else if (e.key === 'Escape') {
+    if (sug) sug.style.display = 'none';
+  }
+}
+
+function _calMemShowSuggest(ctx, inp) {
+  const q = typeof inp === 'string' ? inp : inp.value;
+  const sug = document.getElementById('cmsearch-suggest');
+  if (!sug) return;
+  const qt = (q || '').trim().toLowerCase();
+  if (!qt) { sug.style.display = 'none'; return; }
+  const alreadyIds = new Set(calMemPeople.map(e => e.id));
+  const matches = people.filter(p => {
+    if (!p.firstName && !p.lastName) return false;
+    if (!hidePrivate && p.family) return false;
+    if (alreadyIds.has(p.id)) return false;
+    return _personFullName(p).toLowerCase().includes(qt);
+  }).slice(0, 5);
+  if (!matches.length) { sug.style.display = 'none'; return; }
+  sug.innerHTML = matches.map(p => {
+    const photo = p.photoUrl
+      ? `<div style="position:relative;width:24px;height:24px;border-radius:50%;overflow:hidden;flex-shrink:0">${_personAvatarInner(p,24)}</div>`
+      : `<div style="width:24px;height:24px;border-radius:50%;background:var(--toggle-bg);display:flex;align-items:center;justify-content:center;flex-shrink:0">${_personIconSvg(13,'#9a8a7a')}</div>`;
+    return `<div data-person-id="${p.id}" data-person-name="${_personFullName(p).replace(/"/g,'&quot;')}" onclick="_calMemSelectPerson('${p.id}','${_personFullName(p).replace(/'/g,"\\'")}','${ctx}')" style="display:flex;align-items:center;gap:10px;padding:8px 12px;cursor:pointer;font-size:14px;color:var(--text-primary);font-family:sans-serif">${photo}<span>${_personFullName(p)}</span></div>`;
+  }).join('');
+  // Position using fixed coords from the wrapper div
+  const wrapEl = document.getElementById(ctx + '-cmsearch-wrap');
+  if (wrapEl) {
+    const rect = wrapEl.getBoundingClientRect();
+    sug.style.top = (rect.bottom + 4) + 'px';
+    sug.style.left = rect.left + 'px';
+    sug.style.width = rect.width + 'px';
+  }
+  sug.style.display = 'block';
+}
+
+function _calMemSelectPerson(id, name, ctx) {
+  if (!calMemPeople.find(e => e.id === id)) {
+    calMemPeople.push({ id, name });
+  }
+  calMemSearch = '';
+  const inputId = ctx + '-cmsearch-input';
+  const inp = document.getElementById(inputId);
+  if (inp) inp.value = '';
+  const sug = document.getElementById('cmsearch-suggest');
+  if (sug) sug.style.display = 'none';
+  _updateCalNavRow();
+  _updatePastNavRow();
+  if (ctx === 'cal') render(); else _renderPastDates();
+}
+
+function _calMemRemovePerson(idx, ctx) {
+  calMemPeople.splice(idx, 1);
+  _updateCalNavRow();
+  _updatePastNavRow();
+  if (ctx === 'cal') render(); else _renderPastDates();
+}
+
+function _calMemClear(ctx) {
+  calMemSearch = '';
+  calMemPeople = [];
+  const inputId = ctx + '-cmsearch-input';
+  const inp = document.getElementById(inputId);
+  if (inp) inp.value = '';
+  const sug = document.getElementById('cmsearch-suggest');
+  if (sug) sug.style.display = 'none';
+  _updateCalNavRow();
+  _updatePastNavRow();
+  if (ctx === 'cal') render(); else _renderPastDates();
+}
+
+function _calMemMatchDate(d) {
+  // Returns true if date matches current calMemSearch + calMemPeople filters
+  if (calMemPeople.length) {
+    const datePeople = (d.people || []).map(e => e.id);
+    if (!calMemPeople.every(pe => datePeople.includes(pe.id))) return false;
+  }
+  if (calMemSearch) {
+    const q = calMemSearch.trim().toLowerCase();
+    const idea = ideas.find(i => i.name && d.venue && i.name.toLowerCase() === d.venue.toLowerCase());
+    const peopleNames = (d.people || []).map(e => {
+      const p = e.id ? people.find(x => x.id === e.id) : null;
+      return p ? _personFullName(p) : (e.name || '');
+    });
+    const fields = [
+      d.venue, d.activity, d.note, d.neighborhood, d.address, d.label, d.month,
+      d.time, d.inLocation, d.inLocationOtherName,
+      idea && idea.shortdesc, idea && idea.about, idea && idea.cuisine,
+      idea && idea.category, idea && idea.neighborhood, idea && idea.address,
+      idea && idea.subwayRoute, idea && idea.note,
+      ...peopleNames
+    ];
+    if (!fields.some(f => f && typeof f === 'string' && f.toLowerCase().includes(q))) return false;
+  }
+  return true;
+}
+
+function _updateCalNavRow() {
+  const row = document.getElementById('top-nav-cal-row');
+  const appEl = document.getElementById('app');
+  if (!row) return;
+  if (currentView === 'calendar') {
+    if (!document.getElementById('cal-cmsearch-input')) {
+      row.innerHTML = _calMemSearchHtml('cal');
+    } else {
+      // Preserve focus — only update pills container and clear button
+      _calMemSyncRow('cal');
+    }
+    row.style.display = 'flex';
+    if (appEl) appEl.classList.add('cal-nav');
+  } else {
+    row.style.display = 'none';
+    row.innerHTML = '';
+    if (appEl) appEl.classList.remove('cal-nav');
+  }
+}
+
+function _calMemSyncRow(ctx) {
+  const pillsEl = document.getElementById(ctx + '-cmsearch-pills');
+  if (pillsEl) pillsEl.innerHTML = _calMemPillsHtml(ctx);
+  const clearEl = document.getElementById(ctx + '-cmsearch-clear');
+  if (clearEl) clearEl.style.display = (calMemSearch || calMemPeople.length) ? 'flex' : 'none';
+}
+
+function _calMemPillsHtml(ctx) {
+  return calMemPeople.map((e,i) => {
+    const p = people.find(x => x.id === e.id);
+    const photo = (p && p.photoUrl)
+      ? `<div style="position:relative;width:14px;height:14px;border-radius:50%;overflow:hidden;flex-shrink:0">${_personAvatarInner(p,14)}</div>`
+      : `<div style="width:14px;height:14px;border-radius:50%;background:var(--toggle-bg);display:flex;align-items:center;justify-content:center;flex-shrink:0">${_personIconSvg(8,'#9a8a7a')}</div>`;
+    const firstName = (p && p.firstName) || e.name.split(' ')[0];
+    return `<div style="display:inline-flex;align-items:center;gap:2px;background:var(--bg-card2);border:1px solid var(--border);border-radius:8px;padding:0 4px 0 2px;flex-shrink:0;white-space:nowrap;height:18px;overflow:hidden">${photo}<span style="font-size:10px;font-family:sans-serif;color:var(--text-primary);line-height:1">${firstName}</span><button onclick="_calMemRemovePerson(${i},'${ctx}')" style="background:none;border:none;cursor:pointer;padding:0;line-height:0;color:#9a8a7a;margin-left:1px;display:flex;align-items:center;flex-shrink:0"><svg viewBox="0 0 24 24" width="8" height="8" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>`;
+  }).join('');
+}
+
+function _updatePastNavRow() {
+  const row = document.getElementById('top-nav-past-row');
+  const appEl = document.getElementById('app');
+  if (!row) return;
+  if (currentView === 'past') {
+    if (!document.getElementById('past-cmsearch-input')) {
+      row.innerHTML = _calMemSearchHtml('past');
+    } else {
+      _calMemSyncRow('past');
+    }
+    row.style.display = 'flex';
+    if (appEl) appEl.classList.add('past-nav');
+  } else {
+    row.style.display = 'none';
+    row.innerHTML = '';
+    if (appEl) appEl.classList.remove('past-nav');
+  }
+}
+
+function _renderCalUpcoming() {
+  // Re-render only the upcoming + past sections on the calendar screen
+  if (currentView !== 'calendar') return;
+  const main = document.getElementById('main-content');
+  if (!main) return;
+  render(); // full render for now — calendar is complex; focus loss is only in the nav input not main
+}
+
+function _piSearchPerson() {
+  const p = people.find(x => x.id === _currentPersonId);
+  if (!p) return;
+  closePersonInfo();
+  _calMemSearchPerson(p.id);
+}
+
+function _calMemSearchPerson(personId) {
+  // Add a person pill and navigate to calendar
+  const p = people.find(x => x.id === personId);
+  if (!p) return;
+  calMemPeople = [{ id: p.id, name: _personFullName(p) }];
+  calMemSearch = '';
+  closePersonInfo();
+  navigate('calendar');
+}
+
 function _updatePeopleNavRow() {
   const row = document.getElementById('top-nav-people-row');
   const appEl = document.getElementById('app');
@@ -13835,7 +14046,9 @@ function _resLabel(idea) {
       </div>
       <!-- Fields -->
       <div id="pi-fields" style="display:flex;flex-direction:column;gap:16px;padding:16px 18px 0"></div>
-      <div style="display:flex;justify-content:center;padding:28px 18px 4px">
+      <div style="display:flex;justify-content:center;gap:8px;padding:28px 18px 4px">
+        <button onclick="_calMemSearchPerson(_currentPersonId)" style="display:flex;align-items:center;gap:6px;height:34px;padding:0 14px;border:1.5px solid #c07a8a;border-radius:17px;font-family:sans-serif;font-size:13px;font-weight:600;color:#c07a8a;background:none;cursor:pointer;line-height:1"><svg viewBox="0 0 24 24" width="12" height="12" stroke="#c07a8a" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="15.65" y2="15.65"/></svg>Search</button>
+        <button onclick="_piSearchPerson()" style="display:flex;align-items:center;gap:7px;height:34px;padding:0 16px;border:1.5px solid #c07a8a;border-radius:17px;font-family:sans-serif;font-size:13px;font-weight:600;color:#c07a8a;background:none;cursor:pointer;line-height:1"><svg viewBox="0 0 24 24" width="12" height="12" stroke="#c07a8a" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>Search</button>
         <button onclick="_planSomethingWithPerson()" style="display:flex;align-items:center;gap:7px;height:34px;padding:0 16px;border:none;border-radius:17px;font-family:sans-serif;font-size:13px;font-weight:600;color:#fff;background:#c07a8a;cursor:pointer;line-height:1"><svg viewBox="0 0 24 24" width="12" height="12" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-left:4px"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><span id="pi-plan-btn-label">Plan Something</span></button>
       </div>
     </div>
@@ -14006,5 +14219,6 @@ function _resLabel(idea) {
   </div>
 </div>
 
+<div id="cmsearch-suggest" style="display:none;position:fixed;background:var(--bg);border:1px solid var(--border);border-radius:12px;box-shadow:0 4px 16px rgba(0,0,0,0.18);z-index:9999;overflow:hidden;min-width:180px"></div>
 </body>
 </html>
