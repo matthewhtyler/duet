@@ -10504,7 +10504,11 @@ function deleteEditDate() {
     }
   }
   closeEditDate();
-  render();
+  if (_editingMemory) {
+    _renderPastDates();
+  } else {
+    render();
+  }
 }
 
 function editIdea(id) {
