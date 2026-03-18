@@ -974,24 +974,24 @@
       </div>
       <!-- In-location (only for In activities) -->
       <div id="date-in-location-wrap" style="display:none;margin-top:18px">
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
-          <svg id="date-in-location-pin" viewBox="0 0 24 24" width="18" height="18" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-          <div id="date-in-location-pin-spacer" style="display:none;width:18px;flex-shrink:0"></div>
-          <select class="field-input" id="date-in-location-select" onchange="onDateInLocationChange()" style="margin-bottom:0;flex:1">
-            <option value="my_place">My place</option>
-            <option id="date-in-partner-option" value="partner_place">Her place</option>
-            <option value="other">Other</option>
-          </select>
+        <!-- Place Name field (pill-based, like Custom address) -->
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+          <svg viewBox="0 0 24 24" width="18" height="18" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M20 9V7a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v2"/><path d="M2 11v5a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-5a2 2 0 0 0-4 0v2H6v-2a2 2 0 0 0-4 0z"/><path d="M4 18v2"/><path d="M20 18v2"/></svg>
+          <div style="position:relative;flex:1;min-width:0">
+            <div id="date-in-place-field" style="display:flex;align-items:center;gap:6px;border:1.5px solid var(--border);border-radius:10px;background:var(--bg-input);padding:8px 32px 8px 12px;min-height:40px;box-sizing:border-box;cursor:text;overflow:hidden" onclick="document.getElementById('date-in-place-text').focus()">
+              <div id="date-in-place-pill" style="display:contents"></div>
+              <input id="date-in-place-text" type="text" placeholder="Whose place…" style="border:none;background:transparent;outline:none;font-size:16px;font-family:sans-serif;color:var(--text-primary);min-width:60px;flex:1;padding:0;line-height:1" oninput="_inPlaceSuggest('date')" onkeydown="_inPlaceKeydown(event,'date')">
+            </div>
+            <button type="button" id="date-in-place-clear" onmousedown="event.preventDefault();_clearInPlace('date')" style="display:none;position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;padding:2px;line-height:0;color:#b0a090">
+              <svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+            <div id="date-in-place-suggest" style="display:none;position:absolute;top:100%;left:0;right:0;background:var(--bg);border:1.5px solid var(--border);border-radius:10px;z-index:9999;overflow:hidden;box-shadow:0 4px 16px rgba(0,0,0,0.12);margin-top:4px"></div>
+          </div>
         </div>
-        <div id="date-in-location-other-wrap" style="display:none;flex-direction:column;gap:10px;margin-bottom:12px">
-          <div style="display:flex;align-items:center;gap:10px">
-            <svg viewBox="0 0 24 24" width="18" height="18" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/></svg>
-            <input class="field-input" id="date-in-location-other-name" type="text" placeholder="Place name" style="flex:1;margin-bottom:0">
-          </div>
-          <div style="display:flex;align-items:center;gap:10px">
-            <svg viewBox="0 0 24 24" width="18" height="18" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-            <input class="field-input" id="date-in-location-other" type="text" placeholder="Address" style="flex:1;margin-bottom:0">
-          </div>
+        <!-- Address field (locked when a place is selected) -->
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+          <svg viewBox="0 0 24 24" width="18" height="18" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          <input class="field-input" id="date-in-location-other" type="text" placeholder="Address" style="flex:1;margin-bottom:0">
         </div>
       </div>
       <!-- Location: text input for Out/Custom -->
@@ -1290,25 +1290,25 @@
 
         <!-- In-location (only for In activities) -->
         <div id="ed-in-location-wrap" style="display:none;margin-top:18px">
-            <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
-              <svg id="ed-in-location-pin" viewBox="0 0 24 24" width="18" height="18" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-              <div id="ed-in-location-pin-spacer" style="display:none;width:18px;flex-shrink:0"></div>
-              <select class="field-input" id="ed-in-location-select" onchange="onEdInLocationChange()" style="flex:1;margin-bottom:0">
-                <option value="my_place">My place</option>
-                <option id="ed-in-partner-option" value="partner_place">Her place</option>
-                <option value="other">Other</option>
-              </select>
-            </div>
-            <div id="ed-in-location-other-wrap" style="display:none;flex-direction:column;gap:10px;margin-bottom:12px">
-              <div style="display:flex;align-items:center;gap:10px">
-                <svg viewBox="0 0 24 24" width="18" height="18" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/></svg>
-                <input class="field-input" id="ed-in-location-other-name" type="text" placeholder="Place name" style="flex:1;margin-bottom:0">
+          <!-- Place Name field -->
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+            <svg viewBox="0 0 24 24" width="18" height="18" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M20 9V7a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v2"/><path d="M2 11v5a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-5a2 2 0 0 0-4 0v2H6v-2a2 2 0 0 0-4 0z"/><path d="M4 18v2"/><path d="M20 18v2"/></svg>
+            <div style="position:relative;flex:1;min-width:0">
+              <div id="ed-in-place-field" style="display:flex;align-items:center;gap:6px;border:1.5px solid var(--border);border-radius:10px;background:var(--bg-input);padding:8px 32px 8px 12px;min-height:40px;box-sizing:border-box;cursor:text;overflow:hidden" onclick="document.getElementById('ed-in-place-text').focus()">
+                <div id="ed-in-place-pill" style="display:contents"></div>
+                <input id="ed-in-place-text" type="text" placeholder="Whose place…" style="border:none;background:transparent;outline:none;font-size:16px;font-family:sans-serif;color:var(--text-primary);min-width:60px;flex:1;padding:0;line-height:1" oninput="_inPlaceSuggest('ed')" onkeydown="_inPlaceKeydown(event,'ed')">
               </div>
-              <div style="display:flex;align-items:center;gap:10px">
-                <svg viewBox="0 0 24 24" width="18" height="18" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-                <input class="field-input" id="ed-in-location-other" type="text" placeholder="Address" style="flex:1;margin-bottom:0">
-              </div>
+              <button type="button" id="ed-in-place-clear" onmousedown="event.preventDefault();_clearInPlace('ed')" style="display:none;position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;padding:2px;line-height:0;color:#b0a090">
+                <svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              </button>
+              <div id="ed-in-place-suggest" style="display:none;position:absolute;top:100%;left:0;right:0;background:var(--bg);border:1.5px solid var(--border);border-radius:10px;z-index:9999;overflow:hidden;box-shadow:0 4px 16px rgba(0,0,0,0.12);margin-top:4px"></div>
             </div>
+          </div>
+          <!-- Address field -->
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+            <svg viewBox="0 0 24 24" width="18" height="18" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            <input class="field-input" id="ed-in-location-other" type="text" placeholder="Address" style="flex:1;margin-bottom:0">
+          </div>
         </div>
 
         <!-- Location (only for Custom activity) -->
@@ -8232,7 +8232,9 @@ function _resetDateForm() {
   const _dd = document.getElementById('date-day'); if (_dd) _dd.value = '';
   const _dt = document.getElementById('date-time-select'); if (_dt) _dt.value = '';
   const _dn = document.getElementById('date-note'); if (_dn) _dn.value = '';
-  const _dil = document.getElementById('date-in-location-select'); if (_dil) { _dil.value = 'my_place'; onDateInLocationChange(); }
+  const _dil = null; // deprecated select removed — in-place state reset below
+  _inPlaceState.date = { type: null, personId: null };
+  _clearInPlace('date');
   _dateIsPrivate = null;
   _renderPrivacyBox('date-lock-icon', 'date-privacy-box', false, false);
   populateDateImageFields([]);
@@ -9272,70 +9274,217 @@ function _updateInLocationVisibility(prefix, show) {
   if (!wrap) return;
   wrap.style.display = show ? 'block' : 'none';
   if (show) {
-    // Update partner option label with current pronoun (keep value as 'partner_place')
-    const partnerOpt = document.getElementById(prefix + '-in-partner-option');
-    if (partnerOpt) { partnerOpt.textContent = partnerPlaceLabel(); partnerOpt.value = 'partner_place'; }
-    // Reset to default if switching to In
-    const sel = document.getElementById(prefix + '-in-location-select');
-    if (sel && sel.value === '') sel.value = 'my_place';
-    // Sync Other fields visibility and pin icon
-    const isOther = sel && sel.value === 'other';
-    const otherWrap = document.getElementById(prefix + '-in-location-other-wrap');
-    if (otherWrap) otherWrap.style.display = isOther ? 'flex' : 'none';
-    const pin = document.getElementById(prefix + '-in-location-pin');
-    const spacer = document.getElementById(prefix + '-in-location-pin-spacer');
-    if (pin) pin.style.display = isOther ? 'none' : '';
-    if (spacer) spacer.style.display = isOther ? '' : 'none';
+    // Initialize with My place default if no pill set yet
+    const state = _inPlaceState[prefix];
+    if (!state || !state.type) {
+      _inPlaceInitDefault(prefix);
+    }
   }
 }
 
-function onDateInLocationChange() {
-  const sel = document.getElementById('date-in-location-select');
-  const isOther = sel && sel.value === 'other';
-  const otherWrap = document.getElementById('date-in-location-other-wrap');
-  if (otherWrap) otherWrap.style.display = isOther ? 'flex' : 'none';
-  const pin = document.getElementById('date-in-location-pin');
-  const spacer = document.getElementById('date-in-location-pin-spacer');
-  if (pin) pin.style.display = isOther ? 'none' : '';
-  if (spacer) spacer.style.display = isOther ? '' : 'none';
+// ── In-place field (New / Edit Date, In activities) ─────────────────────────
+// State: for each ctx ('date' | 'ed'), tracks what's in the Place Name pill
+// _inPlaceState[ctx] = { type: 'my_place'|'person'|null, personId: string|null }
+const _inPlaceState = { date: { type: null, personId: null }, ed: { type: null, personId: null } };
+
+function _inPlaceSofaIcon(size) {
+  const s = size || 20;
+  return `<div style="width:${s}px;height:${s}px;border-radius:50%;background:var(--toggle-bg);display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg viewBox="0 0 24 24" width="${Math.round(s*0.55)}px" height="${Math.round(s*0.55)}px" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M20 9V7a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v2"/><path d="M2 11v5a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-5a2 2 0 0 0-4 0v2H6v-2a2 2 0 0 0-4 0z"/><path d="M4 18v2"/><path d="M20 18v2"/></svg></div>`;
 }
 
-function onEdInLocationChange() {
-  const sel = document.getElementById('ed-in-location-select');
-  const isOther = sel && sel.value === 'other';
-  const otherWrap = document.getElementById('ed-in-location-other-wrap');
-  if (otherWrap) otherWrap.style.display = isOther ? 'flex' : 'none';
-  const pin = document.getElementById('ed-in-location-pin');
-  const spacer = document.getElementById('ed-in-location-pin-spacer');
-  if (pin) pin.style.display = isOther ? 'none' : '';
-  if (spacer) spacer.style.display = isOther ? '' : 'none';
+function _inPlacePillHtml(ctx, icon, label) {
+  return `<div style="display:inline-flex;align-items:center;gap:5px;background:var(--bg-card2);border:1px solid var(--border);border-radius:20px;padding:3px 8px 3px 4px;font-size:12px;font-family:sans-serif;color:var(--text-primary);white-space:nowrap;flex-shrink:0">${icon}<span>${label}</span><button onclick="_clearInPlace('${ctx}')" style="background:none;border:none;cursor:pointer;padding:0;line-height:0;color:#9a8a7a;margin-left:2px"><svg viewBox="0 0 24 24" width="10" height="10" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>`;
 }
+
+function _inPlaceSetMyPlace(ctx) {
+  _inPlaceState[ctx] = { type: 'my_place', personId: null };
+  const pill = document.getElementById(ctx + '-in-place-pill');
+  if (pill) pill.innerHTML = _inPlacePillHtml(ctx, _inPlaceSofaIcon(20), 'My place');
+  const inp = document.getElementById(ctx + '-in-place-text');
+  if (inp) { inp.value = ''; inp.placeholder = ''; inp.style.display = 'none'; }
+  const clr = document.getElementById(ctx + '-in-place-clear');
+  if (clr) clr.style.display = 'flex';
+  const sug = document.getElementById(ctx + '-in-place-suggest');
+  if (sug) sug.style.display = 'none';
+  // Lock address with home address
+  const addrEl = document.getElementById(ctx === 'date' ? 'date-in-location-other' : 'ed-in-location-other');
+  if (addrEl) {
+    addrEl.value = homeAddress || '';
+    addrEl.readOnly = true;
+    addrEl.style.opacity = '0.6';
+    addrEl.style.cursor = 'default';
+  }
+}
+
+function _inPlaceSetPerson(ctx, personId) {
+  const p = people.find(x => x.id === personId);
+  if (!p) return;
+  _inPlaceState[ctx] = { type: 'person', personId };
+  const photoHtml = p.photoUrl
+    ? `<div style="width:20px;height:20px;border-radius:50%;overflow:hidden;flex-shrink:0;position:relative">${_personAvatarInner(p, 20)}</div>`
+    : `<div style="width:20px;height:20px;border-radius:50%;background:var(--toggle-bg);display:flex;align-items:center;justify-content:center;flex-shrink:0">${_personIconSvg(11,'#b0a090')}</div>`;
+  const label = (p.firstName || _personFullName(p)) + "'s place";
+  const pill = document.getElementById(ctx + '-in-place-pill');
+  if (pill) pill.innerHTML = _inPlacePillHtml(ctx, photoHtml, label);
+  const inp = document.getElementById(ctx + '-in-place-text');
+  if (inp) { inp.value = ''; inp.placeholder = ''; inp.style.display = 'none'; }
+  const clr = document.getElementById(ctx + '-in-place-clear');
+  if (clr) clr.style.display = 'flex';
+  const sug = document.getElementById(ctx + '-in-place-suggest');
+  if (sug) sug.style.display = 'none';
+  // Lock address with person's address
+  const addrEl = document.getElementById(ctx === 'date' ? 'date-in-location-other' : 'ed-in-location-other');
+  if (addrEl) {
+    addrEl.value = p.address || '';
+    addrEl.readOnly = true;
+    addrEl.style.opacity = '0.6';
+    addrEl.style.cursor = 'default';
+  }
+}
+
+function _clearInPlace(ctx) {
+  _inPlaceState[ctx] = { type: null, personId: null };
+  const pill = document.getElementById(ctx + '-in-place-pill');
+  if (pill) pill.innerHTML = '';
+  const inp = document.getElementById(ctx + '-in-place-text');
+  if (inp) { inp.value = ''; inp.placeholder = 'Whose place…'; inp.style.display = ''; inp.focus(); }
+  const clr = document.getElementById(ctx + '-in-place-clear');
+  if (clr) clr.style.display = 'none';
+  // Unlock address
+  const addrEl = document.getElementById(ctx === 'date' ? 'date-in-location-other' : 'ed-in-location-other');
+  if (addrEl) {
+    addrEl.value = '';
+    addrEl.readOnly = false;
+    addrEl.style.opacity = '';
+    addrEl.style.cursor = '';
+  }
+}
+
+function _inPlaceSuggest(ctx) {
+  const inp = document.getElementById(ctx + '-in-place-text');
+  const sug = document.getElementById(ctx + '-in-place-suggest');
+  if (!inp || !sug) return;
+  const q = inp.value.trim().toLowerCase();
+  if (!q) { sug.style.display = 'none'; return; }
+
+  const myPlaceTerms = ['my place', 'my', 'home', 'mine'];
+  const showMyPlace = myPlaceTerms.some(t => t.startsWith(q) || q.startsWith(t.slice(0, 3))) || 'my place'.includes(q);
+  const sofaRow = showMyPlace
+    ? `<div onclick="_inPlaceSelectMyPlace('${ctx}')" style="display:flex;align-items:center;gap:10px;padding:8px 12px;cursor:pointer;font-size:14px;color:var(--text-primary)">${_inPlaceSofaIcon(26)}<span>My place</span></div>`
+    : '';
+
+  const dateEntries = _datePeopleEntries[ctx] || [];
+  const pool = dateEntries.length
+    ? dateEntries.map(e => e.id ? people.find(x => x.id === e.id) : null).filter(Boolean)
+    : people.filter(p => p.firstName || p.lastName);
+
+  const matches = pool.filter(p => {
+    const label = ((p.firstName || _personFullName(p)) + "'s place").toLowerCase();
+    return label.includes(q) || (p.firstName || '').toLowerCase().includes(q);
+  }).slice(0, 5);
+
+  if (!matches.length && !sofaRow) { sug.style.display = 'none'; return; }
+  sug.innerHTML = sofaRow + matches.map(p => {
+    const photoHtml = p.photoUrl
+      ? `<div style="width:26px;height:26px;border-radius:50%;overflow:hidden;flex-shrink:0;position:relative">${_personAvatarInner(p, 26)}</div>`
+      : `<div style="width:26px;height:26px;border-radius:50%;background:var(--toggle-bg);display:flex;align-items:center;justify-content:center;flex-shrink:0">${_personIconSvg(14,'#b0a090')}</div>`;
+    return `<div onclick="_inPlaceSelectPerson('${ctx}','${p.id}')" style="display:flex;align-items:center;gap:10px;padding:8px 12px;cursor:pointer;font-size:14px;color:var(--text-primary)">${photoHtml}<span>${p.firstName || _personFullName(p)}'s place</span></div>`;
+  }).join('');
+  sug.style.display = 'block';
+}
+
+function _inPlaceSelectMyPlace(ctx) {
+  _inPlaceSetMyPlace(ctx);
+}
+
+function _inPlaceSelectPerson(ctx, personId) {
+  _inPlaceSetPerson(ctx, personId);
+}
+
+function _inPlaceKeydown(e, ctx) {
+  const sug = document.getElementById(ctx + '-in-place-suggest');
+  if (e.key === 'Escape') { if (sug) sug.style.display = 'none'; }
+  else if (e.key === 'Enter') { const f = sug && sug.querySelector('div'); if (f && sug.style.display !== 'none') { e.preventDefault(); f.click(); } }
+  else if ((e.key === 'Backspace' || e.key === 'Delete') && !document.getElementById(ctx + '-in-place-text').value) {
+    _clearInPlace(ctx);
+  }
+}
+
+function _initInPlaceField(ctx, inLocation, inLocationOtherName, inLocationOther) {
+  // Called when opening new/edit date for an In activity
+  // Reset state
+  _clearInPlace(ctx);
+  if (inLocation === 'my_place' || (!inLocation && !inLocationOtherName)) {
+    _inPlaceSetMyPlace(ctx);
+  } else if (inLocation === 'partner_place') {
+    // Legacy: find partner person and set them
+    const firstPerson = _getDateFirstPerson(ctx);
+    if (firstPerson) _inPlaceSetPerson(ctx, firstPerson.id);
+    else _inPlaceSetMyPlace(ctx);
+  } else if (inLocation === 'other' || inLocation === 'custom' || inLocationOtherName) {
+    // Check if matches a person's name
+    if (inLocationOtherName) {
+      const nameLower = inLocationOtherName.toLowerCase().replace(/'s place$/i, '').trim();
+      const matched = people.find(p => (p.firstName || _personFullName(p)).toLowerCase() === nameLower);
+      if (matched) {
+        _inPlaceSetPerson(ctx, matched.id);
+      } else {
+        // Custom place name — just put it in the text field
+        _clearInPlace(ctx);
+        const inp = document.getElementById(ctx + '-in-place-text');
+        if (inp) inp.value = inLocationOtherName;
+        const addrEl = document.getElementById(ctx === 'date' ? 'date-in-location-other' : 'ed-in-location-other');
+        if (addrEl) addrEl.value = inLocationOther || '';
+      }
+    }
+  } else {
+    _inPlaceSetMyPlace(ctx);
+  }
+}
+
+function _readInPlaceFields(ctx) {
+  // Returns { inLocation, inLocationOtherName, inLocationOther }
+  const state = _inPlaceState[ctx];
+  const addrEl = document.getElementById(ctx === 'date' ? 'date-in-location-other' : 'ed-in-location-other');
+  const addr = addrEl ? addrEl.value.trim() : '';
+  if (state.type === 'my_place') {
+    return { inLocation: 'my_place', inLocationOtherName: '', inLocationOther: '' };
+  } else if (state.type === 'person') {
+    const p = people.find(x => x.id === state.personId);
+    return { inLocation: 'other', inLocationOtherName: p ? (p.firstName || _personFullName(p)) + "'s place" : '', inLocationOther: p ? (p.address || '') : '' };
+  } else {
+    // Custom text in place name field
+    const inp = document.getElementById(ctx + '-in-place-text');
+    const placeName = inp ? inp.value.trim() : '';
+    return { inLocation: placeName || addr ? 'other' : 'my_place', inLocationOtherName: placeName, inLocationOther: addr };
+  }
+}
+
+function _inPlaceInitDefault(ctx) {
+  // Called when In type is first selected (new date) — pre-fill My place
+  _inPlaceSetMyPlace(ctx);
+}
+
+function onDateInLocationChange() { /* deprecated — kept for safety */ }
+function onEdInLocationChange() { /* deprecated — kept for safety */ }
+
+
 
 // Read ed in-location fields and apply to date object u
 function _applyEdInLocation(u) {
   const wrap = document.getElementById('ed-in-location-wrap');
   if (!wrap || wrap.style.display === 'none') {
-    // New idea is not an In idea — clear any stale inLocation from a previous In idea
     delete u.inLocation;
     delete u.inLocationOther;
     delete u.inLocationOtherName;
     return;
   }
-  const sel = document.getElementById('ed-in-location-select');
-  if (!sel) return;
-  u.inLocation = sel.value;
-  if (sel.value === 'other') {
-    u.inLocationOtherName = (document.getElementById('ed-in-location-other-name') || {}).value?.trim() || '';
-    u.inLocationOther = (document.getElementById('ed-in-location-other') || {}).value?.trim() || '';
-  } else if (sel.value === 'partner_place') {
-    u.inLocationOtherName = '';
-    u.inLocationOther = '';
-    const _pp = _getDateFirstPerson('ed');
-    u.address = (_pp && _pp.address) ? _pp.address : (u.address || undefined);
-    u.locationPersonId = (_pp && _pp.id) ? _pp.id : undefined;
-  } else {
-    u.inLocationOtherName = '';
-    u.inLocationOther = '';
+  const { inLocation, inLocationOtherName, inLocationOther } = _readInPlaceFields('ed');
+  u.inLocation = inLocation;
+  u.inLocationOtherName = inLocationOtherName;
+  u.inLocationOther = inLocationOther;
+  if (_inPlaceState.ed.type === 'person' && _inPlaceState.ed.personId) {
+    u.locationPersonId = _inPlaceState.ed.personId;
   }
 }
 
@@ -9423,12 +9572,10 @@ function saveNewDate() {
   if (selectedActivity && !selectedActivity.custom) {
     const idea = ideas.find(i => i.id === selectedActivity.id);
     if (idea && idea.type === 'in') {
-      const sel = document.getElementById('date-in-location-select');
-      inLocation = sel ? sel.value : 'my_place';
-      if (inLocation === 'other') {
-        inLocationOtherName = (document.getElementById('date-in-location-other-name') || {}).value?.trim() || '';
-        inLocationOther = (document.getElementById('date-in-location-other') || {}).value?.trim() || '';
-      }
+      const _inFields = _readInPlaceFields('date');
+      inLocation = _inFields.inLocation;
+      inLocationOtherName = _inFields.inLocationOtherName;
+      inLocationOther = _inFields.inLocationOther;
     }
   }
 
@@ -10581,18 +10728,7 @@ function populateEditDateFields(u) {
     document.getElementById('ed-location-wrap').style.display = 'none';
     _updateInLocationVisibility('ed', matched.type === 'in');
     if (matched.type === 'in') {
-      const sel = document.getElementById('ed-in-location-select');
-      if (sel) {
-        const _edLoc = (u.inLocation === 'partner_place' || (u.inLocation && u.inLocation.endsWith(' place') && u.inLocation !== 'My place')) ? 'partner_place'
-          : (u.inLocation === 'My place' || u.inLocation === 'my_place') ? 'my_place'
-          : u.inLocation || 'my_place';
-        sel.value = _edLoc;
-      }
-      onEdInLocationChange();
-      const otherInp = document.getElementById('ed-in-location-other');
-      if (otherInp) otherInp.value = u.inLocationOther || '';
-      const otherNameInp = document.getElementById('ed-in-location-other-name');
-      if (otherNameInp) otherNameInp.value = u.inLocationOtherName || '';
+      _initInPlaceField('ed', u.inLocation, u.inLocationOtherName, u.inLocationOther);
     }
     _edUpdateActivityEditBtn(true);
   } else if (u.venue) {
@@ -10713,6 +10849,7 @@ function closeEditDate() {
   _editingMemory = null;
   _edCustomDateCustomIconKey = null;
   _resetLocationField('ed');
+  _inPlaceState.ed = { type: null, personId: null };
 }
 
 function saveEditDate() {
@@ -13250,6 +13387,12 @@ function _renderPeoplePills(ctx) {
   }).join('');
   // Show placeholder only when no pills and no input text
   if (inp) inp.placeholder = entries.length ? '' : 'People\u2026';
+  // Sync clear button — show only when there are pills or typed text
+  const clearBtn = document.getElementById(ctx + '-people-clear');
+  if (clearBtn) {
+    const hasContent = entries.length > 0 || (inp && inp.value.trim().length > 0);
+    clearBtn.style.display = hasContent ? 'flex' : 'none';
+  }
   // Scroll field to end after adding a pill
   const field = document.getElementById(ctx + '-people-field');
   if (field) setTimeout(() => { field.scrollLeft = field.scrollWidth; }, 0);
@@ -13278,7 +13421,8 @@ function _peopleSuggest(ctx) {
   // Show/hide clear button based on input value
   const clearBtn = document.getElementById(ctx + '-people-clear');
   const inp2 = document.getElementById(ctx + '-people-input');
-  if (clearBtn) clearBtn.style.display = (inp2 && inp2.value) ? 'block' : 'none';
+  const entries2 = _datePeopleEntries[ctx] || [];
+  if (clearBtn) clearBtn.style.display = ((inp2 && inp2.value) || entries2.length) ? 'flex' : 'none';
   const inp = document.getElementById(ctx + '-people-input');
   const sug = document.getElementById(ctx + '-people-suggest');
   if (!inp || !sug) return;
