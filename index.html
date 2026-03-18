@@ -4787,16 +4787,11 @@ function renderTodo() {
     const personListHtml = personGroupKeys.map((pid, gi) => {
       const p = people.find(x => x.id === pid);
       const label = p ? (p.firstName || _personFullName(p)) : 'Unknown';
-      const sectionColor = getComputedStyle(document.documentElement).getPropertyValue('--text-secondary') || '#9a8a7a';
-      const photoHtml = p ? (() => {
-        const inner = (p.photoUrl)
-          ? `<div style="position:relative;width:16px;height:16px;border-radius:50%;overflow:hidden">${_personAvatarInner(p,16)}</div>`
-          : `<div style="width:16px;height:16px;border-radius:50%;background:var(--toggle-bg);display:flex;align-items:center;justify-content:center">${_personIconSvg(9,'currentColor')}</div>`;
-        return `<div style="width:16px;height:16px;border-radius:50%;overflow:hidden;border:1px solid currentColor;flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;margin-left:6px;vertical-align:middle">${inner}</div>`;
-      })() : '';
+      const iconCircle = p ? `<div onclick="event.stopPropagation();openPersonInfo('${p.id}')" style="width:16px;height:16px;border-radius:50%;border:1px solid currentColor;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;margin-left:6px;vertical-align:middle;cursor:pointer">${_personIconSvg(9,'currentColor')}</div>` : '';
+      const nameClick = p ? `onclick="event.stopPropagation();openPersonInfo('${p.id}')" style="cursor:pointer"` : '';
       const rows = personGroups[pid].map(t => _todoRow(t, true, 'person')).join('');
       const divider = gi > 0 ? `<div style="border-top:1px solid var(--todo-divider);margin-bottom:20px"></div>` : '';
-      return divider + `<div style="margin-bottom:4px"><div class="section-label" style="margin-bottom:8px;padding-left:0;display:flex;align-items:center">${label}${photoHtml}</div><div>${rows}</div></div>`;
+      return divider + `<div style="margin-bottom:4px"><div class="section-label" style="margin-bottom:8px;padding-left:0;display:flex;align-items:center"><span ${nameClick}>${label}</span>${iconCircle}</div><div>${rows}</div></div>`;
     }).join('');
 
     // 2. Remaining todos (no personId) grouped by idea — never show ones already in person groups
