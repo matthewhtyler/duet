@@ -3410,6 +3410,7 @@ function openImagesPopup(containerId, getNameFn, getItemFn) {
     const _override = _imgSearchTermOverrides[containerId];
     const _savedTerm = _item && _item.imgSearchTerm ? _item.imgSearchTerm : '';
     _stInput.value = _override !== undefined ? _override : (_savedTerm || (getNameFn ? getNameFn() : ''));
+    window._imgsPopupPendingSearchTerm = _stInput.value; // ensure it's set even if user doesn't type
     _stInput.oninput = () => {
       // Persist the custom term for this container across popup opens
       _imgSearchTermOverrides[containerId] = _stInput.value;
@@ -3436,7 +3437,20 @@ function openImagesPopup(containerId, getNameFn, getItemFn) {
 }
 
 function saveImagesPopup() {
-  // Commit — just close normally
+  // Persist current search term value before closing
+  const _stInput = document.getElementById('img-popup-search-term');
+  if (_stInput) {
+    window._imgsPopupPendingSearchTerm = _stInput.value;
+    if (_imagesPopupContainerId) _imgSearchTermOverrides[_imagesPopupContainerId] = _stInput.value;
+    // Also save directly to the item if possible
+    const _itm = window._imgsPopupGetItemFn ? window._imgsPopupGetItemFn() : null;
+    if (_itm) {
+      _itm.imgSearchTerm = _stInput.value;
+      if (_imagesPopupContainerId === 'idea-image-fields') { saveIdeas && saveIdeas(ideas); }
+      else if (_imagesPopupContainerId === 'ed-image-fields') { saveDates && saveDates(UPCOMING_DATES); }
+      else if (_imagesPopupContainerId === 'pf-image-fields') { saveIdeas && saveIdeas(ideas); }
+    }
+  }
   _imagesPopupSnapshot = null;
   closeImagesPopup();
 }
@@ -9110,7 +9124,7 @@ function saveNewDate() {
     time: timeVal || '',
     note,
     imageUrls: imageUrls.length ? imageUrls : undefined,
-    imgSearchTerm: window._imgsPopupPendingSearchTerm || undefined,
+    imgSearchTerm: (_imgSearchTermOverrides['date-image-fields'] !== undefined ? _imgSearchTermOverrides['date-image-fields'] : window._imgsPopupPendingSearchTerm) || undefined,
     inLocation: (isCustom && window._locationIsMyPlace && window._locationIsMyPlace['date']) ? 'my_place' : (inLocation || undefined),
     inLocationOther: inLocationOther || undefined,
     inLocationOtherName: inLocationOtherName || undefined,
@@ -10379,13 +10393,18 @@ function saveEditDate() {
     // Memory-mode: only update note/images/year
     let saved = {};
     try { saved = JSON.parse(localStorage.getItem('ll_memories') || '{}'); } catch(e) {}
-    const extra = pickedYear ? { note, imageUrls, year: pickedYear } : { note, imageUrls };
-    saved[String(_editingMemory.id)] = { ...(saved[String(_editingMemory.id)] || {}), ...extra };
+    const _existingSaved = saved[String(_editingMemory.id)] || {};
+    // Only overwrite imageUrls if we actually collected some, to avoid wiping existing images
+    const _saveImageUrls = imageUrls && imageUrls.length ? imageUrls : (_existingSaved.imageUrls || _editingMemory.imageUrls || undefined);
+    const extra = { note, imageUrls: _saveImageUrls };
+    if (pickedYear) extra.year = pickedYear;
+    saved[String(_editingMemory.id)] = { ..._existingSaved, ...extra };
     localStorage.setItem('ll_memories', JSON.stringify(saved));
 
     // Also update UPCOMING_DATES entry if it exists
-    const u = UPCOMING_DATES.find(d => d.id === _editingMemory.id);
+    const u = UPCOMING_DATES.find(d => String(d.id) === String(_editingMemory.id));
     if (u) {
+      if (_saveImageUrls) u.imageUrls = _saveImageUrls;
       if (timeVal) u.time = timeVal;
       if (note) u.note = note;
       if (pickedYear && edDayVal) {
@@ -10429,6 +10448,7 @@ function saveEditDate() {
         u.neighborhood = neighText || locText;
       }
       u.imageUrls = imageUrls.length ? imageUrls : undefined;
+      u.imgSearchTerm = (_imgSearchTermOverrides['ed-image-fields'] !== undefined ? _imgSearchTermOverrides['ed-image-fields'] : (window._imgsPopupPendingSearchTerm !== undefined ? window._imgsPopupPendingSearchTerm : u.imgSearchTerm)) || undefined;
       saveDates(UPCOMING_DATES);
       FUTURE_DATES = buildFutureDates();
     }
@@ -10479,6 +10499,7 @@ function saveEditDate() {
         u.neighborhood = neighText || locText;
       }
       u.imageUrls = imageUrls.length ? imageUrls : undefined;
+      u.imgSearchTerm = (_imgSearchTermOverrides['ed-image-fields'] !== undefined ? _imgSearchTermOverrides['ed-image-fields'] : (window._imgsPopupPendingSearchTerm !== undefined ? window._imgsPopupPendingSearchTerm : u.imgSearchTerm)) || undefined;
       u.isPrivate = _edIsPrivate;  // null = inherit from idea
       saveDates(UPCOMING_DATES);
       FUTURE_DATES = buildFutureDates();
@@ -10754,6 +10775,11 @@ function savePlace() {
   }
   item.isPrivate = !!_pfIsPrivate;
   item.imageUrls = collectPfImageUrls();
+  // Save imgSearchTerm — use override (from Images popup) or pending term, falling back to existing
+  const _pfSearchTerm = _imgSearchTermOverrides['pf-image-fields'] !== undefined
+    ? _imgSearchTermOverrides['pf-image-fields']
+    : (window._imgsPopupPendingSearchTerm !== undefined ? window._imgsPopupPendingSearchTerm : item.imgSearchTerm);
+  item.imgSearchTerm = _pfSearchTerm || undefined;
   // Webapp fields
   if (item.type === 'in') {
     item.webappUrl   = (document.getElementById('pf-webapp-url')||{value:''}).value.trim();
