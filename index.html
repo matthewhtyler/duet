@@ -4798,7 +4798,7 @@ function renderTodo() {
     const personListHtml = personGroupKeys.map((pid, gi) => {
       const p = people.find(x => x.id === pid);
       const label = p ? (p.firstName || _personFullName(p)) : 'Unknown';
-      const iconCircle = p ? `<div onclick="event.stopPropagation();openPersonInfo('${p.id}')" style="width:16px;height:16px;border-radius:50%;border:1px solid currentColor;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;margin-left:6px;vertical-align:middle;cursor:pointer">${_personIconSvg(9,'currentColor')}</div>` : '';
+      const iconCircle = p ? `<div onclick="event.stopPropagation();openPersonInfo('${p.id}')" style="width:14px;height:14px;border-radius:50%;border:1px solid currentColor;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;margin-left:6px;vertical-align:middle;cursor:pointer;overflow:hidden;position:relative">${p.photoUrl ? _personAvatarInner(p,14) : _personIconSvg(8,'currentColor')}</div>` : '';
       const nameClick = p ? `onclick="event.stopPropagation();openPersonInfo('${p.id}')" style="cursor:pointer"` : '';
       const rows = personGroups[pid].map(t => _todoRow(t, true, 'person')).join('');
       const divider = gi > 0 ? `<div style="border-top:1px solid var(--todo-divider);margin-bottom:20px"></div>` : '';
