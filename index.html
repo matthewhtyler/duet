@@ -7618,30 +7618,58 @@ function selectWeekDate(idx) {
   if (homeLayout !== 'compact') {
     const carousel = document.getElementById('home-dates-carousel');
     if (carousel && carousel.children[idx]) {
-      // Temporarily suppress the carousel scroll handler to prevent week strip re-render glitch
+      // Suppress carousel scroll handler to avoid double-processing
       const handler = carousel._carouselScrollHandler;
       if (handler) carousel.removeEventListener('scroll', handler);
-      const card = carousel.children[idx];
-      carousel.scrollTo({ left: card.offsetLeft, behavior: 'instant' });
-      // Re-render strip only to update the selection highlight, with no page animation
-      const ws = document.getElementById('week-strip');
-      if (ws) {
-        _weekStripAnimate = false;
-        const newHtml = renderWeekStrip();
-        const stripScroll = document.getElementById('week-strip-scroll');
-        const curScrollLeft = stripScroll ? stripScroll.scrollLeft : 0;
-        ws.outerHTML = newHtml;
-        requestAnimationFrame(() => {
-          const s = document.getElementById('week-strip-scroll');
-          if (s) { s.style.scrollSnapType = 'none'; s.scrollLeft = curScrollLeft; requestAnimationFrame(() => { s.style.scrollSnapType = 'x mandatory'; _initWeekStrip(); }); }
-          // Re-attach carousel scroll handler after strip is stable
-          const c2 = document.getElementById('home-dates-carousel');
-          if (c2 && handler) { c2.addEventListener('scroll', handler, { passive: true }); c2._carouselScrollHandler = handler; }
+      carousel.scrollTo({ left: carousel.children[idx].offsetLeft, behavior: 'instant' });
+
+      // Update week strip selection IN-PLACE — no DOM replacement, no scroll glitch
+      const inner = document.getElementById('week-strip-inner');
+      if (inner) {
+        const _isDark = document.body.classList.contains('dark-mode');
+        const today = new Date(); today.setHours(0,0,0,0);
+        // Find selected timestamp
+        let selectedTs = null;
+        if (FUTURE_DATES[idx]) {
+          const fd = FUTURE_DATES[idx];
+          const mNum = MONTH_NUMS[fd._ref.month] ?? 0;
+          const sel = new Date(fd._ref.year || today.getFullYear(), mNum, fd._ref.day);
+          sel.setHours(0,0,0,0);
+          selectedTs = sel.getTime();
+        }
+        inner.querySelectorAll('.week-day').forEach(cell => {
+          const numWrap = cell.querySelector('.week-day-num-wrap');
+          const numSpan = cell.querySelector('.week-day-num');
+          if (!numWrap || !numSpan) return;
+          const onclick = cell.getAttribute('onclick') || '';
+          // Determine this cell's timestamp
+          const selectMatch = onclick.match(/selectWeekDate\((\d+)\)/);
+          const tooltipMatch = onclick.match(/showWeekTooltip\(event,(\d+),(\d+),(\d+)\)/);
+          let cellTs = null;
+          if (selectMatch) {
+            const fd = FUTURE_DATES[parseInt(selectMatch[1])];
+            if (fd) {
+              const mNum = MONTH_NUMS[fd._ref.month] ?? 0;
+              const d = new Date(fd._ref.year || today.getFullYear(), mNum, fd._ref.day);
+              d.setHours(0,0,0,0); cellTs = d.getTime();
+            }
+          } else if (tooltipMatch) {
+            const d = new Date(parseInt(tooltipMatch[3]), parseInt(tooltipMatch[2]), parseInt(tooltipMatch[1]));
+            d.setHours(0,0,0,0); cellTs = d.getTime();
+          }
+          const isSelected = cellTs !== null && cellTs === selectedTs;
+          const isToday = cellTs !== null && cellTs === today.getTime();
+          numWrap.style.background = isSelected ? ROSE : isToday ? 'rgba(192,122,138,0.15)' : 'transparent';
+          numSpan.style.color = isSelected ? '#fff' : isToday ? ROSE : (_isDark ? '#f0ede9' : '#2a1f1f');
+          numSpan.style.fontWeight = (isSelected || isToday) ? '700' : '400';
         });
-      } else {
-        // No week strip — just restore handler
-        if (handler) { carousel.addEventListener('scroll', handler, { passive: true }); }
       }
+
+      // Re-attach carousel scroll handler
+      requestAnimationFrame(() => {
+        const c2 = document.getElementById('home-dates-carousel');
+        if (c2 && handler) { c2.addEventListener('scroll', handler, { passive: true }); c2._carouselScrollHandler = handler; }
+      });
       return;
     }
   }
