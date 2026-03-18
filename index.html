@@ -132,7 +132,7 @@
   }
   #app.people-nav { padding-top: 107px; }
   /* People list */
-  .person-row { display:flex;align-items:center;gap:14px;padding:12px 20px;cursor:pointer;border-bottom:1px solid var(--border-light); }
+  .person-row { display:flex;align-items:center;gap:14px;padding:12px 20px;cursor:pointer; }
   .person-row:last-child { border-bottom:none; }
   .person-avatar { width:44px;height:44px;border-radius:50%;overflow:hidden;flex-shrink:0;background:var(--toggle-bg);display:flex;align-items:center;justify-content:center; }
   .person-avatar img { width:100%;height:100%;object-fit:cover;object-position:center; }
@@ -12208,11 +12208,12 @@ function renderPeople() {
   const rows = list.map((p, i) => {
     const isFav = p.favorite && !hidePrivate;
     const heartBtn = '';
-    // Divider after favorite row (when it's pinned at top)
-    const divider = (favPerson && i === 0 && list.length > 1 && !hidePrivate)
-      ? `<div style="height:1px;background:var(--border);margin:0 16px"></div>`
+    // Divider after favorite row — inset so it's narrower than the full width
+    const divider = (!hidePrivate && favPerson && i === 0 && list.length > 1)
+      ? `<div style="height:1px;background:var(--border-light);margin:0 20px"></div>`
       : '';
-    return `<div class="person-row" onclick="openPersonInfo('${p.id}')">
+    const rowBorder = '';
+    return `<div class="person-row" style="${rowBorder}" onclick="openPersonInfo('${p.id}')">
       ${_personAvatarHtml(p, 44)}
       <div style="flex:1;min-width:0">
         <div style="font-size:15px;font-weight:600;color:var(--text-primary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.firstName || _personFullName(p)}</div>
