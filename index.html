@@ -12833,7 +12833,7 @@ function openEditPerson(id) {
 function _updateEpPronounsIcon() {
   const sel = document.getElementById('ep-pronouns');
   const iconEl = document.getElementById('ep-pronouns-icon');
-  if (sel && iconEl) iconEl.innerHTML = _genderIconSvg(sel.value, 18);
+  if (sel && iconEl) iconEl.innerHTML = _genderIconSvg(sel.value, 23);
 }
 
 function closeEditPerson() {
@@ -14319,7 +14319,7 @@ function _resLabel(idea) {
       </div>
       <!-- Pronouns -->
       <div style="display:flex;align-items:center;gap:10px">
-        <div id="ep-pronouns-icon" style="width:18px;height:18px;flex-shrink:0;display:flex;align-items:center;justify-content:center"></div>
+        <div id="ep-pronouns-icon" style="width:23px;height:23px;flex-shrink:0;display:flex;align-items:center;justify-content:center;margin-left:-3px"></div>
         <select class="field-input" id="ep-pronouns" style="flex:1;margin-bottom:0" onchange="_updateEpPronounsIcon()">
           <option value="she/her">She / Her</option>
           <option value="he/him">He / Him</option>
