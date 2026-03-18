@@ -12802,7 +12802,7 @@ function openNewPerson() {
   const titleEl = document.querySelector('#edit-person-overlay [style*="font-size:17px"]');
   if (titleEl) titleEl.textContent = 'New Person';
   document.getElementById('edit-person-overlay').style.display = 'flex';
-  _syncAllClearable();
+  setTimeout(_syncAllClearable, 50);
 }
 
 function openEditPersonFromInfo() {
@@ -12827,7 +12827,7 @@ function openEditPerson(id) {
   const _epTitleEl = document.querySelector('#edit-person-overlay [style*="font-size:17px"]');
   if (_epTitleEl) _epTitleEl.textContent = 'Edit Person';
   document.getElementById('edit-person-overlay').style.display = 'flex';
-  _syncAllClearable();
+  setTimeout(_syncAllClearable, 50);
 }
 
 function _updateEpPronounsIcon() {
