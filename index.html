@@ -13675,7 +13675,7 @@ function _buildMemoryPeopleHtml(peepsArr) {
       : `<div style="width:${SIZE}px;height:${SIZE}px;border-radius:50%;background:var(--toggle-bg);display:flex;align-items:center;justify-content:center">${_personIconSvg(Math.round(SIZE*0.55), BROWN)}</div>`;
     return `<div style="position:absolute;left:${left}px;top:0;width:${SIZE}px;height:${SIZE}px;border-radius:50%;overflow:hidden;z-index:${zIdx};border:1.5px solid ${borderColor}">${inner}</div>`;
   }).join('');
-  return `<div style="position:relative;width:${totalW}px;height:${SIZE}px;flex-shrink:0;margin-left:auto;margin-right:8px;align-self:center">${circles}</div>`;
+  return `<div style="position:relative;width:${totalW}px;height:${SIZE}px;flex-shrink:0;margin-left:auto;margin-right:-6px;align-self:center">${circles}</div>`;
 }
 </script>
 
