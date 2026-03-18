@@ -4458,12 +4458,60 @@ function scrollHomeCarousel(dir) {
   const total = scroll.children.length;
   _homeCarouselIdx = Math.max(0, Math.min(total - 1, _homeCarouselIdx + dir));
   const cards = scroll.children;
-  if (cards[_homeCarouselIdx]) cards[_homeCarouselIdx].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  if (cards[_homeCarouselIdx]) scroll.scrollTo({ left: cards[_homeCarouselIdx].offsetLeft, behavior: 'smooth' });
   // Sync dateIdx and week strip
   if (dateIdx !== _homeCarouselIdx) {
     dateIdx = _homeCarouselIdx;
-    const ws = document.getElementById('week-strip');
-    if (ws) { _weekStripAnimate = true; ws.outerHTML = renderWeekStrip(); setTimeout(_initWeekStrip, 0); }
+    const _fd = FUTURE_DATES[dateIdx];
+    const inner = document.getElementById('week-strip-inner');
+    if (inner && _fd) {
+      const _isDark = document.body.classList.contains('dark-mode');
+      const today = new Date(); today.setHours(0,0,0,0);
+      const ref = _fd._ref || _fd;
+      const sel = new Date(ref.year || today.getFullYear(), MONTH_NUMS[ref.month]??0, ref.day);
+      sel.setHours(0,0,0,0);
+      const selectedTs = sel.getTime();
+
+      // Determine which week page (0-3) the selected date falls on
+      const todaySunday = new Date(today);
+      todaySunday.setDate(today.getDate() - today.getDay());
+      const diffDays = Math.floor((sel - todaySunday) / 86400000);
+      const targetPage = Math.max(0, Math.min(3, Math.floor(diffDays / 7)));
+      const stripScroll = document.getElementById('week-strip-scroll');
+      if (stripScroll) {
+        const pages = stripScroll.querySelectorAll('.week-page');
+        const w = stripScroll.clientWidth;
+        if (pages.length && w) {
+          const curPage = Math.round(stripScroll.scrollLeft / w);
+          if (curPage !== targetPage) {
+            stripScroll.style.scrollSnapType = 'none';
+            stripScroll.scrollTo({ left: targetPage * w, behavior: 'smooth' });
+            setTimeout(() => { stripScroll.style.scrollSnapType = 'x mandatory'; }, 350);
+          }
+        }
+      }
+
+      inner.querySelectorAll('.week-day').forEach(cell => {
+        const numWrap = cell.querySelector('.week-day-num-wrap');
+        const numSpan = cell.querySelector('.week-day-num');
+        if (!numWrap || !numSpan) return;
+        const onclick = cell.getAttribute('onclick') || '';
+        const selectMatch = onclick.match(/selectWeekDate\((\d+)\)/);
+        const tooltipMatch = onclick.match(/showWeekTooltip\(event,(\d+),(\d+),(\d+)\)/);
+        let cellTs = null;
+        if (selectMatch) {
+          const fd2 = FUTURE_DATES[parseInt(selectMatch[1])];
+          if (fd2) { const r=fd2._ref||fd2; const d=new Date(r.year||today.getFullYear(),MONTH_NUMS[r.month]??0,r.day); d.setHours(0,0,0,0); cellTs=d.getTime(); }
+        } else if (tooltipMatch) {
+          const d=new Date(parseInt(tooltipMatch[3]),parseInt(tooltipMatch[2]),parseInt(tooltipMatch[1])); d.setHours(0,0,0,0); cellTs=d.getTime();
+        }
+        const isSelected = cellTs !== null && cellTs === selectedTs;
+        const isToday = cellTs !== null && cellTs === today.getTime();
+        numWrap.style.background = isSelected ? ROSE : isToday ? 'rgba(192,122,138,0.15)' : 'transparent';
+        numSpan.style.color = isSelected ? '#fff' : isToday ? ROSE : (_isDark ? '#f0ede9' : '#2a1f1f');
+        numSpan.style.fontWeight = (isSelected || isToday) ? '700' : '400';
+      });
+    }
   }
   _syncHomeMonthCalToDate(_homeCarouselIdx);
 }
