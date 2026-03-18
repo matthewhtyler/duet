@@ -8570,6 +8570,7 @@ function _openEditCommuteFromDateInfo(ideaId, mapsUrl) {
   if (!idea) return;
   window._ecDateInfoIdeaId = ideaId; // flag: we're editing from Date Info
   window._ecPfVisible = false;
+  window._ecIdeaAddress = idea.address || idea.neighborhood || idea.name || '';
   const subwayVal   = (idea.subwayRoute    || '').replace(/\s*\?\s*$/, '').trim();
   const walkdriveVal= (idea.walkDriveTime  || '').replace(/\s*\?\s*$/, '').trim();
   const ecSubway    = document.getElementById('ec-subway');
@@ -8583,9 +8584,7 @@ function _openEditCommuteFromDateInfo(ideaId, mapsUrl) {
 }
 
 function _ecGetIdeaAddress() {
-  const pfVisible = window._ecPfVisible;
-  const addrEl = pfVisible ? document.getElementById('pf-address') : document.getElementById('idea-address');
-  return addrEl ? addrEl.value.trim() : '';
+  return window._ecIdeaAddress || '';
 }
 
 function _ecOpenTransitDirections() {
@@ -8627,6 +8626,10 @@ function _openEditCommute(mapsUrl) {
 
   // Store context so save knows where to write back
   window._ecPfVisible = pfVisible;
+  // Store idea address for direction buttons
+  const addrEl = pfVisible ? document.getElementById('pf-address') : document.getElementById('idea-address');
+  const nameEl = pfVisible ? document.getElementById('pf-name') : document.getElementById('idea-name');
+  window._ecIdeaAddress = (addrEl && addrEl.value.trim()) || (nameEl && nameEl.value.trim()) || '';
 
   document.getElementById('edit-commute-overlay').style.display = 'flex';
   document.body.classList.add('overlay-open');
