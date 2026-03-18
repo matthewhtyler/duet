@@ -14093,18 +14093,23 @@ function _openPersonPhotoViewer() {
   if (!p || !p.photoUrl) return;
   const viewerSize = Math.min(window.innerWidth * 0.8, window.innerHeight * 0.8);
   const viewer = document.getElementById('person-photo-viewer');
-  const container = document.getElementById('person-photo-viewer-img').parentNode;
-  // Replace img with a properly cropped avatar div
+  const img = document.getElementById('person-photo-viewer-img');
+  if (!img) return;
+  const container = img.parentNode;
+  // Remove any previously injected avatar div
+  const prev = container.querySelector('.person-photo-viewer-avatar');
+  if (prev) prev.remove();
+  // Hide original img, inject cropped avatar div
+  img.style.display = 'none';
   const t = document.createElement('div');
   t.innerHTML = _personAvatarHtml(p, viewerSize);
   const avatarDiv = t.firstChild;
   if (avatarDiv) {
+    avatarDiv.classList.add('person-photo-viewer-avatar');
     avatarDiv.style.width = viewerSize + 'px';
     avatarDiv.style.height = viewerSize + 'px';
     avatarDiv.style.flexShrink = '0';
-    // Replace the img element with the avatar div
-    const img = document.getElementById('person-photo-viewer-img');
-    if (img) img.replaceWith(avatarDiv);
+    container.appendChild(avatarDiv);
   }
   viewer.style.display = 'flex';
 }
@@ -14278,7 +14283,7 @@ function _resLabel(idea) {
 </div>
 
 <!-- Fullscreen person photo viewer -->
-<div id="person-photo-viewer" onclick="this.style.display='none'" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:490;align-items:center;justify-content:center;cursor:pointer">
+<div id="person-photo-viewer" onclick="this.style.display='none';var _av=this.querySelector('.person-photo-viewer-avatar');if(_av)_av.remove();var _im=document.getElementById('person-photo-viewer-img');if(_im)_im.style.display=''" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:490;align-items:center;justify-content:center;cursor:pointer">
   <img id="person-photo-viewer-img" src="" style="max-width:90vw;max-height:90vh;border-radius:50%;object-fit:cover;width:min(80vw,80vh);height:min(80vw,80vh)">
 </div>
 
