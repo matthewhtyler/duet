@@ -2025,6 +2025,8 @@ function _updateLastTabIcon() {
   const view = _LAST_TAB_VIEW[_lastTabMode];
   const isActive = currentView === view;
   icon.style.stroke = isActive ? ROSE : '#b0a090';
+  icon.style.position = 'relative';
+  icon.style.top = _lastTabMode === 'memories' ? '2px' : '0px';
 }
 
 // ═══════════════════════════════════════════════════════
