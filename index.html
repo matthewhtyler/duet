@@ -8582,6 +8582,30 @@ function _openEditCommuteFromDateInfo(ideaId, mapsUrl) {
   document.body.classList.add('overlay-open');
 }
 
+function _ecGetIdeaAddress() {
+  const pfVisible = window._ecPfVisible;
+  const addrEl = pfVisible ? document.getElementById('pf-address') : document.getElementById('idea-address');
+  return addrEl ? addrEl.value.trim() : '';
+}
+
+function _ecOpenTransitDirections() {
+  const dest = _ecGetIdeaAddress();
+  const url = homeAddress && dest
+    ? `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(homeAddress)}&destination=${encodeURIComponent(dest)}&travelmode=transit`
+    : dest ? `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(dest)}&travelmode=transit`
+    : 'https://maps.google.com';
+  _openExternal(url);
+}
+
+function _ecOpenDrivingDirections() {
+  const dest = _ecGetIdeaAddress();
+  const url = homeAddress && dest
+    ? `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(homeAddress)}&destination=${encodeURIComponent(dest)}&travelmode=driving`
+    : dest ? `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(dest)}&travelmode=driving`
+    : 'https://maps.google.com';
+  _openExternal(url);
+}
+
 function _openEditCommute(mapsUrl) {
   // Open maps
   if (mapsUrl) _openExternal(mapsUrl);
@@ -14224,7 +14248,9 @@ function _resLabel(idea) {
       <!-- Subway -->
       <div>
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:0">
-          <svg viewBox="0 0 24 24" width="18" height="18" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="9" y1="7" x2="15" y2="7"/><circle cx="9" cy="13" r="1" fill="#9a8a7a"/><circle cx="15" cy="13" r="1" fill="#9a8a7a"/><line x1="9" y1="17" x2="9" y2="19"/><line x1="15" y1="17" x2="15" y2="19"/></svg>
+          <button type="button" onclick="_ecOpenTransitDirections()" title="Get transit directions" style="background:none;border:none;cursor:pointer;padding:0;display:flex;flex-shrink:0">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#9a8a7a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><text x="12" y="16.5" text-anchor="middle" font-family="'Helvetica Neue','Arial Black',Arial,sans-serif" font-weight="900" font-size="13" fill="#9a8a7a" stroke="none">A</text></svg>
+          </button>
           <input id="ec-subway" class="field-input" type="text" placeholder="Transit (e.g. G to Metropolitan Av 25 min)" oninput="_ecRenderSubway()" style="flex:1;margin-bottom:0">
         </div>
         <div id="ec-subway-badges" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:0;margin-left:28px;min-height:0"></div>
@@ -14232,7 +14258,9 @@ function _resLabel(idea) {
       <!-- Walk/Drive -->
       <div>
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:0">
-          <svg viewBox="0 0 24 24" width="18" height="18" fill="#9a8a7a" style="flex-shrink:0"><path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z"/></svg>
+          <button type="button" onclick="_ecOpenDrivingDirections()" title="Get driving directions" style="background:none;border:none;cursor:pointer;padding:0;display:flex;flex-shrink:0">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="#9a8a7a" style="flex-shrink:0"><path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z"/></svg>
+          </button>
           <input id="ec-walkdrive" class="field-input" type="text" placeholder="Walk / Drive (e.g. 12 min walk / 8 min drive)" oninput="_ecRenderWalkdrive()" style="flex:1;margin-bottom:0">
         </div>
         <div id="ec-walkdrive-badges" style="display:flex;align-items:center;gap:8px;margin-top:0;margin-left:28px;min-height:0"></div>
@@ -14344,7 +14372,7 @@ function _resLabel(idea) {
           </button>
           <input class="field-input" id="ep-subway" type="text" placeholder="Transit (e.g. A C to 14th St 25min)" oninput="_epRenderSubwayBadges()" style="flex:1;margin-bottom:0">
         </div>
-        <div id="ep-subway-badges" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:4px;margin-left:28px;min-height:0"></div>
+        <div id="ep-subway-badges" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:6px;margin-left:28px;min-height:0;padding-top:3px"></div>
       </div>
       <!-- Walk/Drive -->
       <div>
@@ -14354,7 +14382,7 @@ function _resLabel(idea) {
           </button>
           <input class="field-input" id="ep-walkdrive" type="text" placeholder="Walk / Drive (e.g. 20min walk / 8min drive)" oninput="_epRenderWalkDriveBadges()" style="flex:1;margin-bottom:0">
         </div>
-        <div id="ep-walkdrive-badges" style="display:flex;align-items:center;gap:8px;margin-top:4px;margin-left:28px;min-height:0"></div>
+        <div id="ep-walkdrive-badges" style="display:flex;align-items:center;gap:8px;margin-top:6px;margin-left:28px;min-height:0;padding-top:3px"></div>
       </div>
       <!-- Phone -->
       <div style="display:flex;align-items:center;gap:10px">
