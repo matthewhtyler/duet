@@ -4490,7 +4490,41 @@ function _initHomeCarousel() {
             return dt >= sun && dt < end4;
           })();
           const ws = document.getElementById('week-strip');
-          if (ws && inRange) { _weekStripAnimate = true; ws.outerHTML = renderWeekStrip(); setTimeout(_initWeekStrip, 0); }
+          if (ws && inRange) {
+            // Update selection in-place — no DOM replacement, no scroll glitch
+            const inner = document.getElementById('week-strip-inner');
+            if (inner) {
+              const _isDark = document.body.classList.contains('dark-mode');
+              const today2 = new Date(); today2.setHours(0,0,0,0);
+              let selectedTs2 = null;
+              if (_fd) {
+                const ref = _fd._ref || _fd;
+                const mNum = MONTH_NUMS[ref.month] ?? 0;
+                const sel = new Date(ref.year || today2.getFullYear(), mNum, ref.day);
+                sel.setHours(0,0,0,0); selectedTs2 = sel.getTime();
+              }
+              inner.querySelectorAll('.week-day').forEach(cell => {
+                const numWrap = cell.querySelector('.week-day-num-wrap');
+                const numSpan = cell.querySelector('.week-day-num');
+                if (!numWrap || !numSpan) return;
+                const onclick = cell.getAttribute('onclick') || '';
+                const selectMatch = onclick.match(/selectWeekDate\((\d+)\)/);
+                const tooltipMatch = onclick.match(/showWeekTooltip\(event,(\d+),(\d+),(\d+)\)/);
+                let cellTs = null;
+                if (selectMatch) {
+                  const fd2 = FUTURE_DATES[parseInt(selectMatch[1])];
+                  if (fd2) { const ref2 = fd2._ref||fd2; const mNum2 = MONTH_NUMS[ref2.month]??0; const d = new Date(ref2.year||today2.getFullYear(),mNum2,ref2.day); d.setHours(0,0,0,0); cellTs = d.getTime(); }
+                } else if (tooltipMatch) {
+                  const d = new Date(parseInt(tooltipMatch[3]),parseInt(tooltipMatch[2]),parseInt(tooltipMatch[1])); d.setHours(0,0,0,0); cellTs = d.getTime();
+                }
+                const isSelected = cellTs !== null && cellTs === selectedTs2;
+                const isToday2 = cellTs !== null && cellTs === today2.getTime();
+                numWrap.style.background = isSelected ? ROSE : isToday2 ? 'rgba(192,122,138,0.15)' : 'transparent';
+                numSpan.style.color = isSelected ? '#fff' : isToday2 ? ROSE : (_isDark ? '#f0ede9' : '#2a1f1f');
+                numSpan.style.fontWeight = (isSelected || isToday2) ? '700' : '400';
+              });
+            }
+          }
           _syncHomeMonthCalToDate(_homeCarouselIdx);
         }
       }
