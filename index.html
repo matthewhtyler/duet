@@ -7618,7 +7618,9 @@ function selectWeekDate(idx) {
   if (homeLayout !== 'compact') {
     const carousel = document.getElementById('home-dates-carousel');
     if (carousel && carousel.children[idx]) {
-      // Use instant scroll to avoid triggering scroll observers/glitches in the week strip
+      // Temporarily suppress the carousel scroll handler to prevent week strip re-render glitch
+      const handler = carousel._carouselScrollHandler;
+      if (handler) carousel.removeEventListener('scroll', handler);
       const card = carousel.children[idx];
       carousel.scrollTo({ left: card.offsetLeft, behavior: 'instant' });
       // Re-render strip only to update the selection highlight, with no page animation
@@ -7626,15 +7628,19 @@ function selectWeekDate(idx) {
       if (ws) {
         _weekStripAnimate = false;
         const newHtml = renderWeekStrip();
-        // Preserve current scroll position by reading it before swap
         const stripScroll = document.getElementById('week-strip-scroll');
         const curScrollLeft = stripScroll ? stripScroll.scrollLeft : 0;
         ws.outerHTML = newHtml;
-        // Immediately restore scroll position so there's no jump
         requestAnimationFrame(() => {
           const s = document.getElementById('week-strip-scroll');
           if (s) { s.style.scrollSnapType = 'none'; s.scrollLeft = curScrollLeft; requestAnimationFrame(() => { s.style.scrollSnapType = 'x mandatory'; _initWeekStrip(); }); }
+          // Re-attach carousel scroll handler after strip is stable
+          const c2 = document.getElementById('home-dates-carousel');
+          if (c2 && handler) { c2.addEventListener('scroll', handler, { passive: true }); c2._carouselScrollHandler = handler; }
         });
+      } else {
+        // No week strip — just restore handler
+        if (handler) { carousel.addEventListener('scroll', handler, { passive: true }); }
       }
       return;
     }
