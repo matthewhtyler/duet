@@ -2684,12 +2684,18 @@ function renderNav() {
   if (_pastRow) {
     if (currentView === 'past') {
       const _pq = memoriesSearch || '';
-      const _clearBtn = _pq ? `<button onclick="memoriesSearch='';_renderPastDates();document.getElementById('memories-search-input').value=''" style="background:none;border:none;cursor:pointer;padding:0;display:flex;flex-shrink:0;line-height:0"><svg viewBox="0 0 24 24" width="14" height="14" stroke="#9a8a7a" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>` : '';
-      _pastRow.innerHTML = `<div style="display:flex;align-items:center;background:var(--toggle-bg);border-radius:20px;padding:5px 10px;gap:6px;width:200px;flex-shrink:0">
+      const _clearBtn = _pq ? `<button id="memories-search-clear" onclick="memoriesSearch='';document.getElementById('memories-search-input').value='';this.style.display='none';_renderPastDates()" style="background:none;border:none;cursor:pointer;padding:0;display:flex;flex-shrink:0;line-height:0;align-self:center"><svg viewBox="0 0 24 24" width="13" height="13" stroke="#9a8a7a" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>` : `<button id="memories-search-clear" style="display:none;background:none;border:none;cursor:pointer;padding:0;flex-shrink:0;line-height:0;align-self:center" onclick="memoriesSearch='';_renderPastDates();document.getElementById('memories-search-input').value=''"><svg viewBox="0 0 24 24" width="13" height="13" stroke="#9a8a7a" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>`;
+      if (document.getElementById('memories-search-input')) {
+        // Row already exists — just sync clear button visibility
+        const existingClear = document.getElementById('memories-search-clear');
+        if (existingClear) existingClear.style.display = _pq ? 'flex' : 'none';
+      } else {
+      _pastRow.innerHTML = `<div style="display:flex;align-items:center;background:var(--toggle-bg);border-radius:20px;padding:5px 10px;gap:6px;flex-shrink:0;width:200px;overflow:hidden">
         <svg viewBox="0 0 24 24" width="13" height="13" stroke="#9a8a7a" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-        <input id="memories-search-input" type="text" value="${_pq.replace(/"/g,'&quot;')}" oninput="memoriesSearch=this.value;_renderPastDates()" placeholder="" style="border:none;background:transparent;outline:none;font-size:16px;font-family:sans-serif;color:var(--text-primary);width:100%;line-height:1;padding:0;min-width:0">
+        <input id="memories-search-input" type="text" value="${_pq.replace(/"/g,'&quot;')}" oninput="memoriesSearch=this.value;const c=document.getElementById('memories-search-clear');if(c)c.style.display=this.value?'flex':'none';_renderPastDates()" placeholder="" style="border:none;background:transparent;outline:none;font-size:16px;font-family:sans-serif;color:var(--text-primary);flex:1;line-height:1;padding:0;min-width:0">
         ${_clearBtn}
       </div>`;
+      }
       _pastRow.style.display = 'flex';
       if (_appEl2) _appEl2.classList.add('past-nav');
     } else {
@@ -2830,12 +2836,10 @@ function setInTabFilter(f) {
 function goToNeighborhood(name) {
   closeDetail();
   closeDateInfo();
-  currentView = 'ideas';
-  ideasFilter = 'favs'; // 'favs' triggers the additionalTab content
+  ideasFilter = 'favs';
   additionalTab = 'neighborhood';
   neighTabFilter = name;
-  const main = document.getElementById('main-content');
-  if (main) main.innerHTML = renderIdeas();
+  navigate('ideas');
   requestAnimationFrame(() => {
     const strip = document.getElementById('neigh-tab-strip');
     if (!strip) return;
@@ -5947,12 +5951,17 @@ function renderPastDates() {
   const all = _computeMemories().filter(d => !_isDateHiddenPrivate(d));
   const memories = q ? all.filter(d => {
     const idea = ideas.find(i => i.name && d.venue && i.name.toLowerCase() === d.venue.toLowerCase());
+    const peopleNames = (d.people || []).map(e => {
+      const p = e.id ? people.find(x => x.id === e.id) : null;
+      return p ? _personFullName(p) : (e.name || '');
+    });
     return [
       d.venue, d.activity, d.note, d.neighborhood, d.label, d.month,
-      d.time, d.inLocation, d.inLocationOtherName,
+      d.time, d.inLocation, d.inLocationOtherName, d.address,
       idea && idea.shortdesc, idea && idea.about, idea && idea.cuisine,
       idea && idea.category, idea && idea.neighborhood, idea && idea.address,
-      idea && idea.subwayRoute, idea && idea.note
+      idea && idea.subwayRoute, idea && idea.note,
+      ...peopleNames
     ].some(f => f && typeof f === 'string' && f.toLowerCase().includes(q));
   }) : all;
   const BROWN = '#9a8a7a';
@@ -5967,6 +5976,8 @@ function renderPastDates() {
     const imgUrls = _getMemoryImageUrls(d);
     const hasImg = imgUrls.length > 0;
 
+    const peopleBadge = !hidePrivate && (d.people || []).length ? _buildMemoryPeopleHtml(d.people) : '';
+
     const cardContent = `
       <div class="upcoming-date-badge">
         <span class="upcoming-month" style="color:${BROWN}">${d.month}</span>
@@ -5979,12 +5990,33 @@ function renderPastDates() {
           <span class="upcoming-venue" style="color:${BROWN}">${d.venue}</span>
         </div>
         <span class="upcoming-sub">${sub}</span>
-      </div>`;
+      </div>
+      ${hasImg ? '' : peopleBadge}`;
 
     if (hasImg) {
+      // Build people overlay for banner - positioned bottom right
+      const SIZE = 26; const OVERLAP = 7;
+      const peeps = (!hidePrivate && (d.people || []).slice(0, 4)) || [];
+      const bannerPeople = peeps.length ? (() => {
+        const totalW = SIZE + (peeps.length - 1) * (SIZE - OVERLAP);
+        const isDark = document.body.classList.contains('dark-mode');
+        const borderColor = isDark ? '#fff' : '#555';
+        const circles = peeps.map((e, i) => {
+          const p = e.id ? people.find(x => x.id === e.id) : null;
+          const left = i * (SIZE - OVERLAP);
+          const zIdx = peeps.length - i;
+          const inner = (p && p.photoUrl)
+            ? `<div style="position:relative;width:${SIZE}px;height:${SIZE}px;border-radius:50%;overflow:hidden">${_personAvatarInner(p, SIZE)}</div>`
+            : `<div style="width:${SIZE}px;height:${SIZE}px;border-radius:50%;background:rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center">${_personIconSvg(Math.round(SIZE*0.55),'rgba(255,255,255,0.8)')}</div>`;
+          return `<div style="position:absolute;left:${left}px;top:0;width:${SIZE}px;height:${SIZE}px;border-radius:50%;overflow:hidden;z-index:${zIdx};border:1.5px solid ${borderColor}">${inner}</div>`;
+        }).join('');
+        return `<div style="position:absolute;bottom:8px;right:8px;width:${totalW}px;height:${SIZE}px;z-index:2">${circles}</div>`;
+      })() : '';
+
       return `<div onclick="openMemoryInfo('${safeId}')" style="background:var(--bg-card);border-radius:14px;border:1px solid var(--border);margin-bottom:8px;overflow:hidden;cursor:pointer">
         <div style="height:120px;overflow:hidden;background:#6b2340;position:relative">
           <img src="${imgUrls[0]}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center;display:block" onerror="this.parentNode.style.background='#6b2340';this.style.display='none'">
+          ${bannerPeople}
         </div>
         <div class="upcoming-item" style="border:none;border-radius:0;margin-bottom:0">${cardContent}</div>
       </div>`;
@@ -6032,6 +6064,9 @@ function openMemoryInfo(id) {
     walkDriveTime: d.walkDriveTime || '',
     about: d.note || '',
     activity: d.activity || '',
+    people: d.people || [],
+    locationPersonId: d.locationPersonId || undefined,
+    id: d.id,
     _memoryImageUrls: _getMemoryImageUrls(d)
   };
   openDateInfo(u, true /* memoryMode */);
@@ -6494,6 +6529,7 @@ function selectCalDay(day) {
   selectedCalDay = day;
   _calBannerIdx = 0;
   _calInfoPanelIdx = 0;
+  window._calActiveDateId = null; // reset so render picks the correct first date
   render();
 }
 
@@ -7020,14 +7056,17 @@ function _initCalInfoScroll() {
         const newActiveDateId = activeDate ? String(activeDate.id) : null;
         if (newActiveDateId !== window._calActiveDateId) {
           window._calActiveDateId = newActiveDateId;
-          // Re-paint borders on upcoming cards for this day
+          // Re-paint borders on upcoming cards — reset all, highlight only active
           document.querySelectorAll('#cal-upcoming .upcoming-item').forEach(el => {
             const cardId = el.dataset.dateId;
             const u = UPCOMING_DATES.find(d => String(d.id) === cardId);
             if (!u) return;
             const MONTH_NUMS2 = {Jan:0,Feb:1,Mar:2,Apr:3,May:4,Jun:5,Jul:6,Aug:7,Sep:8,Oct:9,Nov:10,Dec:11};
-            if (u.day === selectedCalDay && (u.year||2026) === currentCalYear && (MONTH_NUMS2[u.month]||0) === currentCalMonth) {
+            const isThisDay = u.day === selectedCalDay && (u.year||2026) === currentCalYear && (MONTH_NUMS2[u.month]||0) === currentCalMonth;
+            if (isThisDay) {
               el.style.borderColor = String(u.id) === window._calActiveDateId ? ROSE : 'var(--text-secondary)';
+            } else {
+              el.style.borderColor = ''; // reset any leftover border from previous selection
             }
           });
         }
@@ -9798,8 +9837,8 @@ function openDateInfo(u, memoryMode) {
       const p = e.id ? people.find(x => x.id === e.id) : null;
       const name = p ? (p.firstName || _personFullName(p)) : (e.name || 'Unknown');
       return p
-        ? `<span onclick="event.stopPropagation();openPersonInfo('${p.id}')" style="cursor:pointer;color:var(--text-primary)">${name}</span>`
-        : `<span>${name}</span>`;
+        ? `<span onclick="event.stopPropagation();openPersonInfo('${p.id}')" style="cursor:pointer;color:#9a8a7a">${name}</span>`
+        : `<span style="color:#9a8a7a">${name}</span>`;
     }).join('<span style="color:#9a8a7a">, </span>');
     diPeopleRow.style.display = 'flex';
   } else if (diPeopleRow) {
@@ -12179,12 +12218,17 @@ function _updatePeopleNavRow() {
   if (!row) return;
   if (currentView === 'people') {
     const q = peopleSearch || '';
-    const clearBtn = q ? `<button onclick="peopleSearch='';_renderPeople();document.getElementById('people-search-input').value=''" style="background:none;border:none;cursor:pointer;padding:0;display:flex;flex-shrink:0;line-height:0"><svg viewBox="0 0 24 24" width="14" height="14" stroke="#9a8a7a" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>` : '';
-    row.innerHTML = `<div style="display:flex;align-items:center;background:var(--toggle-bg);border-radius:20px;padding:5px 10px;gap:6px;width:200px;flex-shrink:0">
+    const clearBtn = `<button id="people-search-clear" style="${q ? 'display:flex' : 'display:none'};background:none;border:none;cursor:pointer;padding:0;flex-shrink:0;line-height:0;align-self:center" onclick="peopleSearch='';document.getElementById('people-search-input').value='';this.style.display='none';_renderPeople()"><svg viewBox="0 0 24 24" width="13" height="13" stroke="#9a8a7a" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>`;
+    if (document.getElementById('people-search-input')) {
+      const existingClear = document.getElementById('people-search-clear');
+      if (existingClear) existingClear.style.display = q ? 'flex' : 'none';
+    } else {
+    row.innerHTML = `<div style="display:flex;align-items:center;background:var(--toggle-bg);border-radius:20px;padding:5px 10px;gap:6px;flex-shrink:0;width:200px;overflow:hidden">
       <svg viewBox="0 0 24 24" width="13" height="13" stroke="#9a8a7a" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-      <input id="people-search-input" type="text" value="${q.replace(/"/g,'&quot;')}" oninput="peopleSearch=this.value;_renderPeople()" placeholder="" style="border:none;background:transparent;outline:none;font-size:16px;font-family:sans-serif;color:var(--text-primary);width:100%;line-height:1;padding:0;min-width:0">
+      <input id="people-search-input" type="text" value="${q.replace(/"/g,'&quot;')}" oninput="peopleSearch=this.value;const c=document.getElementById('people-search-clear');if(c)c.style.display=this.value?'flex':'none';_renderPeople()" placeholder="" style="border:none;background:transparent;outline:none;font-size:16px;font-family:sans-serif;color:var(--text-primary);flex:1;line-height:1;padding:0;min-width:0">
       ${clearBtn}
     </div>`;
+    }
     row.style.display = 'flex';
     if (appEl) appEl.classList.add('people-nav');
   } else {
@@ -12624,12 +12668,18 @@ function _peopleSuggest(ctx) {
   if (!q) { sug.style.display = 'none'; return; }
   const already = new Set((_datePeopleEntries[ctx] || []).map(e => e.id).filter(Boolean));
   const _seenIds = new Set();
+  const _seenNames = new Set();
   const matches = people.filter(p => {
-    if (!p.firstName && !p.lastName) return false; // skip empty stubs
+    if (!p.firstName && !p.lastName) return false; // skip blank stubs
     if (already.has(p.id)) return false;
     if (_seenIds.has(p.id)) return false;
+    const fullName = _personFullName(p).toLowerCase();
+    if (!fullName.includes(q)) return false;
+    // Deduplicate stale/duplicate entries: if same full name already shown, skip
+    if (_seenNames.has(fullName)) return false;
     _seenIds.add(p.id);
-    return _personFullName(p).toLowerCase().includes(q);
+    _seenNames.add(fullName);
+    return true;
   }).slice(0, 6);
   if (!matches.length) { sug.style.display = 'none'; return; }
   sug.innerHTML = matches.map(p => {
@@ -12736,8 +12786,23 @@ const _origSaveEditDate = saveEditDate;
 saveEditDate = function() {
   const _edPeople = _serializePeopleEntries('ed');
   _origSaveEditDate.call(this);
-  // The date was already saved — patch it
-  const u = (edDateId != null ? UPCOMING_DATES.find(d => d.id === edDateId) : null) || UPCOMING_DATES[edDateIdx];
+  // Find the date — use _editingMemory.id for memory mode, otherwise edDateId/edDateIdx
+  let u = null;
+  if (_editingMemory) {
+    u = UPCOMING_DATES.find(d => String(d.id) === String(_editingMemory.id)) ||
+        UPCOMING_DATES.find(d => String(d.id) === String(edDateId));
+    // Also save people to ll_memories for true past dates
+    if (_edPeople) {
+      try {
+        const saved = JSON.parse(localStorage.getItem('ll_memories') || '{}');
+        const key = String(_editingMemory.id);
+        saved[key] = { ...(saved[key] || {}), people: _edPeople };
+        localStorage.setItem('ll_memories', JSON.stringify(saved));
+      } catch(e) {}
+    }
+  } else {
+    u = (edDateId != null ? UPCOMING_DATES.find(d => d.id === edDateId) : null) || UPCOMING_DATES[edDateIdx];
+  }
   if (u) { u.people = _edPeople || undefined; saveDates(UPCOMING_DATES); }
 };
 
@@ -13585,6 +13650,27 @@ function _clearMyPlace(ctx) {
   const inp = document.getElementById(ctx === 'date' ? 'date-location-text' : 'ed-location');
   if (inp) { inp.value = ''; inp.placeholder = 'Address…'; }
   _syncLocationClearBtn(ctx);
+}
+
+function _buildMemoryPeopleHtml(peepsArr) {
+  const peeps = (peepsArr || []).slice(0, 4);
+  if (!peeps.length) return '';
+  const SIZE = 26;
+  const OVERLAP = 7;
+  const BROWN = '#9a8a7a';
+  const isDark = document.body.classList.contains('dark-mode');
+  const borderColor = isDark ? '#fff' : '#555';
+  const totalW = SIZE + (peeps.length - 1) * (SIZE - OVERLAP);
+  const circles = peeps.map((e, i) => {
+    const p = e.id ? people.find(x => x.id === e.id) : null;
+    const left = i * (SIZE - OVERLAP);
+    const zIdx = peeps.length - i;
+    const inner = (p && p.photoUrl)
+      ? `<div style="position:relative;width:${SIZE}px;height:${SIZE}px;border-radius:50%;overflow:hidden">${_personAvatarInner(p, SIZE)}</div>`
+      : `<div style="width:${SIZE}px;height:${SIZE}px;border-radius:50%;background:var(--toggle-bg);display:flex;align-items:center;justify-content:center">${_personIconSvg(Math.round(SIZE*0.55), BROWN)}</div>`;
+    return `<div style="position:absolute;left:${left}px;top:0;width:${SIZE}px;height:${SIZE}px;border-radius:50%;overflow:hidden;z-index:${zIdx};border:1.5px solid ${borderColor}">${inner}</div>`;
+  }).join('');
+  return `<div style="position:relative;width:${totalW}px;height:${SIZE}px;flex-shrink:0;margin-left:auto;margin-right:8px;align-self:center">${circles}</div>`;
 }
 </script>
 
