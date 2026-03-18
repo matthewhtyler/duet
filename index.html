@@ -7618,7 +7618,9 @@ function selectWeekDate(idx) {
   if (homeLayout !== 'compact') {
     const carousel = document.getElementById('home-dates-carousel');
     if (carousel && carousel.children[idx]) {
-      carousel.children[idx].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      // Use instant scroll to avoid triggering scroll observers/glitches in the week strip
+      const card = carousel.children[idx];
+      carousel.scrollTo({ left: card.offsetLeft, behavior: 'instant' });
       // Re-render strip only to update the selection highlight, with no page animation
       const ws = document.getElementById('week-strip');
       if (ws) {
