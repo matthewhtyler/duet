@@ -5310,7 +5310,7 @@ function _buildUpcomingCardHtml(u, extraStyle, directOpen, navToCal) {
     if (!_reservedDateKeys.has(_calDk)) {
       const _calResUrl = _buildResUrl(u.venue, _calIdea.reservation, _todoDateStr(u), _todoTimeStr(u.time), _calIdea.eventbriteUrl, _calIdea.websiteUrl, _calIdea.opentableUrl, _calIdea.resyUrl);
       if (_calIdea.reservation !== 'website' || _calResUrl) {
-        const _calLabel = (_calIdea.reservation === 'resy' || _calIdea.reservation === 'opentable') ? 'Reserve' : 'Tickets';
+        const _calLabel = _resLabel(_calIdea);
         _calResBtn = `<button class="cal-res-btn" style="border:1.5px solid ${ROSE};color:${ROSE}" onclick="event.stopPropagation();openReserveLinkFromCal('${_calResUrl.replace(/'/g,"\'")}','${_calDk}')">${_calLabel}</button>`;
       }
     }
@@ -6160,7 +6160,7 @@ function renderCalendar() {
         const _ipDk = _dateKey(u);
         const _ipAlreadyReserved = _reservedDateKeys.has(_ipDk);
         const _ipResUrl = _buildResUrl(u.venue, _ipIdea.reservation, _todoDateStr(u), _todoTimeStr(u.time), _ipIdea.eventbriteUrl, _ipIdea.websiteUrl, _ipIdea.opentableUrl, _ipIdea.resyUrl);
-        const _ipLabel = (_ipIdea.reservation === 'resy' || _ipIdea.reservation === 'opentable') ? 'Reserve' : 'Tickets';
+        const _ipLabel = _resLabel(_ipIdea);
         if (!_ipAlreadyReserved && (_ipIdea.reservation !== 'website' || _ipResUrl)) {
           const _ipResText = _ipLabel === 'Reserve' ? 'Make a reservation' : 'Purchase tickets';
           const _ipCircleBtn = `<button id="cal-details-res-${_ipDk}" onclick="openReserveLink('${_ipResUrl.replace(/'/g,"\\'")}','${_ipDk}')" style="display:flex;align-items:center;gap:6px;height:24px;padding:0 12px;border:none;border-radius:12px;font-family:sans-serif;font-size:12px;font-weight:600;color:#fff;background:${ROSE};cursor:pointer;flex-shrink:0"><svg viewBox="0 0 24 24" width="10" height="10" stroke="#fff" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>${_ipLabel}</button>`;
@@ -9399,7 +9399,7 @@ function openDetail(id, navContext) {
       if (isWebsite && !resUrl) {
         // website with no URL — no button
       } else {
-        const btnLabel = (item.reservation === 'resy' || item.reservation === 'opentable') ? 'Reserve' : 'Tickets';
+        const btnLabel = _resLabel(item);
         // If there's a soonest upcoming date, mirror its reserved state
         if (_soonestDate) {
           const _ideaDk = _dateKey(_soonestDate);
@@ -10089,7 +10089,7 @@ function openDateInfo(u, memoryMode) {
     if (matchedIdea.reservation !== 'website' || resUrl2) {
       const _dk = _dateKey(u);
       const _alreadyReserved = _reservedDateKeys.has(_dk);
-      const _diLabel = (matchedIdea.reservation === 'resy' || matchedIdea.reservation === 'opentable') ? 'Reserve' : 'Tickets';
+      const _diLabel = _resLabel(matchedIdea);
       leftBtnDi = _alreadyReserved
         ? `<button id="di-reserve-btn" onclick="unreserveFromCal('${_dk}')" style="display:flex;align-items:center;justify-content:center;width:26px;height:26px;border:1.5px solid #c07a8a;border-radius:50%;background:none;cursor:pointer"><svg viewBox="0 0 24 24" width="11" height="11" stroke="#c07a8a" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></button>`
         : `<button id="di-reserve-btn" onclick="openReserveLink('${resUrl2.replace(/'/g,"'")}','${_dk}')" style="display:flex;align-items:center;gap:7px;height:34px;padding:0 16px;border:none;border-radius:17px;font-family:sans-serif;font-size:13px;font-weight:600;color:#fff;background:#c07a8a;cursor:pointer;line-height:1"><svg viewBox="0 0 24 24" width="14" height="14" stroke="#fff" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-linejoin="round" style="display:block;flex-shrink:0"><polyline points="20 6 9 17 4 12"/></svg>${_diLabel}</button>`;
@@ -12274,7 +12274,9 @@ function _renderPersonInfoPopup(p) {
   const avatarEl = document.getElementById('pi-avatar');
   if (avatarEl) avatarEl.innerHTML = _personAvatarInner(p, 52);
 
-  // No favorite heart on Person Info popup
+  // Update plan button label based on favorite status
+  const planLabel = document.getElementById('pi-plan-btn-label');
+  if (planLabel) planLabel.textContent = p.favorite ? 'Plan a Date' : 'Plan Something';
 
   const fields = document.getElementById('pi-fields');
   if (!fields) return;
@@ -13677,6 +13679,16 @@ function _buildMemoryPeopleHtml(peepsArr) {
   }).join('');
   return `<div style="position:relative;width:${totalW}px;height:${SIZE}px;flex-shrink:0;margin-left:auto;margin-right:-6px;align-self:center">${circles}</div>`;
 }
+
+function _resLabel(idea) {
+  if (!idea) return 'Tickets';
+  if (idea.reservation === 'resy' || idea.reservation === 'opentable') return 'Reserve';
+  if (idea.reservation === 'website') {
+    const cat = (idea.category || '').toLowerCase();
+    if (cat === 'restaurant' || cat === 'bar' || cat === 'cafe') return 'Reserve';
+  }
+  return 'Tickets';
+}
 </script>
 
 <!-- PLACE FINDER PREVIEW POPUP — z-index 460 -->
@@ -13768,7 +13780,7 @@ function _buildMemoryPeopleHtml(peepsArr) {
       <!-- Fields -->
       <div id="pi-fields" style="display:flex;flex-direction:column;gap:16px;padding:16px 18px 0"></div>
       <div style="display:flex;justify-content:center;padding:28px 18px 4px">
-        <button onclick="_planSomethingWithPerson()" style="display:flex;align-items:center;gap:7px;height:34px;padding:0 16px;border:none;border-radius:17px;font-family:sans-serif;font-size:13px;font-weight:600;color:#fff;background:#c07a8a;cursor:pointer;line-height:1"><svg viewBox="0 0 24 24" width="12" height="12" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-left:4px"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Plan Something</button>
+        <button onclick="_planSomethingWithPerson()" style="display:flex;align-items:center;gap:7px;height:34px;padding:0 16px;border:none;border-radius:17px;font-family:sans-serif;font-size:13px;font-weight:600;color:#fff;background:#c07a8a;cursor:pointer;line-height:1"><svg viewBox="0 0 24 24" width="12" height="12" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-left:4px"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><span id="pi-plan-btn-label">Plan Something</span></button>
       </div>
     </div>
   </div>
