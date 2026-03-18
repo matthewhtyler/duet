@@ -4623,6 +4623,8 @@ function _todoRow(t, noDivider, groupCtx) {
   const _linkedIdea = t.ideaId ? ideas.find(i => i.id === t.ideaId) : null;
   // Idea title for display — prefer explicitly selected idea, else resolve from linked date
   const _resolvedIdea = _linkedIdea || (_linkedDate ? ideas.find(i => i.name && _linkedDate.venue && i.name.toLowerCase() === _linkedDate.venue.toLowerCase()) : null);
+  // Effective personId — explicit on todo, else first person from linked date
+  const _effectivePersonId = t.personId || (_linkedDate && _linkedDate.people && _linkedDate.people.length ? _linkedDate.people[0].id : null);
   const _ideaTitle = _resolvedIdea ? _resolvedIdea.name : (_linkedDate ? _linkedDate.venue : '');
 
   // Clickable idea/date link helper
@@ -4733,6 +4735,18 @@ function _todoRow(t, noDivider, groupCtx) {
   </div>`;
 }
 
+function _todoEffectivePersonId(t) {
+  if (t.personId) return t.personId;
+  const d = _findDateByKey(t.dateKey);
+  return d && d.people && d.people.length ? d.people[0].id : null;
+}
+
+function _todoResolvedIdea(t) {
+  if (t.ideaId) return ideas.find(i => i.id === t.ideaId) || null;
+  const d = _findDateByKey(t.dateKey);
+  return d ? ideas.find(i => i.name && d.venue && i.name.toLowerCase() === d.venue.toLowerCase()) || null : null;
+}
+
 function renderTodo() {
   const priorityOrder = { high: 0, normal: 1, low: 2 };
   const byPriority = (a, b) => {
@@ -4749,25 +4763,21 @@ function renderTodo() {
       return `<div style="padding:20px 20px 80px"><div style="padding:0 10px"><div style="position:fixed;top:calc(50% - 60px);left:50%;transform:translateX(-50%);text-align:center;color:#b0a090;font-size:15px;font-style:italic;pointer-events:none;width:80%;z-index:1">Nothing to do.</div></div></div>`;
     }
 
-    // 1. Person groups: todos with a personId, grouped by person, ordered Next→Soon→Eventually
-    const personTodos = filtered.filter(t => t.personId);
-    const nonPersonTodos = filtered.filter(t => !t.personId);
+    // 1. Person groups: todos with an effective personId (explicit or from linked date)
+    const personTodos = filtered.filter(t => _todoEffectivePersonId(t));
+    const nonPersonTodos = filtered.filter(t => !_todoEffectivePersonId(t));
     const shownIds = new Set();
 
     const personGroups = {};
     personTodos.forEach(t => {
-      if (!personGroups[t.personId]) personGroups[t.personId] = [];
-      personGroups[t.personId].push(t);
+      const pid = _todoEffectivePersonId(t);
+      if (!personGroups[pid]) personGroups[pid] = [];
+      personGroups[pid].push(t);
       shownIds.add(t.id);
     });
     Object.values(personGroups).forEach(arr => arr.sort((a,b) => {
       // Sort by idea name alpha first, then priority within same idea
-      const getIdeaName = t => {
-        const linkedDate = _findDateByKey(t.dateKey);
-        const linkedIdea = t.ideaId ? ideas.find(i => i.id === t.ideaId) : null;
-        const resolved = linkedIdea || (linkedDate ? ideas.find(i => i.name && linkedDate.venue && i.name.toLowerCase() === linkedDate.venue.toLowerCase()) : null);
-        return (resolved ? resolved.name : (linkedDate ? linkedDate.venue : '')) || '';
-      };
+      const getIdeaName = t => (_todoResolvedIdea(t) || {}).name || (_findDateByKey(t.dateKey) || {}).venue || '';
       const ia = getIdeaName(a), ib = getIdeaName(b);
       if (ia !== ib) return ia.localeCompare(ib);
       const pa = priorityOrder[a.priority ?? 'normal'] ?? 1;
@@ -4802,8 +4812,7 @@ function renderTodo() {
       const groups = {};
       remaining.forEach(t => {
         const linkedDate = _findDateByKey(t.dateKey);
-        const linkedIdea = t.ideaId ? ideas.find(i => i.id === t.ideaId) : null;
-        const resolvedIdea = linkedIdea || (linkedDate ? ideas.find(i => i.name && linkedDate.venue && i.name.toLowerCase() === linkedDate.venue.toLowerCase()) : null);
+        const resolvedIdea = _todoResolvedIdea(t);
         const key = resolvedIdea ? resolvedIdea.name : (linkedDate ? linkedDate.venue : UNGROUPED);
         if (!groups[key]) groups[key] = [];
         groups[key].push(t);
@@ -14252,6 +14261,9 @@ function _resLabel(idea) {
           <div id="pi-name" onclick="openEditPersonFromInfo()" style="font-size:18px;font-weight:700;color:var(--popup-title);cursor:pointer;flex:1;min-width:0;padding-left:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></div>
         </div>
         <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
+          <button onclick="_piSearchPerson()" style="background:none;border:none;cursor:pointer;padding:4px 2px;display:flex;align-items:center;line-height:0;color:#9a8a7a">
+            <svg viewBox="0 0 24 24" width="18" height="18" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          </button>
           <button id="pi-edit-btn" onclick="openEditPersonFromInfo()" style="background:none;border:none;cursor:pointer;padding:4px 2px;display:flex;align-items:center;line-height:0;color:#9a8a7a">
             <svg viewBox="0 0 24 24" width="18" height="18"><circle cx="12" cy="5" r="1.5" fill="#9a8a7a"/><circle cx="12" cy="12" r="1.5" fill="#9a8a7a"/><circle cx="12" cy="19" r="1.5" fill="#9a8a7a"/></svg>
           </button>
@@ -14263,7 +14275,7 @@ function _resLabel(idea) {
       <!-- Fields -->
       <div id="pi-fields" style="display:flex;flex-direction:column;gap:16px;padding:16px 18px 0"></div>
       <div style="display:flex;justify-content:center;gap:8px;padding:28px 18px 4px">
-        <button onclick="_piSearchPerson()" style="display:flex;align-items:center;justify-content:center;gap:6px;height:34px;padding:0 14px;border:1.5px solid #c07a8a;border-radius:17px;font-family:sans-serif;font-size:13px;font-weight:600;color:#c07a8a;background:none;cursor:pointer;flex-shrink:0"><svg viewBox="0 0 24 24" width="12" height="12" stroke="#c07a8a" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>Search</button>
+        <button onclick="_piSearchPerson()" style="display:none;align-items:center;justify-content:center;gap:6px;height:34px;padding:0 14px;border:1.5px solid #c07a8a;border-radius:17px;font-family:sans-serif;font-size:13px;font-weight:600;color:#c07a8a;background:none;cursor:pointer;flex-shrink:0"><svg viewBox="0 0 24 24" width="12" height="12" stroke="#c07a8a" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>Search</button>
         <button onclick="_planSomethingWithPerson()" style="display:flex;align-items:center;gap:7px;height:34px;padding:0 16px;border:none;border-radius:17px;font-family:sans-serif;font-size:13px;font-weight:600;color:#fff;background:#c07a8a;cursor:pointer;line-height:1"><svg viewBox="0 0 24 24" width="12" height="12" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-left:4px"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><span id="pi-plan-btn-label">Plan Something</span></button>
       </div>
     </div>
