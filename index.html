@@ -12675,6 +12675,7 @@ function _peopleSuggest(ctx) {
   const _seenNames = new Set();
   const matches = people.filter(p => {
     if (!p.firstName && !p.lastName) return false; // skip blank stubs
+    if (!hidePrivate && p.family) return false; // hide family when safe mode off (same as People screen)
     if (already.has(p.id)) return false;
     if (_seenIds.has(p.id)) return false;
     const fullName = _personFullName(p).toLowerCase();
