@@ -591,6 +591,7 @@
   }
   .clearable-wrap .field-clear-btn:hover { color:#7a6060; }
   .clearable-wrap .idea-sheet-area ~ .field-clear-btn { top:12px; transform:none; }
+  .clearable-wrap textarea ~ .field-clear-btn { top:10px; transform:none; }
 
   /* scrollbar hide */
   ::-webkit-scrollbar { display: none; }
@@ -12801,6 +12802,7 @@ function openNewPerson() {
   const titleEl = document.querySelector('#edit-person-overlay [style*="font-size:17px"]');
   if (titleEl) titleEl.textContent = 'New Person';
   document.getElementById('edit-person-overlay').style.display = 'flex';
+  _syncAllClearable();
 }
 
 function openEditPersonFromInfo() {
@@ -12825,6 +12827,7 @@ function openEditPerson(id) {
   const _epTitleEl = document.querySelector('#edit-person-overlay [style*="font-size:17px"]');
   if (_epTitleEl) _epTitleEl.textContent = 'Edit Person';
   document.getElementById('edit-person-overlay').style.display = 'flex';
+  _syncAllClearable();
 }
 
 function _updateEpPronounsIcon() {
