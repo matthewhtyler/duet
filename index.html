@@ -12644,56 +12644,8 @@ function _updatePastNavRow() {
 
 function _renderCalUpcoming() {
   if (currentView !== 'calendar') return;
-  // Only update the upcoming and past sections without full re-render (avoids scroll reset)
-  const upcomingEl = document.getElementById('cal-upcoming');
-  const pastEl = document.getElementById('cal-past');
-  if (!upcomingEl) { render(); return; } // fallback if not rendered yet
-  const _now = new Date(); _now.setHours(0,0,0,0);
-  const MONTH_NUMS2 = {Jan:0,Feb:1,Mar:2,Apr:3,May:4,Jun:5,Jul:6,Aug:7,Sep:8,Oct:9,Nov:10,Dec:11};
-  const _isSearching = calMemSearch || calMemPeople.length;
-  const _bdCards = _isSearching ? [] : _upcomingBirthdayCards();
-  const _selDayVisible2 = UPCOMING_DATES.filter(u => {
-    const mNum = MONTH_NUMS2[u.month]; if (mNum === undefined) return false;
-    return u.day === selectedCalDay && (MONTH_NUMS2[u.month]||0) === currentCalMonth && (u.year||2026) === currentCalYear;
-  });
-  const monthAbbr2 = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][currentCalMonth];
-  const _dateItems2 = UPCOMING_DATES.filter(u => {
-    const dt = new Date((u.year||2026),MONTH_NUMS2[u.month]||0,u.day); dt.setHours(0,0,0,0);
-    return dt >= _now && !_isDateHiddenPrivate(u) && (!_isSearching || _calMemMatchDate(u));
-  }).map(u => ({ date: new Date((u.year||2026),MONTH_NUMS2[u.month]||0,u.day), isBd: false, u }));
-  const _bdItems2 = _isSearching ? [] : _bdCards.map(r => ({ date: r.date, isBd: true, r }));
-  const _allItems2 = [..._dateItems2, ..._bdItems2].sort((a,b) => a.date - b.date);
-  const sectionLabel = `<div class="section-label" style="margin-bottom:12px">${_isSearching ? 'Upcoming Results' : 'Upcoming'}</div>`;
-  if (_allItems2.length) {
-    const _mergedHtml2 = _allItems2.map(item => {
-      if (item.isBd) return _buildBirthdayCardHtml(item.r);
-      const u = item.u;
-      const isSelected = u.month === monthAbbr2 && (u.year||2026) === currentCalYear && u.day === selectedCalDay;
-      if (!isSelected) return _buildUpcomingCardHtml(u, '');
-      const isActive = _selDayVisible2.length <= 1 || String(u.id) === window._calActiveDateId;
-      return _buildUpcomingCardHtml(u, isActive ? `border-color:${ROSE};` : 'border-color:var(--text-secondary);');
-    }).join('');
-    upcomingEl.innerHTML = sectionLabel + _mergedHtml2;
-  } else {
-    upcomingEl.innerHTML = sectionLabel;
-  }
-  // Update past section
-  if (pastEl) {
-    const _isSearchingPast = _isSearching;
-    const allPast = _computeMemories().filter(d => !_isDateHiddenPrivate(d));
-    const past3 = _isSearchingPast ? allPast.filter(d => _calMemMatchDate(d)) : allPast.slice(0, 3);
-    if (past3.length === 0) { pastEl.innerHTML = ''; return; }
-    const BROWN = '#9a8a7a';
-    const rows = past3.map(d => {
-      const sub = d.note ? d.note : (d.time && _dateLocationLabel(d) ? d.time + ' · ' + _dateLocationLabel(d) : d.time || _dateLocationLabel(d) || d.label || '');
-      return `<div class="upcoming-item" onclick="openMemoryInfo('${String(d.id).replace(/'/g,"\\'")}')">
-        <div class="upcoming-date-badge"><span class="upcoming-month" style="color:${BROWN}">${d.month}</span><span class="upcoming-day-num" style="color:${BROWN}">${d.day}</span></div>
-        <div class="upcoming-divider"></div>
-        <div class="upcoming-info"><div class="upcoming-venue-row">${activityIcon(d.activity,14,BROWN)}<span class="upcoming-venue" style="color:${BROWN}">${d.venue}</span></div><span class="upcoming-sub">${sub}</span></div>
-      </div>`;
-    }).join('');
-    pastEl.innerHTML = `<button onclick="navigate('past')" style="background:none;border:none;cursor:pointer;padding:0;display:flex;align-items:center;gap:4px;margin-bottom:12px"><span class="section-label">${_isSearchingPast ? 'Past Results' : 'Past Dates'}</span></button>${rows}`;
-  }
+  // Full render so cal-grid dots reflect search state
+  render();
 }
 
 function _piSearchPerson() {
@@ -13717,16 +13669,13 @@ function _applyBirthdayDots() {
   if (typeof currentCalYear === 'undefined') return;
   const _isSearchingBd = calMemSearch || calMemPeople.length;
   let bdays = _birthdaysInMonth(currentCalMonth);
-  // When searching by person pills, only show birthday dots for matching people
-  if (_isSearchingBd && calMemPeople.length) {
-    const matchIds = new Set(calMemPeople.map(e => e.id));
-    bdays = bdays.filter(b => matchIds.has(b.id));
-  } else if (_isSearchingBd && calMemSearch) {
-    // Text search: filter birthdays whose person name matches
-    const q = calMemSearch.toLowerCase();
+  if (_isSearchingBd) {
     bdays = bdays.filter(b => {
       const p = people.find(x => x.id === b.id);
-      return p && _personFullName(p).toLowerCase().includes(q);
+      if (!p) return false;
+      if (calMemPeople.length) return calMemPeople.some(e => e.id === b.id);
+      if (calMemSearch) return _personFullName(p).toLowerCase().includes(calMemSearch.toLowerCase());
+      return true;
     });
   }
   if (!bdays.length) return;
@@ -13736,6 +13685,8 @@ function _applyBirthdayDots() {
     ...Array.from((document.getElementById('home-month-cal') || document).querySelectorAll('.cal-grid'))
   ].filter(Boolean);
   grids.forEach(grid => {
+    // Remove all existing birthday dots first so stale ones don't persist
+    grid.querySelectorAll('.cal-bday-dot').forEach(d => d.remove());
     grid.querySelectorAll('button.cal-day').forEach(btn => {
       const dayNum = parseInt(btn.textContent);
       const bd = bdays.filter(b => b.day === dayNum);
@@ -13770,13 +13721,13 @@ function _applyBirthdayDotsWeek() {
     let bd = _birthdaysInMonth(month0).filter(b => b.day === dayNum);
     // Filter by search
     if (_isSearchingBdW && bd.length) {
-      if (calMemPeople.length) {
-        const matchIds = new Set(calMemPeople.map(e => e.id));
-        bd = bd.filter(b => matchIds.has(b.id));
-      } else if (calMemSearch) {
-        const q = calMemSearch.toLowerCase();
-        bd = bd.filter(b => { const p = people.find(x => x.id === b.id); return p && _personFullName(p).toLowerCase().includes(q); });
-      }
+      bd = bd.filter(b => {
+        const p = people.find(x => x.id === b.id);
+        if (!p) return false;
+        if (calMemPeople.length) return calMemPeople.some(e => e.id === b.id);
+        if (calMemSearch) return _personFullName(p).toLowerCase().includes(calMemSearch.toLowerCase());
+        return true;
+      });
     }
     if (!bd.length) return;
     const existingDot = cell.querySelector('.week-day-dot');
