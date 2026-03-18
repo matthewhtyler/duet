@@ -1834,6 +1834,16 @@
 
   <!-- Attachment rows (hidden until paperclip toggled on) -->
   <div id="ts-attach-wrap" style="display:none">
+    <!-- Person picker -->
+    <div class="idea-row">
+      <svg onclick="_todoAddFavoritePerson('ts')" viewBox="0 0 24 24" width="18" height="18" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;cursor:pointer"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+      <button id="ts-person-btn" onclick="openTodoPersonPicker('ts')"
+        style="flex:1;padding:9px 14px;background:var(--bg-input);border:1.5px solid var(--border);border-radius:10px;font-family:sans-serif;color:var(--text-primary);text-align:left;cursor:pointer;display:flex;align-items:center;gap:10px;margin-bottom:0">
+        <span id="ts-person-icon" style="display:none;flex-shrink:0"></span>
+        <span id="ts-person-label" style="flex:1;font-size:16px;color:var(--text-placeholder)">Select person…</span>
+        <span id="ts-person-clear" onclick="event.stopPropagation();clearTodoAttachment('ts','person')" style="display:none;flex-shrink:0;cursor:pointer;align-items:center"><svg viewBox="0 0 24 24" width="14" height="14" stroke="#9a8a7a" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span>
+      </button>
+    </div>
     <!-- Idea picker (wine glass icon) -->
     <div class="idea-row">
       <svg viewBox="0 0 24 24" width="18" height="18" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M8 22h8"/><path d="M12 15.8v6.2"/><path d="M5 3h14l-1.5 9a5 5 0 0 1-5 4h-1a5 5 0 0 1-5-4L5 3z"/></svg>
@@ -1931,6 +1941,16 @@
 
     <!-- Attachment rows (hidden until paperclip toggled on) -->
     <div id="et-attach-wrap" style="display:none">
+      <!-- Person picker -->
+      <div class="idea-row" style="margin-bottom:14px">
+        <svg onclick="_todoAddFavoritePerson('et')" viewBox="0 0 24 24" width="18" height="18" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;cursor:pointer"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+        <button id="et-person-btn" onclick="openTodoPersonPicker('et')"
+          style="flex:1;padding:9px 14px;background:var(--bg-input);border:1.5px solid var(--border);border-radius:10px;font-family:sans-serif;color:var(--text-primary);text-align:left;cursor:pointer;display:flex;align-items:center;gap:10px;margin-bottom:0">
+          <span id="et-person-icon" style="display:none;flex-shrink:0"></span>
+          <span id="et-person-label" style="flex:1;font-size:16px;color:var(--text-placeholder)">Select person…</span>
+          <span id="et-person-clear" onclick="event.stopPropagation();clearTodoAttachment('et','person')" style="display:none;flex-shrink:0;cursor:pointer;align-items:center"><svg viewBox="0 0 24 24" width="14" height="14" stroke="#9a8a7a" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span>
+        </button>
+      </div>
       <!-- Idea picker -->
       <div class="idea-row" style="margin-bottom:14px">
         <svg viewBox="0 0 24 24" width="18" height="18" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M8 22h8"/><path d="M12 15.8v6.2"/><path d="M5 3h14l-1.5 9a5 5 0 0 1-5 4h-1a5 5 0 0 1-5-4L5 3z"/></svg>
@@ -2671,6 +2691,7 @@ function render() {
 
 function setTodoGroupBy(mode) {
   _todoGroupBy = mode;
+  try { localStorage.setItem('ll_todo_groupby', mode); } catch(e) {}
   renderNav();
   const main = document.getElementById('main-content');
   if (main && currentView === 'todo') main.innerHTML = renderTodo();
@@ -2730,7 +2751,7 @@ function renderNav() {
 
 // ── Double-tap for todo tab → toggle hide locked ────────────────────────────
 let _logoLastTap = 0;
-let _todoGroupBy = 'priority'; // 'priority' | 'idea'
+let _todoGroupBy = (function(){ try { return localStorage.getItem('ll_todo_groupby') || 'priority'; } catch(e) { return 'priority'; } })(); // 'priority' | 'idea'
 function handleLogoDblTap() {
   const now = Date.now();
   const delta = now - _logoLastTap;
@@ -4586,7 +4607,7 @@ function _soonestUpcomingDate(ideaName, ideaId) {
     .sort((a,b) => new Date((a.year||2026),MONTH_NUMS[a.month]||0,a.day) - new Date((b.year||2026),MONTH_NUMS[b.month]||0,b.day))[0] || null;
 }
 
-function _todoRow(t, noDivider) {
+function _todoRow(t, noDivider, groupCtx) {
   const PRIORITY_LABELS = { high: 'Next', normal: 'Soon', low: 'Eventually' };
   const PRIORITY_COLORS = { high: '#9a8a7a', normal: '#9a8a7a', low: '#9a8a7a' };
   const label = PRIORITY_LABELS[t.priority] || 'Soon';
@@ -4678,9 +4699,22 @@ function _todoRow(t, noDivider) {
   const _isHomeCtx = noDivider === 'home';
   let subHtml;
   if (!_isHomeCtx && (_todoGroupBy === 'idea') && currentView === 'todo') {
-    const PRIORITY_LABELS2 = { high: 'Next', normal: 'Soon', low: 'Eventually' };
-    const _priLabel = PRIORITY_LABELS2[t.priority] || 'Soon';
-    subHtml = `<div style="font-size:11px;margin-top:3px;font-family:sans-serif;font-weight:500;letter-spacing:0.03em;color:${textColor}">${_priLabel}</div>`;
+    if (groupCtx === 'person') {
+      if (_ideaTitle) {
+        const _subLink = _ideaClick
+          ? `<a onclick="event.stopPropagation();${_ideaClick}" style="color:${t.done?'#b0a090':textColor};font-weight:500;cursor:pointer;text-decoration:none">${_ideaTitle}</a>`
+          : `<span style="color:${t.done?'#b0a090':textColor}">${_ideaTitle}</span>`;
+        subHtml = `<div style="font-size:11px;margin-top:3px;font-family:sans-serif;font-weight:500;letter-spacing:0.03em">${_subLink}</div>`;
+      } else {
+        const PRIORITY_LABELS2 = { high: 'Next', normal: 'Soon', low: 'Eventually' };
+        const _priLabel = PRIORITY_LABELS2[t.priority] || 'Soon';
+        subHtml = `<div style="font-size:11px;margin-top:3px;font-family:sans-serif;font-weight:500;letter-spacing:0.03em;color:${textColor}">${_priLabel}</div>`;
+      }
+    } else {
+      const PRIORITY_LABELS2 = { high: 'Next', normal: 'Soon', low: 'Eventually' };
+      const _priLabel = PRIORITY_LABELS2[t.priority] || 'Soon';
+      subHtml = `<div style="font-size:11px;margin-top:3px;font-family:sans-serif;font-weight:500;letter-spacing:0.03em;color:${textColor}">${_priLabel}</div>`;
+    }
   } else if (_ideaTitle && _ideaClick) {
     const _subLink = `<a onclick="event.stopPropagation();${_ideaClick}" style="color:${t.done?'#b0a090':textColor};font-weight:500;cursor:pointer;text-decoration:none">${_ideaTitle}</a>`;
     subHtml = `<div style="font-size:11px;margin-top:3px;font-family:sans-serif;font-weight:500;letter-spacing:0.03em">${_subLink}</div>`;
@@ -4688,12 +4722,12 @@ function _todoRow(t, noDivider) {
     subHtml = '';
   }
 
-  return `<div id="todo-row-${t.id}" onclick="openTodoEdit('${t.id}')" style="display:flex;align-items:flex-start;justify-content:space-between;padding:14px 0;${noDivider ? 'border-bottom:none' : 'border-bottom:1px solid var(--todo-divider)'};cursor:pointer;gap:12px;opacity:${t.done?'0.45':'1'}">
+  return `<div id="todo-row-${t.id}" onclick="openTodoEdit('${t.id}')" style="display:flex;align-items:center;justify-content:space-between;padding:14px 0;${noDivider ? 'border-bottom:none' : 'border-bottom:1px solid var(--todo-divider)'};cursor:pointer;gap:12px;opacity:${t.done?'0.45':'1'}">
     <div style="flex:1;min-width:0">
       <div style="line-height:1.4">${mainHtml}</div>
       ${subHtml}
     </div>
-    <button onclick="event.stopPropagation();toggleTodoDone('${t.id}')" style="width:20px;height:20px;flex-shrink:0;margin-top:2px;margin-left:-2px;border:1.5px solid ${t.done?'#c8bfb6':'#9a8a7a'};border-radius:4px;background:${t.done?'#c8bfb6':'var(--bg-input)'};cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0">
+    <button onclick="event.stopPropagation();toggleTodoDone('${t.id}')" style="width:20px;height:20px;flex-shrink:0;align-self:center;margin-left:-2px;border:1.5px solid ${t.done?'#c8bfb6':'#9a8a7a'};border-radius:4px;background:${t.done?'#c8bfb6':'var(--bg-input)'};cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0">
       ${t.done?'<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>':''}
     </button>
   </div>`;
@@ -4711,40 +4745,94 @@ function renderTodo() {
   const filtered = [...todos].filter(t => !_isTodoHiddenPrivate(t));
 
   if (_todoGroupBy === 'idea') {
-    // Group by resolved idea name; todos with no attachment go in an "Other" group at the end
-    const groups = {};
-    const UNGROUPED = ' ungrouped';
-    filtered.forEach(t => {
-      const linkedDate = _findDateByKey(t.dateKey);
-      const linkedIdea = t.ideaId ? ideas.find(i => i.id === t.ideaId) : null;
-      const resolvedIdea = linkedIdea || (linkedDate ? ideas.find(i => i.name && linkedDate.venue && i.name.toLowerCase() === linkedDate.venue.toLowerCase()) : null);
-      const key = resolvedIdea ? resolvedIdea.name : (linkedDate ? linkedDate.venue : UNGROUPED);
-      if (!groups[key]) groups[key] = [];
-      groups[key].push(t);
-    });
-    // Sort each group by priority
-    Object.values(groups).forEach(arr => arr.sort(byPriority));
-    // Build group keys: named groups alphabetically, ungrouped last
-    const groupKeys = Object.keys(groups).filter(k => k !== UNGROUPED).sort();
-    if (groups[UNGROUPED]) groupKeys.push(UNGROUPED);
-
-    if (groupKeys.length === 0) {
+    if (filtered.length === 0) {
       return `<div style="padding:20px 20px 80px"><div style="padding:0 10px"><div style="position:fixed;top:calc(50% - 60px);left:50%;transform:translateX(-50%);text-align:center;color:#b0a090;font-size:15px;font-style:italic;pointer-events:none;width:80%;z-index:1">Nothing to do.</div></div></div>`;
     }
-    const listHtml = groupKeys.map((key, gi) => {
-      const label = key === UNGROUPED ? 'Other' : key;
-      const rows = groups[key].map(t => _todoRow(t, true)).join('');
+
+    // 1. Person groups: todos with a personId, grouped by person, ordered Next→Soon→Eventually
+    const personTodos = filtered.filter(t => t.personId);
+    const nonPersonTodos = filtered.filter(t => !t.personId);
+    const shownIds = new Set();
+
+    const personGroups = {};
+    personTodos.forEach(t => {
+      if (!personGroups[t.personId]) personGroups[t.personId] = [];
+      personGroups[t.personId].push(t);
+      shownIds.add(t.id);
+    });
+    Object.values(personGroups).forEach(arr => arr.sort((a,b) => {
+      // Sort by idea name alpha first, then priority within same idea
+      const getIdeaName = t => {
+        const linkedDate = _findDateByKey(t.dateKey);
+        const linkedIdea = t.ideaId ? ideas.find(i => i.id === t.ideaId) : null;
+        const resolved = linkedIdea || (linkedDate ? ideas.find(i => i.name && linkedDate.venue && i.name.toLowerCase() === linkedDate.venue.toLowerCase()) : null);
+        return (resolved ? resolved.name : (linkedDate ? linkedDate.venue : '')) || '';
+      };
+      const ia = getIdeaName(a), ib = getIdeaName(b);
+      if (ia !== ib) return ia.localeCompare(ib);
+      const pa = priorityOrder[a.priority ?? 'normal'] ?? 1;
+      const pb = priorityOrder[b.priority ?? 'normal'] ?? 1;
+      return pa - pb;
+    }));
+
+    // Sort person groups: fav first, then alpha
+    const personGroupKeys = Object.keys(personGroups).sort((a,b) => {
+      const pa = people.find(x => x.id === a);
+      const pb = people.find(x => x.id === b);
+      if (pa && pa.favorite) return -1;
+      if (pb && pb.favorite) return 1;
+      return (_personFullName(pa||{})).localeCompare(_personFullName(pb||{}));
+    });
+
+    const personListHtml = personGroupKeys.map((pid, gi) => {
+      const p = people.find(x => x.id === pid);
+      const label = p ? (p.firstName || _personFullName(p)) : 'Unknown';
+      const sectionColor = getComputedStyle(document.documentElement).getPropertyValue('--text-secondary') || '#9a8a7a';
+      const photoHtml = p ? (() => {
+        const inner = (p.photoUrl)
+          ? `<div style="position:relative;width:16px;height:16px;border-radius:50%;overflow:hidden">${_personAvatarInner(p,16)}</div>`
+          : `<div style="width:16px;height:16px;border-radius:50%;background:var(--toggle-bg);display:flex;align-items:center;justify-content:center">${_personIconSvg(9,'currentColor')}</div>`;
+        return `<div style="width:16px;height:16px;border-radius:50%;overflow:hidden;border:1px solid currentColor;flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;margin-left:6px;vertical-align:middle">${inner}</div>`;
+      })() : '';
+      const rows = personGroups[pid].map(t => _todoRow(t, true, 'person')).join('');
       const divider = gi > 0 ? `<div style="border-top:1px solid var(--todo-divider);margin-bottom:20px"></div>` : '';
-      return divider +
-        `<div style="margin-bottom:4px">` +
-        `<div class="section-label" style="margin-bottom:8px;padding-left:0">${label}</div>` +
-        `<div>${rows}</div>` +
-        `</div>`;
+      return divider + `<div style="margin-bottom:4px"><div class="section-label" style="margin-bottom:8px;padding-left:0;display:flex;align-items:center">${label}${photoHtml}</div><div>${rows}</div></div>`;
     }).join('');
-    return `<div style="padding:20px 20px 80px"><div style="padding:0 10px">${listHtml}</div></div>`;
+
+    // 2. Remaining todos (no personId) grouped by idea — never show ones already in person groups
+    const remaining = nonPersonTodos.filter(t => !shownIds.has(t.id));
+    let remainingHtml = '';
+    if (remaining.length > 0) {
+      const UNGROUPED = '\x00ungrouped';
+      const groups = {};
+      remaining.forEach(t => {
+        const linkedDate = _findDateByKey(t.dateKey);
+        const linkedIdea = t.ideaId ? ideas.find(i => i.id === t.ideaId) : null;
+        const resolvedIdea = linkedIdea || (linkedDate ? ideas.find(i => i.name && linkedDate.venue && i.name.toLowerCase() === linkedDate.venue.toLowerCase()) : null);
+        const key = resolvedIdea ? resolvedIdea.name : (linkedDate ? linkedDate.venue : UNGROUPED);
+        if (!groups[key]) groups[key] = [];
+        groups[key].push(t);
+      });
+      Object.values(groups).forEach(arr => arr.sort(byPriority));
+      const groupKeys = Object.keys(groups).filter(k => k !== UNGROUPED).sort();
+      if (groups[UNGROUPED]) groupKeys.push(UNGROUPED);
+      remainingHtml = groupKeys.map((key, gi) => {
+        const label = key === UNGROUPED ? 'Other' : key;
+        const rows = groups[key].map(t => _todoRow(t, true)).join('');
+        const divider = gi > 0 ? `<div style="border-top:1px solid var(--todo-divider);margin-bottom:20px"></div>` : '';
+        return divider + `<div style="margin-bottom:4px"><div class="section-label" style="margin-bottom:8px;padding-left:0">${label}</div><div>${rows}</div></div>`;
+      }).join('');
+    }
+
+    // Divider between person groups and remaining idea groups
+    const midDivider = (personGroupKeys.length > 0 && remainingHtml)
+      ? `<div style="height:1px;background:var(--border-light);margin:20px 0"></div>`
+      : '';
+
+    return `<div style="padding:20px 20px 80px"><div style="padding:0 10px">${personListHtml}${midDivider}${remainingHtml}</div></div>`;
   }
 
-  // Default: sort by priority
+  // Default (Priority mode): sort by priority
   const sorted = filtered.sort(byPriority);
   const listHtml = sorted.length
     ? sorted.map(t => _todoRow(t)).join('')
@@ -4779,6 +4867,8 @@ let _todoSelectedDateKey = null;      // NEW: {day, month, year} key for selecte
 let _editTodoSelectedDateKey = null;  // NEW: for edit todo
 let _todoSelectedIdeaId = null;       // idea attached to New To Do
 let _editTodoSelectedIdeaId = null;   // idea attached to Edit To Do
+let _todoSelectedPersonId = null;     // person attached to New To Do
+let _editTodoSelectedPersonId = null; // person attached to Edit To Do
 let _tsAttachOn = false;              // paperclip state for New To Do
 let _etAttachOn = false;              // paperclip state for Edit To Do
 
@@ -4805,13 +4895,17 @@ function _applyTodoAttach(ctx, on) {
     if (ctx === 'ts') {
       _todoSelectedIdeaId = null;
       _todoSelectedDateKey = null;
+      _todoSelectedPersonId = null;
       _updateTodoIdeaBtn('ts-idea-btn','ts-idea-icon','ts-idea-label',null);
       _updateTodoDateBtn('ts-date-btn','ts-date-icon','ts-date-label',null);
+      _updateTodoPersonBtn('ts', null);
     } else {
       _editTodoSelectedIdeaId = null;
       _editTodoSelectedDateKey = null;
+      _editTodoSelectedPersonId = null;
       _updateTodoIdeaBtn('et-idea-btn','et-idea-icon','et-idea-label',null);
       _updateTodoDateBtn('et-date-btn','et-date-icon','et-date-label',null);
+      _updateTodoPersonBtn('et', null);
     }
   }
 }
@@ -4979,11 +5073,91 @@ function clearTodoAttachment(ctx, type) {
   if (type === 'idea') {
     if (ctx === 'ts') { _todoSelectedIdeaId = null; _updateTodoIdeaBtn('ts-idea-btn','ts-idea-icon','ts-idea-label',null); }
     else              { _editTodoSelectedIdeaId = null; _updateTodoIdeaBtn('et-idea-btn','et-idea-icon','et-idea-label',null); }
+  } else if (type === 'person') {
+    if (ctx === 'ts') { _todoSelectedPersonId = null; _updateTodoPersonBtn('ts', null); }
+    else              { _editTodoSelectedPersonId = null; _updateTodoPersonBtn('et', null); }
   } else {
     if (ctx === 'ts') { _todoSelectedDateKey = null; _updateTodoDateBtn('ts-date-btn','ts-date-icon','ts-date-label',null); }
     else              { _editTodoSelectedDateKey = null; _updateTodoDateBtn('et-date-btn','et-date-icon','et-date-label',null); }
   }
 }
+
+let _todoPersonPickerCtx = null;
+
+function _todoAddFavoritePerson(ctx) {
+  const fav = people.find(p => p.favorite && !p.family);
+  if (!fav) return;
+  if (ctx === 'ts') _todoSelectedPersonId = fav.id;
+  else _editTodoSelectedPersonId = fav.id;
+  _updateTodoPersonBtn(ctx, fav.id);
+}
+
+function openTodoPersonPicker(ctx) {
+  _todoPersonPickerCtx = ctx;
+  const list = document.getElementById('todo-person-picker-list');
+  if (!list) return;
+  // Build same list as People screen
+  let pList = people.filter(p => {
+    if (!hidePrivate && p.family) return false;
+    if (!p.firstName && !p.lastName) return false;
+    return true;
+  }).sort((a,b) => _personFullName(a).localeCompare(_personFullName(b)));
+  const fav = !hidePrivate ? pList.find(p => p.favorite) : null;
+  if (fav) pList = [fav, ...pList.filter(p => p.id !== fav.id)];
+  list.innerHTML = pList.map((p, i) => {
+    const isFirst = fav && i === 0 && pList.length > 1;
+    const photo = p.photoUrl
+      ? `<div style="position:relative;width:36px;height:36px;border-radius:50%;overflow:hidden;flex-shrink:0">${_personAvatarInner(p,36)}</div>`
+      : `<div style="width:36px;height:36px;border-radius:50%;background:var(--toggle-bg);display:flex;align-items:center;justify-content:center;flex-shrink:0">${_personIconSvg(20,'#9a8a7a')}</div>`;
+    const divider = isFirst ? `<div style="height:1px;background:var(--border-light);margin:0 20px"></div>` : '';
+    return `<div onclick="_selectTodoPerson('${p.id}')" style="display:flex;align-items:center;gap:12px;padding:10px 20px;cursor:pointer">
+      ${photo}
+      <span style="font-size:15px;font-weight:600;color:var(--text-primary);font-family:sans-serif">${p.firstName || _personFullName(p)}</span>
+    </div>${divider}`;
+  }).join('');
+  document.getElementById('todo-person-picker-overlay').style.display = 'flex';
+}
+
+function closeTodoPersonPicker() {
+  document.getElementById('todo-person-picker-overlay').style.display = 'none';
+  _todoPersonPickerCtx = null;
+}
+
+function _selectTodoPerson(personId) {
+  const ctx = _todoPersonPickerCtx;
+  if (!ctx) return;
+  if (ctx === 'ts') _todoSelectedPersonId = personId;
+  else _editTodoSelectedPersonId = personId;
+  _updateTodoPersonBtn(ctx, personId);
+  closeTodoPersonPicker();
+}
+
+function _updateTodoPersonBtn(ctx, personId) {
+  const btn = document.getElementById(ctx + '-person-btn');
+  const icon = document.getElementById(ctx + '-person-icon');
+  const label = document.getElementById(ctx + '-person-label');
+  const clear = document.getElementById(ctx + '-person-clear');
+  if (!btn || !label) return;
+  if (personId) {
+    const p = people.find(x => x.id === personId);
+    if (p) {
+      const photo = p.photoUrl
+        ? `<div style="position:relative;width:22px;height:22px;border-radius:50%;overflow:hidden">${_personAvatarInner(p,22)}</div>`
+        : `<div style="width:22px;height:22px;border-radius:50%;background:var(--toggle-bg);display:flex;align-items:center;justify-content:center">${_personIconSvg(12,'#9a8a7a')}</div>`;
+      if (icon) { icon.innerHTML = photo; icon.style.display = 'flex'; }
+      label.textContent = p.firstName || _personFullName(p);
+      label.style.color = 'var(--text-primary)';
+      if (clear) { clear.style.display = 'flex'; clear.style.alignItems = 'center'; }
+    }
+  } else {
+    if (icon) { icon.innerHTML = ''; icon.style.display = 'none'; }
+    label.textContent = 'Select person…';
+    label.style.color = 'var(--text-placeholder)';
+    if (clear) clear.style.display = 'none';
+  }
+}
+
+
 
 function openIdeasPickerForTodoIdea() {
   ideasPickerContext = 'todo-idea';
@@ -5057,6 +5231,7 @@ function openTodoAdd() {
   _todoSelectedActivity = null;
   _todoSelectedDateKey = null;
   _todoSelectedIdeaId = null;
+  _todoSelectedPersonId = null;
   _tsAttachOn = false;
   _applyTodoAttach('ts', false);
   const ts = document.getElementById('todo-sheet');
@@ -5120,6 +5295,7 @@ function saveTodoFromSheet() {
     task, priority, note,
     dateKey: _todoSelectedDateKey || null,
     ideaId: _todoSelectedIdeaId || null,
+    personId: _todoSelectedPersonId || null,
     activity: null, customPlace: '',
     done: false, createdAt: Date.now(), id: String(Date.now()),
     isPrivate: _tsIsPrivate
@@ -5166,11 +5342,13 @@ function _populateEditTodo(t) {
   _renderPrivacyBox('et-lock-icon', 'et-privacy-box', _effectivePrivate(_etIsPrivate, _etIdeaIsPrivate()), _etIsPrivate === null && _etIdeaIsPrivate());
   const u = _findDateByKey(_editTodoSelectedDateKey);
   _updateTodoDateBtn('et-date-btn', 'et-date-icon', 'et-date-label', u);
-  // Restore ideaId and auto-show attach panel if there's an attachment
+  // Restore ideaId and personId; auto-show attach panel if there's an attachment
   _editTodoSelectedIdeaId = t.ideaId || null;
-  _etAttachOn = !!(t.ideaId || t.dateKey);
+  _editTodoSelectedPersonId = t.personId || null;
+  _etAttachOn = !!(t.ideaId || t.dateKey || t.personId);
   _applyTodoAttach('et', _etAttachOn);
   _updateTodoIdeaBtn('et-idea-btn','et-idea-icon','et-idea-label', _editTodoSelectedIdeaId);
+  _updateTodoPersonBtn('et', _editTodoSelectedPersonId);
   onEditTodoTaskChange();
 }
 
@@ -5226,6 +5404,7 @@ function saveEditTodo() {
     task, priority, note,
     dateKey: _editTodoSelectedDateKey || null,
     ideaId: _editTodoSelectedIdeaId || null,
+    personId: _editTodoSelectedPersonId || null,
     activity: null, customPlace: '',
     isPrivate: _etIsPrivate
   });
@@ -7940,6 +8119,7 @@ function _resetTodoForm() {
   _todoSelectedActivity = null;
   _todoSelectedDateKey = null;
   _todoSelectedIdeaId = null;
+  _todoSelectedPersonId = null;
   _tsAttachOn = false;
   _applyTodoAttach('ts', false);
 }
@@ -14219,6 +14399,17 @@ function _resLabel(idea) {
   </div>
 </div>
 
+<div id="todo-person-picker-overlay" onclick="closeTodoPersonPicker()" style="position:fixed;inset:0;background:rgba(30,20,20,0.5);z-index:500;display:none;align-items:center;justify-content:center;padding:20px">
+  <div onclick="event.stopPropagation()" style="width:100%;max-width:370px;background:var(--bg);border-radius:20px;padding:20px 20px 24px;max-height:76vh;display:flex;flex-direction:column;box-shadow:0 12px 48px rgba(0,0,0,0.18)">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-shrink:0">
+      <div style="font-size:17px;font-weight:700;color:var(--popup-title)">People</div>
+      <button onclick="closeTodoPersonPicker()" style="background:none;border:none;display:flex;cursor:pointer">
+        <svg viewBox="0 0 24 24" width="20" height="20" stroke="#888" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="icon-close"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div id="todo-person-picker-list" style="flex:1;overflow-y:auto"></div>
+  </div>
+</div>
 <div id="cmsearch-suggest" style="display:none;position:fixed;background:var(--bg);border:1px solid var(--border);border-radius:12px;box-shadow:0 4px 16px rgba(0,0,0,0.18);z-index:9999;overflow:hidden;min-width:180px"></div>
 </body>
 </html>
