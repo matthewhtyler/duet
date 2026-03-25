@@ -429,7 +429,7 @@
   }
 
   /* ── Calendar ── */
-  #cal-wrap { padding: 20px; }
+  #cal-wrap { padding: 10px 20px 8px; }
   #cal-card { background: var(--bg-card); border-radius: 16px; border: 1px solid var(--border); padding: 16px; }
   #cal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
   #cal-month-label { font-size: 15px; font-weight: 700; color: var(--text-muted); letter-spacing: 0.01em; }
@@ -515,6 +515,8 @@
   .rose-picker { color-scheme: light; accent-color: #c07a8a; }
   .rose-picker:focus { border-color: #c07a8a; outline: none; }
   .showtype-check { appearance:none; -webkit-appearance:none; width:16px; height:16px; border:1.5px solid #c8bfb6; border-radius:4px; background:var(--bg-input); cursor:pointer; flex-shrink:0; position:relative; transition: background 0.15s, border-color 0.15s; }
+  .ems-block .showtype-check { background: var(--bg); border-color: #9a8a7a; }
+  .ems-block .showtype-check { background: var(--bg); border-color: #9a8a7a; }
   .showtype-check:checked { background:#c07a8a; border-color:#c07a8a; }
   .showtype-check:checked::after { content:''; position:absolute; left:50%; top:50%; width:5px; height:9px; border:2px solid #fff; border-top:none; border-left:none; transform:translate(-50%, -60%) rotate(45deg); display:block; }
   select.field-input { appearance: none; -webkit-appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23b0a090' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 32px; cursor: pointer; }
@@ -621,7 +623,7 @@
           <circle id="logo-circle-dark" cx="18" cy="9" r="7.5" stroke="#8b3a52" stroke-width="2.8"/>
         </svg>
       </button>
-      <button onclick="toggleDarkMode()" style="background:none;border:none;outline:none;cursor:pointer;padding:0"><span id="duet-logo-text" style="font-size:17px;font-weight:600;letter-spacing:0.02em;color:var(--text-primary)">duet</span></button>
+      <button style="background:none;border:none;outline:none;cursor:pointer;padding:0"><span id="duet-logo-text" ondblclick="openEditMainScreen()" style="font-size:17px;font-weight:600;letter-spacing:0.02em;color:var(--text-primary)">duet</span></button>
     </div>
     <button id="nav-back" onclick="navigate('home')" style="display:none">
       <svg viewBox="0 0 24 24" width="20" height="20" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
@@ -648,7 +650,7 @@
           </svg>
           Open…
         </button>
-        <button onclick="navigate('people');closeMenu()">
+        <button onclick="navigate('people');closeMenu()" style="border-bottom:none">
           <svg id="person-icon" viewBox="0 0 24 24" width="16" height="16" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
           People
         </button>
@@ -1427,6 +1429,10 @@
           <svg viewBox="0 0 24 24" width="14" height="14" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M8 22h8"/><path d="M12 15.8v6.2"/><path d="M5 3h14l-1.5 9a5 5 0 0 1-5 4h-1a5 5 0 0 1-5-4L5 3z"/></svg>
           Ideas
         </button>
+        <button onclick="openEditCalScreen();closeMenu()" style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:9px 6px;background:none;border:1.5px solid var(--border);border-radius:10px;font-family:sans-serif;font-size:12px;color:#9a8a7a;cursor:pointer" class="btn-outline">
+          <svg viewBox="0 0 24 24" width="14" height="14" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          Calendar
+        </button>
       </div>
       </div>
 
@@ -1481,7 +1487,11 @@
         <svg viewBox="0 0 24 24" width="15" height="15" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M8 22h8"/><path d="M12 15.8v6.2"/><path d="M5 3h14l-1.5 9a5 5 0 0 1-5 4h-1a5 5 0 0 1-5-4L5 3z"/></svg>
         Edit Ideas Screen
       </button>
-      <button onclick="openCopyPlaces()" style="display:flex;align-items:center;gap:10px;padding:11px 14px;background:none;border:1.5px solid #ede9e2;border-radius:10px;font-family:sans-serif;font-size:13px;font-weight:600;color:#9a8a7a;cursor:pointer;text-align:left;width:100%" class="btn-outline">
+      <button onclick="openEditCalScreen()" style="display:flex;align-items:center;gap:10px;padding:11px 14px;background:none;border:1.5px solid #ede9e2;border-radius:10px;font-family:sans-serif;font-size:13px;font-weight:600;color:#9a8a7a;cursor:pointer;text-align:left;width:100%" class="btn-outline">
+        <svg viewBox="0 0 24 24" width="15" height="15" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        Edit Calendar Screen
+      </button>
+      <button onclick="openCopyPlaces()" style="display:none;align-items:center;gap:10px;padding:11px 14px;background:none;border:1.5px solid #ede9e2;border-radius:10px;font-family:sans-serif;font-size:13px;font-weight:600;color:#9a8a7a;cursor:pointer;text-align:left;width:100%" class="btn-outline">
         <svg viewBox="0 0 24 24" width="15" height="15" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
         Copy Places
       </button>
@@ -1567,6 +1577,28 @@
     </div>
   </div>
 
+  <!-- EDIT CALENDAR SCREEN POPUP -->
+  <div id="editcal-overlay" class="popup-overlay" onclick="closeEditCalScreen()" style="position:fixed;inset:0;background:rgba(30,20,20,0.5);z-index:510;display:none;align-items:center;justify-content:center;padding:max(12px,env(safe-area-inset-top)) 16px max(12px,env(safe-area-inset-bottom))">
+    <div id="editcal-modal" onclick="event.stopPropagation()" style="width:100%;max-width:390px;background:var(--bg);border-radius:20px;display:flex;flex-direction:column;height:min(88vh,calc(100dvh - max(24px,env(safe-area-inset-top) + env(safe-area-inset-bottom)) - 24px));box-shadow:0 12px 48px rgba(0,0,0,0.18)">
+      <!-- Header -->
+      <div style="padding:20px 20px 14px;flex-shrink:0;border-bottom:1px solid var(--border)">
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <div style="font-size:17px;font-weight:700;color:var(--popup-title)">Edit Calendar Screen</div>
+          <button onclick="closeEditCalScreen()" style="background:none;border:none;cursor:pointer;display:flex;padding:4px">
+            <svg viewBox="0 0 24 24" width="20" height="20" stroke="#888" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="icon-close"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+      </div>
+      <!-- Body -->
+      <div id="editcal-list" style="flex:1;overflow-y:auto;padding:14px 16px;display:flex;flex-direction:column;gap:10px"></div>
+      <!-- Footer -->
+      <div style="padding:14px 20px;flex-shrink:0;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px">
+        <button onclick="closeEditCalScreen()" style="padding:10px 16px;background:none;border:1.5px solid var(--border);border-radius:10px;font-family:sans-serif;font-size:13px;font-weight:600;color:#9a8a7a;cursor:pointer" class="btn-outline">Cancel</button>
+        <button onclick="saveEditCalScreen()" style="padding:10px 20px;background:#a05268;border:none;border-radius:10px;font-family:sans-serif;font-size:13px;font-weight:600;color:#fff;cursor:pointer">Save</button>
+      </div>
+    </div>
+  </div>
+
   <!-- EDIT IDEAS SCREEN POPUP -->
   <div id="editideas-overlay" class="popup-overlay" onclick="closeEditIdeasScreen()" style="position:fixed;inset:0;background:rgba(30,20,20,0.5);z-index:510;display:none;align-items:center;justify-content:center;padding:20px">
     <div onclick="event.stopPropagation()" style="width:100%;max-width:390px;background:var(--bg);border-radius:20px;display:flex;flex-direction:column;box-shadow:0 12px 48px rgba(0,0,0,0.18)">
@@ -1631,7 +1663,7 @@
     <div id="places-modal" onclick="event.stopPropagation()" style="width:100%;max-width:390px;background:var(--bg);border-radius:20px;display:flex;flex-direction:column;height:min(88vh,660px);box-shadow:0 12px 48px rgba(0,0,0,0.18)">
       <!-- Header (sticky) -->
       <div style="padding:20px 20px 14px;flex-shrink:0;border-bottom:1px solid var(--border)">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+        <div style="display:flex;align-items:center;justify-content:space-between">
           <div style="display:flex;align-items:center;gap:10px">
             <button id="places-prev-btn" onclick="placesNav(-1)" style="background:none;border:none;cursor:pointer;padding:4px;display:flex;opacity:0.4">
               <svg viewBox="0 0 24 24" width="18" height="18" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
@@ -1647,7 +1679,7 @@
         </div>
 
         <!-- Place selector -->
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;display:none">
           <select id="places-select" onchange="handlePlaceSelect(this.value)" class="field-input" style="flex:1;margin-bottom:0"></select>
         </div>
       </div>
@@ -2206,7 +2238,8 @@ let _editPersonId = null;
 let people = []; // populated after loadPeople is defined below
 let catTabFilter  = 'all'; // active pill in the Categories tab: 'all' | <catId> | '_in'
 let outTabFilter  = 'all'; // active pill in the Out tab: 'all' | <catId>
-let inTabFilter   = 'all'; // active pill in the In tab:  'all' | <catId>
+let inTabFilter   = 'all';
+let _catSortAlpha = (()=>{try{return localStorage.getItem('ll_cat_sort_alpha')==='1';}catch(e){return false;}})(); // false=custom order, true=alpha // active pill in the In tab:  'all' | <catId>
 let neighTabFilter = 'all'; // active pill in the Neighborhood tab: 'all' | <neighborhood>
 let cuisineTabFilter = 'all'; // active pill in the Cuisine tab: 'all' | <cuisine>
 // Sort key: strip leading "The " for alphabetical ordering
@@ -2459,7 +2492,7 @@ let _homeMonthCalSelectedDay = null; // {year, month (0-based), day} or null
 
 // Home screen section config (order + per-section settings)
 const _homeDefaultSections = [
-  { id:'nextDates',    label:'Next Dates',     on:true,  display:'full',    calendar:'week'  },
+  { id:'nextDates',    label:'Slides',     on:true,  display:'full',    calendar:'week'  },
   { id:'ideas',        label:'Ideas',          on:true,  show:'3',          order:'random',  filter:'all', title:'Ideas' },
   { id:'upcomingDates',label:'Upcoming', on:true,  show:'3' },
   { id:'todo',         label:'To Do',          on:true,  show:'3' },
@@ -2675,7 +2708,7 @@ function render() {
   }
   if (currentView === 'calendar') {
     setTimeout(() => {
-      _initCalSwipe(); _initCalDayCards(); _initCalInfoScroll();
+      _initCalSwipe(); _initCalDayCards(); _initCalInfoScroll(); _updateCalCompactArrows(); _syncSlidesToSelectedDay();
       if (window._calNavFromHome) {
         window._calNavFromHome = false;
         window.scrollTo(0, 0);
@@ -2704,11 +2737,13 @@ function renderNav() {
 
   if (center) {
     if (currentView === 'ideas') {
-      center.innerHTML = `<span onclick="toggleDarkMode()" style="font-size:13px;color:#9a8a7a;letter-spacing:0.05em;text-transform:uppercase;font-family:sans-serif;cursor:pointer">Ideas</span>`;
+      center.innerHTML = `<span ondblclick="openEditIdeasScreen()" style="font-size:13px;color:#9a8a7a;letter-spacing:0.05em;text-transform:uppercase;font-family:sans-serif;cursor:pointer">Ideas</span>`;
     } else {
       const titles = { calendar:'Calendar', todo:'To Do', home:'', past:'Memories', archive:'Archive', people:'People' };
+      const editPopups = { calendar:'openEditCalScreen()', home:'openEditMainScreen()' };
       const t = titles[currentView] || '';
-      center.innerHTML = t ? `<span onclick="toggleDarkMode()" style="font-size:13px;color:#9a8a7a;letter-spacing:0.05em;text-transform:uppercase;font-family:sans-serif;cursor:pointer">${t}</span>` : '';
+      const dblHandler = editPopups[currentView] ? ` ondblclick="${editPopups[currentView]}"` : '';
+      center.innerHTML = t ? `<span${dblHandler} style="font-size:13px;color:#9a8a7a;letter-spacing:0.05em;text-transform:uppercase;font-family:sans-serif;cursor:pointer">${t}</span>` : '';
     }
   }
 
@@ -2771,6 +2806,11 @@ function toggleDarkMode() {
 }
 
 function navigate(view) {
+  // Reset calendar-screen state when navigating away
+  if (currentView === 'calendar' && view !== 'calendar') {
+    _calUpcomingToggled = false;
+    _calCompactIdx = 0;
+  }
   // Check if todo sheet is open — treat same as idea sheet being open
   const _todoSheetEl = document.getElementById('todo-sheet');
   const _todoSheetOpen = _todoSheetEl && _todoSheetEl.style.display === 'block';
@@ -2818,6 +2858,10 @@ function setIdeasFilter(f) {
   if (main) main.innerHTML = renderIdeas();
 }
 function setOutTabFilter(f) {
+  if (f === 'all' && outTabFilter === 'all') {
+    _catSortAlpha = !_catSortAlpha;
+    try { localStorage.setItem('ll_cat_sort_alpha', _catSortAlpha ? '1' : '0'); } catch(e) {}
+  }
   outTabFilter = f;
   const body = document.getElementById('ideas-body');
   if (body) body.innerHTML = _buildOutTabBody();
@@ -2832,6 +2876,10 @@ function setOutTabFilter(f) {
   });
 }
 function setInTabFilter(f) {
+  if (f === 'all' && inTabFilter === 'all') {
+    _catSortAlpha = !_catSortAlpha;
+    try { localStorage.setItem('ll_cat_sort_alpha', _catSortAlpha ? '1' : '0'); } catch(e) {}
+  }
   inTabFilter = f;
   const body = document.getElementById('ideas-body');
   if (body) body.innerHTML = _buildInTabBody();
@@ -3348,13 +3396,17 @@ function _showNoNameToast() {
 // Name getter functions for each context
 function _getIdeaImgsearchName() { return (document.getElementById('idea-name') || {value:''}).value.trim(); }
 function _getPfImgsearchName()   { return (document.getElementById('pf-name')   || {value:''}).value.trim(); }
-function _getEdImgsearchName()   {
-  if (edSelectedActivity && !edSelectedActivity.custom) return edSelectedActivity.name || '';
-  return (document.getElementById('ed-custom-name') || {value:''}).value.trim();
+function _getEdImgsearchName() {
+  const note = ((document.getElementById('ed-note') || {}).value || '').trim();
+  let idea = '';
+  if (edSelectedActivity && !edSelectedActivity.custom) idea = edSelectedActivity.name || '';
+  else idea = (document.getElementById('ed-custom-name') || {value:''}).value.trim();
+  return note && idea ? note + ' ' + idea : idea || note;
 }
 function _getDateImgsearchName() {
-  if (selectedActivity && !selectedActivity.custom && selectedActivity.name) return selectedActivity.name;
-  return (document.getElementById('date-custom-name') || {value:''}).value.trim();
+  const note = ((document.getElementById('date-note') || {}).value || '').trim();
+  const idea = selectedActivity && !selectedActivity.custom && selectedActivity.name ? selectedActivity.name : (document.getElementById('date-custom-name') || {value:''}).value.trim();
+  return note && idea ? note + ' ' + idea : idea || note;
 }
 
 // ── Images popup ──
@@ -4224,9 +4276,12 @@ function _buildOutTabBody() {
   const outPillCats = onlySelectedCatsInMenu
     ? (selOut.length ? selOut : OUT_CATS)
     : OUT_CATS.filter(c => _outIdeasPool.some(i => (i.category || '').toLowerCase() === c.label.toLowerCase() || i.category === c.id));
+  const sortedOutPillCats = _catSortAlpha
+    ? [...outPillCats].sort((a, b) => a.label.localeCompare(b.label))
+    : outPillCats;
   const pills = [
     { id: 'all', label: 'All', iconKey: null },
-    ...outPillCats.map(c => ({ id: c.id, label: c.label, iconKey: c.iconKey })),
+    ...sortedOutPillCats.map(c => ({ id: c.id, label: c.label, iconKey: c.iconKey })),
   ];
 
   function pillHtml(p) {
@@ -4314,7 +4369,7 @@ function _buildInTabBody() {
     : IN_CATS.filter(c => _inIdeasPool.some(i => (i.category || '').toLowerCase() === c.label.toLowerCase() || i.category === c.id));
   const pills = [
     { id: 'all', label: 'All', iconKey: null },
-    ...inPillCats.map(c => ({ id: c.id, label: c.label, iconKey: c.iconKey })),
+    ...(_catSortAlpha ? [...inPillCats].sort((a,b) => a.label.localeCompare(b.label)) : inPillCats).map(c => ({ id: c.id, label: c.label, iconKey: c.iconKey })),
   ];
 
   function pillHtml(p) {
@@ -5595,7 +5650,7 @@ function _buildDateCardHtml(fd, idx) {
   </div>`;
 }
 
-function _buildUpcomingCardHtml(u, extraStyle, directOpen, navToCal) {
+function _buildUpcomingCardHtml(u, extraStyle, directOpen, navToCal, slideSync) {
   // Build small reserve/tickets button if applicable and not already reserved
   let _calResBtn = '';
   let _calDk = '';
@@ -5610,11 +5665,12 @@ function _buildUpcomingCardHtml(u, extraStyle, directOpen, navToCal) {
       }
     }
   }
-  const _clickHandler = navToCal
+  const _baseClick = navToCal
     ? `_navToCalendarDate(UPCOMING_DATES.find(d=>String(d.id)==='${u.id||''}'))`
     : directOpen
     ? `openDateInfo(UPCOMING_DATES.find(d=>String(d.id)==='${u.id||''}'))`
     : `_calCardClick(${u.day},'${u.month}',${u.year||2026},'${u.id||''}')`;
+  const _clickHandler = (slideSync ? slideSync : '') + _baseClick;
   return `
     <div class="upcoming-item" data-date-id="${u.id||''}" onclick="${_clickHandler}" style="${extraStyle || ''}">
       <div class="upcoming-date-badge">
@@ -6377,6 +6433,41 @@ function openMemoryInfo(id) {
 let _currentMemoryInfoId = null;
 
 // ── Calendar ──────────────────────────────────────────
+
+
+function _buildCalSlidesHtml(dates, display) {
+  if (!dates.length) return '';
+  if (display === 'compact') {
+    const compactCards = dates.map((fd, i) => {
+      const u = fd._ref || fd;
+      const clickFn = `_calSlideClick('${u.id||''}','${u.month||''}',${u.day||0},${u.year||new Date().getFullYear()})`;
+      // Remove card's own onclick so click bubbles to outer wrapper which calls _calSlideClick
+      let card = _buildDateCardHtml(fd, i);
+      card = card.replace(/onclick="openDateInfo\([^"]*\)"/, '');
+      return `<div style="flex-shrink:0;width:100%;scroll-snap-align:start;scroll-snap-stop:always;box-sizing:border-box;cursor:pointer" onclick="${clickFn}">${card}</div>`;
+    }).join('');
+    return `<div style="padding:14px 20px 0"><div id="date-cards-outer" style="margin:0;border-radius:14px;overflow:hidden;position:relative;min-height:70px;box-sizing:border-box;box-shadow:0 4px 20px rgba(139,58,82,0.45);background:linear-gradient(to right,#8b3a52 50%,#c07a8a 50%)">
+      <div id="date-cards-scroll" style="overflow-x:scroll;overflow-y:hidden;scrollbar-width:none;-ms-overflow-style:none;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;display:flex;width:100%"><div id="date-cards-inner" style="display:flex;width:100%">${compactCards}</div></div>
+      <div id="date-cards-arrows">
+        <button id="date-btn-prev" onclick="event.stopPropagation();_calCompactPrev()"><svg viewBox="0 0 24 24" width="16" height="16" stroke="#fff" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
+        <button id="date-btn-next" onclick="event.stopPropagation();_calCompactNext()"><svg viewBox="0 0 24 24" width="16" height="16" stroke="#fff" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></button>
+      </div>
+    </div></div>`;
+  }
+  // Full
+  const cards = dates.map((fd, i) => {
+    const u = fd._ref || fd;
+    const clickFn = `_calSlideClick('${u.id||''}','${u.month||''}',${u.day||0},${u.year||new Date().getFullYear()})`;
+    const card = _buildBannerCard(u, {
+      onClickExpr: clickFn,
+      hasPrev: i > 0, hasNext: i < dates.length - 1,
+      onPrev: 'scrollHomeCarousel(-1)', onNext: 'scrollHomeCarousel(1)'
+    });
+    return `<div style="flex-shrink:0;width:calc(100vw - 40px);max-width:362px;scroll-snap-align:start">${card}</div>`;
+  }).join('');
+  return `<div style="padding:14px 20px 5px"><div id="home-dates-carousel" style="display:flex;flex-direction:row;gap:10px;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch">${cards}</div></div>`;
+}
+
 function renderCalendar() {
   const monthName = new Date(currentCalYear, currentCalMonth, 1).toLocaleString('default',{month:'long'});
   const _thisYear = new Date().getFullYear();
@@ -6458,8 +6549,10 @@ function renderCalendar() {
       // Build panels array — only add panels that have content
       const _ipPanels = [];
 
-      // Panel: Reservation / Tickets — only show if not yet reserved
-      const _ipHasRes = _ipIdea && _ipIdea.reservation && _ipIdea.reservation !== 'none';
+      // Panel: Reservation / Tickets — only show if not yet reserved and showTickets is on
+      const _detailsSec = calScreenConfig.find(s => s.id === 'details');
+      const _showTickets = !_detailsSec || _detailsSec.showTickets !== false;
+      const _ipHasRes = _showTickets && _ipIdea && _ipIdea.reservation && _ipIdea.reservation !== 'none';
       if (_ipHasRes) {
         const _ipDk = _dateKey(u);
         const _ipAlreadyReserved = _reservedDateKeys.has(_ipDk);
@@ -6491,7 +6584,7 @@ function renderCalendar() {
         // Leave by or ? badge
         let leaveByHtml = '';
         if (_ipSubwayHasQ) {
-          leaveByHtml = `<span style="display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:50%;border:1.5px solid #b0a090;font-size:9px;font-weight:700;color:#b0a090;font-family:sans-serif;flex-shrink:0;cursor:pointer">?</span>`;
+          leaveByHtml = `<span style="display:inline-flex;align-items:center;justify-content:center;width:10px;height:10px;border-radius:50%;border:1.5px solid #b0a090;font-size:9px;font-weight:700;color:#b0a090;font-family:sans-serif;flex-shrink:0;cursor:pointer">?</span>`;
         } else if (commuteMin && u.time) {
           const parsed = parseTimeInput(u.time);
           const m = parsed.match(/(\d+):(\d+)\s*(am|pm)/i);
@@ -6525,7 +6618,7 @@ function renderCalendar() {
           const carSvg = `<svg viewBox="0 0 24 24" width="13" height="13" fill="#b0a090"><path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z"/></svg>`;
           const wdCommuteMin = walkMatch ? parseInt(walkMatch[1]) : (driveMatch ? parseInt(driveMatch[1]) : null);
           // ? badge or Leave by
-          const _ipWdQBadge = `<span style="display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:50%;border:1.5px solid #b0a090;font-size:9px;font-weight:700;color:#b0a090;font-family:sans-serif;flex-shrink:0;cursor:pointer">?</span>`;
+          const _ipWdQBadge = `<span style="display:inline-flex;align-items:center;justify-content:center;width:10px;height:10px;border-radius:50%;border:1.5px solid #b0a090;font-size:9px;font-weight:700;color:#b0a090;font-family:sans-serif;flex-shrink:0;cursor:pointer">?</span>`;
           let wdLeaveByHtml = '';
           if (_ipWalkdriveHasQ) {
             wdLeaveByHtml = _ipWdQBadge;
@@ -6668,7 +6761,7 @@ function renderCalendar() {
     window._calDateHeaders = _dateHeaders;
 
     selectedCardHTML = `
-      <div style="margin-top:20px;min-height:70px;box-sizing:border-box;padding:10px 0 10px;display:flex;flex-direction:column;align-items:stretch;justify-content:center">
+      <div style="margin-top:8px;min-height:70px;box-sizing:border-box;padding:10px 0 10px;display:flex;flex-direction:column;align-items:stretch;justify-content:center">
         <div id="cal-info-header">${_ipHeader}</div>
         <div style="display:flex;align-items:center;gap:2px">
           <div style="width:22px;flex-shrink:0">${_allPanels.length > 1 ? `<button id="cal-info-prev-btn" onclick="event.stopPropagation();_calInfoPrev()" style="${chevStyle};opacity:${hasPrevPanel?1:0.2}"><svg viewBox="0 0 24 24" width="14" height="14" stroke="#b0a090" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>` : ''}</div>
@@ -6681,7 +6774,7 @@ function renderCalendar() {
   } else if (_selDayAllPrivate) {
     const _privDateLabel = _calDayLabel(selectedCalDay, currentCalMonth, currentCalYear);
     selectedCardHTML = `
-      <div style="margin-top:20px;height:70px;box-sizing:border-box;padding:12px 16px;border-radius:14px;display:flex;align-items:center;justify-content:center;color:#b0a090;font-size:14px;font-style:italic">
+      <div style="margin-top:8px;height:70px;box-sizing:border-box;padding:12px 16px;border-radius:14px;display:flex;align-items:center;justify-content:center;color:#b0a090;font-size:14px;font-style:italic">
         Locked date ${_privDateLabel}
       </div>`;
   } else if (selectedCalDay) {
@@ -6695,21 +6788,39 @@ function renderCalendar() {
       : (_selObj > _tomorrow && _selObj <= _endOfWeek) ? _DAY_NAMES[_selObj.getDay()]
       : _calDayLabel(selectedCalDay, currentCalMonth, currentCalYear);
     selectedCardHTML = `
-      <div style="margin-top:20px;height:70px;box-sizing:border-box;padding:12px 16px;border-radius:14px;display:flex;align-items:center;justify-content:center;color:#b0a090;font-size:14px;font-style:italic">
+      <div style="margin-top:8px;height:70px;box-sizing:border-box;padding:12px 16px;border-radius:14px;display:flex;align-items:center;justify-content:center;color:#b0a090;font-size:14px;font-style:italic">
         No date ${_noDateLabel} · <span style="color:${ROSE};cursor:pointer" onclick="openNewDateFromCal(${selectedCalDay}, currentCalMonth, currentCalYear)">&nbsp;Plan one ›</span>
       </div>`;
   }
 
   // Upcoming list
   
-  return `
-  <div id="cal-wrap">
+  // Build slides section if enabled in cal config
+  const _calSlidesSection = (() => {
+    const sec = calScreenConfig.find(s => s.id === 'slides');
+    if (!sec || sec.on === false) return '';
+    const display = sec.display || 'full';
+    // Reuse the home date cards but in calendar context
+    const _cvDates = FUTURE_DATES.filter(fd => !_isDateHiddenPrivate(fd._ref || fd));
+    if (!_cvDates.length) return '';
+    return `<div id="cal-slides" style="margin:0;padding-bottom:4px">${_buildCalSlidesHtml(_cvDates, display)}</div>`;
+  })();
+
+  
+  // Build each section as a named HTML string
+  const _sectionHtml = {};
+
+  // Slides
+  _sectionHtml['slides'] = _calSlidesSection;
+
+  // Calendar (always rendered, can be reordered)
+  _sectionHtml['calendar'] = `<div id="cal-wrap">
     <div id="cal-card">
       <div id="cal-header">
         <button class="cal-nav-btn" onclick="calPrev()">
           <svg viewBox="0 0 24 24" width="18" height="18" stroke="#b0a090" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
         </button>
-        <span id="cal-month-label">${_monthLabel}</span>
+        <span id="cal-month-label" onclick="_calGoToToday()" style="cursor:pointer">${_monthLabel}</span>
         <button class="cal-nav-btn" onclick="calNext()">
           <svg viewBox="0 0 24 24" width="18" height="18" stroke="#b0a090" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
         </button>
@@ -6717,82 +6828,230 @@ function renderCalendar() {
       <div id="cal-dow">${DOW.map(d=>`<div class="cal-dow-cell">${d}</div>`).join('')}</div>
       <div id="cal-grid">${cells}</div>
     </div>
-    ${selectedCardHTML}
-    <div id="cal-upcoming">
-      ${(() => {
-        const _bdCards = _upcomingBirthdayCards();
-        const _isSearching = calMemSearch || calMemPeople.length;
-        const _dateItems = UPCOMING_DATES
-          .filter(u => { const dt=new Date((u.year||2026),MONTH_NUMS[u.month]||0,u.day); dt.setHours(0,0,0,0); return dt>=_now && !_isDateHiddenPrivate(u) && (!_isSearching || _calMemMatchDate(u)); })
-          .map(u => ({ date: new Date((u.year||2026),MONTH_NUMS[u.month]||0,u.day), isBd: false, u }));
-        const _bdItems = _isSearching ? [] : _bdCards.map(r => ({ date: r.date, isBd: true, r }));
-        const _allItems = [..._dateItems, ..._bdItems].sort((a,b) => a.date - b.date);
-        if (!_allItems.length) return `<div class="section-label" style="margin-bottom:12px">${_isSearching ? 'Upcoming Results' : 'Upcoming'}</div>`;
-        const _mergedHtml = _allItems.map(item => {
-          if (item.isBd) return _buildBirthdayCardHtml(item.r);
-          const u = item.u;
-          const isSelected = u.month === monthAbbr && (u.year||2026) === currentCalYear && u.day === selectedCalDay;
-          if (!isSelected) return _buildUpcomingCardHtml(u, '');
-          const _dayDates = _selDayVisible;
-          const isActive = _dayDates.length <= 1 || String(u.id) === window._calActiveDateId;
-          return _buildUpcomingCardHtml(u, isActive ? `border-color:${ROSE};` : 'border-color:var(--text-secondary);');
-        }).join('');
-        return `<div class="section-label" style="margin-bottom:12px">${_isSearching ? 'Upcoming Results' : 'Upcoming'}</div>` + _mergedHtml;
-      })()}
-    </div>
-    ${(() => {
-      const _isSearchingPast = calMemSearch || calMemPeople.length;
-      const allPast = _computeMemories().filter(d => !_isDateHiddenPrivate(d));
-      const past3 = _isSearchingPast ? allPast.filter(d => _calMemMatchDate(d)) : allPast.slice(0, 3);
-      if (past3.length === 0) return '';
-      const BROWN = '#9a8a7a';
-      const rows = past3.map(d => {
-        const sub = d.note
-          ? d.note
-          : (d.time && _dateLocationLabel(d) ? d.time + ' · ' + _dateLocationLabel(d) : d.time || _dateLocationLabel(d) || d.label || '');
-        return `<div class="upcoming-item" onclick="openMemoryInfo('${String(d.id).replace(/'/g,"\\'")}')">
-          <div class="upcoming-date-badge">
-            <span class="upcoming-month" style="color:${BROWN}">${d.month}</span>
-            <span class="upcoming-day-num" style="color:${BROWN}">${d.day}</span>
-          </div>
-          <div class="upcoming-divider"></div>
-          <div class="upcoming-info">
-            <div class="upcoming-venue-row">
-              ${activityIcon(d.activity, 14, BROWN)}
-              <span class="upcoming-venue" style="color:${BROWN}">${d.venue}</span>
-            </div>
-            <span class="upcoming-sub">${sub}</span>
-          </div>
-        </div>`;
-      }).join('');
-      return `<div id="cal-past" style="margin-top:28px">
-        <button onclick="navigate('past')" style="background:none;border:none;cursor:pointer;padding:0;display:flex;align-items:center;gap:4px;margin-bottom:12px">
-          <span class="section-label">${_isSearchingPast ? 'Past Results' : 'Past Dates'}</span>
-          
-        </button>
-        ${rows}
+  </div>`;
+
+  // Details: own section so it can be reordered
+  const _detSec = calScreenConfig.find(s => s.id === 'details');
+  const _detVisible = !_detSec || _detSec.on !== false;
+  _sectionHtml['details'] = _detVisible
+    ? `<div style="padding:0 20px">${selectedCardHTML}</div>`
+    : '';
+
+  // Upcoming
+  _sectionHtml['upcoming'] = `<div style="padding:0 20px">${_buildCalUpcomingHtml()}</div>`;
+
+  // Past dates
+  _sectionHtml['pastDates'] = `<div style="padding:0 20px">${(() => {
+    const _isSearchingPast = calMemSearch || calMemPeople.length;
+    const allPast = _computeMemories().filter(d => !_isDateHiddenPrivate(d));
+    const past3 = _isSearchingPast ? allPast.filter(d => _calMemMatchDate(d)) : allPast.slice(0, 3);
+    if (past3.length === 0) return '';
+    const BROWN = '#9a8a7a';
+    const rows = past3.map(d => {
+      const sub = d.note ? d.note : (d.time && _dateLocationLabel(d) ? d.time + ' · ' + _dateLocationLabel(d) : d.time || _dateLocationLabel(d) || d.label || '');
+      return `<div class="upcoming-item" onclick="openMemoryInfo('${String(d.id).replace(/'/g,"\'")}')">
+        <div class="upcoming-date-badge"><span class="upcoming-month" style="color:${BROWN}">${d.month}</span><span class="upcoming-day-num" style="color:${BROWN}">${d.day}</span></div>
+        <div class="upcoming-divider"></div>
+        <div class="upcoming-info"><div class="upcoming-venue-row">${activityIcon(d.activity,14,BROWN)}<span class="upcoming-venue" style="color:${BROWN}">${d.venue}</span></div><span class="upcoming-sub">${sub}</span></div>
       </div>`;
-    })()}
+    }).join('');
+    return `<div id="cal-past" style="margin-top:28px">
+      <button onclick="navigate('past')" style="background:none;border:none;cursor:pointer;padding:0;display:flex;align-items:center;gap:4px;margin-bottom:12px">
+        <span class="section-label">${_isSearchingPast ? 'Past Results' : 'Past Dates'}</span>
+      </button>
+      ${rows}
+    </div>`;
+  })()}</div>`;
+
+  // (details section is built above as _sectionHtml['details'])
+
+  // Assemble sections in calScreenConfig order
+  // Ensure all default sections present (defensive merge at render time)
+  _calDefaultSections.forEach(def => {
+    if (!calScreenConfig.find(s => s.id === def.id)) calScreenConfig.push({...def});
+  });
+  const _orderedSections = calScreenConfig.map(sec => {
+    if (sec.on === false) return '';
+    return _sectionHtml[sec.id] || '';
+  }).join('\n');
+
+  return _orderedSections;
+
+}
+
+function _calSlideClick(id, month, day, year) {
+  const targetMonth = MONTH_NUMS[month] !== undefined ? MONTH_NUMS[month] : new Date(Date.parse(month+' 1 2000')).getMonth();
+  const alreadyOnMonth = currentCalYear === year && currentCalMonth === targetMonth;
+  const alreadyOnDay = selectedCalDay === day;
+  if (alreadyOnMonth && alreadyOnDay) {
+    const u = UPCOMING_DATES.find(d => String(d.id) === String(id));
+    if (u) openDateInfo(u);
+  } else {
+    // Save scroll position before re-render
+    const _savedCompactIdx = _calCompactIdx;
+    const _carousel = document.getElementById('home-dates-carousel');
+    const _savedScrollLeft = _carousel ? _carousel.scrollLeft : 0;
+    const _savedHomeIdx = _homeCarouselIdx;
+    currentCalMonth = targetMonth;
+    currentCalYear = year;
+    selectedCalDay = day;
+    render();
+    setTimeout(() => {
+      // Restore compact position
+      const scroll = document.getElementById('date-cards-scroll');
+      if (scroll) {
+        _calCompactIdx = _savedCompactIdx;
+        const w = scroll.offsetWidth;
+        if (w) scroll.scrollLeft = _calCompactIdx * w;
+        _updateCalCompactArrows();
+      }
+      // Restore full carousel position
+      const c = document.getElementById('home-dates-carousel');
+      if (c && _savedScrollLeft > 0) { c.scrollLeft = _savedScrollLeft; _homeCarouselIdx = _savedHomeIdx; }
+      _applyBirthdayDots();
+      _applyBirthdayDotsWeek();
+    }, 0);
+  }
+}
+
+// Calendar screen compact slides index (separate from home dateIdx)
+let _calCompactIdx = 0;
+let _calUpcomingToggled = false; // toggled by clicking Upcoming title
+
+function _calCompactScrollTo(idx, animate) {
+  const scroll = document.getElementById('date-cards-scroll');
+  if (!scroll) return;
+  const total = FUTURE_DATES.filter(fd => !_isDateHiddenPrivate(fd._ref || fd)).length;
+  _calCompactIdx = Math.max(0, Math.min(total - 1, idx));
+  const w = scroll.offsetWidth;
+  if (!w) return;
+  if (animate) {
+    scroll.style.scrollSnapType = 'none';
+    const start = scroll.scrollLeft, end = _calCompactIdx * w;
+    const dur = 200, t0 = performance.now();
+    const ease = t => t < 0.5 ? 2*t*t : -1+(4-2*t)*t;
+    (function step(now) {
+      const t = Math.min((now - t0) / dur, 1);
+      scroll.scrollLeft = start + (end - start) * ease(t);
+      if (t < 1) requestAnimationFrame(step);
+      else { scroll.scrollLeft = end; requestAnimationFrame(() => { scroll.style.scrollSnapType = 'x mandatory'; }); }
+    })(performance.now());
+  } else {
+    scroll.scrollLeft = _calCompactIdx * w;
+  }
+  _updateCalCompactArrows();
+}
+
+function _calCompactPrev() { _calCompactScrollTo(_calCompactIdx - 1, true); }
+function _calCompactNext() { _calCompactScrollTo(_calCompactIdx + 1, true); }
+
+function _updateCalCompactArrows() {
+  const total = FUTURE_DATES.filter(fd => !_isDateHiddenPrivate(fd._ref || fd)).length;
+  const prev = document.getElementById('date-btn-prev');
+  const next = document.getElementById('date-btn-next');
+  if (prev) prev.style.opacity = _calCompactIdx > 0 ? '1' : '0.3';
+  if (next) next.style.opacity = _calCompactIdx < total - 1 ? '1' : '0.3';
+}
+
+function _calScrollToDateId(id) {
+  // Scroll compact slides to the date with given id
+  const dates = FUTURE_DATES.filter(fd => !_isDateHiddenPrivate(fd._ref || fd));
+  const idx = dates.findIndex(fd => String((fd._ref||fd).id) === String(id));
+  if (idx >= 0) {
+    const sec = calScreenConfig.find(s => s.id === 'slides');
+    const isCompact = sec && (sec.display || 'full') === 'compact';
+    if (isCompact) _calCompactScrollTo(idx, true);
+    else {
+      _homeCarouselIdx = idx;
+      const c = document.getElementById('home-dates-carousel');
+      if (c && c.children[idx]) c.scrollTo({ left: c.children[idx].offsetLeft, behavior: 'smooth' });
+    }
+  }
+}
+
+function _toggleCalUpcoming() {
+  _calUpcomingToggled = !_calUpcomingToggled;
+  // Re-render just the upcoming section
+  const upcomingEl = document.getElementById('cal-upcoming');
+  if (upcomingEl) {
+    upcomingEl.outerHTML = _buildCalUpcomingHtml();
+  }
+}
+
+function _buildCalUpcomingHtml() {
+  const now = new Date(); now.setHours(0,0,0,0);
+  const upcomingSec = calScreenConfig.find(s => s.id === 'upcoming');
+  const configShow = upcomingSec ? (upcomingSec.show || 'all') : 'all';
+  const _bdCards = _upcomingBirthdayCards();
+  const _isSearching = calMemSearch || calMemPeople.length;
+  const monthAbbr = new Date(currentCalYear, currentCalMonth, 1).toLocaleString('default',{month:'short'});
+  const _selDayVisible = UPCOMING_DATES.filter(u => {
+    const dt = new Date((u.year||2026), MONTH_NUMS[u.month]||0, u.day); dt.setHours(0,0,0,0);
+    return dt.getTime() === new Date(currentCalYear, currentCalMonth, selectedCalDay).setHours(0,0,0,0) && !_isDateHiddenPrivate(u);
+  });
+  const _dateItems = UPCOMING_DATES
+    .filter(u => { const dt=new Date((u.year||2026),MONTH_NUMS[u.month]||0,u.day); dt.setHours(0,0,0,0); return dt>=now && !_isDateHiddenPrivate(u) && (!_isSearching || _calMemMatchDate(u)); })
+    .map(u => ({ date: new Date((u.year||2026),MONTH_NUMS[u.month]||0,u.day), isBd: false, u }));
+  const _bdItems = _isSearching ? [] : _bdCards.map(r => ({ date: r.date, isBd: true, r }));
+  const _allItems = [..._dateItems, ..._bdItems].sort((a,b) => a.date - b.date);
+  if (!_allItems.length) return `<div id="cal-upcoming"><div class="section-label" style="margin-bottom:12px">${_isSearching ? 'Upcoming Results' : 'Upcoming'}</div></div>`;
+
+  // Determine how many to show
+  let showLimit = Infinity;
+  if (configShow === '3') showLimit = _calUpcomingToggled ? Infinity : 3;
+  else if (configShow === '5') showLimit = _calUpcomingToggled ? Infinity : 5;
+  else showLimit = _calUpcomingToggled ? 3 : Infinity; // 'all' → toggle to 3
+
+  const _shownItems = showLimit === Infinity ? _allItems : _allItems.slice(0, showLimit);
+
+  const _mergedHtml = _shownItems.map(item => {
+    if (item.isBd) return _buildBirthdayCardHtml(item.r);
+    const u = item.u;
+    const isSelected = u.month === monthAbbr && (u.year||2026) === currentCalYear && u.day === selectedCalDay;
+    if (!isSelected) return _buildUpcomingCardHtml(u, '', false, false);
+    const isActive = _selDayVisible.length <= 1 || String(u.id) === window._calActiveDateId;
+    return _buildUpcomingCardHtml(u, isActive ? `border-color:${ROSE};` : 'border-color:var(--text-secondary);', false, false);
+  }).join('');
+
+  return `<div id="cal-upcoming">
+    <button onclick="_toggleCalUpcoming()" style="background:none;border:none;cursor:pointer;padding:0;display:flex;align-items:center;gap:4px;margin-bottom:10px">
+      <span class="section-label">${_isSearching ? 'Upcoming Results' : 'Upcoming'}</span>
+    </button>
+    ${_mergedHtml}
   </div>`;
 }
 
-// ── Calendar nav ──────────────────────────────────────
-function _navToCalendarDate(u) {
-  // Navigate to calendar, select the month/day, and set the active date panel
-  const mNum = MONTH_NUMS[u.month] ?? 0;
-  currentCalMonth = mNum;
-  currentCalYear = u.year || 2026;
-  selectedCalDay = u.day;
-  _calBannerIdx = 0;
-  // Find which index this date is among visible dates on that day, set panel accordingly
-  const dayVisible = UPCOMING_DATES.filter(d =>
-    d.month === u.month && (d.year||2026) === currentCalYear && d.day === u.day && !_isDateHiddenPrivate(d)
-  );
-  const dateIdx = Math.max(0, dayVisible.findIndex(d => String(d.id) === String(u.id)));
-  // We'll set _calInfoPanelIdx after render (panels aren't built yet), store intent
-  window._calPendingDateId = String(u.id);
-  window._calNavFromHome = true;
-  navigate('calendar');
+function _syncSlidesToSelectedDay() {
+  if (!selectedCalDay) return;
+  const dates = FUTURE_DATES.filter(fd => !_isDateHiddenPrivate(fd._ref || fd));
+  const idx = dates.findIndex(fd => {
+    const ref = fd._ref || fd;
+    return ref.day === selectedCalDay &&
+      (MONTH_NUMS[ref.month] ?? -1) === currentCalMonth &&
+      (ref.year || 2026) === currentCalYear;
+  });
+  if (idx < 0) return;
+  const sec = calScreenConfig.find(s => s.id === 'slides');
+  if (!sec || sec.on === false) return;
+  const isCompact = (sec.display || 'full') === 'compact';
+  if (isCompact) {
+    if (_calCompactIdx !== idx) _calCompactScrollTo(idx, true);
+  } else {
+    if (_homeCarouselIdx !== idx) {
+      _homeCarouselIdx = idx;
+      const c = document.getElementById('home-dates-carousel');
+      if (c && c.children[idx]) c.scrollTo({ left: c.children[idx].offsetLeft, behavior: 'smooth' });
+    }
+  }
+}
+
+function _calGoToToday() {
+  const now = new Date();
+  currentCalMonth = now.getMonth();
+  currentCalYear = now.getFullYear();
+  selectedCalDay = now.getDate();
+  render();
+  setTimeout(() => { _applyBirthdayDots(); _applyBirthdayDotsWeek(); }, 0);
 }
 
 function calPrev() {
@@ -11637,11 +11896,173 @@ function saveEditMainScreen() {
   render();
 }
 
+// ── Edit Calendar Screen ──────────────────────────────────────────────────────
+const _calDefaultSections = [
+  { id:'slides',       label:'Slides',       on:true,  display:'full' },
+  { id:'calendar',     label:'Calendar',     on:true  },
+  { id:'upcoming',     label:'Upcoming',     on:true,  show:'all' },
+  { id:'pastDates',    label:'Past Dates',   on:true,  show:'5' },
+  { id:'details',      label:'Details',      on:true  },
+];
+
+function _getCalScreenConfig() {
+  try {
+    const saved = JSON.parse(localStorage.getItem('ll_cal_screen_config') || 'null');
+    if (saved && Array.isArray(saved) && saved.length) {
+      // Merge: add any default sections missing from saved config
+      const merged = [...saved];
+      _calDefaultSections.forEach(def => {
+        if (!merged.find(s => s.id === def.id)) merged.push({...def});
+      });
+      return merged;
+    }
+  } catch(e) {}
+  return _calDefaultSections.map(s => ({...s}));
+}
+
+let calScreenConfig = _getCalScreenConfig();
+let _ecsWorkingConfig = null;
+
+function openEditCalScreen() {
+  _ecsWorkingConfig = calScreenConfig.map(s => ({...s}));
+  _renderEditCalScreenList();
+  document.getElementById('editcal-overlay').style.display = 'flex';
+}
+
+function closeEditCalScreen() {
+  document.getElementById('editcal-overlay').style.display = 'none';
+  _ecsWorkingConfig = null;
+}
+
+function _renderEditCalScreenList() {
+  const list = document.getElementById('editcal-list');
+  if (!list) return;
+  list.innerHTML = _ecsWorkingConfig.map((sec, i) => _ecsBlockHtml(sec, i)).join('');
+  _ecsAttachDrag();
+  _ecsAttachShowChange();
+}
+
+function _ecsBlockHtml(sec, i) {
+  const opts = _ecsOptionsHtml(sec);
+  const cantDisable = sec.id === 'calendar';
+  const toggleHtml = cantDisable ? '' : `<button type="button" class="ems-toggle ${sec.on ? 'ems-toggle-on' : 'ems-toggle-off'}" onclick="event.stopPropagation();_emsToggle(this)" style="flex-shrink:0;width:28px;height:16px;border-radius:8px;border:none;cursor:pointer;position:relative;transition:background 0.2s;background:${sec.on ? '#c07a8a' : '#c8bfb6'}"><span style="position:absolute;top:3px;left:${sec.on ? '15px' : '3px'};width:10px;height:10px;border-radius:50%;background:#fff;transition:left 0.2s;box-shadow:0 1px 3px rgba(0,0,0,0.2)"></span></button>`;
+  return `<div class="ems-block" data-ecs-id="${sec.id}" data-ecs-idx="${i}">
+    <div class="ems-block-header">
+      <svg class="ems-drag-handle ecs-drag-handle" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="8" x2="20" y2="8"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="16" x2="20" y2="16"/></svg>
+      <span class="ems-block-title">${sec.label}</span>
+      ${toggleHtml}
+    </div>
+    ${opts ? `<div class="ems-options">${opts}</div>` : ''}
+  </div>`;
+}
+
+function _ecsOptionsHtml(sec) {
+  if (sec.id === 'slides') {
+    return `<span class="ems-opt-label">Display</span>${_emsSel('display', sec.display||'full', [{v:'full',l:'Full'},{v:'compact',l:'Compact'}])}`;
+  }
+  if (sec.id === 'calendar') {
+    const showBd = sec.showBirthdays !== false;
+    return `<label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-family:sans-serif;font-size:12px;color:var(--text-secondary)"><input type="checkbox" class="showtype-check" data-ems-key="showBirthdays" data-val-type="bool" ${showBd ? 'checked' : ''} style="width:13px;height:13px">Show birthdays</label>`;
+  }
+  if (sec.id === 'upcoming') {
+    return `<span class="ems-opt-label">Show</span>${_emsSel('show', sec.show||'all', [{v:'3',l:'3'},{v:'5',l:'5'},{v:'all',l:'All'}])}`;
+  }
+  if (sec.id === 'pastDates') {
+    return `<span class="ems-opt-label">Show</span>${_emsSel('show', sec.show||'5', [{v:'3',l:'3'},{v:'5',l:'5'},{v:'all',l:'All'}])}`;
+  }
+  if (sec.id === 'details') {
+    const showTickets = sec.showTickets !== false;
+    return `<label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-family:sans-serif;font-size:12px;color:var(--text-secondary)"><input type="checkbox" class="showtype-check" data-ems-key="showTickets" data-val-type="bool" ${showTickets ? 'checked' : ''} style="width:13px;height:13px">Show tickets / reservations</label>`;
+  }
+  return '';
+}
+
+function _ecsReadFromDom() {
+  if (!_ecsWorkingConfig) return;
+  _ecsWorkingConfig.forEach((sec, i) => {
+    const block = document.querySelector(`[data-ecs-id="${sec.id}"]`);
+    if (!block) return;
+    const toggle = block.querySelector('.ems-toggle');
+    if (toggle) sec.on = toggle.classList.contains('ems-toggle-on');
+    const sels = block.querySelectorAll('[data-ems-key]');
+    sels.forEach(el => {
+      if (el.dataset.valType === 'bool') sec[el.dataset.emsKey] = el.checked;
+      else sec[el.dataset.emsKey] = el.value;
+    });
+  });
+}
+
+function saveEditCalScreen() {
+  _ecsReadFromDom();
+  calScreenConfig = _ecsWorkingConfig.map(s => ({...s}));
+  try { localStorage.setItem('ll_cal_screen_config', JSON.stringify(calScreenConfig)); } catch(e) {}
+  closeEditCalScreen();
+  if (currentView === 'calendar') render();
+}
+
+function _ecsAttachDrag() {
+  const list = document.getElementById('editcal-list');
+  if (!list) return;
+  let dragEl = null, overEl = null;
+  list.querySelectorAll('.ecs-drag-handle').forEach(handle => {
+    handle.style.cursor = 'grab';
+    handle.addEventListener('mousedown', startDrag);
+    handle.addEventListener('touchstart', startDrag, { passive: true });
+  });
+  function startDrag(e) {
+    dragEl = e.currentTarget.closest('.ems-block');
+    if (!dragEl) return;
+    dragEl.classList.add('dragging');
+  }
+  list.addEventListener('dragover', e => e.preventDefault());
+  list.querySelectorAll('.ems-block').forEach(block => {
+    block.setAttribute('draggable', 'true');
+    block.addEventListener('dragstart', () => { dragEl = block; setTimeout(() => block.classList.add('dragging'), 0); });
+    block.addEventListener('dragend', () => { block.classList.remove('dragging'); if (overEl) overEl.classList.remove('drag-over'); _ecsReorder(); });
+    block.addEventListener('dragenter', () => { if (overEl) overEl.classList.remove('drag-over'); overEl = block; block.classList.add('drag-over'); });
+  });
+  function _ecsReorder() {
+    if (!dragEl || !overEl || dragEl === overEl) return;
+    const blocks = [...list.querySelectorAll('.ems-block')];
+    const fromIdx = blocks.indexOf(dragEl);
+    const toIdx = blocks.indexOf(overEl);
+    if (fromIdx < 0 || toIdx < 0) return;
+    if (fromIdx < toIdx) list.insertBefore(dragEl, overEl.nextSibling);
+    else list.insertBefore(dragEl, overEl);
+    // Sync working config order
+    const newOrder = [...list.querySelectorAll('.ems-block')].map(b => {
+      const id = b.dataset.ecsId;
+      return _ecsWorkingConfig.find(s => s.id === id);
+    }).filter(Boolean);
+    _ecsWorkingConfig = newOrder;
+  }
+}
+
+function _ecsAttachShowChange() {
+  const list = document.getElementById('editcal-list');
+  if (!list) return;
+  list.querySelectorAll('select[data-ems-key]').forEach(sel => { sel.addEventListener('change', () => {}); });
+}
+
+
+
+function _emsToggle(btn) {
+  const isOn = btn.classList.contains('ems-toggle-on');
+  btn.classList.toggle('ems-toggle-on', !isOn);
+  btn.classList.toggle('ems-toggle-off', isOn);
+  btn.style.background = !isOn ? '#c07a8a' : '#c8bfb6';
+  const dot = btn.querySelector('span');
+  if (dot) dot.style.left = !isOn ? '15px' : '3px';
+}
+
 function _emsReadFromDom() {
   if (!_emsWorkingConfig) return;
   _emsWorkingConfig.forEach((sec, i) => {
     const block = document.querySelector(`[data-ems-id="${sec.id}"]`);
     if (!block) return;
+    // Read toggle state (new) or checkbox (legacy)
+    const toggle = block.querySelector('.ems-toggle');
+    if (toggle) sec.on = toggle.classList.contains('ems-toggle-on');
     const chk = block.querySelector('.ems-enabled-chk');
     if (chk) sec.on = chk.checked;
     const sels = block.querySelectorAll('[data-ems-key]');
@@ -11659,13 +12080,15 @@ function _renderEditMainScreenList() {
 
 function _emsBlockHtml(sec, i) {
   const opts = _emsOptionsHtml(sec);
+  const cantDisable = sec.id === 'calendar'; // calendar section can't be turned off
+  const toggleHtml = cantDisable ? '' : `<button type="button" class="ems-toggle ${sec.on ? 'ems-toggle-on' : 'ems-toggle-off'}" onclick="event.stopPropagation();_emsToggle(this)" style="flex-shrink:0;width:28px;height:16px;border-radius:8px;border:none;cursor:pointer;position:relative;transition:background 0.2s;background:${sec.on ? '#c07a8a' : '#c8bfb6'}">
+    <span style="position:absolute;top:3px;left:${sec.on ? '15px' : '3px'};width:10px;height:10px;border-radius:50%;background:#fff;transition:left 0.2s;box-shadow:0 1px 3px rgba(0,0,0,0.2)"></span>
+  </button>`;
   return `<div class="ems-block" data-ems-id="${sec.id}" data-ems-idx="${i}">
     <div class="ems-block-header">
       <svg class="ems-drag-handle" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="8" x2="20" y2="8"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="16" x2="20" y2="16"/></svg>
       <span class="ems-block-title">${sec.label}</span>
-      <label style="display:flex;align-items:center;gap:4px;cursor:pointer">
-        <input type="checkbox" class="ems-enabled-chk" ${sec.on ? 'checked' : ''} style="width:16px;height:16px;accent-color:#a05268;cursor:pointer">
-      </label>
+      ${toggleHtml}
     </div>
     ${opts ? `<div class="ems-options">${opts}</div>` : ''}
   </div>`;
@@ -11678,8 +12101,7 @@ function _emsSel(key, val, options) {
 
 function _emsOptionsHtml(sec) {
   if (sec.id === 'nextDates') {
-    return `<span class="ems-opt-label">Display</span>${_emsSel('display', sec.display||'full', [{v:'full',l:'Full'},{v:'compact',l:'Compact'}])}
-      <span class="ems-opt-label" style="margin-left:4px">Calendar</span>${_emsSel('calendar', sec.calendar||'week', [{v:'week',l:'Week'},{v:'month',l:'Month'},{v:'none',l:'None'}])}`;
+    return `<span class="ems-opt-label">Display</span>${_emsSel('display', sec.display||'full', [{v:'full',l:'Full'},{v:'compact',l:'Compact'}])}`;
   }
   if (sec.id === 'ideas') {
     const showVal = sec.show || '3';
@@ -13986,9 +14408,19 @@ _renderPersonInfoPopup = function(p) {
   fields.insertBefore(bdRow, fields.firstChild);
 };
 
+function _calShowBirthdays() {
+  const calSec = calScreenConfig.find(s => s.id === 'calendar');
+  return !calSec || calSec.showBirthdays !== false;
+}
+
 // Birthday dots on all calendars
 function _applyBirthdayDots() {
   if (typeof currentCalYear === 'undefined') return;
+  if (!_calShowBirthdays()) {
+    // Remove all existing birthday dots
+    document.querySelectorAll('.cal-bday-dot').forEach(d => d.remove());
+    return;
+  }
   const _isSearchingBd = calMemSearch || calMemPeople.length;
   let bdays = _birthdaysInMonth(currentCalMonth);
   if (_isSearchingBd) {
@@ -14024,6 +14456,7 @@ function _applyBirthdayDots() {
 }
 
 function _applyBirthdayDotsWeek() {
+  if (!_calShowBirthdays()) return;
   const inner = document.getElementById('week-strip-inner');
   if (!inner) return;
   const _isSearchingBdW = calMemSearch || calMemPeople.length;
@@ -14224,6 +14657,7 @@ function _clearLocationField(ctx) {
 const _DAY_NAMES = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
 
 function _upcomingBirthdayCards() {
+  if (!_calShowBirthdays()) return [];
   // Returns array of {person, date:Date, day, month0} for birthdays in the next 30 days
   const now = new Date(); now.setHours(0,0,0,0);
   const limit = new Date(now); limit.setDate(limit.getDate() + 30);
