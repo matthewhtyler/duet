@@ -12003,39 +12003,93 @@ function saveEditCalScreen() {
 function _ecsAttachDrag() {
   const list = document.getElementById('editcal-list');
   if (!list) return;
-  let dragEl = null, overEl = null;
-  list.querySelectorAll('.ecs-drag-handle').forEach(handle => {
-    handle.style.cursor = 'grab';
-    handle.addEventListener('mousedown', startDrag);
-    handle.addEventListener('touchstart', startDrag, { passive: true });
-  });
-  function startDrag(e) {
-    dragEl = e.currentTarget.closest('.ems-block');
-    if (!dragEl) return;
-    dragEl.classList.add('dragging');
+
+  let _dragSrcIdx = null;
+  let _ghost = null;
+  let _blockH = 0;
+  let _startY = 0;
+
+  function _getBlocks() { return Array.from(list.querySelectorAll('.ems-block')); }
+  function _clearHighlights() { _getBlocks().forEach(b => b.classList.remove('drag-over')); }
+
+  function _idxFromY(clientY) {
+    const blocks = _getBlocks();
+    for (let i = 0; i < blocks.length; i++) {
+      const r = blocks[i].getBoundingClientRect();
+      if (clientY < r.top + r.height / 2) return i;
+    }
+    return blocks.length - 1;
   }
-  list.addEventListener('dragover', e => e.preventDefault());
-  list.querySelectorAll('.ems-block').forEach(block => {
-    block.setAttribute('draggable', 'true');
-    block.addEventListener('dragstart', () => { dragEl = block; setTimeout(() => block.classList.add('dragging'), 0); });
-    block.addEventListener('dragend', () => { block.classList.remove('dragging'); if (overEl) overEl.classList.remove('drag-over'); _ecsReorder(); });
-    block.addEventListener('dragenter', () => { if (overEl) overEl.classList.remove('drag-over'); overEl = block; block.classList.add('drag-over'); });
-  });
-  function _ecsReorder() {
-    if (!dragEl || !overEl || dragEl === overEl) return;
-    const blocks = [...list.querySelectorAll('.ems-block')];
-    const fromIdx = blocks.indexOf(dragEl);
-    const toIdx = blocks.indexOf(overEl);
-    if (fromIdx < 0 || toIdx < 0) return;
-    if (fromIdx < toIdx) list.insertBefore(dragEl, overEl.nextSibling);
-    else list.insertBefore(dragEl, overEl);
-    // Sync working config order
-    const newOrder = [...list.querySelectorAll('.ems-block')].map(b => {
-      const id = b.dataset.ecsId;
-      return _ecsWorkingConfig.find(s => s.id === id);
-    }).filter(Boolean);
-    _ecsWorkingConfig = newOrder;
+
+  function _onDragStart(e, idx) {
+    _dragSrcIdx = idx;
+    _ecsReadFromDom();
+    const block = _getBlocks()[idx];
+    const r = block.getBoundingClientRect();
+    _blockH = r.height;
+    _ghost = block.cloneNode(true);
+    _ghost.style.cssText = `position:fixed;left:${r.left}px;top:${r.top}px;width:${r.width}px;opacity:0.85;pointer-events:none;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,0.22);border-radius:12px;transition:none;background:var(--bg-input);border:1.5px solid var(--border)`;
+    document.body.appendChild(_ghost);
+    block.classList.add('dragging');
   }
+
+  function _onDragMove(clientY) {
+    if (_dragSrcIdx === null || !_ghost) return;
+    _ghost.style.top = (clientY - _blockH / 2) + 'px';
+    const destIdx = _idxFromY(clientY);
+    _clearHighlights();
+    const blocks = _getBlocks();
+    if (blocks[destIdx]) blocks[destIdx].classList.add('drag-over');
+  }
+
+  function _onDragEnd(clientY) {
+    if (_dragSrcIdx === null) return;
+    const destIdx = _idxFromY(clientY);
+    _clearHighlights();
+    if (_ghost) { _ghost.remove(); _ghost = null; }
+    if (_dragSrcIdx !== destIdx) {
+      const moved = _ecsWorkingConfig.splice(_dragSrcIdx, 1)[0];
+      _ecsWorkingConfig.splice(destIdx, 0, moved);
+    }
+    _dragSrcIdx = null;
+    _getBlocks().forEach(b => b.classList.remove('dragging'));
+    _renderEditCalScreenList();
+  }
+
+  _getBlocks().forEach((block, idx) => {
+    const handle = block.querySelector('.ecs-drag-handle');
+    const trigger = handle || block;
+
+    trigger.addEventListener('touchstart', e => {
+      _startY = e.touches[0].clientY;
+      _onDragStart(e, idx);
+    }, { passive: true });
+
+    trigger.addEventListener('touchmove', e => {
+      e.preventDefault();
+      _onDragMove(e.touches[0].clientY);
+    }, { passive: false });
+
+    trigger.addEventListener('touchend', e => {
+      _onDragEnd(e.changedTouches[0].clientY);
+    });
+
+    trigger.addEventListener('touchcancel', () => {
+      _clearHighlights();
+      if (_ghost) { _ghost.remove(); _ghost = null; }
+      _dragSrcIdx = null;
+      _getBlocks().forEach(b => b.classList.remove('dragging'));
+    });
+
+    trigger.addEventListener('mousedown', e => {
+      if (e.button !== 0) return;
+      _onDragStart(e, idx);
+      const onMove = ev => _onDragMove(ev.clientY);
+      const onUp = ev => { document.removeEventListener('mousemove', onMove); document.removeEventListener('mouseup', onUp); _onDragEnd(ev.clientY); };
+      document.addEventListener('mousemove', onMove);
+      document.addEventListener('mouseup', onUp);
+    });
+  });
 }
 
 function _ecsAttachShowChange() {
