@@ -106,7 +106,7 @@
   }
   #top-nav-main-row {
     display: flex; align-items: center; justify-content: space-between;
-    padding: 18px 20px 14px;
+    padding: 18px 20px 14px; min-height: 62px; box-sizing: border-box;
   }
   #top-nav-ideas-row {
     display: none;
@@ -3713,6 +3713,7 @@ function renderIdeas() {
     const row = document.getElementById('top-nav-ideas-row');
     if (row) { row.innerHTML = controlBar; row.style.display = 'flex'; row.style.alignItems = 'center'; row.style.justifyContent = 'space-between'; }
     document.getElementById('app').classList.add('ideas-nav');
+    _renderIdeasBody(); // sync x button and active filter states
   }, 0);
     if (isFavFilter) {
     return `<div id="ideas-body">${additionalTab === 'neighborhood' ? _buildNeighborhoodTabBody() : additionalTab === 'cuisine' ? _buildCuisineTabBody() : _buildCatTabBody()}</div>`;
