@@ -1073,7 +1073,7 @@
         </div>
         <div style="display:flex;align-items:center;background:var(--toggle-bg);border-radius:20px;padding:5px 10px;gap:6px;flex:1;min-width:0">
           <svg viewBox="0 0 24 24" width="13" height="13" stroke="#9a8a7a" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-          <input id="picker-search-input" type="text" oninput="setPickerSearch(this.value)" placeholder="" style="border:none;background:transparent;outline:none;font-size:16px;font-family:sans-serif;color:var(--text-primary);width:100%;line-height:1;padding:0;min-width:0">
+          <input id="picker-search-input" type="text" oninput="setPickerSearch(this.value)" onkeydown="if(event.key==='Enter')this.blur()" placeholder="" style="border:none;background:transparent;outline:none;font-size:16px;font-family:sans-serif;color:var(--text-primary);width:100%;line-height:1;padding:0;min-width:0">
           <button id="picker-search-clear" onclick="setPickerSearch('');document.getElementById('picker-search-input').value=''" style="background:none;border:none;cursor:pointer;padding:0;display:none;flex-shrink:0;line-height:0"><svg viewBox="0 0 24 24" width="13" height="13" stroke="#9a8a7a" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
         </div>
       </div>
@@ -3703,7 +3703,7 @@ function renderIdeas() {
     </div>
     <div style="display:flex;align-items:center;background:var(--toggle-bg);border-radius:20px;padding:5px 10px;gap:6px;width:160px;flex-shrink:0;margin-left:auto">
       <svg viewBox="0 0 24 24" width="13" height="13" stroke="#9a8a7a" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-      <input id="ideas-search-input" type="text" value="${q.replace(/"/g,'&quot;')}" oninput="ideasSearch=this.value;_renderIdeasBody()" onkeydown="if(event.key==='Enter'&&this.value.trim().toLowerCase()==='m'){ideasSearch='Michelin';this.value='Michelin';_renderIdeasBody();event.preventDefault()}" placeholder="" style="border:none;background:transparent;outline:none;font-size:16px;font-family:sans-serif;color:var(--text-primary);width:100%;line-height:1;padding:0;min-width:0">
+      <input id="ideas-search-input" type="text" value="${q.replace(/"/g,'&quot;')}" oninput="ideasSearch=this.value;_renderIdeasBody()" onkeydown="if(event.key==='Enter'){if(this.value.trim().toLowerCase()==='m'){ideasSearch='Michelin';this.value='Michelin';_renderIdeasBody();}this.blur();event.preventDefault();}" placeholder="" style="border:none;background:transparent;outline:none;font-size:16px;font-family:sans-serif;color:var(--text-primary);width:100%;line-height:1;padding:0;min-width:0">
       ${clearBtn}
     </div>
   </div>`;
@@ -4389,7 +4389,7 @@ function _buildInTabBody() {
 function _renderIdeasBody() {
   const q = (ideasSearch || '').trim();
   const isFavFilter = ideasFilter === 'favs';
-  let pool = ideas.filter(i => !_isHiddenPrivate(i) && ideaMatchesSearch(i, q));
+  let pool = ideas.filter(i => !_isHiddenPrivate(i) && !i.archived && ideaMatchesSearch(i, q));
   if (ideasFilter === 'out')  pool = pool.filter(i => i.type === 'out');
   if (ideasFilter === 'in')   pool = pool.filter(i => i.type === 'in');
   if (ideasFilter === 'favs') pool = pool.filter(i => i.saved);
@@ -6208,7 +6208,7 @@ function itemSubLine(item) {
   const label = catLabel(item.category || '', item.type);
   const showType = item.showType !== false; // default true
   if (cat === 'restaurant' || cat === 'cafe') {
-    const base = item.cuisine ? `${item.cuisine} ${label}` : label;
+    const base = item.cuisine ? item.cuisine : label;
     return item.shortdesc ? `${base} • ${item.shortdesc}` : base;
   }
   if (!showType) return item.shortdesc || '';
@@ -9412,7 +9412,7 @@ function _inPlaceSelectPerson(ctx, personId) {
 function _inPlaceKeydown(e, ctx) {
   const sug = document.getElementById(ctx + '-in-place-suggest');
   if (e.key === 'Escape') { if (sug) sug.style.display = 'none'; }
-  else if (e.key === 'Enter') { const f = sug && sug.querySelector('div'); if (f && sug.style.display !== 'none') { e.preventDefault(); f.click(); } }
+  else if (e.key === 'Enter') { const f = sug && sug.querySelector('div'); if (f && sug.style.display !== 'none') { e.preventDefault(); f.click(); } e.target.blur(); }
   else if ((e.key === 'Backspace' || e.key === 'Delete') && !document.getElementById(ctx + '-in-place-text').value) {
     _clearInPlace(ctx);
   }
@@ -12789,6 +12789,7 @@ function _calMemOnKeydown(e, ctx) {
       _calMemSelectPerson(first.dataset.personId, first.dataset.personName, ctx);
       e.preventDefault();
     }
+    e.target.blur();
   } else if ((e.key === 'Backspace' || e.key === 'Delete') && !document.getElementById(ctx + '-cmsearch-input').value) {
     // Remove last person pill when input is empty
     if (calMemPeople.length > 0) {
@@ -12988,7 +12989,7 @@ function _updatePeopleNavRow() {
     } else {
     row.innerHTML = `<div style="display:flex;align-items:center;background:var(--toggle-bg);border-radius:20px;padding:5px 10px;gap:6px;flex-shrink:0;width:200px;overflow:hidden">
       <svg viewBox="0 0 24 24" width="13" height="13" stroke="#9a8a7a" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-      <input id="people-search-input" type="text" value="${q.replace(/"/g,'&quot;')}" oninput="peopleSearch=this.value;const c=document.getElementById('people-search-clear');if(c)c.style.display=this.value?'flex':'none';_renderPeople()" placeholder="" style="border:none;background:transparent;outline:none;font-size:16px;font-family:sans-serif;color:var(--text-primary);flex:1;line-height:1;padding:0;min-width:0">
+      <input id="people-search-input" type="text" onkeydown="if(event.key==='Enter')this.blur()" value="${q.replace(/"/g,'&quot;')}" oninput="peopleSearch=this.value;const c=document.getElementById('people-search-clear');if(c)c.style.display=this.value?'flex':'none';_renderPeople()" placeholder="" style="border:none;background:transparent;outline:none;font-size:16px;font-family:sans-serif;color:var(--text-primary);flex:1;line-height:1;padding:0;min-width:0">
       ${clearBtn}
     </div>`;
     }
@@ -13508,6 +13509,7 @@ function _peoplePillKeydown(e, ctx) {
     _datePeopleEntries[ctx].push({ id: null, name: val, custom: true });
     _renderPeoplePills(ctx);
     inp.value = '';
+    inp.blur();
     if (sug) { sug.style.display = 'none'; }
   } else if ((e.key === 'Backspace' || e.key === 'Delete') && !document.getElementById(ctx + '-people-input').value) {
     // Remove last pill when input is empty
@@ -13902,7 +13904,7 @@ function _clearLocationPerson(ctx) {
 
 function _locationPersonKeydown(e, ctx) {
   if (e.key === 'Escape') { const s = document.getElementById(ctx+'-location-suggest'); if(s) s.style.display='none'; }
-  else if (e.key === 'Enter') { const s = document.getElementById(ctx+'-location-suggest'); const f = s&&s.querySelector('div'); if(f&&s.style.display!=='none'){e.preventDefault();f.click();} }
+  else if (e.key === 'Enter') { const s = document.getElementById(ctx+'-location-suggest'); const f = s&&s.querySelector('div'); if(f&&s.style.display!=='none'){e.preventDefault();f.click();} e.target.blur(); }
 }
 
 function _getLocationAddress(ctx) {
