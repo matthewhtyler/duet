@@ -7078,12 +7078,20 @@ function renderCalendar() {
         // Add address panel only — find it from full panels (last panel is typically address/location)
         const _addrPanel = panels[panels.length - 1];
         if (_addrPanel && panels.length > 0) _allPanels.push({ html: _addrPanel, dateIdx: di });
-      } else if (panels.length > 0) {
-        panels.forEach(p => _allPanels.push({ html: p, dateIdx: di }));
       } else {
-        // No detail panels — show a "More info" tap link
-        const inner = `<div style="width:100%;display:flex;justify-content:center"><span style="font-size:14px;font-style:italic;color:#b0a090;cursor:pointer" onclick="event.stopPropagation();openDateInfo(UPCOMING_DATES.find(d=>String(d.id)==='${String(dateEntry.id).replace(/'/g,"\\'")}'))">More info <span style="color:#b0a090">→</span></span></div>`;
-        _allPanels.push({ html: inner, dateIdx: di });
+        // Upcoming date: optionally prepend people summary panel
+        const _detSecUp = calScreenConfig.find(s => s.id === 'details');
+        if (_detSecUp && _detSecUp.detailsShowPeople === true) {
+          const _upPeoplePanel = _buildPastSummaryPanel(dateEntry, idea);
+          _allPanels.push({ html: _upPeoplePanel, dateIdx: di });
+        }
+        if (panels.length > 0) {
+          panels.forEach(p => _allPanels.push({ html: p, dateIdx: di }));
+        } else {
+          // No detail panels — show a "More info" tap link
+          const inner = `<div style="width:100%;display:flex;justify-content:center"><span style="font-size:14px;font-style:italic;color:#b0a090;cursor:pointer" onclick="event.stopPropagation();openDateInfo(UPCOMING_DATES.find(d=>String(d.id)==='${String(dateEntry.id).replace(/'/g,"\\'")}'))">More info <span style="color:#b0a090">→</span></span></div>`;
+          _allPanels.push({ html: inner, dateIdx: di });
+        }
       }
     });
 
@@ -12555,10 +12563,10 @@ function _ecsOptionsHtml(sec) {
     const showBd = sec.showBirthdays !== false;
     const dimPast = sec.dimPastDays === true;
     const datesDisplay = sec.datesDisplay || 'dots';
-    return `<div style="display:flex;flex-direction:column;gap:6px">
+    return `<div style="display:flex;flex-direction:column;gap:10px">
       <div style="display:flex;align-items:center;gap:6px"><span style="font-family:sans-serif;font-size:12px;color:var(--text-secondary);white-space:nowrap">Dates</span>${_emsSel('datesDisplay', datesDisplay, [{v:'dots',l:'Dots'},{v:'icons',l:'Icons'},{v:'people',l:'People'}])}</div>
-      <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-family:sans-serif;font-size:12px;color:var(--text-secondary)"><input type="checkbox" class="showtype-check" data-ems-key="dimPastDays" data-val-type="bool" ${dimPast ? 'checked' : ''} style="width:13px;height:13px">Dim past days</label>
-      <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-family:sans-serif;font-size:12px;color:var(--text-secondary)"><input type="checkbox" class="showtype-check" data-ems-key="showBirthdays" data-val-type="bool" ${showBd ? 'checked' : ''} style="width:13px;height:13px">Show birthdays</label>
+      <label style="display:flex;align-items:flex-start;gap:8px;cursor:pointer"><input type="checkbox" class="showtype-check" data-ems-key="dimPastDays" data-val-type="bool" ${dimPast ? 'checked' : ''} style="width:13px;height:13px;margin-top:2px"><div><div style="font-size:14px;font-family:sans-serif;color:var(--text-primary)">Dim past days</div></div></label>
+      <label style="display:flex;align-items:flex-start;gap:8px;cursor:pointer"><input type="checkbox" class="showtype-check" data-ems-key="showBirthdays" data-val-type="bool" ${showBd ? 'checked' : ''} style="width:13px;height:13px;margin-top:2px"><div><div style="font-size:14px;font-family:sans-serif;color:var(--text-primary)">Birthdays</div><div style="font-size:12px;font-family:sans-serif;color:var(--text-secondary);margin-top:2px">Show upcoming / past birthdays.</div></div></label>
     </div>`;
   }
   if (sec.id === 'upcoming') {
@@ -12570,9 +12578,12 @@ function _ecsOptionsHtml(sec) {
   if (sec.id === 'details') {
     const showTickets = sec.showTickets !== false;
     const onlyScheduled = sec.onlyScheduled === true;
-    return `<div style="display:flex;flex-direction:column;gap:6px">
-      <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-family:sans-serif;font-size:12px;color:var(--text-secondary)"><input type="checkbox" class="showtype-check" data-ems-key="onlyScheduled" data-val-type="bool" ${onlyScheduled ? 'checked' : ''} style="width:13px;height:13px">Show only for scheduled dates</label>
-      <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-family:sans-serif;font-size:12px;color:var(--text-secondary)"><input type="checkbox" class="showtype-check" data-ems-key="showTickets" data-val-type="bool" ${showTickets ? 'checked' : ''} style="width:13px;height:13px">Show buy tickets / reservations slide</label>
+    const alwaysVisible = !onlyScheduled;
+    const detailsShowPeople = sec.detailsShowPeople === true;
+    return `<div style="display:flex;flex-direction:column;gap:10px">
+      <label style="display:flex;align-items:flex-start;gap:8px;cursor:pointer"><input type="checkbox" class="showtype-check" data-ems-key="alwaysVisible" data-val-type="bool" ${alwaysVisible ? 'checked' : ''} style="width:13px;height:13px;margin-top:2px"><div><div style="font-size:14px;font-family:sans-serif;color:var(--text-primary)">Always visible</div><div style="font-size:12px;font-family:sans-serif;color:var(--text-secondary);margin-top:2px">Show on days without scheduled dates.</div></div></label>
+      <label style="display:flex;align-items:flex-start;gap:8px;cursor:pointer"><input type="checkbox" class="showtype-check" data-ems-key="detailsShowPeople" data-val-type="bool" ${detailsShowPeople ? 'checked' : ''} style="width:13px;height:13px;margin-top:2px"><div><div style="font-size:14px;font-family:sans-serif;color:var(--text-primary)">Show people</div><div style="font-size:12px;font-family:sans-serif;color:var(--text-secondary);margin-top:2px">First slide for upcoming dates.</div></div></label>
+      <label style="display:flex;align-items:flex-start;gap:8px;cursor:pointer"><input type="checkbox" class="showtype-check" data-ems-key="showTickets" data-val-type="bool" ${showTickets ? 'checked' : ''} style="width:13px;height:13px;margin-top:2px"><div><div style="font-size:14px;font-family:sans-serif;color:var(--text-primary)">Show tickets / reservations</div><div style="font-size:12px;font-family:sans-serif;color:var(--text-secondary);margin-top:2px">Show this slide for relevant dates.</div></div></label>
     </div>`;
   }
   return '';
@@ -12590,6 +12601,11 @@ function _ecsReadFromDom() {
       if (el.dataset.valType === 'bool') sec[el.dataset.emsKey] = el.checked;
       else sec[el.dataset.emsKey] = el.value;
     });
+    // alwaysVisible is the inverse of onlyScheduled — convert after reading
+    if (sec.id === 'details' && 'alwaysVisible' in sec) {
+      sec.onlyScheduled = !sec.alwaysVisible;
+      delete sec.alwaysVisible;
+    }
   });
 }
 
