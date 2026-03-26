@@ -70,7 +70,7 @@
     --popup-week-bg: var(--bg-input);
     .cal-dot.dim { background: #4a4540; }
     .cal-dot.past { background: #4a4540; }
-    .cal-day.dim-past { color: #4a4540; }
+    .cal-dot.past-match { background: #f0ede8; }    .cal-day.dim-past { color: #4a4540; }
   }
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
   html, body { height: 100%; background: var(--bg); font-family: Georgia, "Times New Roman", serif; overflow: hidden; }
@@ -447,9 +447,9 @@
     cursor: pointer; position: relative;
     display: flex; align-items: center; justify-content: center;
   }
-  .cal-day.today { background: rgba(192,122,138,0.15); color: #c07a8a; font-weight: 700; border-radius: 8px; }
+  .cal-day.today { background: rgba(192,122,138,0.15); color: #c07a8a; border-radius: 8px; }
   .cal-day.dim-past { color: #c8c0b8; }
-  .cal-day.selected { background: #c07a8a !important; color: #fff !important; font-weight: 700; border-radius: 8px !important; }
+  .cal-day.selected { background: #c07a8a !important; color: #fff !important; border-radius: 8px !important; }
   .cal-dot {
     position: absolute; bottom: 3px; left: 50%; transform: translateX(-50%);
     width: 5px; height: 5px; border-radius: 50%; background: #c07a8a;
@@ -460,14 +460,15 @@
     position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
     width: 20px; height: 20px; border-radius: 50%; overflow: hidden;
   }
+  .cal-day-icons { padding-bottom: 10px !important; }
   .cal-dot-icon {
-    position: absolute; bottom: 2px; left: 0; right: 0;
+    position: absolute; bottom: 5px; left: 0; right: 0;
     display: flex; align-items: center; justify-content: center;
   }
   .cal-dot-icon svg { display: block; }
   .cal-dot.dim { background: #c8c0b8; }
   .cal-dot.past { background: #c8c0b8; }
-  .cal-dot.selected { background: #fff; }
+  .cal-dot.past-match { background: #2a1f1f; }  .cal-dot.selected { background: #fff; }
   #cal-selected-card { margin-top: 20px; }
   #cal-upcoming { margin-top: 20px; }
   .upcoming-item {
@@ -518,7 +519,19 @@
     display: none;
     z-index: 70; box-shadow: 0 -8px 32px rgba(0,0,0,0.08);
   }
-  #idea-sheet { flex-direction: column; overflow: visible; height: calc(70vh); max-height: calc(70vh); }
+  #new-person-sheet {
+    position: fixed; bottom: 68px; left: 50%; transform: translateX(-50%);
+    width: 100%; max-width: 402px;
+    background: var(--bg); border-radius: 20px 20px 0 0;
+    border-top: 1px solid var(--border); border-left: 1px solid var(--border); border-right: 1px solid var(--border);
+    display: none; height: auto; max-height: min(75vh, calc(100dvh - max(48px, env(safe-area-inset-top)) - max(48px, env(safe-area-inset-bottom)) - 48px));
+    overflow: hidden; flex-direction: column;
+    z-index: 70; box-shadow: 0 -8px 32px rgba(0,0,0,0.08);
+  }
+  #new-person-sheet #nps-body {
+    flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch;
+  }
+  #idea-sheet { flex-direction: column; overflow: hidden; height: auto; max-height: min(75vh, calc(100dvh - max(48px, env(safe-area-inset-top)) - max(48px, env(safe-area-inset-bottom)) - 48px)); }
   #todo-sheet { overflow-y: auto; padding: 20px 20px 24px; }
   #idea-sheet-body { flex: 1; overflow-y: auto; padding: 16px 20px 32px; min-height: 0; display: flex; flex-direction: column; }
   #sheet-header { display: flex; align-items: center; justify-content: space-between; padding: 20px 20px 14px; flex-shrink: 0; border-bottom: 1px solid var(--border); }
@@ -666,11 +679,15 @@
           </svg>
           Open…
         </button>
-        <button onclick="navigate('people');closeMenu()" style="border-bottom:none">
+        <button id="nav-menu-todo-btn" onclick="navigate('todo');closeMenu()" style="border-bottom:none">
+          <svg viewBox="0 0 24 24" width="16" height="16" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><polyline points="9 12 11 14 15 10"/></svg>
+          To Do
+        </button>
+        <button id="nav-menu-people-btn" onclick="navigate('people');closeMenu()" style="border-bottom:none">
           <svg id="person-icon" viewBox="0 0 24 24" width="16" height="16" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
           People
         </button>
-        <button onclick="navigate('past');closeMenu()" style="border-bottom:none">
+        <button id="nav-menu-memories-btn" onclick="navigate('past');closeMenu()" style="border-bottom:none">
           <svg viewBox="0 0 24 24" width="16" height="16" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
             <path d="M2.5 8A9 9 0 1 1 3.5 15"/><polyline points="2 4 2.5 8 7 7.5"/>
           </svg>
@@ -1425,7 +1442,8 @@
         <svg viewBox="0 0 24 24" width="14" height="14" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
         Media Host
       </div>
-      <input class="field-input" id="settings-images-host" type="text" placeholder="Host URL (e.g. https://user.github.io/duet/)">
+      <div id="settings-images-host-box" onclick="openHostUrlPopup()" class="field-input" style="cursor:pointer;display:flex;align-items:center;min-height:42px;color:var(--text-placeholder)" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' ')openHostUrlPopup()"><span id="settings-images-host-label">Host URL...</span></div>
+      <input type="hidden" id="settings-images-host">
       <!-- Edit shortcuts (hidden) -->
       <div style="display:none">
       <div class="field-label" style="display:flex;align-items:center;gap:6px;margin-top:16px">
@@ -1477,8 +1495,8 @@
           <span style="font-size:14px;font-family:sans-serif;color:var(--text-primary)">Safe mode</span>
         </label>
       </div>
-            <div style="margin-top:0;display:flex;justify-content:space-between;align-items:center">
-        <button onclick="openMoreMenu()" style="padding:10px 16px;background:none;border:1.5px solid #ede9e2;border-radius:10px;font-family:sans-serif;font-size:13px;font-weight:600;color:#9a8a7a;cursor:pointer" class="btn-outline">More…</button>
+            <div style="margin-top:0;display:flex;justify-content:space-between;align-items:center;justify-content:flex-end">
+        <button onclick="openMoreMenu()" style="display:none">More…</button>
         <div style="display:flex;gap:8px">
           <button onclick="closeSettings()" style="padding:10px 16px;background:none;border:1.5px solid #ede9e2;border-radius:10px;font-family:sans-serif;font-size:13px;font-weight:600;color:#9a8a7a;cursor:pointer" class="btn-outline">Cancel</button>
           <button onclick="saveSettingsData()" style="padding:10px 24px;background:#c07a8a;border:none;border-radius:10px;font-family:sans-serif;font-size:14px;font-weight:600;color:#fff;cursor:pointer">Save</button>
@@ -1487,6 +1505,17 @@
     </div>
   </div>
 
+
+  <!-- HOST URL POPUP -->
+  <div id="host-url-overlay" onclick="closeHostUrlPopup()" style="position:fixed;inset:0;background:rgba(30,20,20,0.5);z-index:520;display:none;align-items:center;justify-content:center;padding:20px">
+    <div onclick="event.stopPropagation()" style="width:100%;max-width:340px;background:var(--bg);border-radius:20px;padding:24px 20px 20px;box-shadow:0 16px 48px rgba(0,0,0,0.22)">
+      <input class="field-input" id="host-url-input" type="text" placeholder="Host URL (e.g. https://user.github.io/duet/)" style="margin-bottom:0">
+      <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:16px">
+        <button onclick="closeHostUrlPopup()" style="padding:10px 16px;background:none;border:1.5px solid #ede9e2;border-radius:10px;font-family:sans-serif;font-size:13px;font-weight:600;color:#9a8a7a;cursor:pointer" class="btn-outline">Cancel</button>
+        <button onclick="saveHostUrl()" style="padding:10px 24px;background:#c07a8a;border:none;border-radius:10px;font-family:sans-serif;font-size:14px;font-weight:600;color:#fff;cursor:pointer">Save</button>
+      </div>
+    </div>
+  </div>
 
   <!-- MORE MENU POPUP -->
   <div id="more-menu-overlay" class="popup-overlay" onclick="closeMoreMenu()" style="position:fixed;inset:0;background:rgba(30,20,20,0.45);z-index:450;display:none;align-items:center;justify-content:center;padding:20px">
@@ -1497,15 +1526,15 @@
       </button>
       <button onclick="openEditMainScreen()" style="display:flex;align-items:center;gap:10px;padding:11px 14px;background:none;border:1.5px solid #ede9e2;border-radius:10px;font-family:sans-serif;font-size:13px;font-weight:600;color:#9a8a7a;cursor:pointer;text-align:left;width:100%" class="btn-outline">
         <svg viewBox="0 0 24 24" width="15" height="15" fill="none"><circle cx="12" cy="12" r="8.5" stroke="#9a8a7a" stroke-width="2"/></svg>
-        Edit Main Screen
+        Main Screen Settings
       </button>
       <button onclick="openEditIdeasScreen()" style="display:flex;align-items:center;gap:10px;padding:11px 14px;background:none;border:1.5px solid #ede9e2;border-radius:10px;font-family:sans-serif;font-size:13px;font-weight:600;color:#9a8a7a;cursor:pointer;text-align:left;width:100%" class="btn-outline">
         <svg viewBox="0 0 24 24" width="15" height="15" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M8 22h8"/><path d="M12 15.8v6.2"/><path d="M5 3h14l-1.5 9a5 5 0 0 1-5 4h-1a5 5 0 0 1-5-4L5 3z"/></svg>
-        Edit Ideas Screen
+        Ideas Settings
       </button>
       <button onclick="openEditCalScreen()" style="display:flex;align-items:center;gap:10px;padding:11px 14px;background:none;border:1.5px solid #ede9e2;border-radius:10px;font-family:sans-serif;font-size:13px;font-weight:600;color:#9a8a7a;cursor:pointer;text-align:left;width:100%" class="btn-outline">
         <svg viewBox="0 0 24 24" width="15" height="15" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-        Edit Calendar Screen
+        Calendar Settings
       </button>
       <button onclick="openCopyPlaces()" style="display:none;align-items:center;gap:10px;padding:11px 14px;background:none;border:1.5px solid #ede9e2;border-radius:10px;font-family:sans-serif;font-size:13px;font-weight:600;color:#9a8a7a;cursor:pointer;text-align:left;width:100%" class="btn-outline">
         <svg viewBox="0 0 24 24" width="15" height="15" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
@@ -1581,7 +1610,10 @@
     <div id="editmain-modal" onclick="event.stopPropagation()" style="width:100%;max-width:390px;background:var(--bg);border-radius:20px;display:flex;flex-direction:column;height:min(88vh,calc(100dvh - max(24px,env(safe-area-inset-top) + env(safe-area-inset-bottom)) - 24px));box-shadow:0 12px 48px rgba(0,0,0,0.18)">
       <!-- Header -->
       <div style="padding:20px 20px 16px;flex-shrink:0;border-bottom:1px solid var(--border)">
-        <div style="font-size:17px;font-weight:700;color:var(--popup-title)">Edit Main Screen</div>
+        <div style="display:flex;align-items:center;justify-content:space-between">
+        <div style="font-size:17px;font-weight:700;color:var(--popup-title);display:flex;align-items:center;gap:10px"><svg viewBox="0 0 24 24" width="16" height="16" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>Main Screen</div>
+        <button onclick="closeEditMainScreen()" style="background:none;border:none;cursor:pointer;display:flex;padding:4px"><svg viewBox="0 0 24 24" width="20" height="20" stroke="#888" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="icon-close"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+        </div>
       </div>
       <!-- Body -->
       <div id="editmain-list" style="flex:1;overflow-y:auto;padding:14px 16px;display:flex;flex-direction:column;gap:10px"></div>
@@ -1599,7 +1631,7 @@
       <!-- Header -->
       <div style="padding:20px 20px 14px;flex-shrink:0;border-bottom:1px solid var(--border)">
         <div style="display:flex;align-items:center;justify-content:space-between">
-          <div style="font-size:17px;font-weight:700;color:var(--popup-title)">Edit Calendar Screen</div>
+          <div style="font-size:17px;font-weight:700;color:var(--popup-title);display:flex;align-items:center;gap:10px"><svg viewBox="0 0 24 24" width="16" height="16" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>Calendar</div>
           <button onclick="closeEditCalScreen()" style="background:none;border:none;cursor:pointer;display:flex;padding:4px">
             <svg viewBox="0 0 24 24" width="20" height="20" stroke="#888" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="icon-close"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
           </button>
@@ -1616,10 +1648,13 @@
   </div>
 
   <!-- EDIT IDEAS SCREEN POPUP -->
-  <div id="editideas-overlay" class="popup-overlay" onclick="closeEditIdeasScreen()" style="position:fixed;inset:0;background:rgba(30,20,20,0.5);z-index:510;display:none;align-items:center;justify-content:center;padding:20px">
-    <div onclick="event.stopPropagation()" style="width:100%;max-width:390px;background:var(--bg);border-radius:20px;display:flex;flex-direction:column;box-shadow:0 12px 48px rgba(0,0,0,0.18)">
+  <div id="editideas-overlay" class="popup-overlay" onclick="closeEditIdeasScreen()" style="position:fixed;inset:0;background:rgba(30,20,20,0.5);z-index:510;display:none;align-items:center;justify-content:center;padding:max(12px,env(safe-area-inset-top)) 16px max(12px,env(safe-area-inset-bottom))">
+    <div onclick="event.stopPropagation()" style="width:100%;max-width:390px;background:var(--bg);border-radius:20px;display:flex;flex-direction:column;height:min(88vh,calc(100dvh - max(24px,env(safe-area-inset-top) + env(safe-area-inset-bottom)) - 24px));box-shadow:0 12px 48px rgba(0,0,0,0.18)">
       <div style="padding:20px 20px 16px;flex-shrink:0;border-bottom:1px solid var(--border)">
-        <div style="font-size:17px;font-weight:700;color:var(--popup-title)">Edit Ideas Screen</div>
+        <div style="display:flex;align-items:center;justify-content:space-between">
+        <div style="font-size:17px;font-weight:700;color:var(--popup-title);display:flex;align-items:center;gap:10px"><svg viewBox="0 0 24 24" width="16" height="16" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>Ideas</div>
+        <button onclick="closeEditIdeasScreen()" style="background:none;border:none;cursor:pointer;display:flex;padding:4px"><svg viewBox="0 0 24 24" width="20" height="20" stroke="#888" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="icon-close"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+        </div>
       </div>
       <div style="padding:20px">
         <div style="font-family:sans-serif;font-size:13px;color:var(--text-secondary);margin-bottom:10px">Additional Tab</div>
@@ -1936,6 +1971,109 @@
     <button id="ts-privacy-box" onclick="toggleTsPrivate()" style="flex:1;padding:9px 14px;font-size:16px;font-family:sans-serif;background:var(--bg-input);border:1.5px solid var(--border);border-radius:10px;text-align:left;cursor:pointer;color:var(--text-placeholder);margin-bottom:0">Not private</button>
   </div>
 </div>
+<!-- NEW PERSON SHEET — bottom sheet -->
+<div id="new-person-sheet" style="padding:0">
+  <!-- Sticky header -->
+  <div id="nps-header" style="padding:20px 20px 14px;flex-shrink:0;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--bg);z-index:1;border-radius:20px 20px 0 0">
+    <div style="display:flex;align-items:center;justify-content:space-between">
+      <div style="font-size:18px;font-weight:700;color:var(--popup-title)">New Person</div>
+      <button onclick="closeNewPersonSheet()" style="background:none;border:none;display:flex;cursor:pointer">
+        <svg viewBox="0 0 24 24" width="20" height="20" stroke="#888" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="icon-close"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+  </div>
+  <!-- Scrollable body -->
+  <div id="nps-body" style="padding:20px;display:flex;flex-direction:column;gap:14px;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:36px">
+    <!-- Profile photo -->
+    <div style="display:flex;justify-content:center;margin-bottom:4px">
+      <div id="nps-photo-circle" onclick="_npsPhotoCircleClick()" style="width:72px;height:72px;border-radius:50%;overflow:hidden;background:var(--toggle-bg);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;border:2px solid var(--border);position:relative"></div>
+    </div>
+    <!-- Name -->
+    <div style="display:flex;align-items:center;gap:10px">
+      <button id="nps-fav-btn" onclick="_npsToggleFav()" style="background:none;border:none;cursor:pointer;padding:0;display:flex;align-items:center;flex-shrink:0;line-height:0">
+        <svg id="nps-fav-icon" viewBox="0 0 24 24" width="18" height="18" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+      </button>
+      <input class="field-input" id="nps-first-name" type="text" placeholder="First Name" style="flex:1;margin-bottom:0">
+      <input class="field-input" id="nps-last-name" type="text" placeholder="Last Name" style="flex:1;margin-bottom:0">
+    </div>
+    <!-- Pronouns -->
+    <div style="display:flex;align-items:center;gap:10px">
+      <div id="nps-pronouns-icon" style="width:23px;height:23px;flex-shrink:0;display:flex;align-items:center;justify-content:center;margin-left:-3px"></div>
+      <select class="field-input" id="nps-pronouns" style="flex:1;margin-bottom:0" onchange="_npsUpdatePronounsIcon()">
+        <option value="she/her">She / Her</option>
+        <option value="he/him">He / Him</option>
+        <option value="they/them">They / Their</option>
+      </select>
+    </div>
+    <!-- Address -->
+    <div style="display:flex;align-items:center;gap:10px">
+      <svg onclick="const a=document.getElementById('nps-address');_openExternal(a&&a.value.trim()?'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(a.value.trim()):'https://maps.google.com')" viewBox="0 0 24 24" width="18" height="18" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;cursor:pointer"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+      <input class="field-input" id="nps-address" type="text" placeholder="Address" style="flex:1;margin-bottom:0">
+    </div>
+    <!-- Neighborhood -->
+    <div style="display:flex;align-items:center;gap:10px">
+      <svg viewBox="0 0 24 24" width="18" height="18" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/></svg>
+      <input class="field-input" id="nps-neighborhood" type="text" placeholder="Neighborhood" style="flex:1;margin-bottom:0">
+    </div>
+    <!-- Transit -->
+    <div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <button onclick="_npsOpenTransitDirections()" style="background:none;border:none;cursor:pointer;padding:0;display:flex;flex-shrink:0">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#9a8a7a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><text x="12" y="16.5" text-anchor="middle" font-family="'Helvetica Neue','Arial Black',Arial,sans-serif" font-weight="900" font-size="13" fill="#9a8a7a" stroke="none">A</text></svg>
+        </button>
+        <input class="field-input" id="nps-subway" type="text" placeholder="Transit (e.g. A C to 14th St 25min)" oninput="_npsRenderSubwayBadges()" style="flex:1;margin-bottom:0">
+      </div>
+      <div id="nps-subway-badges" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:6px;margin-left:28px;min-height:0;padding-top:3px"></div>
+    </div>
+    <!-- Walk/Drive -->
+    <div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <button onclick="_npsOpenWalkingDirections()" style="background:none;border:none;cursor:pointer;padding:0;display:flex;flex-shrink:0">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="#9a8a7a"><path d="M13.5 5.5c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zM9.8 8.9L7 23h2.1l1.8-8 2.1 2v6h2v-7.5l-2.1-2 .6-3C14.8 12 16.8 13 19 13v-2c-1.9 0-3.5-1-4.3-2.4l-1-1.6c-.4-.6-1-1-1.7-1-.3 0-.5.1-.8.1L6 8.3V13h2V9.6l1.8-.7"/></svg>
+        </button>
+        <input class="field-input" id="nps-walkdrive" type="text" placeholder="Walk / Drive (e.g. 20min walk / 8min drive)" oninput="_npsRenderWalkDriveBadges()" style="flex:1;margin-bottom:0">
+      </div>
+      <div id="nps-walkdrive-badges" style="display:flex;align-items:center;gap:8px;margin-top:6px;margin-left:28px;min-height:0;padding-top:3px"></div>
+    </div>
+    <!-- Phone -->
+    <div style="display:flex;align-items:center;gap:10px">
+      <svg viewBox="0 0 24 24" width="18" height="18" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12" y2="18" stroke-width="3"/></svg>
+      <input class="field-input" id="nps-phone" type="text" placeholder="Phone" style="flex:1;margin-bottom:0" onblur="_epFormatPhone(this)" onkeydown="if(event.key==='Enter'){_epFormatPhone(this);this.blur()}">
+    </div>
+    <!-- WhatsApp -->
+    <div style="display:flex;align-items:center;gap:10px">
+      <svg viewBox="0 0 24 24" width="18" height="18" style="flex-shrink:0" fill="#9a8a7a"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/></svg>
+      <input class="field-input" id="nps-whatsapp" type="text" placeholder="WhatsApp" style="flex:1;margin-bottom:0">
+    </div>
+    <!-- Instagram -->
+    <div style="display:flex;align-items:center;gap:10px">
+      <svg viewBox="0 0 24 24" width="18" height="18" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><circle cx="12" cy="12" r="4"/><path d="M16 8v0"/><rect x="2" y="2" width="20" height="20" rx="5"/></svg>
+      <input class="field-input" id="nps-instagram" type="text" placeholder="Instagram" style="flex:1;margin-bottom:0">
+    </div>
+    <!-- Birthday -->
+    <div style="display:flex;align-items:center;gap:10px">
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#9a8a7a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M20 21v-8a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8"/><path d="M4 16s.5-1 2-1 2.5 2 4 2 2.5-2 4-2 2.5 2 4 2 2-1 2-1"/><path d="M2 21h20"/><path d="M7 8v3"/><path d="M12 8v3"/><path d="M17 8v3"/><path d="M7 4h.01"/><path d="M12 4h.01"/><path d="M17 4h.01"/></svg>
+      <input class="field-input" id="nps-birthday" type="text" placeholder="Birthday (e.g. Jan 1 or 1/1/1990)" style="flex:1;margin-bottom:0" onblur="this.value=_parseBirthday(this.value)" onkeydown="if(event.key==='Enter'){this.value=_parseBirthday(this.value);this.blur()}">
+    </div>
+    <!-- Notes -->
+    <div style="display:flex;align-items:flex-start;gap:10px">
+      <svg viewBox="0 0 24 24" width="18" height="18" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:10px"><line x1="17" y1="10" x2="3" y2="10"/><line x1="21" y1="6" x2="3" y2="6"/><line x1="21" y1="14" x2="3" y2="14"/><line x1="17" y1="18" x2="3" y2="18"/></svg>
+      <textarea class="field-input" id="nps-notes" placeholder="Notes…" rows="3" style="flex:1;margin-bottom:0;resize:none;line-height:1.5"></textarea>
+    </div>
+    <!-- Family toggle -->
+    <div style="display:flex;align-items:center;gap:10px">
+      <svg id="nps-family-icon" onclick="_npsToggleFamily()" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#9a8a7a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;cursor:pointer">
+        <circle cx="12" cy="4.5" r="2.5"/><path d="M8 10.5c0-2.2 1.8-3.5 4-3.5s4 1.3 4 3.5"/>
+        <circle cx="5.5" cy="14" r="2.2"/><path d="M2 19.5c0-2 1.5-3 3.5-3s3.5 1 3.5 3"/>
+        <circle cx="18.5" cy="14" r="2.2"/><path d="M15 19.5c0-2 1.5-3 3.5-3s3.5 1 3.5 3"/>
+      </svg>
+      <div id="nps-family-box" onclick="_npsToggleFamily()" class="field-input" style="flex:1;margin-bottom:0;cursor:pointer;color:#9a8a7a;user-select:none;min-height:40px;display:flex;align-items:center">
+        <span id="nps-family-label"></span>
+      </div>
+    </div>
+  </div>
+</div>
+
 
 <!-- UPCOMING DATES PICKER POPUP -->
 <div id="upcoming-dates-picker-overlay" onclick="closeUpcomingDatesPicker()" style="position:fixed;inset:0;background:rgba(30,20,20,0.5);z-index:500;display:none;align-items:center;justify-content:center;padding:20px">
@@ -2070,23 +2208,21 @@ var _LAST_TAB_VIEW = { todo: 'todo', people: 'people', memories: 'past' };
 
 function _handleLastTabTap() {
   const view = _LAST_TAB_VIEW[_lastTabMode];
+  // If a New popup is open for the current tab, just close it
+  const _todoSheetEl = document.getElementById('todo-sheet');
+  const _todoOpen = _todoSheetEl && _todoSheetEl.style.display === 'block';
+  const _npsEl = document.getElementById('new-person-sheet');
+  const _npsOpen = _npsEl && _npsEl.style.display === 'flex';
+  if (_lastTabMode === 'todo' && _todoOpen) { closeTodoSheet(); return; }
+  if (_lastTabMode === 'people' && _npsOpen) { closeNewPersonSheet(); return; }
   // If already on this view, cycle to next mode
   if (currentView === view) {
     const idx = _LAST_TAB_CYCLE.indexOf(_lastTabMode);
     _lastTabMode = _LAST_TAB_CYCLE[(idx + 1) % _LAST_TAB_CYCLE.length];
     try { localStorage.setItem('ll_last_tab', _lastTabMode); } catch(e) {}
-    // Close todo sheet if open
-    const ts = document.getElementById('todo-sheet');
-    if (ts && ts.style.display === 'block') closeTodoSheet();
     navigate(_LAST_TAB_VIEW[_lastTabMode]);
   } else {
-    // Close todo sheet if open
-    const ts = document.getElementById('todo-sheet');
-    if (ts && ts.style.display === 'block' && _lastTabMode === 'todo') {
-      closeTodoSheet();
-    } else {
-      navigate(view);
-    }
+    navigate(view);
   }
 }
 
@@ -2827,30 +2963,50 @@ function navigate(view) {
     _calUpcomingToggled = false;
     _calCompactIdx = 0;
   }
-  // Check if todo sheet is open — treat same as idea sheet being open
+  // Check which "New" popups are open
   const _todoSheetEl = document.getElementById('todo-sheet');
   const _todoSheetOpen = _todoSheetEl && _todoSheetEl.style.display === 'block';
-  if (sheetOpen || _todoSheetOpen) {
+  const _npsSheetEl2 = document.getElementById('new-person-sheet');
+  const _npsSheetOpen = _npsSheetEl2 && _npsSheetEl2.style.display === 'flex';
+  const _anyOpen = sheetOpen || _todoSheetOpen || _npsSheetOpen;
+
+  if (_anyOpen) {
     if (view === 'home') {
-      closeSheet();
-      closeTodoSheet();
+      // Going home always closes everything
+      closeSheet(); closeTodoSheet();
+      if (_npsSheetEl2) _npsSheetEl2.style.display = 'none';
+      document.getElementById('btn-new-circle').style.background = ROSE;
+      document.getElementById('btn-new-icon-plus').style.display = 'block';
+      document.getElementById('btn-new-icon-check').style.display = 'none';
       currentView = 'home';
       _homeMonthCalYear = new Date().getFullYear();
       _homeMonthCalMonth = new Date().getMonth();
       render();
       return;
     }
-    switchSheetContext(view);
-    return;
+    // Bottom-nav tabs (ideas, calendar, todo, people via _handleLastTabTap) → switch context
+    // Top-bar menu navigations (past, archive, etc.) → just close popups and navigate
+    const _bottomNavViews = ['ideas', 'calendar', 'todo', 'people', 'out', 'in'];
+    if (_bottomNavViews.includes(view)) {
+      switchSheetContext(view);
+      return;
+    }
+    // Top-bar menu view: close all popups silently, then navigate normally
+    closeSheet(); closeTodoSheet();
+    if (_npsSheetEl2) _npsSheetEl2.style.display = 'none';
+    document.getElementById('btn-new-circle').style.background = ROSE;
+    document.getElementById('btn-new-icon-plus').style.display = 'block';
+    document.getElementById('btn-new-icon-check').style.display = 'none';
+    sheetOpen = false; sheetMode = 'idea';
   }
-  // Redirect legacy out/in to ideas
+
+  // Standard navigation
   if (view === 'out' || view === 'in') { currentView = 'ideas'; render(); return; }
   if (view === 'home') {
     _homeMonthCalYear = new Date().getFullYear();
     _homeMonthCalMonth = new Date().getMonth();
   }
   currentView = view;
-  // Hide ideas nav row when leaving ideas screen
   if (view !== 'ideas') {
     const row = document.getElementById('top-nav-ideas-row');
     if (row) { row.innerHTML = ''; row.style.display = 'none'; }
@@ -3706,7 +3862,23 @@ function _buildBannerCard(u, opts) {
   </div>` : '';
   const clickExpr = opts.onClickExpr || '';
   return `<div ${clickExpr ? `onclick="${clickExpr}"` : ''} class="quick-row" style="cursor:pointer;flex-direction:column;align-items:stretch;padding:0;overflow:hidden;width:100%">
-    <div style="height:100px;background:#6b2340;border-radius:13px 13px 0 0;flex-shrink:0;overflow:hidden;position:relative">${urls.length ? `<img src="${urls[0]}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center;display:block" onerror="this.parentNode.style.background='#6b2340';this.style.display='none'">` : ''}</div>
+    <div style="height:100px;background:#6b2340;border-radius:13px 13px 0 0;flex-shrink:0;overflow:hidden;position:relative">${urls.length ? `<img src="${urls[0]}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center;display:block" onerror="this.parentNode.style.background='#6b2340';this.style.display='none'">` : ''}${(() => {
+      if (!opts.showPeople) return '';
+      const _peeps = (u.people || []).slice(0, 3);
+      if (!_peeps.length) return '';
+      const _S = 24, _OV = 6;
+      const _tw = _S + (_peeps.length - 1) * (_S - _OV);
+      const _circles = _peeps.map((_pe, _i) => {
+        const _p = _pe.id ? people.find(x => x.id === _pe.id) : null;
+        const _lft = _i * (_S - _OV);
+        const _zi = _peeps.length - _i;
+        const _inner = (_p && _p.photoUrl)
+          ? `<div style="position:relative;width:${_S}px;height:${_S}px;border-radius:50%;overflow:hidden">${_personAvatarInner(_p, _S)}</div>`
+          : `<div style="width:${_S}px;height:${_S}px;border-radius:50%;background:rgba(0,0,0,0.32);display:flex;align-items:center;justify-content:center">${_personIconSvg(Math.round(_S*0.55),'rgba(255,255,255,0.8)')}</div>`;
+        return `<div style="position:absolute;left:${_lft}px;top:0;width:${_S}px;height:${_S}px;border-radius:50%;overflow:hidden;z-index:${_zi};border:1.5px solid rgba(255,255,255,0.85)">${_inner}</div>`;
+      }).join('');
+      return `<div style="position:absolute;bottom:7px;right:${8 + 26 + 10}px;width:${_tw}px;height:${_S}px;pointer-events:none;z-index:2">${_circles}</div>`;
+    })()}</div>
     <div style="display:flex;align-items:center;gap:12px;padding:0 14px 12px">
       ${dateBadge}
       <div style="flex:1;min-width:0">
@@ -5904,10 +6076,13 @@ function renderHome() {
       } else {
         const cards = visibleDates.map((fd,idx) => {
           const u = fd._ref || fd;
+          const _ndSec = homeScreenConfig.find(s => s.id === 'nextDates');
+          const _ndShowPeople = _ndSec && _ndSec.showPeople === true && (_ndSec.display || homeLayout) !== 'compact';
           const card = _buildBannerCard(u, {
             onClickExpr:`openDateInfo(UPCOMING_DATES.find(d=>String(d.id)==='${u.id||''}'))`,
             hasPrev:idx>0, hasNext:idx<visibleDates.length-1,
-            onPrev:'scrollHomeCarousel(-1)', onNext:'scrollHomeCarousel(1)'
+            onPrev:'scrollHomeCarousel(-1)', onNext:'scrollHomeCarousel(1)',
+            showPeople: _ndShowPeople
           });
           return `<div style="flex-shrink:0;width:calc(100vw - 40px);max-width:362px;scroll-snap-align:start">${card}</div>`;
         }).join('');
@@ -6474,10 +6649,13 @@ function _buildCalSlidesHtml(dates, display) {
   const cards = dates.map((fd, i) => {
     const u = fd._ref || fd;
     const clickFn = `_calSlideClick('${u.id||''}','${u.month||''}',${u.day||0},${u.year||new Date().getFullYear()})`;
+    const _calSlidesSec = calScreenConfig.find(s => s.id === 'slides');
+    const _calShowPeople = _calSlidesSec && _calSlidesSec.showPeople === true && (_calSlidesSec.display || 'full') !== 'compact';
     const card = _buildBannerCard(u, {
       onClickExpr: clickFn,
       hasPrev: i > 0, hasNext: i < dates.length - 1,
-      onPrev: 'scrollHomeCarousel(-1)', onNext: 'scrollHomeCarousel(1)'
+      onPrev: 'scrollHomeCarousel(-1)', onNext: 'scrollHomeCarousel(1)',
+      showPeople: _calShowPeople
     });
     return `<div style="flex-shrink:0;width:calc(100vw - 40px);max-width:362px;scroll-snap-align:start">${card}</div>`;
   }).join('');
@@ -6527,9 +6705,11 @@ function renderCalendar() {
     // Cell marker: dots / icons / people
     const _calDatesDisplay = (() => { const _cs = calScreenConfig.find(s => s.id === 'calendar'); return _cs ? (_cs.datesDisplay || 'dots') : 'dots'; })();
     const _isPeopleMode = _calDatesDisplay === 'people';
-    const cls = (isSelected ? 'cal-day selected' : isToday ? 'cal-day today' : (isPastDay && _calDimPastDays ? 'cal-day dim-past' : 'cal-day')) + (_isPeopleMode ? ' cal-day-people' : '');
-    const dotClass = isSelected ? 'cal-dot selected' : isDimmed ? 'cal-dot dim' : isPastDay ? 'cal-dot past' : 'cal-dot';
-    const _cellDatesForDay = (_calDatesDisplay !== 'dots' && isMarked && !isDimmed && (!isPastDay || _calDatesDisplay === 'icons'))
+    const _isIconsMode = _calDatesDisplay === 'icons';
+    const cls = (isSelected ? 'cal-day selected' : isToday ? 'cal-day today' : (isPastDay && _calDimPastDays ? 'cal-day dim-past' : 'cal-day')) + (_isPeopleMode ? ' cal-day-people' : _isIconsMode ? ' cal-day-icons' : '');
+    const _isSearchingCal2 = !!(calMemSearch || calMemPeople.length);
+    const dotClass = isSelected ? 'cal-dot selected' : isDimmed ? 'cal-dot dim' : isPastDay ? (_isSearchingCal2 ? 'cal-dot past-match' : 'cal-dot past') : 'cal-dot';
+    const _cellDatesForDay = (_calDatesDisplay !== 'dots' && (isMarked || (isDimmed && _calDatesDisplay === 'icons')) && (!isPastDay || _calDatesDisplay === 'icons'))
       ? UPCOMING_DATES.filter(u => {
           const _um = MONTH_NUMS[u.month] ?? 0;
           return u.day === d && (u.year||currentCalYear) === currentCalYear && _um === currentCalMonth && !_isDateHiddenPrivate(u);
@@ -6542,7 +6722,8 @@ function renderCalendar() {
       const _idea = _u.ideaId ? ideas.find(i => i.id === _u.ideaId)
         : ideas.find(i => i.name && _u.venue && i.name.toLowerCase() === _u.venue.toLowerCase());
       const _isDarkMode = document.body.classList.contains('dark-mode');
-      const _dotColor = isSelected ? '#fff' : isDimmed ? '#c8c0b8' : isPastDay ? (_isDarkMode ? '#4a4540' : '#c8c0b8') : '#c07a8a';
+      const _isSearching = !!(calMemSearch || calMemPeople.length);
+      const _dotColor = isSelected ? '#fff' : isDimmed ? (_isDarkMode ? '#4a4540' : '#c8c0b8') : isPastDay ? (_isSearching ? (_isDarkMode ? '#f0ede8' : '#2a1f1f') : (_isDarkMode ? '#4a4540' : '#c8c0b8')) : '#c07a8a';
       if (_idea) return ideaIcon(_idea, 10, _dotColor);
       return activityIcon(_u.activity || _u.venue || '', 10, _dotColor);
     })();
@@ -6571,9 +6752,9 @@ function renderCalendar() {
       return `<div style="position:absolute;bottom:1px;left:50%;transform:translateX(-50%);width:${_tw}px;height:${_S}px">${_circles}</div>`;
     })();
     const _dotHtml = (isMarked || isDimmed)
-      ? (_calDatesDisplay === 'icons' && _iconForDay && !isDimmed
+      ? (_calDatesDisplay === 'icons' && _iconForDay
           ? `<div class="cal-dot-icon">${_iconForDay}</div>`
-          : _calDatesDisplay === 'people' && _peopleForDay.length && !isDimmed && !isPastDay
+          : _calDatesDisplay === 'people' && _peopleForDay.length && !isPastDay
           ? _peopleHtml
           : `<div class="${dotClass}"></div>`)
       : '';
@@ -7034,9 +7215,9 @@ function _calRenderWithoutSlides() {
     }
   }
 
-  // Run post-render calendar inits
+  // Run post-render calendar inits (no _syncSlidesToSelectedDay — preserve current slide position)
   setTimeout(() => {
-    _initCalSwipe(); _initCalDayCards(); _initCalInfoScroll(); _updateCalCompactArrows(); _syncSlidesToSelectedDay();
+    _initCalSwipe(); _initCalDayCards(); _initCalInfoScroll(); _updateCalCompactArrows();
     _applyBirthdayDots(); _applyBirthdayDotsWeek();
   }, 0);
 }
@@ -8586,27 +8767,46 @@ function switchSheetType(type) {
 }
 
 function switchSheetContext(view) {
-  // Called when nav tab tapped while a sheet (idea or todo) is open
-  if (view === 'out' || view === 'in') view = 'ideas'; if (ideasFilter === 'favs') ideasFilter = 'all';
+  // Called when a bottom-nav tab is tapped while any "New" popup is open.
+  // Always close everything first, then open only what belongs to the new view.
+  if (view === 'out' || view === 'in') view = 'ideas';
+  if (ideasFilter === 'favs') ideasFilter = 'all';
+
+  // Close all "New" popups
+  const _ideaSheetEl = document.getElementById('idea-sheet');
+  const _todoSheetEl = document.getElementById('todo-sheet');
+  const _npsSheetEl  = document.getElementById('new-person-sheet');
+  if (_ideaSheetEl) { _ideaSheetEl.style.display = 'none'; sheetOpen = false; sheetMode = 'idea'; }
+  if (_todoSheetEl) { _todoSheetEl.style.display  = 'none'; _todoSelectedActivity = null; }
+  if (_npsSheetEl)  { _npsSheetEl.style.display   = 'none'; }
+  document.getElementById('sheet-overlay').style.display = 'none';
+  // Reset btn-new to plus state (each open function will re-set to check)
+  document.getElementById('btn-new-circle').style.background = ROSE;
+  document.getElementById('btn-new-icon-plus').style.display = 'block';
+  document.getElementById('btn-new-icon-check').style.display = 'none';
+
   currentView = view;
   render();
+
+  // Open the appropriate "New" popup for the new view
   if (view === 'todo') {
-    // Close idea sheet, open todo sheet
-    document.getElementById('idea-sheet').style.display = 'none';
-    sheetOpen = false;
-    sheetMode = 'idea';
     openTodoAdd();
+  } else if (view === 'people') {
+    openNewPersonSheet();
+  } else if (view === 'calendar') {
+    sheetMode = 'date';
+    _dateIsPrivate = null;
+    _renderPrivacyBox('date-lock-icon', 'date-privacy-box', _effectivePrivate(_dateIsPrivate, _dateIdeaIsPrivate()), false);
+    document.getElementById('sheet-overlay').style.display = 'block';
+    document.getElementById('idea-sheet').style.display = 'flex';
+    sheetOpen = true;
+    document.getElementById('btn-new-circle').style.background = '#a05268';
+    document.getElementById('btn-new-icon-plus').style.display = 'none';
+    document.getElementById('btn-new-icon-check').style.display = 'block';
+    renderSheetUI();
   } else {
-    // Close todo sheet, open appropriate idea/date sheet
-    const ts = document.getElementById('todo-sheet');
-    if (ts && ts.style.display === 'block') {
-      ts.style.display = 'none';
-      _todoSelectedActivity = null;
-      // Don't reset btn-new — we're about to re-open a sheet
-    }
-    if (view === 'calendar') { sheetMode = 'date'; _dateIsPrivate = null; _renderPrivacyBox('date-lock-icon', 'date-privacy-box', _effectivePrivate(_dateIsPrivate, _dateIdeaIsPrivate()), false); }
-    else sheetMode = 'idea';
-    // Ensure idea sheet is shown
+    // ideas or any other view
+    sheetMode = 'idea';
     document.getElementById('sheet-overlay').style.display = 'block';
     document.getElementById('idea-sheet').style.display = 'flex';
     sheetOpen = true;
@@ -8720,6 +8920,11 @@ function handleNewBtn() {
     saveTodoFromSheet();
     return;
   }
+  const _npsEl = document.getElementById('new-person-sheet');
+  if (_npsEl && _npsEl.style.display === 'flex') {
+    saveNewPersonSheet();
+    return;
+  }
   if (currentView === 'ideas') {
     openSheet(ideasFilter === 'in' ? 'in' : 'out');
   } else if (currentView === 'calendar') {
@@ -8734,14 +8939,9 @@ function handleNewBtn() {
     openTodoAdd();
     return;
   } else if (currentView === 'people') {
-    openNewPerson();
-  } else if (currentView === 'memories') {
-    const today = new Date();
-    selectedCalDay = today.getDate();
-    currentCalMonth = today.getMonth();
-    currentCalYear = today.getFullYear();
-    navigate('calendar');
-    setTimeout(() => openSheet('date'), 50);
+    openNewPersonSheet();
+  } else if (currentView === 'memories' || currentView === 'past') {
+    openSheet('date');
   } else {
     openSheet('out');
   }
@@ -8765,9 +8965,9 @@ function renderSheetUI() {
   }
   // Restore fixed height for New Idea mode
   const _sheet = document.getElementById('idea-sheet');
-  _sheet.style.height = 'calc(70vh)';
-  _sheet.style.maxHeight = 'calc(70vh)';
-  _sheet.style.overflow = 'visible';
+  _sheet.style.height = 'auto';
+  _sheet.style.maxHeight = 'min(75vh, calc(100dvh - max(48px, env(safe-area-inset-top)) - max(48px, env(safe-area-inset-bottom)) - 48px))';
+  _sheet.style.overflow = 'hidden';
   const _body = document.getElementById('idea-sheet-body');
   _body.style.flex = '1';
   _body.style.overflowY = 'auto';
@@ -11756,6 +11956,8 @@ function openSettings() {
   document.getElementById('settings-home-address').value = homeAddress;
   const imagesHostEl = document.getElementById('settings-images-host');
   if (imagesHostEl) imagesHostEl.value = imagesHost;
+  _updateHostLabel(imagesHost);
+  _updateHostLabel(imagesHost);
   const hpCb = document.getElementById('settings-hide-private');
   if (hpCb) hpCb.checked = hidePrivate;
   document.getElementById('settings-overlay').style.display = 'flex';
@@ -11819,6 +12021,88 @@ function _selectGender(pronouns) {
 function closeSettings() {
   document.getElementById('settings-overlay').style.display = 'none';
 }
+function _hostNameBrands() {
+  return {
+    'github': 'GitHub', 'gitlab': 'GitLab', 'bitbucket': 'Bitbucket',
+    'netlify': 'Netlify', 'vercel': 'Vercel', 'heroku': 'Heroku',
+    'amazonaws': 'AWS', 'cloudfront': 'CloudFront', 'firebase': 'Firebase',
+    'pages': 'Pages', 'render': 'Render', 'railway': 'Railway',
+    'surge': 'Surge', 'wordpress': 'WordPress', 'squarespace': 'Squarespace',
+    'wix': 'Wix', 'shopify': 'Shopify', 'webflow': 'Webflow',
+    'digitalocean': 'DigitalOcean', 'linode': 'Linode', 'vultr': 'Vultr',
+    'cloudflare': 'Cloudflare', 'fastly': 'Fastly', 'jsdelivr': 'jsDelivr',
+    'rawgit': 'RawGit', 'onrender': 'Render',
+  };
+}
+
+function _parseHostLabel(url) {
+  if (!url || !url.trim()) return '';
+  try {
+    // Normalize: add protocol if missing
+    const normalized = /^https?:\/\//i.test(url) ? url : 'https://' + url;
+    const host = new URL(normalized).hostname; // e.g. "user.github.io"
+    // Split by dot, find the meaningful part (second-to-last before TLD)
+    const parts = host.split('.');
+    // For "user.github.io" → ["user","github","io"] → pick "github"
+    // For "myapp.netlify.app" → ["myapp","netlify","app"] → pick "netlify"
+    // For "example.com" → ["example","com"] → pick "example"
+    let name = '';
+    if (parts.length >= 3) {
+      // Check if second part is a known brand, else try first
+      const second = parts[parts.length - 2];
+      const brands = _hostNameBrands();
+      name = second; // default: second-to-last
+      // If the TLD is 2-4 chars and second part is recognizable brand, use it
+    } else if (parts.length === 2) {
+      name = parts[0];
+    } else {
+      name = parts[0];
+    }
+    name = name.toLowerCase();
+    const brands = _hostNameBrands();
+    if (brands[name]) return brands[name];
+    // Title-case fallback
+    return name.charAt(0).toUpperCase() + name.slice(1);
+  } catch(e) {
+    return url.trim();
+  }
+}
+
+function _updateHostLabel(url) {
+  const box = document.getElementById('settings-images-host-box');
+  const label = document.getElementById('settings-images-host-label');
+  if (!box || !label) return;
+  const text = _parseHostLabel(url);
+  if (text) {
+    label.textContent = text;
+    box.style.color = 'var(--text-primary)';
+  } else {
+    label.textContent = 'Host URL...';
+    box.style.color = 'var(--text-placeholder)';
+  }
+}
+
+function openHostUrlPopup() {
+  const hidden = document.getElementById('settings-images-host');
+  const inp = document.getElementById('host-url-input');
+  if (inp && hidden) inp.value = hidden.value || '';
+  document.getElementById('host-url-overlay').style.display = 'flex';
+  setTimeout(() => { if (inp) { inp.focus(); inp.select(); } }, 50);
+}
+
+function closeHostUrlPopup() {
+  document.getElementById('host-url-overlay').style.display = 'none';
+}
+
+function saveHostUrl() {
+  const inp = document.getElementById('host-url-input');
+  const val = inp ? inp.value.trim() : '';
+  const hidden = document.getElementById('settings-images-host');
+  if (hidden) hidden.value = val;
+  _updateHostLabel(val);
+  closeHostUrlPopup();
+}
+
 function saveSettingsData() {
   homeAddress = document.getElementById('settings-home-address').value.trim();
   appSettings.homeAddress = homeAddress;
@@ -11879,6 +12163,16 @@ function closePlaces() {
 function toggleMenu() {
   const dropdown = document.getElementById('nav-menu-dropdown');
   const isOpen = dropdown.style.display === 'block';
+  if (!isOpen) {
+    // Hide items that are already in the bottom bar
+    const _mode = _lastTabMode; // 'todo' | 'people' | 'memories'
+    const todoBtn = document.getElementById('nav-menu-todo-btn');
+    const peopleBtn = document.getElementById('nav-menu-people-btn');
+    const memoriesBtn = document.getElementById('nav-menu-memories-btn');
+    if (todoBtn) todoBtn.style.display = _mode === 'todo' ? 'none' : '';
+    if (peopleBtn) peopleBtn.style.display = _mode === 'people' ? 'none' : '';
+    if (memoriesBtn) memoriesBtn.style.display = _mode === 'memories' ? 'none' : '';
+  }
   dropdown.style.display = isOpen ? 'none' : 'block';
 }
 function closeMenu() {
@@ -12096,7 +12390,12 @@ function _ecsBlockHtml(sec, i) {
 
 function _ecsOptionsHtml(sec) {
   if (sec.id === 'slides') {
-    return `<span class="ems-opt-label">Display</span>${_emsSel('display', sec.display||'full', [{v:'full',l:'Full'},{v:'compact',l:'Compact'}])}`;
+    const isCompact = (sec.display || 'full') === 'compact';
+    const showPeople = sec.showPeople === true;
+    return `<div style="display:flex;flex-direction:column;gap:6px">
+      <div style="display:flex;align-items:center;gap:6px"><span class="ems-opt-label">Display</span>${_emsSel('display', sec.display||'full', [{v:'full',l:'Full'},{v:'compact',l:'Compact'}])}</div>
+      <label style="display:flex;align-items:center;gap:6px;cursor:${isCompact?'default':'pointer'};font-family:sans-serif;font-size:12px;color:${isCompact?'#c8bfb6':'var(--text-secondary)'}"><input type="checkbox" class="showtype-check" data-ems-key="showPeople" data-val-type="bool" ${showPeople&&!isCompact ? 'checked' : ''} ${isCompact ? 'disabled' : ''} style="width:13px;height:13px">Show people</label>
+    </div>`;
   }
   if (sec.id === 'calendar') {
     const showBd = sec.showBirthdays !== false;
@@ -12305,7 +12604,12 @@ function _emsSel(key, val, options) {
 
 function _emsOptionsHtml(sec) {
   if (sec.id === 'nextDates') {
-    return `<span class="ems-opt-label">Display</span>${_emsSel('display', sec.display||'full', [{v:'full',l:'Full'},{v:'compact',l:'Compact'}])}`;
+    const isCompactNd = (sec.display || 'full') === 'compact';
+    const showPeopleNd = sec.showPeople === true;
+    return `<div style="display:flex;flex-direction:column;gap:6px">
+      <div style="display:flex;align-items:center;gap:6px"><span class="ems-opt-label">Display</span>${_emsSel('display', sec.display||'full', [{v:'full',l:'Full'},{v:'compact',l:'Compact'}])}</div>
+      <label style="display:flex;align-items:center;gap:6px;cursor:${isCompactNd?'default':'pointer'};font-family:sans-serif;font-size:12px;color:${isCompactNd?'#c8bfb6':'var(--text-secondary)'}"><input type="checkbox" class="showtype-check" data-ems-key="showPeople" data-val-type="bool" ${showPeopleNd&&!isCompactNd ? 'checked' : ''} ${isCompactNd ? 'disabled' : ''} style="width:13px;height:13px">Show people</label>
+    </div>`;
   }
   if (sec.id === 'ideas') {
     const showVal = sec.show || '3';
@@ -13716,6 +14020,136 @@ function closePersonInfo() {
 }
 
 // ── New / Edit Person ─────────────────────────────────
+var _npsIsFavorite = false;
+var _npsIsFamily = false;
+var _npsPhotoCropPersonId = null;
+
+function openNewPersonSheet() {
+  _npsIsFavorite = false;
+  _npsIsFamily = false;
+  _npsUpdateFavIcon();
+  _npsUpdatePronounsIcon();
+  _npsUpdateFamilyBox();
+  ['nps-first-name','nps-last-name','nps-address','nps-neighborhood','nps-phone','nps-whatsapp','nps-instagram','nps-birthday','nps-notes'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.value = '';
+  });
+  document.getElementById('nps-pronouns').value = 'she/her';
+  const subBadges = document.getElementById('nps-subway-badges'); if (subBadges) subBadges.innerHTML = '';
+  const wdBadges = document.getElementById('nps-walkdrive-badges'); if (wdBadges) wdBadges.innerHTML = '';
+  const circle = document.getElementById('nps-photo-circle');
+  if (circle) circle.innerHTML = _personIconSvg(36, '#b0a090');
+  _npsPhotoCropPersonId = null;
+  const sheet = document.getElementById('new-person-sheet');
+  if (sheet) { sheet.style.display = 'flex'; const body = document.getElementById('nps-body'); if (body) body.scrollTop = 0; }
+  document.getElementById('btn-new-circle').style.background = '#a05268';
+  document.getElementById('btn-new-icon-plus').style.display = 'none';
+  document.getElementById('btn-new-icon-check').style.display = 'block';
+  setTimeout(() => { const f = document.getElementById('nps-first-name'); if (f) f.focus(); }, 50);
+}
+
+function closeNewPersonSheet() {
+  const sheet = document.getElementById('new-person-sheet');
+  if (sheet) sheet.style.display = 'none';
+  // If there was a stub person created for photo, remove it
+  if (_npsPhotoCropPersonId) {
+    people = people.filter(p => p.id !== _npsPhotoCropPersonId);
+    savePeople(people);
+    _npsPhotoCropPersonId = null;
+  }
+  document.getElementById('btn-new-circle').style.background = ROSE;
+  document.getElementById('btn-new-icon-plus').style.display = 'block';
+  document.getElementById('btn-new-icon-check').style.display = 'none';
+}
+
+function saveNewPersonSheet() {
+  const firstName = (document.getElementById('nps-first-name').value || '').trim();
+  const lastName  = (document.getElementById('nps-last-name').value  || '').trim();
+  if (!firstName && !lastName) { closeNewPersonSheet(); return; }
+  const pronouns     = document.getElementById('nps-pronouns').value;
+  const address      = (document.getElementById('nps-address').value || '').trim();
+  const neighborhood = (document.getElementById('nps-neighborhood').value || '').trim();
+  const phone        = (document.getElementById('nps-phone').value || '').trim();
+  const whatsapp     = (document.getElementById('nps-whatsapp').value || '').trim();
+  const instagram    = (document.getElementById('nps-instagram').value || '').trim();
+  const birthday     = _parseBirthday((document.getElementById('nps-birthday').value || '').trim());
+  const notes        = (document.getElementById('nps-notes').value || '').trim();
+  const subway       = (document.getElementById('nps-subway').value || '').trim();
+  const walkdrive    = (document.getElementById('nps-walkdrive').value || '').trim();
+  // If a stub was created for photo, update it; otherwise create new
+  if (_npsPhotoCropPersonId) {
+    const p = people.find(x => x.id === _npsPhotoCropPersonId);
+    if (p) Object.assign(p, { firstName, lastName, pronouns, address, neighborhood, phone, whatsapp, instagram, birthday: birthday||undefined, notes: notes||undefined, subwayRoute: subway||undefined, walkDriveTime: walkdrive||undefined, family: _npsIsFamily||undefined, favorite: _npsIsFavorite });
+    _npsPhotoCropPersonId = null;
+  } else {
+    people.push({ id: 'p_' + Date.now(), firstName, lastName, pronouns, address, neighborhood, phone, whatsapp, instagram, birthday: birthday||undefined, notes: notes||undefined, subwayRoute: subway||undefined, walkDriveTime: walkdrive||undefined, family: _npsIsFamily||undefined, favorite: _npsIsFavorite, photoUrl: '', photoZoom: 1, photoX: 0, photoY: 0 });
+  }
+  savePeople(people);
+  closeNewPersonSheet();
+  _renderPeople();
+}
+
+function _npsToggleFav() {
+  _npsIsFavorite = !_npsIsFavorite;
+  _npsUpdateFavIcon();
+}
+function _npsUpdateFavIcon() {
+  const icon = document.getElementById('nps-fav-icon');
+  if (!icon) return;
+  icon.innerHTML = _npsIsFavorite ? '<path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>' : '<circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>';
+}
+function _npsUpdatePronounsIcon() {
+  const sel = document.getElementById('nps-pronouns');
+  const iconEl = document.getElementById('nps-pronouns-icon');
+  if (sel && iconEl) iconEl.innerHTML = _genderIconSvg(sel.value, 23);
+}
+function _npsToggleFamily() {
+  _npsIsFamily = !_npsIsFamily;
+  _npsUpdateFamilyBox();
+}
+function _npsUpdateFamilyBox() {
+  const label = document.getElementById('nps-family-label');
+  if (label) label.textContent = _npsIsFamily ? 'Family' : '';
+  const icon = document.getElementById('nps-family-icon');
+  if (icon) icon.style.stroke = _npsIsFamily ? ROSE : '#9a8a7a';
+}
+function _npsRenderSubwayBadges() {
+  const val = (document.getElementById('nps-subway')||{}).value || '';
+  const wrap = document.getElementById('nps-subway-badges');
+  if (!wrap) return;
+  if (!val.trim()) { wrap.innerHTML=''; wrap.style.marginTop='0'; return; }
+  wrap.innerHTML = buildSubwayBadgesHtml(val);
+  wrap.style.marginTop = '6px';
+}
+function _npsRenderWalkDriveBadges() {
+  const val = (document.getElementById('nps-walkdrive')||{}).value || '';
+  const wrap = document.getElementById('nps-walkdrive-badges');
+  if (!wrap) return;
+  if (!val.trim()) { wrap.innerHTML=''; wrap.style.marginTop='0'; return; }
+  wrap.innerHTML = buildWalkDriveBadgesHtml(val);
+  wrap.style.marginTop = '6px';
+}
+function _npsOpenTransitDirections() {
+  const addr = (document.getElementById('nps-address')||{}).value || '';
+  if (homeAddress && addr) _openExternal(`https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(homeAddress)}&destination=${encodeURIComponent(addr)}&travelmode=transit`);
+}
+function _npsOpenWalkingDirections() {
+  const addr = (document.getElementById('nps-address')||{}).value || '';
+  if (homeAddress && addr) _openExternal(`https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(homeAddress)}&destination=${encodeURIComponent(addr)}&travelmode=walking`);
+}
+function _npsPhotoCircleClick() {
+  // Create a temporary stub person to attach the photo to
+  if (!_npsPhotoCropPersonId) {
+    const stubId = 'p_nps_' + Date.now();
+    people.push({ id: stubId, firstName: '', lastName: '', pronouns: 'she/her', favorite: false, photoUrl: '', photoZoom: 1, photoX: 0, photoY: 0 });
+    savePeople(people);
+    _npsPhotoCropPersonId = stubId;
+  }
+  window._photoCropPersonId = _npsPhotoCropPersonId;
+  // After photo saved, update the nps-photo-circle
+  window._npsAfterPhotoSave = true;
+  openEditPersonPhoto();
+}
+
 function openNewPerson() {
   _editPersonId = null;
   document.getElementById('ep-first-name').value = '';
