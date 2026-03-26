@@ -7084,7 +7084,7 @@ function renderCalendar() {
         if (_detSecUp && _detSecUp.detailsShowPeople === true) {
           // Skip if the only person attached is "Me"
           const _upPeeps = (dateEntry.people || []).map(pe => pe.id ? people.find(x => x.id === pe.id) : null).filter(Boolean);
-          const _onlyMe = _upPeeps.length > 0 && _upPeeps.every(p => p.firstName === 'Me' || _personFullName(p) === 'Me');
+          const _onlyMe = _upPeeps.length === 0 || _upPeeps.every(p => p.firstName === 'Me' || _personFullName(p) === 'Me');
           if (!_onlyMe) {
             const _upPeoplePanel = _buildPastSummaryPanel(dateEntry, idea);
             _allPanels.push({ html: _upPeoplePanel, dateIdx: di });
