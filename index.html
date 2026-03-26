@@ -10844,7 +10844,7 @@ function _attachBannerTapClose(scrollElId, closeFn) {
     if (Math.abs(pt.clientX - _startX) > 8 || Math.abs(pt.clientY - _startY) > 8) _moved = true;
   };
   const onEnd = e => {
-    if (!_moved) { e.stopPropagation(); closeFn(); }
+    if (!_moved) { e.stopPropagation(); e.preventDefault(); closeFn(); }
   };
   el.addEventListener('touchstart', onStart, { passive: true });
   el.addEventListener('touchmove',  onMove,  { passive: true });
@@ -11457,9 +11457,9 @@ function openDateInfo(u, memoryMode) {
     aboutRow.style.display = 'flex';
   } else { aboutRow.style.display = 'none'; }
 
-  // Action buttons: Reserve + Edit Date (hidden in memoryMode)
+  // Action buttons: Reserve + Edit Date (hidden in memoryMode or past dates)
   const btnsWrap = document.getElementById('di-btns-wrap');
-  if (memoryMode) {
+  if (memoryMode || _diIsPast) {
     btnsWrap.innerHTML = '';
     btnsWrap.style.display = 'none';
   } else {
@@ -15098,7 +15098,7 @@ openDateInfo = function(u, memoryMode) {
   const el = document.createElement('div');
   el.id = 'di-people-circles';
   el.onclick = (ev) => { ev.stopPropagation(); openDatePeoplePopup(); };
-  el.style.cssText = `position:absolute;bottom:8px;right:8px;width:${totalW}px;height:${SIZE}px;cursor:pointer;z-index:2`;
+  el.style.cssText = `position:absolute;bottom:8px;right:50px;width:${totalW}px;height:${SIZE}px;cursor:pointer;z-index:2`;
   el.innerHTML = circles;
   banner.appendChild(el);
 };
