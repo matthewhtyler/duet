@@ -6908,31 +6908,41 @@ function _calSlideClick(id, month, day, year) {
     const u = UPCOMING_DATES.find(d => String(d.id) === String(id));
     if (u) openDateInfo(u);
   } else {
-    // Save scroll position before re-render
-    const _savedCompactIdx = _calCompactIdx;
-    const _carousel = document.getElementById('home-dates-carousel');
-    const _savedScrollLeft = _carousel ? _carousel.scrollLeft : 0;
-    const _savedHomeIdx = _homeCarouselIdx;
     currentCalMonth = targetMonth;
     currentCalYear = year;
     selectedCalDay = day;
-    render();
-    setTimeout(() => {
-      // Restore compact position
-      const scroll = document.getElementById('date-cards-scroll');
-      if (scroll) {
-        _calCompactIdx = _savedCompactIdx;
-        const w = scroll.offsetWidth;
-        if (w) scroll.scrollLeft = _calCompactIdx * w;
-        _updateCalCompactArrows();
-      }
-      // Restore full carousel position
-      const c = document.getElementById('home-dates-carousel');
-      if (c && _savedScrollLeft > 0) { c.scrollLeft = _savedScrollLeft; _homeCarouselIdx = _savedHomeIdx; }
-      _applyBirthdayDots();
-      _applyBirthdayDotsWeek();
-    }, 0);
+    // Re-render calendar without touching slides section to avoid flicker
+    _calRenderWithoutSlides();
+    setTimeout(() => { _applyBirthdayDots(); _applyBirthdayDotsWeek(); }, 0);
   }
+}
+
+function _calRenderWithoutSlides() {
+  // Re-renders the full calendar page but preserves the slides DOM to prevent flicker
+  const main = document.getElementById('main-content');
+  if (!main) { render(); return; }
+
+  // Snapshot the slides HTML before re-render
+  const slidesEl = document.getElementById('cal-slides');
+  const slidesHtml = slidesEl ? slidesEl.outerHTML : null;
+  const slidesSibling = slidesEl ? slidesEl.nextSibling : null;
+
+  // Full re-render
+  main.innerHTML = renderCalendar();
+
+  // Restore slides DOM to prevent re-render flicker
+  if (slidesHtml) {
+    const newSlidesEl = document.getElementById('cal-slides');
+    if (newSlidesEl) {
+      newSlidesEl.outerHTML = slidesHtml;
+    }
+  }
+
+  // Run post-render calendar inits
+  setTimeout(() => {
+    _initCalSwipe(); _initCalDayCards(); _initCalInfoScroll(); _updateCalCompactArrows(); _syncSlidesToSelectedDay();
+    _applyBirthdayDots(); _applyBirthdayDotsWeek();
+  }, 0);
 }
 
 // Calendar screen compact slides index (separate from home dateIdx)
@@ -9617,7 +9627,8 @@ function _inPlaceSetPerson(ctx, personId) {
   const photoHtml = p.photoUrl
     ? `<div style="width:20px;height:20px;border-radius:50%;overflow:hidden;flex-shrink:0;position:relative">${_personAvatarInner(p, 20)}</div>`
     : `<div style="width:20px;height:20px;border-radius:50%;background:var(--toggle-bg);display:flex;align-items:center;justify-content:center;flex-shrink:0">${_personIconSvg(11,'#b0a090')}</div>`;
-  const label = (p.firstName || _personFullName(p)) + "'s place";
+  const _isMePerson = p.firstName === 'Me' || _personFullName(p) === 'Me';
+  const label = _isMePerson ? 'My place' : (p.firstName || _personFullName(p)) + "'s place";
   const pill = document.getElementById(ctx + '-in-place-pill');
   if (pill) pill.innerHTML = _inPlacePillHtml(ctx, photoHtml, label);
   const inp = document.getElementById(ctx + '-in-place-text');
@@ -9682,7 +9693,9 @@ function _inPlaceSuggest(ctx) {
     const photoHtml = p.photoUrl
       ? `<div style="width:26px;height:26px;border-radius:50%;overflow:hidden;flex-shrink:0;position:relative">${_personAvatarInner(p, 26)}</div>`
       : `<div style="width:26px;height:26px;border-radius:50%;background:var(--toggle-bg);display:flex;align-items:center;justify-content:center;flex-shrink:0">${_personIconSvg(14,'#b0a090')}</div>`;
-    return `<div onclick="_inPlaceSelectPerson('${ctx}','${p.id}')" style="display:flex;align-items:center;gap:10px;padding:8px 12px;cursor:pointer;font-size:14px;color:var(--text-primary)">${photoHtml}<span>${p.firstName || _personFullName(p)}'s place</span></div>`;
+    const _placeLabel = (p.firstName === 'Me' || _personFullName(p) === 'Me') ? 'My place' : (p.firstName || _personFullName(p)) + "'s place";
+    const _placeIcon = (p.firstName === 'Me' || _personFullName(p) === 'Me') ? `<div style="display:flex;align-items:center;justify-content:center;width:26px;height:26px;flex-shrink:0">${_inPlaceSofaIcon(26)}</div>` : photoHtml;
+    return `<div onclick="_inPlaceSelectPerson('${ctx}','${p.id}')" style="display:flex;align-items:center;gap:10px;padding:8px 12px;cursor:pointer;font-size:14px;color:var(--text-primary)">${_placeIcon}<span>${_placeLabel}</span></div>`;
   }).join('');
   sug.style.display = 'block';
 }
@@ -11560,7 +11573,7 @@ function savePlace() {
     // Navigate to Ideas screen, All tab
     ideasFilter = 'all';
     navigate('ideas');
-  } else if (!fromEditDate) {
+  } else if (!fromEditDate && currentView === 'ideas') {
     openDetail(savedId);
   }
 }
@@ -14367,7 +14380,8 @@ function _locationPersonSuggest(ctx) {
     const photoHtml = p.photoUrl
       ? `<div style="width:26px;height:26px;border-radius:50%;overflow:hidden;flex-shrink:0;position:relative">${_personAvatarInner(p, 26)}</div>`
       : `<div style="width:26px;height:26px;border-radius:50%;background:var(--toggle-bg);display:flex;align-items:center;justify-content:center;flex-shrink:0">${_personIconSvg(14,'#b0a090')}</div>`;
-    const label = (p.firstName || _personFullName(p)) + "'s place";
+    const _isMePerson = p.firstName === 'Me' || _personFullName(p) === 'Me';
+  const label = _isMePerson ? 'My place' : (p.firstName || _personFullName(p)) + "'s place";
     return `<div data-location-suggest-idx="${i}" onclick="_selectLocationPerson('${ctx}','${p.id}')" style="display:flex;align-items:center;gap:10px;padding:8px 12px;cursor:pointer;font-size:14px;color:var(--text-primary)">${photoHtml}<span>${label}</span></div>`;
   }).join('');
   sug.style.display = 'block';
@@ -14382,7 +14396,8 @@ function _selectLocationPerson(ctx, personId) {
     const photoHtml = p.photoUrl
       ? `<div style="width:20px;height:20px;border-radius:50%;overflow:hidden;flex-shrink:0"><img src="${p.photoUrl}" style="width:100%;height:100%;object-fit:cover"></div>`
       : `<div style="width:20px;height:20px;border-radius:50%;background:var(--toggle-bg);display:flex;align-items:center;justify-content:center;flex-shrink:0">${_personIconSvg(11,'#b0a090')}</div>`;
-    const label = (p.firstName || _personFullName(p)) + "'s place";
+    const _isMePerson = p.firstName === 'Me' || _personFullName(p) === 'Me';
+  const label = _isMePerson ? 'My place' : (p.firstName || _personFullName(p)) + "'s place";
     pillEl.innerHTML = `<div style="display:inline-flex;align-items:center;gap:5px;background:var(--bg-card2);border:1px solid var(--border);border-radius:20px;padding:3px 8px 3px 4px;font-size:12px;font-family:sans-serif;color:var(--text-primary);white-space:nowrap;flex-shrink:0">${photoHtml}<span>${label}</span><button onclick="_clearLocationPerson('${ctx}')" style="background:none;border:none;cursor:pointer;padding:0;line-height:0;color:#9a8a7a;margin-left:2px"><svg viewBox="0 0 24 24" width="10" height="10" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>`;
   }
   const inp = document.getElementById(ctx === 'date' ? 'date-location-text' : 'ed-location');
@@ -14818,7 +14833,7 @@ function _buildBirthdayCardHtml(r) {
       <div class="upcoming-info">
         <div class="upcoming-venue-row">
           ${cakeIcon}
-          <span class="upcoming-venue" style="color:${BROWN}">${firstName}'s birthday</span>
+          <span class="upcoming-venue" style="color:${BROWN}">${(p.firstName === 'Me' || _personFullName(p) === 'Me') ? 'My birthday' : firstName + "'s birthday"}</span>
         </div>
         <span class="upcoming-sub">${subline}</span>
       </div>
