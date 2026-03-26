@@ -8400,15 +8400,20 @@ function _initDateCardsScroll() {
 function _initCalSwipe() {
   const card = document.getElementById('cal-card');
   if (!card) return;
-  let startX = 0, startY = 0, dragging = false, fired = false;
+  let startX = 0, startY = 0, dragging = false, fired = false, cancelled = false;
 
   function onStart(x, y) {
-    startX = x; startY = y; dragging = true; fired = false;
+    startX = x; startY = y; dragging = true; fired = false; cancelled = false;
   }
-  function onMove(x) {
-    if (!dragging || fired) return;
+  function onMove(x, y) {
+    if (!dragging || fired || cancelled) return;
     const dx = x - startX;
-    if (Math.abs(dx) > 30) {
+    const dy = y - startY;
+    const adx = Math.abs(dx), ady = Math.abs(dy);
+    // If vertical movement dominates or is significant, cancel — user is scrolling
+    if (ady > 12 && ady >= adx) { cancelled = true; dragging = false; return; }
+    // Only fire if clearly horizontal (adx > ady * 1.5) and past threshold
+    if (adx > 50 && adx > ady * 1.5) {
       fired = true; dragging = false;
       dx < 0 ? calNext() : calPrev();
     }
@@ -8420,13 +8425,13 @@ function _initCalSwipe() {
     onStart(e.touches[0].clientX, e.touches[0].clientY);
   }, { passive: true });
   card.addEventListener('touchmove', e => {
-    onMove(e.touches[0].clientX);
+    onMove(e.touches[0].clientX, e.touches[0].clientY);
   }, { passive: true });
   card.addEventListener('touchend', onEnd, { passive: true });
 
   // Mouse (desktop drag)
   card.addEventListener('mousedown', e => { onStart(e.clientX, e.clientY); });
-  card.addEventListener('mousemove', e => { if (dragging) onMove(e.clientX); });
+  card.addEventListener('mousemove', e => { if (dragging) onMove(e.clientX, e.clientY); });
   card.addEventListener('mouseup', onEnd);
   card.addEventListener('mouseleave', onEnd);
 }
@@ -13878,12 +13883,36 @@ function handleImportFile(e) {
 
 render();
 // Preload all people profile photos into the browser cache on startup
+// After all photos load, re-render the home slides so avatars appear correctly
 setTimeout(() => {
-  people.forEach(p => {
-    if (!p.photoUrl) return;
-    const url = _resolveImageUrl(p.photoUrl);
-    if (!url) return;
+  const _photoUrls = people
+    .filter(p => p.photoUrl)
+    .map(p => _resolveImageUrl(p.photoUrl))
+    .filter(Boolean);
+  if (!_photoUrls.length) return;
+  let _loaded = 0;
+  const _onLoad = () => {
+    _loaded++;
+    if (_loaded === _photoUrls.length && currentView === 'home') {
+      // Re-render only the slides section in-place to avoid scroll disruption
+      const _carousel = document.getElementById('home-dates-carousel');
+      if (_carousel) {
+        const _savedScroll = _carousel.scrollLeft;
+        render();
+        requestAnimationFrame(() => {
+          const _c2 = document.getElementById('home-dates-carousel');
+          if (_c2) {
+            _c2.style.scrollSnapType = 'none';
+            _c2.scrollLeft = _savedScroll;
+            requestAnimationFrame(() => { _c2.style.scrollSnapType = 'x mandatory'; });
+          }
+        });
+      }
+    }
+  };
+  _photoUrls.forEach(url => {
     const img = new Image();
+    img.onload = img.onerror = _onLoad;
     img.src = url;
   });
 }, 0);
