@@ -68,6 +68,8 @@
     --toggle-active-bg: #9a8a7a;
     --toggle-active-color: #f0ede9;
     --popup-week-bg: var(--bg-input);
+    .cal-dot.dim { background: #4a4540; }
+    .cal-dot.past { background: #4a4540; }
   }
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
   html, body { height: 100%; background: var(--bg); font-family: Georgia, "Times New Roman", serif; overflow: hidden; }
@@ -450,7 +452,8 @@
     position: absolute; bottom: 3px; left: 50%; transform: translateX(-50%);
     width: 5px; height: 5px; border-radius: 50%; background: #c07a8a;
   }
-  .cal-dot.past { background: #b0a090; }
+  .cal-dot.dim { background: #c8c0b8; }
+  .cal-dot.past { background: #c8c0b8; }
   .cal-dot.selected { background: #fff; }
   #cal-selected-card { margin-top: 20px; }
   #cal-upcoming { margin-top: 20px; }
@@ -6486,8 +6489,13 @@ function renderCalendar() {
   // Days in current month that have upcoming dates
   // Upcoming dates
   const _isSearchingCal = calMemSearch || calMemPeople.length;
-  const datesThisMonth = UPCOMING_DATES.filter(u => u.month === monthAbbr && (u.year || 2026) === currentCalYear && (!_isSearchingCal || _calMemMatchDate(u)));
-  const markedDays = datesThisMonth.map(u => u.day);
+  const datesThisMonth = UPCOMING_DATES.filter(u => u.month === monthAbbr && (u.year || 2026) === currentCalYear && !_isDateHiddenPrivate(u));
+  const markedDays = _isSearchingCal
+    ? datesThisMonth.filter(u => _calMemMatchDate(u)).map(u => u.day)
+    : datesThisMonth.map(u => u.day);
+  const dimmedDays = _isSearchingCal
+    ? datesThisMonth.filter(u => !_calMemMatchDate(u)).map(u => u.day)
+    : [];
 
   // Days that are in the past (before today in this month)
   const isPastMonth = (currentCalYear < _now.getFullYear()) || (currentCalYear === _now.getFullYear() && currentCalMonth < _now.getMonth());
@@ -6498,15 +6506,16 @@ function renderCalendar() {
   for (let d=1;d<=daysInMonth;d++) {
     const isSelected = d === selectedCalDay;
     const isMarked   = markedDays.includes(d);
+    const isDimmed   = !isMarked && dimmedDays.includes(d);
     const isToday    = d === todayDay;
     const dayDate    = new Date(currentCalYear, currentCalMonth, d); dayDate.setHours(0,0,0,0);
     const isPastDay  = dayDate < _now;
     const cls = isSelected ? 'cal-day selected' : isToday ? 'cal-day today' : 'cal-day';
-    const dotClass = isSelected ? 'cal-dot selected' : isPastDay ? 'cal-dot past' : 'cal-dot';
+    const dotClass = isSelected ? 'cal-dot selected' : isDimmed ? 'cal-dot dim' : isPastDay ? 'cal-dot past' : 'cal-dot';
     cells += `
       <button class="${cls}" onclick="selectCalDay(${d})">
         ${d}
-        ${isMarked ? `<div class="${dotClass}"></div>` : ''}
+        ${(isMarked || isDimmed) ? `<div class="${dotClass}"></div>` : ''}
       </button>`;
   }
 
@@ -6801,7 +6810,12 @@ function renderCalendar() {
     if (!sec || sec.on === false) return '';
     const display = sec.display || 'full';
     // Reuse the home date cards but in calendar context
-    const _cvDates = FUTURE_DATES.filter(fd => !_isDateHiddenPrivate(fd._ref || fd));
+    const _isSearchingSlides = calMemSearch || calMemPeople.length;
+    const _cvDates = FUTURE_DATES.filter(fd => {
+      if (_isDateHiddenPrivate(fd._ref || fd)) return false;
+      if (!_isSearchingSlides) return true;
+      return _calMemMatchDate(fd._ref || fd);
+    });
     if (!_cvDates.length) return '';
     return `<div id="cal-slides" style="margin:0;padding-bottom:4px">${_buildCalSlidesHtml(_cvDates, display)}</div>`;
   })();
@@ -6946,7 +6960,12 @@ function _calCompactPrev() { _calCompactScrollTo(_calCompactIdx - 1, true); }
 function _calCompactNext() { _calCompactScrollTo(_calCompactIdx + 1, true); }
 
 function _updateCalCompactArrows() {
-  const total = FUTURE_DATES.filter(fd => !_isDateHiddenPrivate(fd._ref || fd)).length;
+  const total = FUTURE_DATES.filter(fd => {
+    if (_isDateHiddenPrivate(fd._ref || fd)) return false;
+    if (calMemSearch || calMemPeople.length) return _calMemMatchDate(fd._ref || fd);
+    return true;
+  }).length;
+  _calCompactIdx = Math.min(_calCompactIdx, Math.max(0, total - 1));
   const prev = document.getElementById('date-btn-prev');
   const next = document.getElementById('date-btn-next');
   if (prev) prev.style.opacity = _calCompactIdx > 0 ? '1' : '0.3';
@@ -11778,6 +11797,7 @@ async function exportAllData() {
       homeIdeasFilter: homeIdeasFilter,
       incompleteMode: incompleteMode,
       onlySelectedCatsInMenu: onlySelectedCatsInMenu,
+      calScreenConfig: calScreenConfig,
     },
     appearance: _appearance,
   };
@@ -11900,14 +11920,16 @@ function saveEditMainScreen() {
 const _calDefaultSections = [
   { id:'slides',       label:'Slides',       on:true,  display:'full' },
   { id:'calendar',     label:'Calendar',     on:true  },
+  { id:'details',      label:'Details',      on:true  },
   { id:'upcoming',     label:'Upcoming',     on:true,  show:'all' },
   { id:'pastDates',    label:'Past Dates',   on:true,  show:'5' },
-  { id:'details',      label:'Details',      on:true  },
 ];
 
 function _getCalScreenConfig() {
   try {
-    const saved = JSON.parse(localStorage.getItem('ll_cal_screen_config') || 'null');
+    // Check localStorage first, then appSettings (set on import)
+    const saved = JSON.parse(localStorage.getItem('ll_cal_screen_config') || 'null')
+      || (appSettings && appSettings.calScreenConfig) || null;
     if (saved && Array.isArray(saved) && saved.length) {
       // Merge: add any default sections missing from saved config
       const merged = [...saved];
@@ -11995,6 +12017,8 @@ function _ecsReadFromDom() {
 function saveEditCalScreen() {
   _ecsReadFromDom();
   calScreenConfig = _ecsWorkingConfig.map(s => ({...s}));
+  appSettings.calScreenConfig = calScreenConfig;
+  saveSettings(appSettings);
   try { localStorage.setItem('ll_cal_screen_config', JSON.stringify(calScreenConfig)); } catch(e) {}
   closeEditCalScreen();
   if (currentView === 'calendar') render();
@@ -13064,6 +13088,7 @@ function handleImportFile(e) {
       if (s.additionalTab !== undefined) additionalTab         = s.additionalTab;
       if (s.homeIdeasFilter !== undefined) homeIdeasFilter      = s.homeIdeasFilter;
       if (s.homeScreenConfig !== undefined) { homeScreenConfig = s.homeScreenConfig; appSettings.homeScreenConfig = homeScreenConfig; }
+      if (s.calScreenConfig !== undefined) { calScreenConfig = s.calScreenConfig; try { localStorage.setItem('ll_cal_screen_config', JSON.stringify(calScreenConfig)); } catch(e) {} }
       if (s.incompleteMode !== undefined) { incompleteMode = s.incompleteMode === true; appSettings.incompleteMode = incompleteMode; }
       if (s.onlySelectedCatsInMenu !== undefined) { onlySelectedCatsInMenu = s.onlySelectedCatsInMenu === true; appSettings.onlySelectedCatsInMenu = onlySelectedCatsInMenu; }
       // Sync appSettings and persist
@@ -14499,10 +14524,14 @@ function _applyBirthdayDots() {
       const dayNum = parseInt(btn.textContent);
       const bd = bdays.filter(b => b.day === dayNum);
       if (!bd.length || btn.querySelector('.cal-bday-dot')) return;
+      const _isDark = document.body.classList.contains('dark-mode');
+      const _bdayDate = new Date(currentCalYear, currentCalMonth, dayNum); _bdayDate.setHours(0,0,0,0);
+      const _bdayPast = _bdayDate < new Date().setHours(0,0,0,0);
+      const _bdayColor = _bdayPast ? (_isDark ? '#4a4540' : '#c8c0b8') : BURGUNDY;
       btn.style.position = 'relative';
       const dot = document.createElement('div');
       dot.className = 'cal-bday-dot';
-      dot.style.cssText = 'position:absolute;bottom:3px;left:50%;transform:translateX(-50%);width:5px;height:5px;border-radius:50%;background:' + BURGUNDY + ';cursor:pointer;z-index:2';
+      dot.style.cssText = 'position:absolute;bottom:3px;left:50%;transform:translateX(-50%);width:5px;height:5px;border-radius:50%;background:' + _bdayColor + ';cursor:pointer;z-index:2';
       dot.onclick = function(e) { e.stopPropagation(); _showBirthdayTooltip(e, bd); };
       btn.appendChild(dot);
     });
