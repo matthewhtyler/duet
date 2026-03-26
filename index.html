@@ -3928,7 +3928,7 @@ function _buildBannerCard(u, opts) {
           : `<div style="width:${_S}px;height:${_S}px;border-radius:50%;background:rgba(0,0,0,0.32);display:flex;align-items:center;justify-content:center">${_personIconSvg(Math.round(_S*0.55),'rgba(255,255,255,0.8)')}</div>`;
         return `<div style="position:absolute;left:${_lft}px;top:0;width:${_S}px;height:${_S}px;border-radius:50%;overflow:hidden;z-index:${_zi};border:1.5px solid rgba(255,255,255,0.85)">${_inner}</div>`;
       }).join('');
-      return `<div style="position:absolute;bottom:7px;right:${8 + 26 + 10}px;width:${_tw}px;height:${_S}px;pointer-events:none;z-index:2">${_circles}</div>`;
+      return `<div style="position:absolute;bottom:7px;right:8px;width:${_tw}px;height:${_S}px;pointer-events:none;z-index:2">${_circles}</div>`;
     })()}</div>
     <div style="display:flex;align-items:center;gap:12px;padding:0 14px 12px">
       ${dateBadge}
@@ -12721,7 +12721,10 @@ function _emsReadFromDom() {
     const chk = block.querySelector('.ems-enabled-chk');
     if (chk) sec.on = chk.checked;
     const sels = block.querySelectorAll('[data-ems-key]');
-    sels.forEach(el => { sec[el.dataset.emsKey] = el.value; });
+    sels.forEach(el => {
+      if (el.dataset.valType === 'bool') sec[el.dataset.emsKey] = el.checked;
+      else sec[el.dataset.emsKey] = el.value;
+    });
   });
 }
 
@@ -14868,7 +14871,7 @@ openDateInfo = function(u, memoryMode) {
   const el = document.createElement('div');
   el.id = 'di-people-circles';
   el.onclick = (ev) => { ev.stopPropagation(); openDatePeoplePopup(); };
-  el.style.cssText = `position:absolute;bottom:8px;right:${8 + 26 + 10}px;width:${totalW}px;height:${SIZE}px;cursor:pointer;z-index:2`;
+  el.style.cssText = `position:absolute;bottom:8px;right:8px;width:${totalW}px;height:${SIZE}px;cursor:pointer;z-index:2`;
   el.innerHTML = circles;
   banner.appendChild(el);
 };
