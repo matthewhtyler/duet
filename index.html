@@ -454,9 +454,18 @@
     position: absolute; bottom: 3px; left: 50%; transform: translateX(-50%);
     width: 5px; height: 5px; border-radius: 50%; background: #c07a8a;
   }
+  .cal-dot-photo {
+    position: absolute; bottom: 2px; left: 50%; transform: translateX(-50%);
+    width: 14px; height: 14px; border-radius: 50%; overflow: hidden;
+  }
+  .cal-dot-photo {
+    position: absolute; bottom: 2px; left: 50%; transform: translateX(-50%);
+    width: 14px; height: 14px; border-radius: 50%; overflow: hidden;
+  }
   .cal-dot.dim { background: #c8c0b8; }
   .cal-dot.past { background: #c8c0b8; }
   .cal-dot.selected { background: #fff; }
+  .cal-dot-photo { position: absolute; bottom: 2px; left: 50%; transform: translateX(-50%); width: 14px; height: 14px; border-radius: 50%; overflow: hidden; }
   #cal-selected-card { margin-top: 20px; }
   #cal-upcoming { margin-top: 20px; }
   .upcoming-item {
@@ -6515,10 +6524,33 @@ function renderCalendar() {
     const isPastDay  = dayDate < _now;
     const cls = isSelected ? 'cal-day selected' : isToday ? 'cal-day today' : (isPastDay && _calDimPastDays ? 'cal-day dim-past' : 'cal-day');
     const dotClass = isSelected ? 'cal-dot selected' : isDimmed ? 'cal-dot dim' : isPastDay ? 'cal-dot past' : 'cal-dot';
+    // Profile photo dots: if datesDisplay === 'photos', show person photo instead of dot for marked days
+    const _calDatesDisplay = (() => { const _cs = calScreenConfig.find(s => s.id === 'calendar'); return _cs ? (_cs.datesDisplay || 'dots') : 'dots'; })();
+    const _cellDatesForDay = (_calDatesDisplay === 'photos' && isMarked && !isDimmed)
+      ? UPCOMING_DATES.filter(u => {
+          const _um = MONTH_NUMS[u.month] ?? 0;
+          return u.day === d && (u.year||currentCalYear) === currentCalYear && _um === currentCalMonth && !_isDateHiddenPrivate(u);
+        })
+      : [];
+    const _firstPersonForDay = (() => {
+      for (const _u of _cellDatesForDay) {
+        const _pp = (_u.people || []);
+        for (const _pe of _pp) {
+          const _p = _pe.id ? people.find(x => x.id === _pe.id) : null;
+          if (_p && _p.photoUrl) return _p;
+        }
+      }
+      return null;
+    })();
+    const _dotHtml = (isMarked || isDimmed)
+      ? (_calDatesDisplay === 'photos' && _firstPersonForDay && !isDimmed
+          ? `<div class="cal-dot-photo" style="width:14px;height:14px;border-radius:50%;overflow:hidden;position:relative;flex-shrink:0">${_personAvatarInner(_firstPersonForDay, 14)}</div>`
+          : `<div class="${dotClass}"></div>`)
+      : '';
     cells += `
       <button class="${cls}" onclick="selectCalDay(${d})">
         ${d}
-        ${(isMarked || isDimmed) ? `<div class="${dotClass}"></div>` : ''}
+        ${_dotHtml}
       </button>`;
   }
 
@@ -6704,6 +6736,26 @@ function renderCalendar() {
       return { panels: _ipPanels, idea: _ipIdea, accent: _ipAccent };
     }
 
+    // For past dates: replace transit panels with a summary panel (category • shortdesc + people)
+    function _buildPastSummaryPanel(u, idea) {
+      const _cat = idea ? (idea.category || '') : '';
+      const _catLabel2 = _cat ? catLabel(_cat, idea.type) : '';
+      const _short = idea ? (idea.shortdesc || idea.cuisine || '') : '';
+      const _summaryText = [_catLabel2, _short].filter(Boolean).join(' • ');
+      const _datePeople = (u.people || []).map(pe => {
+        const p = people.find(x => x.id === (pe.id || pe));
+        if (!p) return '';
+        if (p.photoUrl) {
+          return `<div style="width:22px;height:22px;border-radius:50%;overflow:hidden;flex-shrink:0;position:relative;cursor:pointer" onclick="event.stopPropagation();openDateInfo(UPCOMING_DATES.find(d=>String(d.id)==='${u.id}'))">${_personAvatarInner(p,22)}</div>`;
+        }
+        return `<div style="width:22px;height:22px;border-radius:50%;background:var(--toggle-bg);display:flex;align-items:center;justify-content:center;flex-shrink:0">${_personIconSvg(12,'#b0a090')}</div>`;
+      }).filter(Boolean).join('');
+      return `<div style="display:flex;align-items:center;gap:8px;cursor:pointer" onclick="openDateInfo(UPCOMING_DATES.find(d=>String(d.id)==='${u.id}'))">
+        <span style="font-size:12px;font-family:sans-serif;color:#b0a090;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${_summaryText || u.venue}</span>
+        ${_datePeople ? `<div style="display:flex;align-items:center;gap:3px;flex-shrink:0">${_datePeople}</div>` : ''}
+      </div>`;
+    }
+
     // Build header HTML for a given date entry
     function _buildIpHeader(u, accent, idea, clickable) {
       const _ipIcon = idea ? ideaIcon(idea, 13, accent) : activityIcon(u.activity, 13, accent);
@@ -6732,7 +6784,21 @@ function renderCalendar() {
       const headerHtml = _buildIpHeader(dateEntry, accent, idea, true);
       _dateHeaders.push({ html: headerHtml, u: dateEntry });
 
-      if (panels.length > 0) {
+      // For past dates: replace transit panels with summary panel; keep address panel
+      const _isEntryPast = (() => {
+        const _ep = new Date((dateEntry.year||currentCalYear), MONTH_NUMS[dateEntry.month]||0, dateEntry.day);
+        _ep.setHours(0,0,0,0);
+        return _ep < _now;
+      })();
+
+      if (_isEntryPast) {
+        // Build summary panel (category • shortdesc + people photos)
+        const _summaryPanel = _buildPastSummaryPanel(dateEntry, idea);
+        _allPanels.push({ html: _summaryPanel, dateIdx: di });
+        // Add address panel only — find it from full panels (last panel is typically address/location)
+        const _addrPanel = panels[panels.length - 1];
+        if (_addrPanel && panels.length > 0) _allPanels.push({ html: _addrPanel, dateIdx: di });
+      } else if (panels.length > 0) {
         panels.forEach(p => _allPanels.push({ html: p, dateIdx: di }));
       } else {
         // No detail panels — show a "More info" tap link
@@ -12005,7 +12071,9 @@ function _ecsOptionsHtml(sec) {
   if (sec.id === 'calendar') {
     const showBd = sec.showBirthdays !== false;
     const dimPast = sec.dimPastDays === true;
+    const datesDisplay = sec.datesDisplay || 'dots';
     return `<div style="display:flex;flex-direction:column;gap:6px">
+      <div style="display:flex;align-items:center;gap:6px"><span style="font-family:sans-serif;font-size:12px;color:var(--text-secondary);white-space:nowrap">Dates</span>${_emsSel('datesDisplay', datesDisplay, [{v:'dots',l:'Dots'},{v:'photos',l:'Profile photos'}])}</div>
       <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-family:sans-serif;font-size:12px;color:var(--text-secondary)"><input type="checkbox" class="showtype-check" data-ems-key="dimPastDays" data-val-type="bool" ${dimPast ? 'checked' : ''} style="width:13px;height:13px">Dim past days</label>
       <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-family:sans-serif;font-size:12px;color:var(--text-secondary)"><input type="checkbox" class="showtype-check" data-ems-key="showBirthdays" data-val-type="bool" ${showBd ? 'checked' : ''} style="width:13px;height:13px">Show birthdays</label>
     </div>`;
