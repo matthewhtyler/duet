@@ -2591,7 +2591,8 @@ function buildFutureDates() {
     .sort((a,b) => {
       const da = new Date(a.year||2026, MONTH_NUMS[a.month]||0, a.day);
       const db = new Date(b.year||2026, MONTH_NUMS[b.month]||0, b.day);
-      return da - db;
+      if (da - db !== 0) return da - db;
+      return _timeToMinutes(a.time) - _timeToMinutes(b.time);
     })
     .map(u => {
       const mNum = MONTH_NUMS[u.month] ?? 0;
@@ -5849,12 +5850,14 @@ function _dateCardSubNote(u) {
   }
   if (idea && idea.neighborhood && idea.neighborhood.trim()) return idea.neighborhood.trim();
   if (idea && idea.shortdesc && idea.shortdesc.trim()) return idea.shortdesc.trim();
-  // Fall back to cuisine+category label for restaurant/cafe
+  // Fall back to cuisine for restaurant, cuisine+Cafe for cafe
   if (idea) {
     const cat = (idea.category || '').toLowerCase();
-    if (cat === 'restaurant' || cat === 'cafe') {
-      const label = cat === 'restaurant' ? 'Restaurant' : 'Cafe';
-      return idea.cuisine ? `${idea.cuisine} ${label}` : label;
+    if (cat === 'restaurant') {
+      return idea.cuisine ? idea.cuisine : '';
+    }
+    if (cat === 'cafe') {
+      return idea.cuisine ? `${idea.cuisine} Cafe` : 'Cafe';
     }
   }
   return '';
@@ -6826,7 +6829,7 @@ function renderCalendar() {
     const _pendingId = window._calPendingDateId;
     const _pendingVisible = UPCOMING_DATES.filter(u =>
       u.month === monthAbbr && (u.year||2026) === currentCalYear && u.day === selectedCalDay && !_isDateHiddenPrivate(u)
-    );
+    ).sort((a,b) => _timeToMinutes(a.time) - _timeToMinutes(b.time));
     const _pendingDateIdx = Math.max(0, _pendingVisible.findIndex(d => String(d.id) === _pendingId));
     // We don't know panel indices yet (panels not built), but we know dateIdx → set _calInfoPanelIdx
     // to a best-guess: first panel for that dateIdx. Will be refined in _initCalInfoScroll.
@@ -7464,7 +7467,11 @@ function _buildCalUpcomingHtml() {
     const u = item.u;
     const isSelected = u.month === monthAbbr && (u.year||2026) === currentCalYear && u.day === selectedCalDay;
     if (!isSelected) return _buildUpcomingCardHtml(u, '', false, false);
-    const isActive = _selDayVisible.length <= 1 || String(u.id) === window._calActiveDateId;
+    // Determine the active date: use _calActiveDateId if set, otherwise fall back to the first (earliest) date on this day
+    const _dayDates = UPCOMING_DATES.filter(d => d.month === monthAbbr && (d.year||2026) === currentCalYear && d.day === selectedCalDay && !_isDateHiddenPrivate(d))
+      .sort((a,b) => _timeToMinutes(a.time) - _timeToMinutes(b.time));
+    const _resolvedActiveId = window._calActiveDateId || (_dayDates[0] ? String(_dayDates[0].id) : null);
+    const isActive = !_resolvedActiveId || String(u.id) === _resolvedActiveId;
     return _buildUpcomingCardHtml(u, isActive ? `border-color:${ROSE};` : 'border-color:var(--text-secondary);', false, false);
   }).join('');
 
@@ -7554,67 +7561,130 @@ function selectCalDay(day) {
   render();
 }
 
-function _calCardClick(day, month, year, dateId) {
-  const MONTH_NUMS = {Jan:0,Feb:1,Mar:2,Apr:3,May:4,Jun:5,Jul:6,Aug:7,Sep:8,Oct:9,Nov:10,Dec:11};
-  const mNum = MONTH_NUMS[month] ?? 0;
-  const u = dateId
-    ? (UPCOMING_DATES.find(u => String(u.id) === String(dateId)) || UPCOMING_DATES.find(u => u.month === month && (u.year||2026) === year && u.day === day))
-    : UPCOMING_DATES.find(u => u.month === month && (u.year||2026) === year && u.day === day);
+function _navToCalendarDate(u) {
+  if (!u) { navigate('calendar'); return; }
+  currentCalMonth = MONTH_NUMS[u.month] ?? new Date().getMonth();
+  currentCalYear = u.year || new Date().getFullYear();
+  selectedCalDay = u.day;
+  _calInfoPanelIdx = 0;
+  window._calActiveDateId = String(u.id);
+  window._calPendingDateId = String(u.id);
+  navigate('calendar');
+}
 
-  if (selectedCalDay === day && currentCalMonth === mNum && currentCalYear === year) {
-    // Day is already selected — check multi-date behaviour
-    const visible = UPCOMING_DATES.filter(d => d.month === month && (d.year||2026) === year && d.day === day && !_isDateHiddenPrivate(d));
-    if (visible.length > 1 && u) {
-      const dateIdx = visible.findIndex(d => String(d.id) === String(u.id));
-      // Find the first panel for this dateIdx
-      const panels = window._calDateHeaders;
-      const scroll = document.getElementById('cal-info-scroll');
-      const panelEls = scroll ? scroll.querySelectorAll('.cal-info-panel') : [];
-      let firstPanelForDate = -1;
-      panelEls.forEach((el, i) => {
-        if (firstPanelForDate === -1 && parseInt(el.dataset.dateIdx || '0') === dateIdx) firstPanelForDate = i;
-      });
-      const alreadyOnThisDate = panelEls[_calInfoPanelIdx] && parseInt(panelEls[_calInfoPanelIdx].dataset.dateIdx || '0') === dateIdx;
-      if (alreadyOnThisDate) {
-        // Already viewing this date's panels — open Date Info
-        if (u) openDateInfo(u);
-      } else if (firstPanelForDate >= 0) {
-        // Scroll to this date's first panel
-        _calInfoPanelIdx = firstPanelForDate;
-        _scrollCalInfoPanel();
-        // Update header immediately
-        if (panels && panels[dateIdx]) {
-          const headerEl = document.getElementById('cal-info-header');
-          if (headerEl) headerEl.innerHTML = panels[dateIdx].html;
-        }
-        const prevBtn = document.getElementById('cal-info-prev-btn');
-        const nextBtn = document.getElementById('cal-info-next-btn');
-        if (prevBtn) prevBtn.style.opacity = _calInfoPanelIdx > 0 ? '1' : '0.2';
-        if (nextBtn) nextBtn.style.opacity = _calInfoPanelIdx < panelEls.length - 1 ? '1' : '0.2';
-      } else {
-        if (u) openDateInfo(u);
-      }
-    } else {
-      // Single date on this day — original behaviour
+function _calCardClick(day, month, year, dateId) {
+  const _MNUMS = {Jan:0,Feb:1,Mar:2,Apr:3,May:4,Jun:5,Jul:6,Aug:7,Sep:8,Oct:9,Nov:10,Dec:11};
+  const mNum = _MNUMS[month] ?? 0;
+  const u = dateId
+    ? (UPCOMING_DATES.find(d => String(d.id) === String(dateId)) || UPCOMING_DATES.find(d => d.month === month && (d.year||2026) === year && d.day === day))
+    : UPCOMING_DATES.find(d => d.month === month && (d.year||2026) === year && d.day === day);
+
+  const alreadyOnDay = selectedCalDay === day && currentCalMonth === mNum && currentCalYear === year;
+
+  // Sorted list of all visible dates on this day
+  const visible = UPCOMING_DATES
+    .filter(d => d.month === month && (d.year||2026) === year && d.day === day && !_isDateHiddenPrivate(d))
+    .sort((a,b) => _timeToMinutes(a.time) - _timeToMinutes(b.time));
+  const dateIdx = u ? visible.findIndex(d => String(d.id) === String(u.id)) : 0;
+  const resolvedDateIdx = Math.max(0, dateIdx);
+
+  if (alreadyOnDay) {
+    // Day already selected — check if this is a second tap on already-active date
+    const alreadyActiveId = window._calActiveDateId;
+    const clickedIsActive = u && String(u.id) === alreadyActiveId;
+    if (visible.length <= 1 || clickedIsActive) {
+      // Single date or tapping the already-active date → open Date Info
       if (u) openDateInfo(u);
+      return;
     }
+    // Different date on same day — select it in-place without full re-render
+    window._calActiveDateId = u ? String(u.id) : null;
+
+    // Scroll details panel to this date's first panel
+    const scroll = document.getElementById('cal-info-scroll');
+    const panelEls = scroll ? scroll.querySelectorAll('.cal-info-panel') : [];
+    let firstPanelForDate = -1;
+    panelEls.forEach((el, i) => {
+      if (firstPanelForDate === -1 && parseInt(el.dataset.dateIdx || '0') === resolvedDateIdx) firstPanelForDate = i;
+    });
+    if (firstPanelForDate >= 0) {
+      _calInfoPanelIdx = firstPanelForDate;
+      _scrollCalInfoPanel();
+      const headers = window._calDateHeaders;
+      if (headers && headers[resolvedDateIdx]) {
+        const headerEl = document.getElementById('cal-info-header');
+        if (headerEl) headerEl.innerHTML = headers[resolvedDateIdx].html;
+      }
+      const prevBtn = document.getElementById('cal-info-prev-btn');
+      const nextBtn = document.getElementById('cal-info-next-btn');
+      if (prevBtn) prevBtn.style.opacity = _calInfoPanelIdx > 0 ? '1' : '0.2';
+      if (nextBtn) nextBtn.style.opacity = _calInfoPanelIdx < panelEls.length - 1 ? '1' : '0.2';
+    }
+
+    // Sync slides to this specific date in FUTURE_DATES
+    const futureIdx = FUTURE_DATES.findIndex(fd => {
+      const ref = fd._ref || fd;
+      return String(ref.id) === String(u.id);
+    });
+    if (futureIdx >= 0) {
+      const sec = calScreenConfig.find(s => s.id === 'slides');
+      if (sec && sec.on !== false) {
+        const isCompact = (sec.display || 'full') === 'compact';
+        if (isCompact) {
+          _calCompactScrollTo(futureIdx, true);
+        } else {
+          _homeCarouselIdx = futureIdx;
+          const c = document.getElementById('home-dates-carousel');
+          if (c && c.children[futureIdx]) c.scrollTo({ left: c.children[futureIdx].offsetLeft, behavior: 'smooth' });
+        }
+      }
+    }
+
+    // Update rose outlines on upcoming cards
+    document.querySelectorAll('#cal-upcoming .upcoming-item').forEach(el => {
+      const cardId = el.dataset.dateId;
+      const d = UPCOMING_DATES.find(x => String(x.id) === cardId);
+      if (!d) return;
+      const isThisDay = d.day === day && (d.year||2026) === year && (_MNUMS[d.month]||0) === mNum;
+      if (isThisDay) {
+        el.style.borderColor = String(d.id) === window._calActiveDateId ? ROSE : 'var(--text-secondary)';
+      } else {
+        el.style.borderColor = '';
+      }
+    });
     return;
   }
-  // Otherwise select the day (navigate to correct month/year)
+
+  // Different day — full re-render
   currentCalMonth = mNum;
   currentCalYear = year;
   selectedCalDay = day;
   _calBannerIdx = 0;
   _calInfoPanelIdx = 0;
-  // If a specific date was clicked on a multi-date day, pre-set the active date index
-  if (u && dateId) {
-    const _visible = UPCOMING_DATES.filter(d => d.month === month && (d.year||2026) === year && d.day === day && !_isDateHiddenPrivate(d));
-    if (_visible.length > 1) {
-      const _di = _visible.findIndex(d => String(d.id) === String(u.id));
-      if (_di > 0) window._calPendingDateIdx = _di;
-    }
+  window._calActiveDateId = null;
+  // Pre-set the active date index so the correct date is selected after render
+  if (u && resolvedDateIdx > 0) {
+    window._calPendingDateIdx = resolvedDateIdx;
   }
-  render();
+  _calRenderWithoutSlides();
+  // Sync slides to this specific date
+  setTimeout(() => {
+    _applyBirthdayDots(); _applyBirthdayDotsWeek();
+    const futureIdx = FUTURE_DATES.findIndex(fd => String((fd._ref||fd).id) === String(u ? u.id : ''));
+    if (futureIdx >= 0) {
+      const sec = calScreenConfig.find(s => s.id === 'slides');
+      if (sec && sec.on !== false) {
+        const isCompact = (sec.display || 'full') === 'compact';
+        if (isCompact) {
+          _calCompactScrollTo(futureIdx, true);
+        } else {
+          _homeCarouselIdx = futureIdx;
+          const c = document.getElementById('home-dates-carousel');
+          if (c && c.children[futureIdx]) c.scrollTo({ left: c.children[futureIdx].offsetLeft, behavior: 'smooth' });
+        }
+      }
+    }
+  }, 0);
 }
 
 let _calDayCardIdx = 0;
@@ -10536,6 +10606,7 @@ function openDetail(id, navContext) {
   const bannerHtml = detailImageBanner(item);
   bannerSlot.innerHTML = bannerHtml;
   bannerSlot.style.display = bannerHtml ? 'block' : 'none';
+  if (bannerHtml) _attachBannerTapClose('detail-img-scroll', closeDetail);
   const _detailCloseBtn = document.getElementById('detail-close-btn');
   if (_detailCloseBtn) _detailCloseBtn.style.display = bannerHtml ? 'none' : 'flex';
   // Hide/show header buttons depending on whether image overlay has them
@@ -10722,6 +10793,32 @@ function openDetail(id, navContext) {
       if (idx > 0) openDetail(_detailNavList[idx - 1]);
     }
   );
+}
+
+
+// Attach tap-to-close to an image scroll banner.
+// Closes the popup when the user taps (no significant movement) but not when swiping.
+function _attachBannerTapClose(scrollElId, closeFn) {
+  const el = document.getElementById(scrollElId);
+  if (!el) return;
+  let _startX = 0, _startY = 0, _moved = false;
+  const onStart = e => {
+    const pt = e.touches ? e.touches[0] : e;
+    _startX = pt.clientX; _startY = pt.clientY; _moved = false;
+  };
+  const onMove = e => {
+    const pt = e.touches ? e.touches[0] : e;
+    if (Math.abs(pt.clientX - _startX) > 8 || Math.abs(pt.clientY - _startY) > 8) _moved = true;
+  };
+  const onEnd = e => {
+    if (!_moved) { e.stopPropagation(); closeFn(); }
+  };
+  el.addEventListener('touchstart', onStart, { passive: true });
+  el.addEventListener('touchmove',  onMove,  { passive: true });
+  el.addEventListener('touchend',   onEnd,   { passive: false });
+  el.addEventListener('mousedown',  onStart);
+  el.addEventListener('mousemove',  onMove);
+  el.addEventListener('mouseup',    onEnd);
 }
 
 function closeDetail() {
@@ -11019,6 +11116,7 @@ function openDateInfo(u, memoryMode) {
     diBanner.innerHTML = `<div id="di-img-scroll" style="display:flex;height:200px;overflow-x:scroll;overflow-y:hidden;scrollbar-width:none;-ms-overflow-style:none;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;border-radius:20px 20px 0 0">${slides}</div>${arrowsPill}${controlsPill}${_diBadgeHtml}`;
     diBanner.onmouseenter = () => { ['di-pill-arrows','di-pill-controls'].forEach(id => { const p=document.getElementById(id); if(p) p.style.opacity='1'; }); };
     diBanner.onmouseleave = () => { ['di-pill-arrows','di-pill-controls'].forEach(id => { const p=document.getElementById(id); if(p) p.style.opacity='0'; }); };
+    _attachBannerTapClose('di-img-scroll', closeDateInfo);
     } else {
     diBanner.style.display = 'none';
     diBanner.innerHTML = '';
