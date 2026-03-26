@@ -5996,7 +5996,7 @@ function renderHomeMonthCal() {
     </div>
     <div class="cal-grid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px">${cells}</div>
     <div id="home-month-tooltip" style="display:none;position:absolute;--caret-left:50%;border-radius:10px;padding:8px 14px;box-shadow:0 6px 24px rgba(0,0,0,0.32);z-index:80;white-space:nowrap;pointer-events:auto;">
-      <span id="home-month-tooltip-link" style="color:${ROSE};cursor:pointer;font-size:14px;font-style:italic">Plan something ›</span>
+      <span id="home-month-tooltip-link" style="color:${ROSE};cursor:pointer;font-size:14px;font-style:italic">New date ›</span>
     </div>
   </div>`;
 }
@@ -6307,7 +6307,7 @@ function renderWeekStrip() {
       <div id="week-strip-inner">${pagesHtml}</div>
     </div>
     <div id="week-tooltip">
-      <span onclick="closeWeekTooltip();openNewDateFromCal(_weekTooltipDay,_weekTooltipMonth,_weekTooltipYear)" style="color:${ROSE};cursor:pointer;font-size:14px;font-style:italic;text-decoration:none">Plan something ›</span>
+      <span onclick="closeWeekTooltip();openNewDateFromCal(_weekTooltipDay,_weekTooltipMonth,_weekTooltipYear)" style="color:${ROSE};cursor:pointer;font-size:14px;font-style:italic;text-decoration:none">New date ›</span>
     </div>
   </div>`;
 }
