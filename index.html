@@ -70,6 +70,7 @@
     --popup-week-bg: var(--bg-input);
     .cal-dot.dim { background: #4a4540; }
     .cal-dot.past { background: #4a4540; }
+    .cal-day.dim-past { color: #4a4540; }
   }
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
   html, body { height: 100%; background: var(--bg); font-family: Georgia, "Times New Roman", serif; overflow: hidden; }
@@ -447,6 +448,7 @@
     display: flex; align-items: center; justify-content: center;
   }
   .cal-day.today { background: rgba(192,122,138,0.15); color: #c07a8a; font-weight: 700; border-radius: 8px; }
+  .cal-day.dim-past { color: #c8c0b8; }
   .cal-day.selected { background: #c07a8a !important; color: #fff !important; font-weight: 700; border-radius: 8px !important; }
   .cal-dot {
     position: absolute; bottom: 3px; left: 50%; transform: translateX(-50%);
@@ -6489,6 +6491,7 @@ function renderCalendar() {
   // Days in current month that have upcoming dates
   // Upcoming dates
   const _isSearchingCal = calMemSearch || calMemPeople.length;
+  const _calDimPastDays = (() => { const s = calScreenConfig.find(x => x.id === 'calendar'); return s && s.dimPastDays === true; })();
   const datesThisMonth = UPCOMING_DATES.filter(u => u.month === monthAbbr && (u.year || 2026) === currentCalYear && !_isDateHiddenPrivate(u));
   const markedDays = _isSearchingCal
     ? datesThisMonth.filter(u => _calMemMatchDate(u)).map(u => u.day)
@@ -6510,7 +6513,7 @@ function renderCalendar() {
     const isToday    = d === todayDay;
     const dayDate    = new Date(currentCalYear, currentCalMonth, d); dayDate.setHours(0,0,0,0);
     const isPastDay  = dayDate < _now;
-    const cls = isSelected ? 'cal-day selected' : isToday ? 'cal-day today' : 'cal-day';
+    const cls = isSelected ? 'cal-day selected' : isToday ? 'cal-day today' : (isPastDay && _calDimPastDays ? 'cal-day dim-past' : 'cal-day');
     const dotClass = isSelected ? 'cal-dot selected' : isDimmed ? 'cal-dot dim' : isPastDay ? 'cal-dot past' : 'cal-dot';
     cells += `
       <button class="${cls}" onclick="selectCalDay(${d})">
@@ -6798,7 +6801,7 @@ function renderCalendar() {
       : _calDayLabel(selectedCalDay, currentCalMonth, currentCalYear);
     selectedCardHTML = `
       <div style="margin-top:8px;height:70px;box-sizing:border-box;padding:12px 16px;border-radius:14px;display:flex;align-items:center;justify-content:center;color:#b0a090;font-size:14px;font-style:italic">
-        No date ${_noDateLabel} · <span style="color:${ROSE};cursor:pointer" onclick="openNewDateFromCal(${selectedCalDay}, currentCalMonth, currentCalYear)">&nbsp;Plan one ›</span>
+        No date ${_noDateLabel}${!_selIsPast ? ` · <span style="color:${ROSE};cursor:pointer" onclick="openNewDateFromCal(${selectedCalDay}, currentCalMonth, currentCalYear)">&nbsp;Plan one ›</span>` : ''}
       </div>`;
   }
 
@@ -6847,7 +6850,11 @@ function renderCalendar() {
   // Details: own section so it can be reordered
   const _detSec = calScreenConfig.find(s => s.id === 'details');
   const _detVisible = !_detSec || _detSec.on !== false;
-  _sectionHtml['details'] = _detVisible
+  const _detOnlyScheduled = _detSec && _detSec.onlyScheduled === true;
+  // When onlyScheduled is on, hide details if no date is scheduled for the selected day
+  const _detHasDate = _selDayVisible.length > 0 || _selDayAllPrivate;
+  const _detShow = _detVisible && (!_detOnlyScheduled || _detHasDate);
+  _sectionHtml['details'] = _detShow
     ? `<div style="padding:0 20px">${selectedCardHTML}</div>`
     : '';
 
@@ -11984,7 +11991,11 @@ function _ecsOptionsHtml(sec) {
   }
   if (sec.id === 'calendar') {
     const showBd = sec.showBirthdays !== false;
-    return `<label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-family:sans-serif;font-size:12px;color:var(--text-secondary)"><input type="checkbox" class="showtype-check" data-ems-key="showBirthdays" data-val-type="bool" ${showBd ? 'checked' : ''} style="width:13px;height:13px">Show birthdays</label>`;
+    const dimPast = sec.dimPastDays === true;
+    return `<div style="display:flex;flex-direction:column;gap:6px">
+      <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-family:sans-serif;font-size:12px;color:var(--text-secondary)"><input type="checkbox" class="showtype-check" data-ems-key="dimPastDays" data-val-type="bool" ${dimPast ? 'checked' : ''} style="width:13px;height:13px">Dim past days</label>
+      <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-family:sans-serif;font-size:12px;color:var(--text-secondary)"><input type="checkbox" class="showtype-check" data-ems-key="showBirthdays" data-val-type="bool" ${showBd ? 'checked' : ''} style="width:13px;height:13px">Show birthdays</label>
+    </div>`;
   }
   if (sec.id === 'upcoming') {
     return `<span class="ems-opt-label">Show</span>${_emsSel('show', sec.show||'all', [{v:'3',l:'3'},{v:'5',l:'5'},{v:'all',l:'All'}])}`;
@@ -11994,7 +12005,11 @@ function _ecsOptionsHtml(sec) {
   }
   if (sec.id === 'details') {
     const showTickets = sec.showTickets !== false;
-    return `<label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-family:sans-serif;font-size:12px;color:var(--text-secondary)"><input type="checkbox" class="showtype-check" data-ems-key="showTickets" data-val-type="bool" ${showTickets ? 'checked' : ''} style="width:13px;height:13px">Show tickets / reservations</label>`;
+    const onlyScheduled = sec.onlyScheduled === true;
+    return `<div style="display:flex;flex-direction:column;gap:6px">
+      <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-family:sans-serif;font-size:12px;color:var(--text-secondary)"><input type="checkbox" class="showtype-check" data-ems-key="onlyScheduled" data-val-type="bool" ${onlyScheduled ? 'checked' : ''} style="width:13px;height:13px">Show only for scheduled dates</label>
+      <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-family:sans-serif;font-size:12px;color:var(--text-secondary)"><input type="checkbox" class="showtype-check" data-ems-key="showTickets" data-val-type="bool" ${showTickets ? 'checked' : ''} style="width:13px;height:13px">Show buy tickets / reservations slide</label>
+    </div>`;
   }
   return '';
 }
