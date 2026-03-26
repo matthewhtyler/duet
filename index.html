@@ -461,10 +461,10 @@
     width: 20px; height: 20px; border-radius: 50%; overflow: hidden;
   }
   .cal-dot-icon {
-    position: absolute; bottom: 2px; left: 0; right: 0; margin: 0 auto;
+    position: absolute; bottom: 2px; left: 0; right: 0;
     display: flex; align-items: center; justify-content: center;
-    width: 10px; height: 10px;
   }
+  .cal-dot-icon svg { display: block; }
   .cal-dot.dim { background: #c8c0b8; }
   .cal-dot.past { background: #c8c0b8; }
   .cal-dot.selected { background: #fff; }
@@ -14661,7 +14661,7 @@ function _applyBirthdayDots() {
       const _bdDisplay = (() => { const _cs = calScreenConfig.find(s => s.id === 'calendar'); return _cs ? (_cs.datesDisplay || 'dots') : 'dots'; })();
       dot.className = 'cal-bday-dot';
       if (_bdDisplay === 'icons') {
-        dot.style.cssText = 'position:absolute;bottom:2px;left:0;right:0;margin:0 auto;width:10px;height:10px;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:2';
+        dot.style.cssText = 'position:absolute;bottom:2px;left:0;right:0;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:2';
         dot.innerHTML = _birthdayCakeSvg(10, _bdayColor);
       } else {
         dot.style.cssText = 'position:absolute;bottom:3px;left:50%;transform:translateX(-50%);width:5px;height:5px;border-radius:50%;background:' + _bdayColor + ';cursor:pointer;z-index:2';
