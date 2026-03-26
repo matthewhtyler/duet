@@ -454,6 +454,8 @@
     position: absolute; bottom: 3px; left: 50%; transform: translateX(-50%);
     width: 5px; height: 5px; border-radius: 50%; background: #c07a8a;
   }
+  .cal-day-people { align-items: flex-start !important; padding-top: 4px; font-size: 11px !important; }
+  .cal-day-people.selected { align-items: flex-start !important; }
   .cal-dot-photo {
     position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
     width: 20px; height: 20px; border-radius: 50%; overflow: hidden;
@@ -6522,7 +6524,8 @@ function renderCalendar() {
     const isToday    = d === todayDay;
     const dayDate    = new Date(currentCalYear, currentCalMonth, d); dayDate.setHours(0,0,0,0);
     const isPastDay  = dayDate < _now;
-    const cls = isSelected ? 'cal-day selected' : isToday ? 'cal-day today' : (isPastDay && _calDimPastDays ? 'cal-day dim-past' : 'cal-day');
+    const _isPeopleMode = _calDatesDisplay === 'people';
+    const cls = (isSelected ? 'cal-day selected' : isToday ? 'cal-day today' : (isPastDay && _calDimPastDays ? 'cal-day dim-past' : 'cal-day')) + (_isPeopleMode ? ' cal-day-people' : '');
     const dotClass = isSelected ? 'cal-dot selected' : isDimmed ? 'cal-dot dim' : isPastDay ? 'cal-dot past' : 'cal-dot';
     // Cell marker: dots / icons / people
     const _calDatesDisplay = (() => { const _cs = calScreenConfig.find(s => s.id === 'calendar'); return _cs ? (_cs.datesDisplay || 'dots') : 'dots'; })();
