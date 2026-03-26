@@ -693,7 +693,7 @@
           </svg>
           Memories
         </button>
-        <button onclick="navigate('archive');closeMenu()">
+        <button onclick="navigate('archive');closeMenu()" style="border-top:1px solid var(--border-light)">
           <svg viewBox="0 0 24 24" width="16" height="16" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
             <polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/><line x1="10" y1="12" x2="14" y2="12"/>
           </svg>
@@ -1649,7 +1649,7 @@
 
   <!-- EDIT IDEAS SCREEN POPUP -->
   <div id="editideas-overlay" class="popup-overlay" onclick="closeEditIdeasScreen()" style="position:fixed;inset:0;background:rgba(30,20,20,0.5);z-index:510;display:none;align-items:center;justify-content:center;padding:max(12px,env(safe-area-inset-top)) 16px max(12px,env(safe-area-inset-bottom))">
-    <div onclick="event.stopPropagation()" style="width:100%;max-width:390px;background:var(--bg);border-radius:20px;display:flex;flex-direction:column;height:min(88vh,calc(100dvh - max(24px,env(safe-area-inset-top) + env(safe-area-inset-bottom)) - 24px));box-shadow:0 12px 48px rgba(0,0,0,0.18)">
+    <div onclick="event.stopPropagation()" style="width:100%;max-width:390px;background:var(--bg);border-radius:20px;display:flex;flex-direction:column;box-shadow:0 12px 48px rgba(0,0,0,0.18)">
       <div style="padding:20px 20px 16px;flex-shrink:0;border-bottom:1px solid var(--border)">
         <div style="display:flex;align-items:center;justify-content:space-between">
         <div style="font-size:17px;font-weight:700;color:var(--popup-title);display:flex;align-items:center;gap:10px"><svg viewBox="0 0 24 24" width="16" height="16" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>Ideas</div>
@@ -1683,6 +1683,57 @@
       <div style="padding:14px 20px;flex-shrink:0;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px">
         <button onclick="closeEditIdeasScreen()" style="padding:10px 16px;background:none;border:1.5px solid #ede9e2;border-radius:10px;font-family:sans-serif;font-size:13px;font-weight:600;color:#9a8a7a;cursor:pointer" class="btn-outline">Cancel</button>
         <button onclick="saveEditIdeasScreen()" style="padding:10px 20px;background:#a05268;border:none;border-radius:10px;font-family:sans-serif;font-size:13px;font-weight:600;color:#fff;cursor:pointer">Save</button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- EDIT PEOPLE SCREEN POPUP -->
+  <div id="editpeople-overlay" class="popup-overlay" onclick="closeEditPeopleScreen()" style="position:fixed;inset:0;background:rgba(30,20,20,0.5);z-index:510;display:none;align-items:center;justify-content:center;padding:max(12px,env(safe-area-inset-top)) 16px max(12px,env(safe-area-inset-bottom))">
+    <div onclick="event.stopPropagation()" style="width:100%;max-width:390px;background:var(--bg);border-radius:20px;display:flex;flex-direction:column;box-shadow:0 12px 48px rgba(0,0,0,0.18)">
+      <div style="padding:20px 20px 16px;flex-shrink:0;border-bottom:1px solid var(--border)">
+        <div style="display:flex;align-items:center;justify-content:space-between">
+        <div style="font-size:17px;font-weight:700;color:var(--popup-title);display:flex;align-items:center;gap:10px"><svg viewBox="0 0 24 24" width="16" height="16" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>People</div>
+        <button onclick="closeEditPeopleScreen()" style="background:none;border:none;cursor:pointer;display:flex;padding:4px"><svg viewBox="0 0 24 24" width="20" height="20" stroke="#888" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="icon-close"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+        </div>
+      </div>
+      <div style="padding:20px">
+        <label style="display:flex;align-items:flex-start;gap:8px;cursor:pointer;flex-shrink:0">
+          <input type="checkbox" id="editpeople-show-full-names" class="showtype-check" style="margin-top:2px">
+          <div>
+            <div style="font-size:14px;font-family:sans-serif;color:var(--text-primary)">Show full names</div>
+            <div style="font-size:12px;font-family:sans-serif;color:var(--text-secondary);margin-top:2px">Display first and last names.</div>
+          </div>
+        </label>
+      </div>
+      <div style="padding:14px 20px;flex-shrink:0;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px">
+        <button onclick="closeEditPeopleScreen()" style="padding:10px 16px;background:none;border:1.5px solid #ede9e2;border-radius:10px;font-family:sans-serif;font-size:13px;font-weight:600;color:#9a8a7a;cursor:pointer" class="btn-outline">Cancel</button>
+        <button onclick="saveEditPeopleScreen()" style="padding:10px 20px;background:#a05268;border:none;border-radius:10px;font-family:sans-serif;font-size:13px;font-weight:600;color:#fff;cursor:pointer">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- EDIT MEMORIES SCREEN POPUP -->
+  <div id="editmemories-overlay" class="popup-overlay" onclick="closeEditMemoriesScreen()" style="position:fixed;inset:0;background:rgba(30,20,20,0.5);z-index:510;display:none;align-items:center;justify-content:center;padding:max(12px,env(safe-area-inset-top)) 16px max(12px,env(safe-area-inset-bottom))">
+    <div onclick="event.stopPropagation()" style="width:100%;max-width:390px;background:var(--bg);border-radius:20px;display:flex;flex-direction:column;box-shadow:0 12px 48px rgba(0,0,0,0.18)">
+      <div style="padding:20px 20px 16px;flex-shrink:0;border-bottom:1px solid var(--border)">
+        <div style="display:flex;align-items:center;justify-content:space-between">
+        <div style="font-size:17px;font-weight:700;color:var(--popup-title);display:flex;align-items:center;gap:10px"><svg viewBox="0 0 24 24" width="16" height="16" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>Memories</div>
+        <button onclick="closeEditMemoriesScreen()" style="background:none;border:none;cursor:pointer;display:flex;padding:4px"><svg viewBox="0 0 24 24" width="20" height="20" stroke="#888" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="icon-close"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+        </div>
+      </div>
+      <div style="padding:20px">
+        <label style="display:flex;align-items:flex-start;gap:8px;cursor:pointer;flex-shrink:0">
+          <input type="checkbox" id="editmemories-show-images" class="showtype-check" style="margin-top:2px" checked>
+          <div>
+            <div style="font-size:14px;font-family:sans-serif;color:var(--text-primary)">Show images</div>
+            <div style="font-size:12px;font-family:sans-serif;color:var(--text-secondary);margin-top:2px">Display image banners.</div>
+          </div>
+        </label>
+      </div>
+      <div style="padding:14px 20px;flex-shrink:0;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px">
+        <button onclick="closeEditMemoriesScreen()" style="padding:10px 16px;background:none;border:1.5px solid #ede9e2;border-radius:10px;font-family:sans-serif;font-size:13px;font-weight:600;color:#9a8a7a;cursor:pointer" class="btn-outline">Cancel</button>
+        <button onclick="saveEditMemoriesScreen()" style="padding:10px 20px;background:#a05268;border:none;border-radius:10px;font-family:sans-serif;font-size:13px;font-weight:600;color:#fff;cursor:pointer">Save</button>
       </div>
     </div>
   </div>
@@ -2892,7 +2943,7 @@ function renderNav() {
       center.innerHTML = `<span ondblclick="openEditIdeasScreen()" style="font-size:13px;color:#9a8a7a;letter-spacing:0.05em;text-transform:uppercase;font-family:sans-serif;cursor:pointer">Ideas</span>`;
     } else {
       const titles = { calendar:'Calendar', todo:'To Do', home:'', past:'Memories', archive:'Archive', people:'People' };
-      const editPopups = { calendar:'openEditCalScreen()', home:'openEditMainScreen()' };
+      const editPopups = { calendar:'openEditCalScreen()', home:'openEditMainScreen()', past:'openEditMemoriesScreen()', people:'openEditPeopleScreen()' };
       const t = titles[currentView] || '';
       const dblHandler = editPopups[currentView] ? ` ondblclick="${editPopups[currentView]}"` : '';
       center.innerHTML = t ? `<span${dblHandler} style="font-size:13px;color:#9a8a7a;letter-spacing:0.05em;text-transform:uppercase;font-family:sans-serif;cursor:pointer">${t}</span>` : '';
@@ -6542,7 +6593,7 @@ function renderPastDates() {
       </div>
       ${hasImg ? '' : peopleBadge}`;
 
-    if (hasImg) {
+    if (hasImg && memoriesShowImages) {
       // Build people overlay for banner - positioned bottom right
       const SIZE = 26; const OVERLAP = 7;
       const peeps = (!hidePrivate && (d.people || []).slice(0, 4)) || [];
@@ -6760,7 +6811,7 @@ function renderCalendar() {
       : '';
     cells += `
       <button class="${cls}" onclick="selectCalDay(${d})">
-        ${d}
+        <span style="${isSelected ? 'font-weight:700' : ''}">${d}</span>
         ${_dotHtml}
       </button>`;
   }
@@ -6947,23 +6998,41 @@ function renderCalendar() {
       return { panels: _ipPanels, idea: _ipIdea, accent: _ipAccent };
     }
 
-    // For past dates: replace transit panels with a summary panel (category • shortdesc + people)
+    // For past dates: first slide shows profile photos + first names (e.g. photos then "Amira, Sakshi, Quincy")
     function _buildPastSummaryPanel(u, idea) {
-      const _cat = idea ? (idea.category || '') : '';
-      const _catLabel2 = _cat ? catLabel(_cat, idea.type) : '';
-      const _short = idea ? (idea.shortdesc || idea.cuisine || '') : '';
-      const _summaryText = [_catLabel2, _short].filter(Boolean).join(' • ');
-      const _datePeople = (u.people || []).map(pe => {
+      const _peopleParsed = (u.people || []).map(pe => {
         const p = people.find(x => x.id === (pe.id || pe));
-        if (!p) return '';
-        if (p.photoUrl) {
-          return `<div style="width:22px;height:22px;border-radius:50%;overflow:hidden;flex-shrink:0;position:relative;cursor:pointer" onclick="event.stopPropagation();openDateInfo(UPCOMING_DATES.find(d=>String(d.id)==='${u.id}'))">${_personAvatarInner(p,22)}</div>`;
-        }
-        return `<div style="width:22px;height:22px;border-radius:50%;background:var(--toggle-bg);display:flex;align-items:center;justify-content:center;flex-shrink:0">${_personIconSvg(12,'#b0a090')}</div>`;
-      }).filter(Boolean).join('');
-      return `<div style="display:flex;align-items:center;gap:8px;cursor:pointer" onclick="openDateInfo(UPCOMING_DATES.find(d=>String(d.id)==='${u.id}'))">
-        <span style="font-size:12px;font-family:sans-serif;color:#b0a090;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${_summaryText || u.venue}</span>
-        ${_datePeople ? `<div style="display:flex;align-items:center;gap:3px;flex-shrink:0">${_datePeople}</div>` : ''}
+        return p || null;
+      }).filter(Boolean);
+
+      const SIZE = 24, OVERLAP = 6;
+      const _photoHtml = _peopleParsed.map((p, i) => {
+        const left = i * (SIZE - OVERLAP);
+        const zIdx = _peopleParsed.length - i;
+        const inner = p.photoUrl
+          ? `<div style="position:relative;width:${SIZE}px;height:${SIZE}px;border-radius:50%;overflow:hidden">${_personAvatarInner(p, SIZE)}</div>`
+          : `<div style="width:${SIZE}px;height:${SIZE}px;border-radius:50%;background:var(--toggle-bg);display:flex;align-items:center;justify-content:center">${_personIconSvg(Math.round(SIZE*0.55),'#b0a090')}</div>`;
+        return `<div style="position:absolute;left:${left}px;top:0;width:${SIZE}px;height:${SIZE}px;border-radius:50%;overflow:hidden;z-index:${zIdx}">${inner}</div>`;
+      }).join('');
+
+      const totalW = _peopleParsed.length > 0 ? SIZE + (_peopleParsed.length - 1) * (SIZE - OVERLAP) : 0;
+      const _photosWrap = totalW > 0
+        ? `<div style="position:relative;width:${totalW}px;height:${SIZE}px;flex-shrink:0">${_photoHtml}</div>`
+        : '';
+
+      const _names = _peopleParsed.map(p => p.firstName || (p.name || '').split(' ')[0] || '').filter(Boolean).join(', ');
+
+      const _safeId = String(u.id).replace(/'/g, "\'");
+      if (!_photosWrap && !_names) {
+        // Fallback: no people — show venue name
+        return `<div style="display:flex;align-items:center;justify-content:center;cursor:pointer" onclick="openDateInfo(UPCOMING_DATES.find(d=>String(d.id)==='${_safeId}'))">
+          <span style="font-size:12px;font-family:sans-serif;color:#b0a090">${u.venue}</span>
+        </div>`;
+      }
+
+      return `<div style="display:flex;align-items:center;gap:10px;cursor:pointer" onclick="openDateInfo(UPCOMING_DATES.find(d=>String(d.id)==='${_safeId}'))">
+        ${_photosWrap}
+        ${_names ? `<span style="font-size:13px;font-family:sans-serif;color:#b0a090;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${_names}</span>` : ''}
       </div>`;
     }
 
@@ -7199,15 +7268,20 @@ function _calRenderWithoutSlides() {
   const main = document.getElementById('main-content');
   if (!main) { render(); return; }
 
-  // Snapshot the slides HTML before re-render
+  // Snapshot the slides element and its scroll positions before re-render
   const slidesEl = document.getElementById('cal-slides');
   const slidesHtml = slidesEl ? slidesEl.outerHTML : null;
-  const slidesSibling = slidesEl ? slidesEl.nextSibling : null;
+
+  // Capture current scroll positions so we can restore them after DOM replacement
+  const _carouselEl = document.getElementById('home-dates-carousel');
+  const _carouselScrollLeft = _carouselEl ? _carouselEl.scrollLeft : 0;
+  const _compactEl = document.getElementById('date-cards-scroll');
+  const _compactScrollLeft = _compactEl ? _compactEl.scrollLeft : 0;
 
   // Full re-render
   main.innerHTML = renderCalendar();
 
-  // Restore slides DOM to prevent re-render flicker
+  // Restore slides DOM (HTML string → parsed node, scroll position reset by browser)
   if (slidesHtml) {
     const newSlidesEl = document.getElementById('cal-slides');
     if (newSlidesEl) {
@@ -7219,6 +7293,25 @@ function _calRenderWithoutSlides() {
   setTimeout(() => {
     _initCalSwipe(); _initCalDayCards(); _initCalInfoScroll(); _updateCalCompactArrows();
     _applyBirthdayDots(); _applyBirthdayDotsWeek();
+    // Restore slide scroll positions after DOM is ready
+    const _c = document.getElementById('home-dates-carousel');
+    if (_c && _carouselScrollLeft > 0) {
+      _c.style.scrollSnapType = 'none';
+      _c.scrollLeft = _carouselScrollLeft;
+      requestAnimationFrame(() => {
+        _c.scrollLeft = _carouselScrollLeft;
+        _c.style.scrollSnapType = 'x mandatory';
+      });
+    }
+    const _cs = document.getElementById('date-cards-scroll');
+    if (_cs && _compactScrollLeft > 0) {
+      _cs.style.scrollSnapType = 'none';
+      _cs.scrollLeft = _compactScrollLeft;
+      requestAnimationFrame(() => {
+        _cs.scrollLeft = _compactScrollLeft;
+        _cs.style.scrollSnapType = 'x mandatory';
+      });
+    }
   }, 0);
 }
 
@@ -12172,6 +12265,7 @@ function toggleMenu() {
     if (todoBtn) todoBtn.style.display = _mode === 'todo' ? 'none' : '';
     if (peopleBtn) peopleBtn.style.display = _mode === 'people' ? 'none' : '';
     if (memoriesBtn) memoriesBtn.style.display = _mode === 'memories' ? 'none' : '';
+
   }
   dropdown.style.display = isOpen ? 'none' : 'block';
 }
@@ -12305,6 +12399,54 @@ function saveEditIdeasScreen() {
   if (currentView === 'ideas') render();
 }
 
+
+// ── Edit People Screen ────────────────────────────────────────────────────────
+let peopleShowFullNames = (() => { try { return JSON.parse(localStorage.getItem('ll_people_show_full_names') || 'false'); } catch(e) { return false; } })();
+
+function openEditPeopleScreen() {
+  try { peopleShowFullNames = JSON.parse(localStorage.getItem('ll_people_show_full_names') || 'false'); } catch(e) {}
+  const cb = document.getElementById('editpeople-show-full-names');
+  if (cb) cb.checked = peopleShowFullNames;
+  document.getElementById('editpeople-overlay').style.display = 'flex';
+}
+function closeEditPeopleScreen() {
+  document.getElementById('editpeople-overlay').style.display = 'none';
+}
+function saveEditPeopleScreen() {
+  const cb = document.getElementById('editpeople-show-full-names');
+  if (cb) { peopleShowFullNames = cb.checked; localStorage.setItem('ll_people_show_full_names', JSON.stringify(peopleShowFullNames)); }
+  closeEditPeopleScreen();
+  if (currentView === 'people') render();
+}
+
+// ── Edit Memories Screen ──────────────────────────────────────────────────────
+let memoriesShowImages = (() => { try { const v = localStorage.getItem('ll_memories_show_images'); return v === null ? true : JSON.parse(v); } catch(e) { return true; } })();
+
+function openEditMemoriesScreen() {
+  try { const v = localStorage.getItem('ll_memories_show_images'); memoriesShowImages = v === null ? true : JSON.parse(v); } catch(e) {}
+  const cb = document.getElementById('editmemories-show-images');
+  if (cb) cb.checked = memoriesShowImages;
+  document.getElementById('editmemories-overlay').style.display = 'flex';
+}
+function closeEditMemoriesScreen() {
+  document.getElementById('editmemories-overlay').style.display = 'none';
+}
+function saveEditMemoriesScreen() {
+  const cb = document.getElementById('editmemories-show-images');
+  if (cb) { memoriesShowImages = cb.checked; localStorage.setItem('ll_memories_show_images', JSON.stringify(memoriesShowImages)); }
+  closeEditMemoriesScreen();
+  if (currentView === 'past') render();
+}
+
+// ── Open current screen settings ─────────────────────────────────────────────
+function openCurrentScreenSettings() {
+  if (currentView === 'home') openEditMainScreen();
+  else if (currentView === 'ideas') openEditIdeasScreen();
+  else if (currentView === 'calendar') openEditCalScreen();
+  else if (currentView === 'people') openEditPeopleScreen();
+  else if (currentView === 'past') openEditMemoriesScreen();
+}
+
 function closeEditMainScreen() {
   document.getElementById('editmain-overlay').style.display = 'none';
   _emsWorkingConfig = null;
@@ -12388,13 +12530,23 @@ function _ecsBlockHtml(sec, i) {
   </div>`;
 }
 
+function _ecsOnDisplayChange(sel) {
+  const label = document.getElementById('ecs-show-people-label');
+  if (label) label.style.display = sel.value === 'compact' ? 'none' : 'flex';
+}
+function _emsOnDisplayChange(sel) {
+  const label = document.getElementById('ems-show-people-label');
+  if (label) label.style.display = sel.value === 'compact' ? 'none' : 'flex';
+}
+
 function _ecsOptionsHtml(sec) {
   if (sec.id === 'slides') {
     const isCompact = (sec.display || 'full') === 'compact';
     const showPeople = sec.showPeople === true;
+    const dispSel = `<select class="ems-sel" data-ems-key="display" onchange="_ecsOnDisplayChange(this)">${[{v:'full',l:'Full'},{v:'compact',l:'Compact'}].map(o=>`<option value="${o.v}"${(sec.display||'full')===o.v?' selected':''}>${o.l}</option>`).join('')}</select>`;
     return `<div style="display:flex;flex-direction:column;gap:6px">
-      <div style="display:flex;align-items:center;gap:6px"><span class="ems-opt-label">Display</span>${_emsSel('display', sec.display||'full', [{v:'full',l:'Full'},{v:'compact',l:'Compact'}])}</div>
-      <label style="display:flex;align-items:center;gap:6px;cursor:${isCompact?'default':'pointer'};font-family:sans-serif;font-size:12px;color:${isCompact?'#c8bfb6':'var(--text-secondary)'}"><input type="checkbox" class="showtype-check" data-ems-key="showPeople" data-val-type="bool" ${showPeople&&!isCompact ? 'checked' : ''} ${isCompact ? 'disabled' : ''} style="width:13px;height:13px">Show people</label>
+      <div style="display:flex;align-items:center;gap:6px"><span class="ems-opt-label">Display</span>${dispSel}</div>
+      <label id="ecs-show-people-label" style="display:${isCompact?'none':'flex'};align-items:center;gap:6px;cursor:pointer;font-family:sans-serif;font-size:12px;color:var(--text-secondary)"><input type="checkbox" class="showtype-check" data-ems-key="showPeople" data-val-type="bool" ${showPeople ? 'checked' : ''} style="width:13px;height:13px">Show people</label>
     </div>`;
   }
   if (sec.id === 'calendar') {
@@ -12606,9 +12758,10 @@ function _emsOptionsHtml(sec) {
   if (sec.id === 'nextDates') {
     const isCompactNd = (sec.display || 'full') === 'compact';
     const showPeopleNd = sec.showPeople === true;
+    const dispSelNd = `<select class="ems-sel" data-ems-key="display" onchange="_emsOnDisplayChange(this)">${[{v:'full',l:'Full'},{v:'compact',l:'Compact'}].map(o=>`<option value="${o.v}"${(sec.display||'full')===o.v?' selected':''}>${o.l}</option>`).join('')}</select>`;
     return `<div style="display:flex;flex-direction:column;gap:6px">
-      <div style="display:flex;align-items:center;gap:6px"><span class="ems-opt-label">Display</span>${_emsSel('display', sec.display||'full', [{v:'full',l:'Full'},{v:'compact',l:'Compact'}])}</div>
-      <label style="display:flex;align-items:center;gap:6px;cursor:${isCompactNd?'default':'pointer'};font-family:sans-serif;font-size:12px;color:${isCompactNd?'#c8bfb6':'var(--text-secondary)'}"><input type="checkbox" class="showtype-check" data-ems-key="showPeople" data-val-type="bool" ${showPeopleNd&&!isCompactNd ? 'checked' : ''} ${isCompactNd ? 'disabled' : ''} style="width:13px;height:13px">Show people</label>
+      <div style="display:flex;align-items:center;gap:6px"><span class="ems-opt-label">Display</span>${dispSelNd}</div>
+      <label id="ems-show-people-label" style="display:${isCompactNd?'none':'flex'};align-items:center;gap:6px;cursor:pointer;font-family:sans-serif;font-size:12px;color:var(--text-secondary)"><input type="checkbox" class="showtype-check" data-ems-key="showPeople" data-val-type="bool" ${showPeopleNd ? 'checked' : ''} style="width:13px;height:13px">Show people</label>
     </div>`;
   }
   if (sec.id === 'ideas') {
@@ -13661,10 +13814,11 @@ function renderPeople() {
       ? `<div style="height:1px;background:var(--border-light);margin:0 20px"></div>`
       : '';
     const rowBorder = '';
+    const displayName = peopleShowFullNames ? _personFullName(p) : (p.firstName || _personFullName(p));
     return `<div class="person-row" style="${rowBorder}" onclick="openPersonInfo('${p.id}')">
       ${_personAvatarHtml(p, 44)}
       <div style="flex:1;min-width:0">
-        <div style="font-size:15px;font-weight:600;color:var(--text-primary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.firstName || _personFullName(p)}</div>
+        <div style="font-size:15px;font-weight:600;color:var(--text-primary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${displayName}</div>
       </div>
       ${heartBtn}
     </div>${divider}`;
