@@ -6174,7 +6174,11 @@ function renderHome() {
       const _homeBdCards = _upcomingBirthdayCards();
       const _homeBdItems = _homeBdCards.map(r => ({ date: r.date, isBd: true, r }));
       const _homeDateItems = all.map(u => ({ date: new Date((u.year||2026),MONTH_NUMS[u.month]||0,u.day), isBd: false, u }));
-      const _homeMerged = [..._homeDateItems, ..._homeBdItems].sort((a,b) => a.date - b.date);
+      const _homeMerged = [..._homeDateItems, ..._homeBdItems].sort((a,b) => {
+        const dateDiff = a.date - b.date;
+        if (dateDiff !== 0) return dateDiff;
+        return _timeToMinutes(a.isBd ? null : a.u.time) - _timeToMinutes(b.isBd ? null : b.u.time);
+      });
       const upcoming = _homeMerged.slice(0, limit);
       if (!upcoming.length) return '';
       return '<div style="padding:22px 20px 16px">' +
@@ -7397,6 +7401,25 @@ function _toggleCalUpcoming() {
   }
 }
 
+
+// Convert a time string (e.g. "7:30 pm", "19:00") to minutes since midnight for sorting.
+// Returns Infinity when no time is given so untimed dates sort last.
+function _timeToMinutes(t) {
+  if (!t) return Infinity;
+  const s = t.trim().toLowerCase().replace(/\s+/g, '');
+  const isPM = s.endsWith('pm') || s.endsWith('p');
+  const isAM = s.endsWith('am') || s.endsWith('a');
+  const cleaned = s.replace(/[ap]m?$/, '').replace(':', '');
+  let h, m;
+  if      (cleaned.length <= 2) { h = parseInt(cleaned, 10); m = 0; }
+  else if (cleaned.length === 3) { h = parseInt(cleaned[0], 10); m = parseInt(cleaned.slice(1), 10); }
+  else if (cleaned.length === 4) { h = parseInt(cleaned.slice(0,2), 10); m = parseInt(cleaned.slice(2), 10); }
+  else return Infinity;
+  if (isNaN(h) || isNaN(m)) return Infinity;
+  if (!isAM && (isPM || (h >= 1 && h <= 11))) { if (h !== 12) h += 12; } // default PM for 1-11
+  if (isAM && h === 12) h = 0;
+  return h * 60 + m;
+}
 function _buildCalUpcomingHtml() {
   const now = new Date(); now.setHours(0,0,0,0);
   const upcomingSec = calScreenConfig.find(s => s.id === 'upcoming');
@@ -7412,7 +7435,12 @@ function _buildCalUpcomingHtml() {
     .filter(u => { const dt=new Date((u.year||2026),MONTH_NUMS[u.month]||0,u.day); dt.setHours(0,0,0,0); return dt>=now && !_isDateHiddenPrivate(u) && (!_isSearching || _calMemMatchDate(u)); })
     .map(u => ({ date: new Date((u.year||2026),MONTH_NUMS[u.month]||0,u.day), isBd: false, u }));
   const _bdItems = _isSearching ? [] : _bdCards.map(r => ({ date: r.date, isBd: true, r }));
-  const _allItems = [..._dateItems, ..._bdItems].sort((a,b) => a.date - b.date);
+  const _allItems = [..._dateItems, ..._bdItems].sort((a,b) => {
+    const dateDiff = a.date - b.date;
+    if (dateDiff !== 0) return dateDiff;
+    // Same day: sort by time (untimed dates sort last)
+    return _timeToMinutes(a.isBd ? null : a.u.time) - _timeToMinutes(b.isBd ? null : b.u.time);
+  });
   if (!_allItems.length) return `<div id="cal-upcoming"><div class="section-label" style="margin-bottom:12px">${_isSearching ? 'Upcoming Results' : 'Upcoming'}</div></div>`;
 
   // Determine how many to show
