@@ -7276,16 +7276,44 @@ function _calSlideClick(id, month, day, year) {
   const targetMonth = MONTH_NUMS[month] !== undefined ? MONTH_NUMS[month] : new Date(Date.parse(month+' 1 2000')).getMonth();
   const alreadyOnMonth = currentCalYear === year && currentCalMonth === targetMonth;
   const alreadyOnDay = selectedCalDay === day;
+  const u = UPCOMING_DATES.find(d => String(d.id) === String(id));
+
   if (alreadyOnMonth && alreadyOnDay) {
-    const u = UPCOMING_DATES.find(d => String(d.id) === String(id));
-    if (u) openDateInfo(u);
+    // Day already selected — check if this specific date is already the active one
+    const visible = UPCOMING_DATES
+      .filter(d => d.month === month && (d.year||2026) === year && d.day === day && !_isDateHiddenPrivate(d))
+      .sort((a,b) => _timeToMinutes(a.time) - _timeToMinutes(b.time));
+
+    if (visible.length <= 1) {
+      // Single date — open Date Info directly
+      if (u) openDateInfo(u);
+      return;
+    }
+
+    const thisDateIsActive = u && String(u.id) === window._calActiveDateId;
+    if (thisDateIsActive) {
+      // Already selected — open Date Info
+      if (u) openDateInfo(u);
+    } else {
+      // Different date on same day — select it (reuse _calCardClick logic)
+      if (u) _calCardClick(day, month, year, id);
+    }
   } else {
     currentCalMonth = targetMonth;
     currentCalYear = year;
     selectedCalDay = day;
     _calInfoPanelIdx = 0;
     window._calActiveDateId = null;
-    // Re-render calendar without touching slides section to avoid flicker
+    // Pre-set the active date to the clicked slide's specific date
+    if (id) {
+      const _visible = UPCOMING_DATES
+        .filter(d => d.month === month && (d.year||2026) === year && d.day === day && !_isDateHiddenPrivate(d))
+        .sort((a,b) => _timeToMinutes(a.time) - _timeToMinutes(b.time));
+      if (_visible.length > 1) {
+        const _di = _visible.findIndex(d => String(d.id) === String(id));
+        if (_di > 0) window._calPendingDateIdx = _di;
+      }
+    }
     _calRenderWithoutSlides();
     setTimeout(() => { _applyBirthdayDots(); _applyBirthdayDotsWeek(); }, 0);
   }
