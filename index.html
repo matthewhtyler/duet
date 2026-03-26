@@ -6524,11 +6524,11 @@ function renderCalendar() {
     const isToday    = d === todayDay;
     const dayDate    = new Date(currentCalYear, currentCalMonth, d); dayDate.setHours(0,0,0,0);
     const isPastDay  = dayDate < _now;
+    // Cell marker: dots / icons / people
+    const _calDatesDisplay = (() => { const _cs = calScreenConfig.find(s => s.id === 'calendar'); return _cs ? (_cs.datesDisplay || 'dots') : 'dots'; })();
     const _isPeopleMode = _calDatesDisplay === 'people';
     const cls = (isSelected ? 'cal-day selected' : isToday ? 'cal-day today' : (isPastDay && _calDimPastDays ? 'cal-day dim-past' : 'cal-day')) + (_isPeopleMode ? ' cal-day-people' : '');
     const dotClass = isSelected ? 'cal-dot selected' : isDimmed ? 'cal-dot dim' : isPastDay ? 'cal-dot past' : 'cal-dot';
-    // Cell marker: dots / icons / people
-    const _calDatesDisplay = (() => { const _cs = calScreenConfig.find(s => s.id === 'calendar'); return _cs ? (_cs.datesDisplay || 'dots') : 'dots'; })();
     const _cellDatesForDay = (_calDatesDisplay !== 'dots' && isMarked && !isDimmed && (!isPastDay || _calDatesDisplay === 'icons'))
       ? UPCOMING_DATES.filter(u => {
           const _um = MONTH_NUMS[u.month] ?? 0;
