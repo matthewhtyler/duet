@@ -12302,6 +12302,8 @@ async function exportAllData() {
       incompleteMode: incompleteMode,
       onlySelectedCatsInMenu: onlySelectedCatsInMenu,
       calScreenConfig: calScreenConfig,
+      peopleShowFullNames: peopleShowFullNames,
+      memoriesShowImages: memoriesShowImages,
     },
     appearance: _appearance,
   };
@@ -13674,9 +13676,11 @@ function handleImportFile(e) {
       if (s.additionalTab !== undefined) additionalTab         = s.additionalTab;
       if (s.homeIdeasFilter !== undefined) homeIdeasFilter      = s.homeIdeasFilter;
       if (s.homeScreenConfig !== undefined) { homeScreenConfig = s.homeScreenConfig; appSettings.homeScreenConfig = homeScreenConfig; }
-      if (s.calScreenConfig !== undefined) { calScreenConfig = s.calScreenConfig; try { localStorage.setItem('ll_cal_screen_config', JSON.stringify(calScreenConfig)); } catch(e) {} }
+      if (s.calScreenConfig !== undefined) { calScreenConfig = s.calScreenConfig; appSettings.calScreenConfig = calScreenConfig; try { localStorage.setItem('ll_cal_screen_config', JSON.stringify(calScreenConfig)); } catch(e) {} }
       if (s.incompleteMode !== undefined) { incompleteMode = s.incompleteMode === true; appSettings.incompleteMode = incompleteMode; }
       if (s.onlySelectedCatsInMenu !== undefined) { onlySelectedCatsInMenu = s.onlySelectedCatsInMenu === true; appSettings.onlySelectedCatsInMenu = onlySelectedCatsInMenu; }
+      if (s.peopleShowFullNames !== undefined) { peopleShowFullNames = s.peopleShowFullNames === true; try { localStorage.setItem('ll_people_show_full_names', JSON.stringify(peopleShowFullNames)); } catch(e) {} }
+      if (s.memoriesShowImages !== undefined) { memoriesShowImages = s.memoriesShowImages !== false; try { localStorage.setItem('ll_memories_show_images', JSON.stringify(memoriesShowImages)); } catch(e) {} }
       // Sync appSettings and persist
       appSettings.homeAddress          = homeAddress;
       appSettings.hidePrivate          = hidePrivate;
@@ -13684,6 +13688,7 @@ function handleImportFile(e) {
       appSettings.additionalTab        = additionalTab;
       appSettings.homeIdeasFilter      = homeIdeasFilter;
       appSettings.homeScreenConfig     = homeScreenConfig;
+      appSettings.calScreenConfig      = calScreenConfig;
       appSettings.incompleteMode       = incompleteMode;
       appSettings.onlySelectedCatsInMenu = onlySelectedCatsInMenu;
       saveSettings(appSettings);
