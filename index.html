@@ -6834,7 +6834,7 @@ function renderCalendar() {
     window._calPendingDateIdx = _pendingDateIdx;
   }
   const _selDayDates = selectedCalDay ? UPCOMING_DATES.filter(u => u.month === monthAbbr && (u.year||2026) === currentCalYear && u.day === selectedCalDay) : [];
-  const _selDayVisible = _selDayDates.filter(u => !_isDateHiddenPrivate(u));
+  const _selDayVisible = _selDayDates.filter(u => !_isDateHiddenPrivate(u)).sort((a,b) => _timeToMinutes(a.time) - _timeToMinutes(b.time));
   const _selDayAllPrivate = _selDayDates.length > 0 && _selDayVisible.length === 0;
   const _selDayObj = selectedCalDay ? new Date(currentCalYear, currentCalMonth, selectedCalDay) : null;
   if (_selDayObj) _selDayObj.setHours(0,0,0,0);
@@ -7063,6 +7063,8 @@ function renderCalendar() {
     // Store per-date header data for live header updates
     const _dateHeaders = []; // indexed by dateIdx
 
+    let _prevPeopleKey = null; // track people set of previous upcoming date to deduplicate people slide
+
     _selDayVisible.forEach((dateEntry, di) => {
       const { panels, idea, accent } = _buildDatePanels(dateEntry, di === 0);
       const headerHtml = _buildIpHeader(dateEntry, accent, idea, true);
@@ -7086,13 +7088,17 @@ function renderCalendar() {
         // Upcoming date: optionally prepend people summary panel
         const _detSecUp = calScreenConfig.find(s => s.id === 'details');
         if (_detSecUp && _detSecUp.detailsShowPeople === true) {
-          // Skip if the only person attached is "Me"
+          // Skip if no people, or only "Me"
           const _upPeeps = (dateEntry.people || []).map(pe => pe.id ? people.find(x => x.id === pe.id) : null).filter(Boolean);
           const _onlyMe = _upPeeps.length === 0 || _upPeeps.every(p => p.firstName === 'Me' || _personFullName(p) === 'Me');
-          if (!_onlyMe) {
+          // Skip if same people as the previous upcoming date on this day
+          const _peopleKey = _upPeeps.map(p => p.id).sort().join(',');
+          const _samePeopleAsPrev = !_onlyMe && _peopleKey === _prevPeopleKey;
+          if (!_onlyMe && !_samePeopleAsPrev) {
             const _upPeoplePanel = _buildPastSummaryPanel(dateEntry, idea);
             _allPanels.push({ html: _upPeoplePanel, dateIdx: di });
           }
+          _prevPeopleKey = _onlyMe ? _prevPeopleKey : _peopleKey;
         }
         if (panels.length > 0) {
           panels.forEach(p => _allPanels.push({ html: p, dateIdx: di }));
@@ -7274,6 +7280,8 @@ function _calSlideClick(id, month, day, year) {
     currentCalMonth = targetMonth;
     currentCalYear = year;
     selectedCalDay = day;
+    _calInfoPanelIdx = 0;
+    window._calActiveDateId = null;
     // Re-render calendar without touching slides section to avoid flicker
     _calRenderWithoutSlides();
     setTimeout(() => { _applyBirthdayDots(); _applyBirthdayDotsWeek(); }, 0);
