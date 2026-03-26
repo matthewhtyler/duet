@@ -6546,22 +6546,35 @@ function renderCalendar() {
       if (_idea) return ideaIcon(_idea, 10, _dotColor);
       return activityIcon(_u.activity || _u.venue || '', 10, _dotColor);
     })();
-    // People mode: first person with a photo
-    const _firstPersonForDay = (() => {
-      if (_calDatesDisplay !== 'people' || !_cellDatesForDay.length) return null;
+    // People mode: collect people with photos from all dates this day
+    const _peopleForDay = (() => {
+      if (_calDatesDisplay !== 'people' || !_cellDatesForDay.length) return [];
+      const _seen = new Set();
+      const _result = [];
       for (const _u of _cellDatesForDay) {
         for (const _pe of (_u.people || [])) {
           const _p = _pe.id ? people.find(x => x.id === _pe.id) : null;
-          if (_p && _p.photoUrl) return _p;
+          if (_p && _p.photoUrl && !_seen.has(_p.id)) { _seen.add(_p.id); _result.push(_p); }
         }
       }
-      return null;
+      return _result.slice(0, 3);
+    })();
+    const _peopleHtml = (() => {
+      if (!_peopleForDay.length) return '';
+      const _S = 18, _OV = 5;
+      const _tw = _S + (_peopleForDay.length - 1) * (_S - _OV);
+      const _circles = _peopleForDay.map((_p, _i) => {
+        const _lft = _i * (_S - _OV);
+        const _zi = _peopleForDay.length - _i;
+        return `<div style="position:absolute;left:${_lft}px;top:0;width:${_S}px;height:${_S}px;border-radius:50%;overflow:hidden;z-index:${_zi}">${_personAvatarInner(_p, _S)}</div>`;
+      }).join('');
+      return `<div style="position:absolute;bottom:1px;left:50%;transform:translateX(-50%);width:${_tw}px;height:${_S}px">${_circles}</div>`;
     })();
     const _dotHtml = (isMarked || isDimmed)
       ? (_calDatesDisplay === 'icons' && _iconForDay && !isDimmed
           ? `<div class="cal-dot-icon">${_iconForDay}</div>`
-          : _calDatesDisplay === 'people' && _firstPersonForDay && !isDimmed && !isPastDay
-          ? `<div class="cal-dot-photo">${_personAvatarInner(_firstPersonForDay, 20)}</div>`
+          : _calDatesDisplay === 'people' && _peopleForDay.length && !isDimmed && !isPastDay
+          ? _peopleHtml
           : `<div class="${dotClass}"></div>`)
       : '';
     cells += `
