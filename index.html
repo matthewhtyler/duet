@@ -458,14 +458,9 @@
     position: absolute; bottom: 2px; left: 50%; transform: translateX(-50%);
     width: 14px; height: 14px; border-radius: 50%; overflow: hidden;
   }
-  .cal-dot-photo {
-    position: absolute; bottom: 2px; left: 50%; transform: translateX(-50%);
-    width: 14px; height: 14px; border-radius: 50%; overflow: hidden;
-  }
   .cal-dot.dim { background: #c8c0b8; }
   .cal-dot.past { background: #c8c0b8; }
   .cal-dot.selected { background: #fff; }
-  .cal-dot-photo { position: absolute; bottom: 2px; left: 50%; transform: translateX(-50%); width: 14px; height: 14px; border-radius: 50%; overflow: hidden; }
   #cal-selected-card { margin-top: 20px; }
   #cal-upcoming { margin-top: 20px; }
   .upcoming-item {
@@ -6544,7 +6539,7 @@ function renderCalendar() {
     })();
     const _dotHtml = (isMarked || isDimmed)
       ? (_calDatesDisplay === 'photos' && _firstPersonForDay && !isDimmed
-          ? `<div class="cal-dot-photo" style="width:14px;height:14px;border-radius:50%;overflow:hidden;position:relative;flex-shrink:0">${_personAvatarInner(_firstPersonForDay, 14)}</div>`
+          ? `<div class="cal-dot-photo">${_personAvatarInner(_firstPersonForDay, 14)}</div>`
           : `<div class="${dotClass}"></div>`)
       : '';
     cells += `
