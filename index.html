@@ -9160,8 +9160,8 @@ function handleNewBtn() {
   }
   const _tsEl = document.getElementById('todo-sheet');
   if (_tsEl && _tsEl.style.display === 'block') {
-    const task = (document.getElementById('ts-task') || {}).value || '';
-    if (!task.trim()) { closeTodoSheet(); return; }
+    const note = ((document.getElementById('ts-note') || {}).value || '').trim();
+    if (!note) { closeTodoSheet(); return; }
     saveTodoFromSheet();
     return;
   }
