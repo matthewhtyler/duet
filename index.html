@@ -669,7 +669,7 @@
         <span></span><span></span><span></span>
       </button>
       <div id="nav-menu-dropdown">
-        <button onclick="exportAllData();closeMenu()" style="border-bottom:none">
+        <button id="nav-save-btn" style="border-bottom:none">
           <svg viewBox="0 0 24 24" width="16" height="16" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
           </svg>
@@ -4475,7 +4475,7 @@ function _buildCuisineTabBody() {
     const active = cuisineTabFilter === p.id;
     const color = active ? pillActiveColor : pillInactiveColor;
     const fw = active ? '700' : '500';
-    return `<button class="${active ? 'cuisine-pill-active' : ''}" onclick="setCuisineTabFilter('${p.id.replace(/'/g, "\\'")}')\" style="display:flex;align-items:center;gap:5px;white-space:nowrap;background:none;border:none;cursor:pointer;padding:6px 4px;font-family:sans-serif;font-size:13px;font-weight:${fw};color:${color};flex-shrink:0;line-height:1">${p.label}</button>`;
+    return `<button class="${active ? 'cuisine-pill-active' : ''}" onclick="setCuisineTabFilter('${p.id.replace(/'/g, "\\'")}')" style="display:flex;align-items:center;gap:5px;white-space:nowrap;background:none;border:none;cursor:pointer;padding:6px 4px;font-family:sans-serif;font-size:13px;font-weight:${fw};color:${color};flex-shrink:0;line-height:1">${p.label}</button>`;
   }
 
   const stripHtml = pills.length > 1
@@ -12874,11 +12874,10 @@ function closeMenu() {
 // Close menu when clicking outside hamburger-wrap
 document.addEventListener('click', function(e) {
   const wrap = document.getElementById('hamburger-wrap');
-  if (wrap && !wrap.contains(e.target)) closeMenu();
+  if (wrap && !e.target.closest('#hamburger-wrap')) closeMenu();
 });
 
-// Prevent Claude desktop app from intercepting clicks and opening the file as "Content"
-document.addEventListener('click', function(e) { e.preventDefault(); }, true);
+
 
 async function exportAllData() {
   const data = {
@@ -14340,6 +14339,10 @@ function handleImportFile(e) {
 
 
 people = loadPeople(); // load before first render
+document.addEventListener('DOMContentLoaded', function() {
+  var saveBtn = document.getElementById('nav-save-btn');
+  if (saveBtn) saveBtn.addEventListener('click', function(e) { e.stopPropagation(); try { var p = exportAllData(); if (p && p.catch) p.catch(function(err) { alert('Export error: ' + err.message + '\n' + err.stack); }); } catch(err) { alert('Sync error: ' + err.message); } });
+});
 const _MONTH_ABBRS_BD = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 const _MONTH_NAMES_FULL = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 const _DAY_NAMES = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
