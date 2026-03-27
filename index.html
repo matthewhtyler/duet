@@ -681,10 +681,7 @@
           </svg>
           Open…
         </button>
-        <button onclick="navigate('ideas');ideasSearch='Random';_ideasRandomPool=null;setTimeout(()=>{const i=document.getElementById('ideas-search-input');if(i)i.value='Random';_renderIdeasBody();},0);closeMenu()" style="border-top:1px solid var(--border-light);border-bottom:1px solid var(--border-light)">
-          <svg viewBox="0 0 24 24" width="16" height="16" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.8" fill="#9a8a7a" stroke="none"/><circle cx="15.5" cy="8.5" r="1.8" fill="#9a8a7a" stroke="none"/><circle cx="8.5" cy="15.5" r="1.8" fill="#9a8a7a" stroke="none"/><circle cx="15.5" cy="15.5" r="1.8" fill="#9a8a7a" stroke="none"/></svg>
-          Random
-        </button>
+
         <button id="nav-menu-todo-btn" onclick="navigate('todo');closeMenu()" style="border-bottom:none">
           <svg viewBox="0 0 24 24" width="16" height="16" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><polyline points="9 12 11 14 15 10"/></svg>
           To Do
@@ -2448,6 +2445,7 @@ let ideaType = 'out';
 let ideasFilter = 'all';
 let ideasSearch = '';
 let _ideasRandomPool = null; // persists while ideasSearch === 'random'
+let _ideasRandomMode = false; // true when die button toggles random (independent of search bar)
 let memoriesSearch = '';
 let calMemSearch = '';      // shared text search between Calendar and Memories
 let calMemPeople = [];      // shared people-pill search [{id, name}]
@@ -4013,9 +4011,10 @@ function renderIdeas() {
     </div>
     <div style="display:flex;align-items:center;background:var(--toggle-bg);border-radius:20px;padding:5px 10px;gap:6px;width:160px;flex-shrink:0;margin-left:auto">
       <svg viewBox="0 0 24 24" width="13" height="13" stroke="#9a8a7a" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-      <input id="ideas-search-input" type="text" value="${q.replace(/"/g,'&quot;')}" oninput="ideasSearch=this.value;if(this.value.trim().toLowerCase()==='random'){ideasSearch='Random';this.value='Random';_ideasRandomPool=null;}_renderIdeasBody()" onkeydown="if(event.key==='Enter'){if(this.value.trim().toLowerCase()==='m'){ideasSearch='Michelin';this.value='Michelin';_renderIdeasBody();}if(this.value.trim().toLowerCase()==='r'||this.value.trim().toLowerCase()==='random'){ideasSearch='Random';this.value='Random';_ideasRandomPool=null;_ideasRandomHighlightId=null;_renderIdeasBody();}this.blur();event.preventDefault();}" placeholder="" style="border:none;background:transparent;outline:none;font-size:16px;font-family:sans-serif;color:var(--text-primary);width:100%;line-height:1;padding:0;min-width:0">
+      <input id="ideas-search-input" type="text" value="${q.replace(/"/g,'&quot;')}" oninput="ideasSearch=this.value;if(showRandomButton===false&&this.value.trim().toLowerCase()==='random'){ideasSearch='Random';this.value='Random';_ideasRandomPool=null;}_renderIdeasBody()" onkeydown="if(event.key==='Enter'){if(this.value.trim().toLowerCase()==='m'){ideasSearch='Michelin';this.value='Michelin';_renderIdeasBody();}if(showRandomButton===false&&(this.value.trim().toLowerCase()==='r'||this.value.trim().toLowerCase()==='random')){ideasSearch='Random';this.value='Random';_ideasRandomPool=null;_ideasRandomHighlightId=null;_renderIdeasBody();}this.blur();event.preventDefault();}" placeholder="" style="border:none;background:transparent;outline:none;font-size:16px;font-family:sans-serif;color:var(--text-primary);width:100%;line-height:1;padding:0;min-width:0">
       ${clearBtn}
     </div>
+    ${showRandomButton !== false ? `<button onclick="_ideasRandomPool=null;_ideasRandomHighlightId=null;_ideasRandomMode=!_ideasRandomMode;_renderIdeasBody();" id="ideas-die-btn" style="background:none;border:none;cursor:pointer;padding:4px 0px;display:flex;align-items:center;flex-shrink:0;line-height:0">${ICONS.game(14,(_ideasIsRandom() ? accentColor('out') : '#9a8a7a'))}</button>` : ''}
   </div>`;
 
   // Inject controlbar into top nav ideas row
@@ -4256,9 +4255,8 @@ function _buildCatTabBody() {
     return `<button class="${active ? 'cat-pill-active' : ''}" onclick="setCatTabFilter('${p.id}')" style="display:flex;align-items:center;gap:5px;white-space:nowrap;background:none;border:none;cursor:pointer;padding:6px 4px;font-family:sans-serif;font-size:13px;font-weight:${fw};color:${color};flex-shrink:0;line-height:1">${iconSvg}${p.label}</button>`;
   }
 
-  const _catDiceBtn = `<button onclick="_ideasRandomPool=null;_ideasRandomHighlightId=null;if(_ideasIsRandom()){clearIdeasSearch();}else{ideasSearch='Random';const _si=document.getElementById('ideas-search-input');if(_si)_si.value='Random';_renderIdeasBody();}" style="background:none;border:none;cursor:pointer;padding:6px 4px;display:flex;align-items:center;flex-shrink:0;line-height:0">${ICONS.game(14,'#9a8a7a')}</button>`;
   const stripHtml = pills.length > 1
-    ? `<div style="position:relative;border-bottom:1px solid var(--border)"><div id="cat-tab-strip" style="display:flex;align-items:center;gap:10px;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none;-webkit-overflow-scrolling:touch;padding:5px 20px 10px 20px;padding-right:40px">${pills.map(pillHtml).join('<span style="color:var(--border);font-size:16px;flex-shrink:0">·</span>')}</div><button onclick="_ideasRandomPool=null;_ideasRandomHighlightId=null;if(_ideasIsRandom()){clearIdeasSearch();}else{ideasSearch='Random';const _si=document.getElementById('ideas-search-input');if(_si)_si.value='Random';_renderIdeasBody();}" style="background:none;border:none;cursor:pointer;padding:0 12px 0 20px;display:flex;align-items:center;justify-content:center;flex-shrink:0;line-height:0;position:absolute;right:0;top:0;bottom:4px;background:linear-gradient(to right,transparent,var(--bg) 65%);display:${showRandomButton!==false?"flex":"none"}">${ICONS.game(14,(_ideasIsRandom() ? accentColor('out') : '#9a8a7a'))}</button></div>`
+    ? `<div id="cat-tab-strip" style="display:flex;align-items:center;gap:10px;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none;-webkit-overflow-scrolling:touch;padding:5px 20px 10px;border-bottom:1px solid var(--border)">${pills.map(pillHtml).join('<span style="color:var(--border);font-size:16px;flex-shrink:0">·</span>')}</div>`
     : '';
 
   function smallCard(item) {
@@ -4367,8 +4365,7 @@ function _buildNeighborhoodTabBody() {
     return `<button class="${active ? 'neigh-pill-active' : ''}" onclick="setNeighTabFilter('${p.id.replace(/'/g, "\\'")}')" style="display:flex;align-items:center;gap:5px;white-space:nowrap;background:none;border:none;cursor:pointer;padding:6px 4px;font-family:sans-serif;font-size:13px;font-weight:${fw};color:${color};flex-shrink:0;line-height:1">${p.label}</button>`;
   }
 
-  const _neighDiceBtn = `<button onclick="_ideasRandomPool=null;_ideasRandomHighlightId=null;if(_ideasIsRandom()){clearIdeasSearch();}else{ideasSearch='Random';const _si=document.getElementById('ideas-search-input');if(_si)_si.value='Random';_renderIdeasBody();}" style="background:none;border:none;cursor:pointer;padding:6px 4px;display:flex;align-items:center;flex-shrink:0;line-height:0">${ICONS.game(14,'#9a8a7a')}</button>`;
-  const stripHtml = `<div style="position:relative;border-bottom:1px solid var(--border)"><div id="neigh-tab-strip" style="display:flex;align-items:center;gap:10px;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none;-webkit-overflow-scrolling:touch;padding:5px 20px 10px 20px;padding-right:40px">${pills.map(pillHtml).join('<span style="color:var(--border);font-size:16px;flex-shrink:0">·</span>')}</div><button onclick="_ideasRandomPool=null;_ideasRandomHighlightId=null;if(_ideasIsRandom()){clearIdeasSearch();}else{ideasSearch='Random';const _si=document.getElementById('ideas-search-input');if(_si)_si.value='Random';_renderIdeasBody();}" style="background:none;border:none;cursor:pointer;padding:0 12px 0 20px;display:flex;align-items:center;justify-content:center;flex-shrink:0;line-height:0;position:absolute;right:0;top:0;bottom:4px;background:linear-gradient(to right,transparent,var(--bg) 65%);display:${showRandomButton!==false?"flex":"none"}">${ICONS.game(14,(_ideasIsRandom() ? accentColor('out') : '#9a8a7a'))}</button></div>`;
+  const stripHtml = `<div id="neigh-tab-strip" style="display:flex;align-items:center;gap:10px;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none;-webkit-overflow-scrolling:touch;padding:5px 20px 10px;border-bottom:1px solid var(--border)">${pills.map(pillHtml).join('<span style="color:var(--border);font-size:16px;flex-shrink:0">·</span>')}</div>`;
 
   function smallCard(item) {
     const sub = itemSubLine(item);
@@ -4490,9 +4487,8 @@ function _buildCuisineTabBody() {
   const _cuisStarColor = _isMichelinSearch ? accentColor('out') : '#9a8a7a';
   const _cuisStarFill = _isMichelinSearch ? accentColor('out') : 'none';
   const _cuisStarBtn = `<button onclick="if((ideasSearch||'').trim().toLowerCase()==='michelin'){clearIdeasSearch();}else{ideasSearch='Michelin';const _si=document.getElementById('ideas-search-input');if(_si)_si.value='Michelin';_ideasRandomPool=null;_renderIdeasBody();}" style="background:none;border:none;cursor:pointer;padding:6px 4px;display:flex;align-items:center;flex-shrink:0;line-height:0"><svg viewBox="0 0 24 24" width="14" height="14" stroke="${_cuisStarColor}" stroke-width="2" fill="${_cuisStarFill}" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>`;
-  const _cuisDiceBtn = `<button onclick="_ideasRandomPool=null;_ideasRandomHighlightId=null;if(_ideasIsRandom()){clearIdeasSearch();}else{ideasSearch='Random';const _si=document.getElementById('ideas-search-input');if(_si)_si.value='Random';_renderIdeasBody();}" style="background:none;border:none;cursor:pointer;padding:6px 4px;display:flex;align-items:center;flex-shrink:0;line-height:0">${ICONS.game(14,'#9a8a7a')}</button>`;
   const stripHtml = pills.length > 1
-    ? `<div style="position:relative;border-bottom:1px solid var(--border)"><div id="cuisine-tab-strip" style="display:flex;align-items:center;gap:10px;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none;-webkit-overflow-scrolling:touch;padding:5px 20px 10px 20px;padding-right:40px">${_cuisStarBtn}<span style="color:var(--border);font-size:16px;flex-shrink:0">·</span>${pills.map(pillHtml).join('<span style="color:var(--border);font-size:16px;flex-shrink:0">·</span>')}</div><button onclick="_ideasRandomPool=null;_ideasRandomHighlightId=null;if(_ideasIsRandom()){clearIdeasSearch();}else{ideasSearch='Random';const _si=document.getElementById('ideas-search-input');if(_si)_si.value='Random';_renderIdeasBody();}" style="background:none;border:none;cursor:pointer;padding:0 12px 0 20px;display:flex;align-items:center;justify-content:center;flex-shrink:0;line-height:0;position:absolute;right:0;top:0;bottom:4px;background:linear-gradient(to right,transparent,var(--bg) 65%);display:${showRandomButton!==false?"flex":"none"}">${ICONS.game(14,(_ideasIsRandom() ? accentColor('out') : '#9a8a7a'))}</button></div>`
+    ? `<div id="cuisine-tab-strip" style="display:flex;align-items:center;gap:10px;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none;-webkit-overflow-scrolling:touch;padding:5px 20px 10px;border-bottom:1px solid var(--border)">${_cuisStarBtn}<span style="color:var(--border);font-size:16px;flex-shrink:0">·</span>${pills.map(pillHtml).join('<span style="color:var(--border);font-size:16px;flex-shrink:0">·</span>')}</div>`
     : '';
 
   function smallCard(item) {
@@ -4592,8 +4588,7 @@ function _buildMichelinTabBody() {
     return `<button class="${active ? 'cuisine-pill-active' : ''}" onclick="setCuisineTabFilter('${p.id.replace(/'/g, "\\'")}')" style="display:flex;align-items:center;gap:5px;white-space:nowrap;background:none;border:none;cursor:pointer;padding:6px 4px;font-family:sans-serif;font-size:13px;font-weight:${fw};color:${color};flex-shrink:0;line-height:1">${p.label}</button>`;
   }
 
-  const _micDiceBtn = `<button onclick="_ideasRandomPool=null;_ideasRandomHighlightId=null;if(_ideasIsRandom()){clearIdeasSearch();}else{ideasSearch='Random';const _si=document.getElementById('ideas-search-input');if(_si)_si.value='Random';_renderIdeasBody();}" style="background:none;border:none;cursor:pointer;padding:6px 4px;display:flex;align-items:center;flex-shrink:0;line-height:0">${ICONS.game(14,'#9a8a7a')}</button>`;
-  const stripHtml = `<div style="position:relative;border-bottom:1px solid var(--border)"><div id="cuisine-tab-strip" style="display:flex;align-items:center;gap:10px;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none;-webkit-overflow-scrolling:touch;padding:5px 20px 10px 20px;padding-right:40px">${pills.map(pillHtml).join('<span style="color:var(--border);font-size:16px;flex-shrink:0">·</span>')}</div><button onclick="_ideasRandomPool=null;_ideasRandomHighlightId=null;if(_ideasIsRandom()){clearIdeasSearch();}else{ideasSearch='Random';const _si=document.getElementById('ideas-search-input');if(_si)_si.value='Random';_renderIdeasBody();}" style="background:none;border:none;cursor:pointer;padding:0 12px 0 20px;display:flex;align-items:center;justify-content:center;flex-shrink:0;line-height:0;position:absolute;right:0;top:0;bottom:4px;background:linear-gradient(to right,transparent,var(--bg) 65%);display:${showRandomButton!==false?"flex":"none"}">${ICONS.game(14,(_ideasIsRandom() ? accentColor('out') : '#9a8a7a'))}</button></div>`;
+  const stripHtml = `<div id="cuisine-tab-strip" style="display:flex;align-items:center;gap:10px;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none;-webkit-overflow-scrolling:touch;padding:5px 20px 10px;border-bottom:1px solid var(--border)">${pills.map(pillHtml).join('<span style="color:var(--border);font-size:16px;flex-shrink:0">·</span>')}</div>`;
 
   function smallCard(item) {
     const sub = itemSubLine(item);
@@ -4680,8 +4675,7 @@ function _buildOutTabBody() {
     return `<button class="${active ? 'out-pill-active' : ''}" onclick="setOutTabFilter('${p.id}')" style="display:flex;align-items:center;gap:5px;white-space:nowrap;background:none;border:none;cursor:pointer;padding:6px 4px;font-family:sans-serif;font-size:13px;font-weight:${fw};color:${color};flex-shrink:0;line-height:1">${iconSvg}${p.label}</button>`;
   }
 
-  const _outDiceBtn = `<button onclick="_ideasRandomPool=null;_ideasRandomHighlightId=null;if(_ideasIsRandom()){clearIdeasSearch();}else{ideasSearch='Random';const _si=document.getElementById('ideas-search-input');if(_si)_si.value='Random';_renderIdeasBody();}" style="background:none;border:none;cursor:pointer;padding:6px 4px;display:flex;align-items:center;flex-shrink:0;line-height:0">${ICONS.game(14,'#9a8a7a')}</button>`;
-  const stripHtml = `<div style="position:relative;border-bottom:1px solid var(--border)"><div id="out-tab-strip" style="display:flex;align-items:center;gap:10px;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none;-webkit-overflow-scrolling:touch;padding:5px 20px 10px 20px;padding-right:40px">${pills.map(pillHtml).join('<span style="color:var(--border);font-size:16px;flex-shrink:0">·</span>')}</div><button onclick="_ideasRandomPool=null;_ideasRandomHighlightId=null;if(_ideasIsRandom()){clearIdeasSearch();}else{ideasSearch='Random';const _si=document.getElementById('ideas-search-input');if(_si)_si.value='Random';_renderIdeasBody();}" style="background:none;border:none;cursor:pointer;padding:0 12px 0 20px;display:flex;align-items:center;justify-content:center;flex-shrink:0;line-height:0;position:absolute;right:0;top:0;bottom:4px;background:linear-gradient(to right,transparent,var(--bg) 65%);display:${showRandomButton!==false?"flex":"none"}">${ICONS.game(14,(_ideasIsRandom() ? accentColor('out') : '#9a8a7a'))}</button></div>`;
+  const stripHtml = `<div id="out-tab-strip" style="display:flex;align-items:center;gap:10px;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none;-webkit-overflow-scrolling:touch;padding:5px 20px 10px;border-bottom:1px solid var(--border)">${pills.map(pillHtml).join('<span style="color:var(--border);font-size:16px;flex-shrink:0">·</span>')}</div>`;
 
   const allOut = ideas.filter(i => !i.archived && !_isHiddenPrivate(i) && i.type === 'out' && ideaMatchesSearch(i, _qOut)).sort(byName);
 
@@ -4773,8 +4767,7 @@ function _buildInTabBody() {
     return `<button class="${active ? 'in-pill-active' : ''}" onclick="setInTabFilter('${p.id}')" style="display:flex;align-items:center;gap:5px;white-space:nowrap;background:none;border:none;cursor:pointer;padding:6px 4px;font-family:sans-serif;font-size:13px;font-weight:${fw};color:${color};flex-shrink:0;line-height:1">${iconSvg}${p.label}</button>`;
   }
 
-  const _inDiceBtn = `<button onclick="_ideasRandomPool=null;_ideasRandomHighlightId=null;if(_ideasIsRandom()){clearIdeasSearch();}else{ideasSearch='Random';const _si=document.getElementById('ideas-search-input');if(_si)_si.value='Random';_renderIdeasBody();}" style="background:none;border:none;cursor:pointer;padding:6px 4px;display:flex;align-items:center;flex-shrink:0;line-height:0">${ICONS.game(14,'#9a8a7a')}</button>`;
-  const stripHtml = `<div style="position:relative;border-bottom:1px solid var(--border)"><div id="in-tab-strip" style="display:flex;align-items:center;gap:10px;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none;-webkit-overflow-scrolling:touch;padding:5px 20px 10px 20px;padding-right:40px">${pills.map(pillHtml).join('<span style="color:var(--border);font-size:16px;flex-shrink:0">·</span>')}</div><button onclick="_ideasRandomPool=null;_ideasRandomHighlightId=null;if(_ideasIsRandom()){clearIdeasSearch();}else{ideasSearch='Random';const _si=document.getElementById('ideas-search-input');if(_si)_si.value='Random';_renderIdeasBody();}" style="background:none;border:none;cursor:pointer;padding:0 12px 0 20px;display:flex;align-items:center;justify-content:center;flex-shrink:0;line-height:0;position:absolute;right:0;top:0;bottom:4px;background:linear-gradient(to right,transparent,var(--bg) 65%);display:${showRandomButton!==false?"flex":"none"}">${ICONS.game(14,(_ideasIsRandom() ? accentColor('out') : '#9a8a7a'))}</button></div>`;
+  const stripHtml = `<div id="in-tab-strip" style="display:flex;align-items:center;gap:10px;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none;-webkit-overflow-scrolling:touch;padding:5px 20px 10px;border-bottom:1px solid var(--border)">${pills.map(pillHtml).join('<span style="color:var(--border);font-size:16px;flex-shrink:0">·</span>')}</div>`;
 
   const allIn = ideas.filter(i => !i.archived && !_isHiddenPrivate(i) && i.type === 'in' && ideaMatchesSearch(i, _qIn)).sort(byName);
 
@@ -4840,6 +4833,7 @@ function _buildInTabBody() {
 
 // Random mode helpers
 function _ideasIsRandom() {
+  if (showRandomButton !== false) return _ideasRandomMode;
   return (ideasSearch || '').trim().toLowerCase() === 'random';
 }
 let _ideasRandomHighlightId = null; // ID of the currently highlighted random card
@@ -4924,6 +4918,9 @@ function _renderIdeasBody() {
       btn.style.color = active ? _activeColor : '#9a8a7a';
       btn.style.boxShadow = active ? '0 1px 3px rgba(0,0,0,0.10)' : 'none';
     });
+    // Update die icon color
+    const _dieBtn = cb.querySelector('#ideas-die-btn');
+    if (_dieBtn) _dieBtn.innerHTML = ICONS.game(14, _ideasIsRandom() ? accentColor('out') : '#9a8a7a');
   }
 
   const body = document.getElementById('ideas-body');
@@ -5108,6 +5105,7 @@ function clearIdeasSearch() {
   ideasSearch = '';
   _ideasRandomPool = null;
   _ideasRandomHighlightId = null;
+  _ideasRandomMode = false;
   const inp = document.getElementById('ideas-search-input');
   if (inp) inp.value = '';
   _renderIdeasBody();
