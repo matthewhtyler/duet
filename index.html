@@ -669,7 +669,7 @@
         <span></span><span></span><span></span>
       </button>
       <div id="nav-menu-dropdown">
-        <button id="nav-save-btn" style="border-bottom:none">
+        <button onclick="exportAllData();closeMenu()" style="border-bottom:none">
           <svg viewBox="0 0 24 24" width="16" height="16" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
           </svg>
@@ -12874,7 +12874,7 @@ function closeMenu() {
 // Close menu when clicking outside hamburger-wrap
 document.addEventListener('click', function(e) {
   const wrap = document.getElementById('hamburger-wrap');
-  if (wrap && !e.target.closest('#hamburger-wrap')) closeMenu();
+  if (wrap && !wrap.contains(e.target)) closeMenu();
 });
 
 
@@ -14339,10 +14339,6 @@ function handleImportFile(e) {
 
 
 people = loadPeople(); // load before first render
-document.addEventListener('DOMContentLoaded', function() {
-  var saveBtn = document.getElementById('nav-save-btn');
-  if (saveBtn) saveBtn.addEventListener('click', function(e) { e.stopPropagation(); try { var p = exportAllData(); if (p && p.catch) p.catch(function(err) { alert('Export error: ' + err.message + '\n' + err.stack); }); } catch(err) { alert('Sync error: ' + err.message); } });
-});
 const _MONTH_ABBRS_BD = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 const _MONTH_NAMES_FULL = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 const _DAY_NAMES = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
@@ -15924,7 +15920,7 @@ function _applyBirthdayDots() {
       } else {
         dot.style.cssText = 'position:absolute;bottom:3px;left:50%;transform:translateX(-50%);width:5px;height:5px;border-radius:50%;background:' + _bdayColor + ';cursor:pointer;z-index:2';
       }
-      dot.onclick = function(e) { e.stopPropagation(); _showBirthdayTooltip(e, bd); };
+      dot.onclick = null; // no tooltip on calendar grid — tapping selects the day
       btn.appendChild(dot);
     });
   });
@@ -15985,7 +15981,7 @@ function _showBirthdayTooltip(e, bdays) {
   }
   _hideBirthdayTooltip();
   _bdTooltipKey = key;
-  const label = bdays.map(b => b.firstName + "'s birthday").join(' · ');
+  const label = bdays.map(b => (b.firstName === 'Me' || !b.firstName) ? 'My birthday' : b.firstName + "'s birthday").join(' · ');
   const firstId = bdays[0] && bdays[0].id;
   const tt = document.createElement('div');
   tt.id = 'bd-tooltip';
