@@ -462,9 +462,10 @@
   }
   .cal-day-icons { padding-bottom: 10px !important; }
   .cal-dot-icon {
-    position: absolute; bottom: 3px; left: 0; right: 0;
+    position: absolute; bottom: 3px;
+    left: 50%; transform: translateX(-50%);
     display: flex; align-items: center; justify-content: center;
-    overflow: hidden; height: 12px;
+    overflow: visible; height: 12px; width: 12px;
   }
   .cal-dot-icon svg { display: block; flex-shrink: 0; }
   .cal-dot.dim { background: #c8c0b8; }
@@ -653,7 +654,7 @@
           <circle id="logo-circle-dark" cx="18" cy="9" r="7.5" stroke="#8b3a52" stroke-width="2.8"/>
         </svg>
       </button>
-      <button style="background:none;border:none;outline:none;cursor:pointer;padding:0"><span id="duet-logo-text" ondblclick="openEditMainScreen()" style="font-size:17px;font-weight:600;letter-spacing:0.02em;color:var(--text-primary)">duet</span></button>
+      <button style="background:none;border:none;outline:none;cursor:pointer;padding:0"><span id="duet-logo-text" onclick="openEditMainScreen()" style="font-size:17px;font-weight:600;letter-spacing:0.02em;color:var(--text-primary)">duet</span></button>
     </div>
     <button id="nav-back" onclick="navigate('home')" style="display:none">
       <svg viewBox="0 0 24 24" width="20" height="20" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
@@ -2942,12 +2943,12 @@ function renderNav() {
 
   if (center) {
     if (currentView === 'ideas') {
-      center.innerHTML = `<span ondblclick="openEditIdeasScreen()" style="font-size:13px;color:#9a8a7a;letter-spacing:0.05em;text-transform:uppercase;font-family:sans-serif;cursor:pointer">Ideas</span>`;
+      center.innerHTML = `<span onclick="openEditIdeasScreen()" style="font-size:13px;color:#9a8a7a;letter-spacing:0.05em;text-transform:uppercase;font-family:sans-serif;cursor:pointer">Ideas</span>`;
     } else {
       const titles = { calendar:'Calendar', todo:'To Do', home:'', past:'Memories', archive:'Archive', people:'People' };
       const editPopups = { calendar:'openEditCalScreen()', home:'openEditMainScreen()', past:'openEditMemoriesScreen()', people:'openEditPeopleScreen()' };
       const t = titles[currentView] || '';
-      const dblHandler = editPopups[currentView] ? ` ondblclick="${editPopups[currentView]}"` : '';
+      const dblHandler = editPopups[currentView] ? ` onclick="${editPopups[currentView]}"` : '';
       center.innerHTML = t ? `<span${dblHandler} style="font-size:13px;color:#9a8a7a;letter-spacing:0.05em;text-transform:uppercase;font-family:sans-serif;cursor:pointer">${t}</span>` : '';
     }
   }
@@ -6761,7 +6762,9 @@ function renderCalendar() {
   // Days in current month that have upcoming dates
   // Upcoming dates
   const _isSearchingCal = calMemSearch || calMemPeople.length;
-  const _calDimPastDays = (() => { const s = calScreenConfig.find(x => x.id === 'calendar'); return s && s.dimPastDays === true; })();
+  const _calDimPast = (() => { const s = calScreenConfig.find(x => x.id === 'calendar'); if (!s) return 'none'; if (s.dimPast) return s.dimPast; return s.dimPastDays === true ? 'days and icons' : 'none'; })();
+  const _calDimPastDays = _calDimPast === 'days' || _calDimPast === 'days and icons';
+  const _calDimPastIcons = _calDimPast === 'icons' || _calDimPast === 'days and icons';
   const datesThisMonth = UPCOMING_DATES.filter(u => u.month === monthAbbr && (u.year || 2026) === currentCalYear && !_isDateHiddenPrivate(u));
   const markedDays = _isSearchingCal
     ? datesThisMonth.filter(u => _calMemMatchDate(u)).map(u => u.day)
@@ -6805,7 +6808,7 @@ function renderCalendar() {
         : ideas.find(i => i.name && _u.venue && i.name.toLowerCase() === _u.venue.toLowerCase());
       const _isDarkMode = document.body.classList.contains('dark-mode');
       const _isSearching = !!(calMemSearch || calMemPeople.length);
-      const _dotColor = isSelected ? '#fff' : isDimmed ? (_isDarkMode ? '#4a4540' : '#c8c0b8') : isPastDay ? (_isSearching ? (_isDarkMode ? '#f0ede8' : '#2a1f1f') : (_isDarkMode ? '#4a4540' : '#c8c0b8')) : '#c07a8a';
+      const _dotColor = isSelected ? '#fff' : isDimmed ? (_isDarkMode ? '#4a4540' : '#c8c0b8') : isPastDay ? (_isSearching ? (_isDarkMode ? '#f0ede8' : '#2a1f1f') : (_calDimPastIcons ? (_isDarkMode ? '#4a4540' : '#c8c0b8') : '#c07a8a')) : '#c07a8a';
       if (_idea) return ideaIcon(_idea, 10, _dotColor);
       return activityIcon(_u.activity || _u.venue || '', 10, _dotColor);
     })();
@@ -12821,16 +12824,20 @@ function _ecsOptionsHtml(sec) {
   }
   if (sec.id === 'calendar') {
     const showBd = sec.showBirthdays !== false;
-    const dimPast = sec.dimPastDays === true;
+    const dimPastVal = sec.dimPast || (sec.dimPastDays === true ? 'days and icons' : 'none');
     const datesDisplay = sec.datesDisplay || 'dots';
     return `<div style="display:flex;flex-direction:column;gap:10px">
       <div style="display:flex;align-items:center;gap:6px"><span style="font-family:sans-serif;font-size:12px;color:var(--text-secondary);white-space:nowrap">Dates</span>${_emsSel('datesDisplay', datesDisplay, [{v:'dots',l:'Dots'},{v:'icons',l:'Icons'},{v:'people',l:'People'}])}</div>
-      <label style="display:flex;align-items:flex-start;gap:8px;cursor:pointer"><input type="checkbox" class="showtype-check" data-ems-key="dimPastDays" data-val-type="bool" ${dimPast ? 'checked' : ''} style="width:13px;height:13px;margin-top:2px"><div><div style="font-size:14px;font-family:sans-serif;color:var(--text-primary)">Dim past days</div><div style="font-size:12px;font-family:sans-serif;color:var(--text-secondary);margin-top:2px">Dim day numbers for past days.</div></div></label>
-      <label style="display:flex;align-items:flex-start;gap:8px;cursor:pointer"><input type="checkbox" class="showtype-check" data-ems-key="showBirthdays" data-val-type="bool" ${showBd ? 'checked' : ''} style="width:13px;height:13px;margin-top:2px"><div><div style="font-size:14px;font-family:sans-serif;color:var(--text-primary)">Birthdays</div><div style="font-size:12px;font-family:sans-serif;color:var(--text-secondary);margin-top:2px">Show upcoming / past birthdays.</div></div></label>
+      <div style="display:flex;align-items:center;gap:6px"><span class="ems-opt-label">Dim past</span>${_emsSel('dimPast', dimPastVal, [{v:'none',l:'none'},{v:'days',l:'days'},{v:'icons',l:'icons'},{v:'days and icons',l:'days and icons'}])}</div>
+      <label style="display:flex;align-items:flex-start;gap:8px;cursor:pointer"><input type="checkbox" class="showtype-check" data-ems-key="showBirthdays" data-val-type="bool" ${showBd ? 'checked' : ''} style="width:13px;height:13px;margin-top:2px"><div><div style="font-size:14px;font-family:sans-serif;color:var(--text-primary)">Show birthdays</div><div style="font-size:12px;font-family:sans-serif;color:var(--text-secondary);margin-top:2px">Show birthday icons on the calendar.</div></div></label>
     </div>`;
   }
   if (sec.id === 'upcoming') {
-    return `<span class="ems-opt-label">Show</span>${_emsSel('show', sec.show||'all', [{v:'3',l:'3'},{v:'5',l:'5'},{v:'all',l:'All'}])}`;
+    const showUpBd = sec.showUpcomingBirthdays !== false;
+    return `<div style="display:flex;flex-direction:column;gap:10px">
+      <div style="display:flex;align-items:center;gap:6px"><span class="ems-opt-label">Show</span>${_emsSel('show', sec.show||'all', [{v:'3',l:'3'},{v:'5',l:'5'},{v:'all',l:'All'}])}</div>
+      <label style="display:flex;align-items:flex-start;gap:8px;cursor:pointer"><input type="checkbox" class="showtype-check" data-ems-key="showUpcomingBirthdays" data-val-type="bool" ${showUpBd ? 'checked' : ''} style="width:13px;height:13px;margin-top:2px"><div><div style="font-size:14px;font-family:sans-serif;color:var(--text-primary)">Show birthdays</div><div style="font-size:12px;font-family:sans-serif;color:var(--text-secondary);margin-top:2px">Show upcoming birthdays.</div></div></label>
+    </div>`;
   }
   if (sec.id === 'pastDates') {
     return `<span class="ems-opt-label">Show</span>${_emsSel('show', sec.show||'5', [{v:'3',l:'3'},{v:'5',l:'5'},{v:'all',l:'All'}])}`;
@@ -12843,7 +12850,7 @@ function _ecsOptionsHtml(sec) {
     return `<div style="display:flex;flex-direction:column;gap:10px">
       <label style="display:flex;align-items:flex-start;gap:8px;cursor:pointer"><input type="checkbox" class="showtype-check" data-ems-key="alwaysVisible" data-val-type="bool" ${alwaysVisible ? 'checked' : ''} style="width:13px;height:13px;margin-top:2px"><div><div style="font-size:14px;font-family:sans-serif;color:var(--text-primary)">Always visible</div><div style="font-size:12px;font-family:sans-serif;color:var(--text-secondary);margin-top:2px">Show on days without scheduled dates.</div></div></label>
       <label style="display:flex;align-items:flex-start;gap:8px;cursor:pointer"><input type="checkbox" class="showtype-check" data-ems-key="detailsShowPeople" data-val-type="bool" ${detailsShowPeople ? 'checked' : ''} style="width:13px;height:13px;margin-top:2px"><div><div style="font-size:14px;font-family:sans-serif;color:var(--text-primary)">Show people</div><div style="font-size:12px;font-family:sans-serif;color:var(--text-secondary);margin-top:2px">Show people slide for upcoming dates.</div></div></label>
-      <label style="display:flex;align-items:flex-start;gap:8px;cursor:pointer"><input type="checkbox" class="showtype-check" data-ems-key="showTickets" data-val-type="bool" ${showTickets ? 'checked' : ''} style="width:13px;height:13px;margin-top:2px"><div><div style="font-size:14px;font-family:sans-serif;color:var(--text-primary)">Show tickets / reservations</div><div style="font-size:12px;font-family:sans-serif;color:var(--text-secondary);margin-top:2px">Show this slide for relevant dates.</div></div></label>
+      <label style="display:flex;align-items:flex-start;gap:8px;cursor:pointer"><input type="checkbox" class="showtype-check" data-ems-key="showTickets" data-val-type="bool" ${showTickets ? 'checked' : ''} style="width:13px;height:13px;margin-top:2px"><div><div style="font-size:14px;font-family:sans-serif;color:var(--text-primary)">Show tickets / reservations</div><div style="font-size:12px;font-family:sans-serif;color:var(--text-secondary);margin-top:2px">Show when not yet confirmed.</div></div></label>
     </div>`;
   }
   return '';
@@ -12871,6 +12878,11 @@ function _ecsReadFromDom() {
 
 function saveEditCalScreen() {
   _ecsReadFromDom();
+  // Keep dimPastDays in sync with dimPast for backwards compat
+  const _calSec = _ecsWorkingConfig.find(s => s.id === 'calendar');
+  if (_calSec && _calSec.dimPast !== undefined) {
+    _calSec.dimPastDays = _calSec.dimPast === 'days and icons';
+  }
   calScreenConfig = _ecsWorkingConfig.map(s => ({...s}));
   appSettings.calScreenConfig = calScreenConfig;
   saveSettings(appSettings);
@@ -15525,6 +15537,10 @@ function _calShowBirthdays() {
   const calSec = calScreenConfig.find(s => s.id === 'calendar');
   return !calSec || calSec.showBirthdays !== false;
 }
+function _calShowUpcomingBirthdays() {
+  const upSec = calScreenConfig.find(s => s.id === 'upcoming');
+  return !upSec || upSec.showUpcomingBirthdays !== false;
+}
 
 // Birthday dots on all calendars
 function _applyBirthdayDots() {
@@ -15561,7 +15577,7 @@ function _applyBirthdayDots() {
       const _isDark = document.body.classList.contains('dark-mode');
       const _bdayDate = new Date(currentCalYear, currentCalMonth, dayNum); _bdayDate.setHours(0,0,0,0);
       const _bdayPast = _bdayDate < new Date().setHours(0,0,0,0);
-      const _bdayColor = _bdayPast ? (_isDark ? '#4a4540' : '#c8c0b8') : BURGUNDY;
+      const _bdayColor = _bdayPast ? (_isDark ? '#4a4540' : '#c8c0b8') : '#9a8a7a';
       btn.style.position = 'relative';
       const dot = document.createElement('div');
       const _bdDisplay = (() => { const _cs = calScreenConfig.find(s => s.id === 'calendar'); return _cs ? (_cs.datesDisplay || 'dots') : 'dots'; })();
@@ -15780,7 +15796,7 @@ function _clearLocationField(ctx) {
 const _DAY_NAMES = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
 
 function _upcomingBirthdayCards() {
-  if (!_calShowBirthdays()) return [];
+  if (!_calShowUpcomingBirthdays()) return [];
   // Returns array of {person, date:Date, day, month0} for birthdays in the next 30 days
   const now = new Date(); now.setHours(0,0,0,0);
   const limit = new Date(now); limit.setDate(limit.getDate() + 30);
