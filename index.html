@@ -12587,13 +12587,17 @@ function savePlace() {
   const savedId = id;
   const fromEditDate = !!window._editIdeaFromEditDate;
   closePlaces();
-  render();
   if (incompleteMode) {
-    // Navigate to Ideas screen, All tab
+    // Navigate to Ideas screen, All tab — force directly to bypass _anyOpen guard
+    sheetOpen = false;
     ideasFilter = 'all';
-    navigate('ideas');
-  } else if (!fromEditDate && currentView === 'ideas') {
-    openDetail(savedId);
+    currentView = 'ideas';
+    render();
+  } else {
+    render();
+    if (!fromEditDate && currentView === 'ideas') {
+      openDetail(savedId);
+    }
   }
 }
 
