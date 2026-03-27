@@ -4004,7 +4004,7 @@ function renderIdeas() {
     </div>
     <div style="display:flex;align-items:center;background:var(--toggle-bg);border-radius:20px;padding:5px 10px;gap:6px;width:160px;flex-shrink:0;margin-left:auto">
       <svg viewBox="0 0 24 24" width="13" height="13" stroke="#9a8a7a" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-      <input id="ideas-search-input" type="text" value="${q.replace(/"/g,'&quot;')}" oninput="ideasSearch=this.value;if(this.value.trim().toLowerCase()==='random'){ideasSearch='Random';this.value='Random';_ideasRandomPool=null;}_renderIdeasBody()" onkeydown="if(event.key==='Enter'){if(this.value.trim().toLowerCase()==='m'){ideasSearch='Michelin';this.value='Michelin';_renderIdeasBody();}if(this.value.trim().toLowerCase()==='r'||this.value.trim().toLowerCase()==='random'){ideasSearch='Random';this.value='Random';_ideasRandomPool=null;_renderIdeasBody();}this.blur();event.preventDefault();}" placeholder="" style="border:none;background:transparent;outline:none;font-size:16px;font-family:sans-serif;color:var(--text-primary);width:100%;line-height:1;padding:0;min-width:0">
+      <input id="ideas-search-input" type="text" value="${q.replace(/"/g,'&quot;')}" oninput="ideasSearch=this.value;if(this.value.trim().toLowerCase()==='random'){ideasSearch='Random';this.value='Random';_ideasRandomPool=null;}_renderIdeasBody()" onkeydown="if(event.key==='Enter'){if(this.value.trim().toLowerCase()==='m'){ideasSearch='Michelin';this.value='Michelin';_renderIdeasBody();}if(this.value.trim().toLowerCase()==='r'||this.value.trim().toLowerCase()==='random'){ideasSearch='Random';this.value='Random';_ideasRandomPool=null;_ideasRandomHighlightId=null;_renderIdeasBody();}this.blur();event.preventDefault();}" placeholder="" style="border:none;background:transparent;outline:none;font-size:16px;font-family:sans-serif;color:var(--text-primary);width:100%;line-height:1;padding:0;min-width:0">
       ${clearBtn}
     </div>
   </div>`;
@@ -4828,6 +4828,28 @@ function _buildInTabBody() {
 function _ideasIsRandom() {
   return (ideasSearch || '').trim().toLowerCase() === 'random';
 }
+let _ideasRandomHighlightId = null; // ID of the currently highlighted random card
+
+function _applyRandomHighlight() {
+  if (!_ideasIsRandom() || !_ideasRandomPool || !_ideasRandomPool.ids) return;
+  // Pick a highlight if not set or no longer valid
+  if (!_ideasRandomHighlightId || !_ideasRandomPool.ids.includes(_ideasRandomHighlightId)) {
+    const ids = _ideasRandomPool.ids;
+    _ideasRandomHighlightId = ids[Math.floor(Math.random() * ids.length)];
+  }
+  // Apply rose border to the matching card
+  const body = document.getElementById('ideas-body');
+  if (!body) return;
+  body.querySelectorAll('.quick-row').forEach(el => {
+    const oc = el.getAttribute('onclick') || '';
+    const m = oc.match(/openDetail\((\d+)/);
+    if (m && m[1] === String(_ideasRandomHighlightId)) {
+      el.style.borderColor = ROSE;
+    } else {
+      el.style.borderColor = '';
+    }
+  });
+}
 function _ideasRandomApply(items) {
   if (!_ideasIsRandom()) return items;
   if (!items.length) return items;
@@ -4845,7 +4867,7 @@ function _rSort(items) {
 }
 
 function _ideasRandomHeader() {
-  return `<div style="display:flex;justify-content:center;padding:6px 0 16px;cursor:pointer" onclick="_ideasRandomPool=null;_renderIdeasBody()">${ICONS.game(20,'#9a8a7a')}</div>`;
+  return `<div style="display:flex;justify-content:center;padding:6px 0 16px;cursor:pointer" onclick="_ideasRandomPool=null;_ideasRandomHighlightId=null;_renderIdeasBody()">${ICONS.game(20,'#9a8a7a')}</div>`;
 }
 
 // Called on keystrokes and filter changes — re-renders body + updates controlbar toggle styles
@@ -4898,7 +4920,7 @@ function _renderIdeasBody() {
   }
 
   const body = document.getElementById('ideas-body');
-  if (body) body.innerHTML = isFavFilter ? (additionalTab === 'neighborhood' ? _buildNeighborhoodTabBody() : additionalTab === 'cuisine' ? _buildCuisineTabBody() : additionalTab === 'michelin' ? _buildMichelinTabBody() : _buildCatTabBody()) : ideasFilter === 'out' ? _buildOutTabBody() : ideasFilter === 'in' ? _buildInTabBody() : _buildIdeasBody(pool, q, byName, isFavFilter);
+  if (body) { body.innerHTML = isFavFilter ? (additionalTab === 'neighborhood' ? _buildNeighborhoodTabBody() : additionalTab === 'cuisine' ? _buildCuisineTabBody() : additionalTab === 'michelin' ? _buildMichelinTabBody() : _buildCatTabBody()) : ideasFilter === 'out' ? _buildOutTabBody() : ideasFilter === 'in' ? _buildInTabBody() : _buildIdeasBody(pool, q, byName, isFavFilter); _applyRandomHighlight(); }
 }
 
 // scrollFavs: scrolls the favorites list by showing next/prev card
@@ -5078,6 +5100,7 @@ function _initHomeCarousel() {
 function clearIdeasSearch() {
   ideasSearch = '';
   _ideasRandomPool = null;
+  _ideasRandomHighlightId = null;
   const inp = document.getElementById('ideas-search-input');
   if (inp) inp.value = '';
   _renderIdeasBody();
