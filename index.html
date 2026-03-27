@@ -4832,23 +4832,39 @@ let _ideasRandomHighlightId = null; // ID of the currently highlighted random ca
 
 function _applyRandomHighlight() {
   if (!_ideasIsRandom() || !_ideasRandomPool || !_ideasRandomPool.ids) return;
-  // Pick a highlight if not set or no longer valid
-  if (!_ideasRandomHighlightId || !_ideasRandomPool.ids.includes(_ideasRandomHighlightId)) {
-    const ids = _ideasRandomPool.ids;
-    _ideasRandomHighlightId = ids[Math.floor(Math.random() * ids.length)];
+  const poolIds = _ideasRandomPool.ids.map(String);
+  // Pick or re-pick highlight if not set or no longer in current pool
+  if (!_ideasRandomHighlightId || !poolIds.includes(String(_ideasRandomHighlightId))) {
+    _ideasRandomHighlightId = poolIds[Math.floor(Math.random() * poolIds.length)];
   }
-  // Apply rose border to the matching card
-  const body = document.getElementById('ideas-body');
-  if (!body) return;
-  body.querySelectorAll('.quick-row').forEach(el => {
-    const oc = el.getAttribute('onclick') || '';
-    const m = oc.match(/openDetail\((\d+)/);
-    if (m && m[1] === String(_ideasRandomHighlightId)) {
-      el.style.borderColor = ROSE;
-    } else {
-      el.style.borderColor = '';
-    }
-  });
+  const highlightId = String(_ideasRandomHighlightId);
+  // Apply rose border — try requestAnimationFrame to ensure DOM is painted
+  const apply = () => {
+    const body = document.getElementById('ideas-body');
+    if (!body) return;
+    let found = false;
+    body.querySelectorAll('.quick-row').forEach(el => {
+      const oc = el.getAttribute('onclick') || '';
+      const m = oc.match(/openDetail\((\d+)/);
+      if (m && m[1] === highlightId) {
+        el.style.borderColor = ROSE;
+        found = true;
+      } else {
+        el.style.borderColor = '';
+      }
+    });
+    // If not found on first try, retry once after next frame
+    if (!found) requestAnimationFrame(() => {
+      const body2 = document.getElementById('ideas-body');
+      if (!body2) return;
+      body2.querySelectorAll('.quick-row').forEach(el => {
+        const oc = el.getAttribute('onclick') || '';
+        const m = oc.match(/openDetail\((\d+)/);
+        el.style.borderColor = (m && m[1] === highlightId) ? ROSE : '';
+      });
+    });
+  };
+  apply();
 }
 function _ideasRandomApply(items) {
   if (!_ideasIsRandom()) return items;
