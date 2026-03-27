@@ -15956,12 +15956,18 @@ function _applyBirthdayDotsWeek() {
       });
     }
     if (!bd.length) return;
+    // Style the dot
     const existingDot = cell.querySelector('.week-day-dot');
     if (existingDot) {
-      existingDot.style.background = BURGUNDY;
+      existingDot.style.background = '#9a8a7a';
       existingDot.style.cursor = 'pointer';
-      existingDot.onclick = function(e) { e.stopPropagation(); _showBirthdayTooltip(e, bd); };
     }
+    // Override the whole cell click to show birthday tooltip
+    const _origOnclick = cell.getAttribute('onclick') || '';
+    cell.onclick = function(e) {
+      e.stopPropagation();
+      _showBirthdayTooltip(e, bd);
+    };
   });
 }
 
