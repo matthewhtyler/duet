@@ -1017,7 +1017,7 @@
         <div style="position:relative;flex:1;min-width:0">
           <div id="date-people-field" style="display:flex;align-items:center;gap:6px;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none;-webkit-overflow-scrolling:touch;border:1.5px solid var(--border);border-radius:10px;background:var(--bg-input);padding:8px 32px 8px 12px;min-height:40px;box-sizing:border-box;cursor:text" onclick="document.getElementById('date-people-input').focus()">
             <div id="date-people-pills" style="display:contents"></div>
-            <input id="date-people-input" type="text" placeholder="People…" style="border:none;background:transparent;outline:none;font-size:16px;font-family:sans-serif;color:var(--text-primary);min-width:80px;flex-shrink:0;padding:0;line-height:1" oninput="_peopleSuggest('date')" onkeydown="_peoplePillKeydown(event,'date')">
+            <input id="date-people-input" type="text" placeholder="People…" style="border:none;background:transparent;outline:none;font-size:16px;font-family:sans-serif;color:var(--text-primary);min-width:80px;flex-shrink:0;padding:0;line-height:1" oninput="_peopleSuggest('date')" onfocus="_peopleSuggest('date')" onkeydown="_peoplePillKeydown(event,'date')">
           </div>
           <button type="button" id="date-people-clear" onmousedown="event.preventDefault();_clearDatePeople('date')" style="display:none;position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;padding:2px;line-height:0;color:#b0a090">
             <svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
@@ -1334,7 +1334,7 @@
           <div style="position:relative;flex:1;min-width:0">
             <div id="ed-people-field" style="display:flex;align-items:center;gap:6px;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none;-webkit-overflow-scrolling:touch;border:1.5px solid var(--border);border-radius:10px;background:var(--bg-input);padding:8px 32px 8px 12px;min-height:40px;box-sizing:border-box;cursor:text" onclick="document.getElementById('ed-people-input').focus()">
               <div id="ed-people-pills" style="display:contents"></div>
-              <input id="ed-people-input" type="text" placeholder="People…" style="border:none;background:transparent;outline:none;font-size:16px;font-family:sans-serif;color:var(--text-primary);min-width:80px;flex-shrink:0;padding:0;line-height:1" oninput="_peopleSuggest('ed')" onkeydown="_peoplePillKeydown(event,'ed')">
+              <input id="ed-people-input" type="text" placeholder="People…" style="border:none;background:transparent;outline:none;font-size:16px;font-family:sans-serif;color:var(--text-primary);min-width:80px;flex-shrink:0;padding:0;line-height:1" oninput="_peopleSuggest('ed')" onfocus="_peopleSuggest('ed')" onkeydown="_peoplePillKeydown(event,'ed')">
             </div>
             <button type="button" id="ed-people-clear" onmousedown="event.preventDefault();_clearDatePeople('ed')" style="display:none;position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;padding:2px;line-height:0;color:#b0a090">
               <svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
@@ -6870,8 +6870,16 @@ function renderCalendar() {
   if (_selDayObj) _selDayObj.setHours(0,0,0,0);
   const _selIsPast = _selDayObj && _selDayObj < _now;
 
+  const _detHasBirthday = (() => {
+    if (!selectedCalDay) return false;
+    const _calSecBd = calScreenConfig.find(s => s.id === 'calendar');
+    const _upSecBd = calScreenConfig.find(s => s.id === 'upcoming');
+    const _showBd = (!_calSecBd || _calSecBd.showBirthdays !== false) || (!_upSecBd || _upSecBd.showUpcomingBirthdays !== false);
+    return _showBd && _birthdaysInMonth(currentCalMonth).some(b => b.day === selectedCalDay);
+  })();
+
   let selectedCardHTML = '';
-  if (_selDayVisible.length > 0) {
+  if (_selDayVisible.length > 0 || _detHasBirthday) {
     // ── Hidden legacy cards (kept for potential restoration) ──
     const _legacyCompact = ''; // was: compact date card
     const _legacyBanner  = ''; // was: banner card
@@ -7144,6 +7152,35 @@ function renderCalendar() {
       }
     });
 
+    // Birthday panel: append last if showBirthdays is on for calendar or upcoming section
+    const _showBdDetails = (() => {
+      const calSec = calScreenConfig.find(s => s.id === 'calendar');
+      const upSec = calScreenConfig.find(s => s.id === 'upcoming');
+      return (!calSec || calSec.showBirthdays !== false) || (!upSec || upSec.showUpcomingBirthdays !== false);
+    })();
+    if (_showBdDetails && selectedCalDay) {
+      const _bdOnDay = _birthdaysInMonth(currentCalMonth).filter(b => b.day === selectedCalDay);
+      _bdOnDay.forEach(b => {
+        const _bdP = people.find(x => x.id === b.id);
+        if (!_bdP) return;
+        const _bdName = _bdP.firstName || _personFullName(_bdP);
+        const _bdIsSelf = _bdP.firstName === 'Me' || _personFullName(_bdP) === 'Me';
+        const _bdTitle = _bdIsSelf ? 'My birthday' : `${_bdName}'s birthday`;
+        const _bdMonths = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+        const _bdDateStr = `${_bdMonths[currentCalMonth]} ${selectedCalDay}`;
+        const _bdCake = _birthdayCakeSvg(13, '#9a8a7a');
+        const _bdPhotoHtml = _bdP.photoUrl
+          ? `<div style="position:relative;width:18px;height:18px;border-radius:50%;overflow:hidden;flex-shrink:0">${_personAvatarInner(_bdP, 18)}</div>`
+          : `<div style="width:18px;height:18px;border-radius:50%;background:var(--toggle-bg);display:flex;align-items:center;justify-content:center;flex-shrink:0">${_personIconSvg(10,'#b0a090')}</div>`;
+        const _bdPanelHtml = `<div style="display:flex;align-items:center;gap:6px;justify-content:center;cursor:pointer;width:100%;padding:0 8px;box-sizing:border-box" onclick="openPersonInfo('${_bdP.id}')">
+          ${_bdPhotoHtml}
+          <span style="font-size:12px;font-family:sans-serif;color:var(--text-secondary)">${_bdDateStr}</span>
+        </div>`;
+        window._calBirthdayPanelIdx = _allPanels.length; // save index for scrolling
+        _allPanels.push({ html: _bdPanelHtml, dateIdx: -1, isBd: true, bdPersonId: _bdP.id });
+      });
+    }
+
     _calInfoPanelIdx = Math.min(_calInfoPanelIdx, Math.max(_allPanels.length - 1, 0));
 
     // If navigating from home, use the pending dateIdx to pick the right active date
@@ -7155,12 +7192,27 @@ function renderCalendar() {
       if (firstPanel >= 0) _calInfoPanelIdx = firstPanel;
       delete window._calPendingDateIdx;
     }
-    const _activeDate = _selDayVisible[_activeDateIdx];
-    window._calActiveDateId = _activeDate ? String(_activeDate.id) : null;
-    const _activeDateResult = _buildDatePanels(_activeDate);
+    const _activeDate = _selDayVisible[_activeDateIdx] || null;
+    window._calActiveDateId = _activeDate ? String(_activeDate ? _activeDate.id : '') : null;
+    const _activeDateResult = _activeDate ? _buildDatePanels(_activeDate) : { panels: [], idea: null, accent: '#9a8a7a' };
 
     // Header — shows the currently active date (updates live on scroll)
-    const _ipHeader = _buildIpHeader(_activeDate, _activeDateResult.accent, _activeDateResult.idea, true);
+    // For birthday-only days, use the birthday header from _calBirthdayHeaders
+    const _ipHeader = _activeDate ? _buildIpHeader(_activeDate, _activeDateResult.accent, _activeDateResult.idea, true) : (() => {
+      // Find first birthday panel and use its header
+      const _bdIdx = _allPanels.findIndex(p => p.isBd);
+      if (_bdIdx >= 0) {
+        const _bdP0 = people.find(x => x.id === _allPanels[_bdIdx].bdPersonId);
+        if (_bdP0) {
+          const _bdN0 = _bdP0.firstName || _personFullName(_bdP0);
+          const _bdS0 = _bdP0.firstName === 'Me' || _personFullName(_bdP0) === 'Me';
+          const _bdT0 = _bdS0 ? 'My birthday' : `${_bdN0}'s birthday`;
+          const _bdC0 = _birthdayCakeSvg(13, '#9a8a7a');
+          return `<div style="cursor:pointer;margin-bottom:6px" onclick="openPersonInfo('${_bdP0.id}')"><div style="display:flex;align-items:center;justify-content:center;gap:5px;padding:0 28px;overflow:hidden"><span style="display:flex;align-items:center;flex-shrink:0;position:relative;top:-1px">${_bdC0}</span><span style="font-size:13px;font-weight:600;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:-0.01em;line-height:1.2">${_bdT0}</span></div></div>`;
+        }
+      }
+      return '';
+    })();
 
     // Snap-scroll panel container
     const chevStyle = 'background:none;border:none;cursor:pointer;padding:4px;display:flex;align-items:center;flex-shrink:0;line-height:0';
@@ -7172,8 +7224,26 @@ function renderCalendar() {
         }</div>`
       : `<div style="width:100%;display:flex;justify-content:center"><span style="font-size:14px;font-style:italic;color:#b0a090;cursor:pointer" onclick="event.stopPropagation();openDateInfo(UPCOMING_DATES.find(d=>String(d.id)==='${String(_activeDate.id).replace(/'/g,"\\'")}'))">More info <span style="color:#b0a090">→</span></span></div>`;
 
-    // Store date headers for live update in scroll handler
+    // Store date headers and birthday headers for live update in scroll handler
     window._calDateHeaders = _dateHeaders;
+    // _calBirthdayHeaders: map from panel index → { html, bdPersonId } for birthday panels
+    const _bdHeaders = {};
+    _allPanels.forEach((p, i) => {
+      if (p.isBd && p.bdPersonId) {
+        const _bdP2 = people.find(x => x.id === p.bdPersonId);
+        if (_bdP2) {
+          const _bdName2 = _bdP2.firstName || _personFullName(_bdP2);
+          const _bdIsSelf2 = _bdP2.firstName === 'Me' || _personFullName(_bdP2) === 'Me';
+          const _bdTitle2 = _bdIsSelf2 ? 'My birthday' : `${_bdName2}'s birthday`;
+          const _bdCake2 = _birthdayCakeSvg(13, '#9a8a7a');
+          _bdHeaders[i] = {
+            html: `<div style="cursor:pointer;margin-bottom:6px" onclick="openPersonInfo('${_bdP2.id}')"><div style="display:flex;align-items:center;justify-content:center;gap:5px;padding:0 28px;overflow:hidden"><span style="display:flex;align-items:center;flex-shrink:0;position:relative;top:-1px">${_bdCake2}</span><span style="font-size:13px;font-weight:600;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:-0.01em;line-height:1.2">${_bdTitle2}</span></div></div>`,
+            bdPersonId: _bdP2.id
+          };
+        }
+      }
+    });
+    window._calBirthdayHeaders = _bdHeaders;
 
     selectedCardHTML = `
       <div style="margin-top:8px;min-height:70px;box-sizing:border-box;padding:10px 0 10px;display:flex;flex-direction:column;align-items:stretch;justify-content:center">
@@ -7255,7 +7325,7 @@ function renderCalendar() {
   const _detVisible = !_detSec || _detSec.on !== false;
   const _detOnlyScheduled = _detSec && _detSec.onlyScheduled === true;
   // When onlyScheduled is on, hide details if no date is scheduled for the selected day
-  const _detHasDate = _selDayVisible.length > 0 || _selDayAllPrivate;
+  const _detHasDate = _selDayVisible.length > 0 || _selDayAllPrivate || _detHasBirthday;
   const _detShow = _detVisible && (!_detOnlyScheduled || _detHasDate);
   _sectionHtml['details'] = _detShow
     ? `<div style="padding:0 20px">${selectedCardHTML}</div>`
@@ -7629,7 +7699,8 @@ function selectCalDay(day) {
   selectedCalDay = day;
   _calBannerIdx = 0;
   _calInfoPanelIdx = 0;
-  window._calActiveDateId = null; // reset so render picks the correct first date
+  window._calActiveDateId = null;
+  window._calBirthdayIsActive = false;
   render();
 }
 
@@ -7670,13 +7741,17 @@ function _calCardClick(day, month, year, dateId) {
     // Day already selected — check if this is a second tap on already-active date
     const alreadyActiveId = window._calActiveDateId;
     const clickedIsActive = u && String(u.id) === alreadyActiveId;
-    if (visible.length <= 1 || clickedIsActive) {
+    // _calBirthdayIsActive is a persistent flag set when a birthday card is selected
+    const bdIsActive = !!window._calBirthdayIsActive;
+    if (!bdIsActive && (visible.length <= 1 || clickedIsActive)) {
       // Single date or tapping the already-active date → open Date Info
       if (u) openDateInfo(u);
       return;
     }
-    // Different date on same day — select it in-place without full re-render
+    // Different date on same day (or switching from birthday) — select it in-place
     window._calActiveDateId = u ? String(u.id) : null;
+    window._calBirthdayIsActive = false; // clear birthday active state
+    window._calPendingBdPersonId = null;
 
     // Scroll details panel to this date's first panel
     const scroll = document.getElementById('cal-info-scroll');
@@ -7718,8 +7793,20 @@ function _calCardClick(day, month, year, dateId) {
       }
     }
 
-    // Update rose outlines on upcoming cards
+    // Update rose outlines on upcoming cards (dates + birthday cards)
+    const BROWN_BD = '#9a8a7a';
     document.querySelectorAll('#cal-upcoming .upcoming-item').forEach(el => {
+      if (el.dataset.bdPersonId) {
+        // Birthday card — brown if a date is now active on this day, else clear
+        const bdMonth = parseInt(el.dataset.bdMonth);
+        const bdDay2 = parseInt(el.dataset.bdDay);
+        if (bdDay2 === day && bdMonth === mNum) {
+          el.style.borderColor = window._calActiveDateId ? BROWN_BD : '';
+        } else {
+          el.style.borderColor = '';
+        }
+        return;
+      }
       const cardId = el.dataset.dateId;
       const d = UPCOMING_DATES.find(x => String(x.id) === cardId);
       if (!d) return;
@@ -8216,26 +8303,57 @@ function _initCalInfoScroll() {
       // Update header if active date changed
       const activePanel = panels[_calInfoPanelIdx];
       const dateIdx = activePanel ? parseInt(activePanel.dataset.dateIdx || '0') : 0;
+      const isBdPanel = dateIdx === -1;
       const headers = window._calDateHeaders;
-      if (headers && headers[dateIdx]) {
-        const headerEl = document.getElementById('cal-info-header');
+      const bdHeaders = window._calBirthdayHeaders || {};
+      const headerEl = document.getElementById('cal-info-header');
+      if (isBdPanel) {
+        // Birthday panel — update header and set birthday as active
+        const bdH = bdHeaders[_calInfoPanelIdx];
+        if (bdH && headerEl) headerEl.innerHTML = bdH.html;
+        const newBdPersonId = bdH ? bdH.bdPersonId : null;
+        window._calActiveDateId = null;
+        window._calBirthdayIsActive = true;
+        // Repaint borders: birthday card gets rose, date cards get brown
+        const BROWN_SCROLL = '#9a8a7a';
+        document.querySelectorAll('#cal-upcoming .upcoming-item').forEach(el => {
+          if (el.dataset.bdPersonId) {
+            const bdM = parseInt(el.dataset.bdMonth), bdD = parseInt(el.dataset.bdDay);
+            el.style.borderColor = (el.dataset.bdPersonId === newBdPersonId && bdD === selectedCalDay && bdM === currentCalMonth) ? ROSE : '';
+          } else {
+            const cardId = el.dataset.dateId;
+            const u2 = UPCOMING_DATES.find(d => String(d.id) === cardId);
+            if (!u2) return;
+            const MN2 = {Jan:0,Feb:1,Mar:2,Apr:3,May:4,Jun:5,Jul:6,Aug:7,Sep:8,Oct:9,Nov:10,Dec:11};
+            const isThisDay2 = u2.day === selectedCalDay && (u2.year||2026) === currentCalYear && (MN2[u2.month]||0) === currentCalMonth;
+            el.style.borderColor = isThisDay2 ? BROWN_SCROLL : '';
+          }
+        });
+      } else if (headers && headers[dateIdx]) {
         if (headerEl) headerEl.innerHTML = headers[dateIdx].html;
         // Update active date ID and refresh upcoming card borders
         const activeDate = headers[dateIdx].u;
         const newActiveDateId = activeDate ? String(activeDate.id) : null;
-        if (newActiveDateId !== window._calActiveDateId) {
+        if (newActiveDateId !== window._calActiveDateId || window._calBirthdayIsActive) {
           window._calActiveDateId = newActiveDateId;
-          // Re-paint borders on upcoming cards — reset all, highlight only active
+          window._calBirthdayIsActive = false;
+          // Re-paint borders: active date gets rose, others get secondary, birthday cards get brown
+          const BROWN_SCROLL2 = '#9a8a7a';
           document.querySelectorAll('#cal-upcoming .upcoming-item').forEach(el => {
-            const cardId = el.dataset.dateId;
-            const u = UPCOMING_DATES.find(d => String(d.id) === cardId);
-            if (!u) return;
-            const MONTH_NUMS2 = {Jan:0,Feb:1,Mar:2,Apr:3,May:4,Jun:5,Jul:6,Aug:7,Sep:8,Oct:9,Nov:10,Dec:11};
-            const isThisDay = u.day === selectedCalDay && (u.year||2026) === currentCalYear && (MONTH_NUMS2[u.month]||0) === currentCalMonth;
-            if (isThisDay) {
-              el.style.borderColor = String(u.id) === window._calActiveDateId ? ROSE : 'var(--text-secondary)';
+            if (el.dataset.bdPersonId) {
+              const bdM = parseInt(el.dataset.bdMonth), bdD = parseInt(el.dataset.bdDay);
+              el.style.borderColor = (bdD === selectedCalDay && bdM === currentCalMonth) ? BROWN_SCROLL2 : '';
             } else {
-              el.style.borderColor = ''; // reset any leftover border from previous selection
+              const cardId = el.dataset.dateId;
+              const u = UPCOMING_DATES.find(d => String(d.id) === cardId);
+              if (!u) return;
+              const MONTH_NUMS2 = {Jan:0,Feb:1,Mar:2,Apr:3,May:4,Jun:5,Jul:6,Aug:7,Sep:8,Oct:9,Nov:10,Dec:11};
+              const isThisDay = u.day === selectedCalDay && (u.year||2026) === currentCalYear && (MONTH_NUMS2[u.month]||0) === currentCalMonth;
+              if (isThisDay) {
+                el.style.borderColor = String(u.id) === window._calActiveDateId ? ROSE : 'var(--text-secondary)';
+              } else {
+                el.style.borderColor = '';
+              }
             }
           });
         }
@@ -10302,7 +10420,32 @@ function _inPlaceSuggest(ctx) {
   const sug = document.getElementById(ctx + '-in-place-suggest');
   if (!inp || !sug) return;
   const q = inp.value.trim().toLowerCase();
-  if (!q) { sug.style.display = 'none'; return; }
+  if (!q) {
+    // Show all people (favorite first) when input is focused but empty
+    const already = new Set((_datePeopleEntries[ctx] || []).map(e => e.id).filter(Boolean));
+    const _allPeople = people.filter(p => {
+      if (!p.firstName && !p.lastName) return false;
+      if (!hidePrivate && p.family) return false;
+      if (already.has(p.id)) return false;
+      return true;
+    }).sort((a, b) => {
+      if (a.favorite && !b.favorite) return -1;
+      if (!a.favorite && b.favorite) return 1;
+      return _personFullName(a).localeCompare(_personFullName(b));
+    }).slice(0, 8);
+    if (!_allPeople.length) { sug.style.display = 'none'; return; }
+    sug.innerHTML = _allPeople.map(p => {
+      const photoHtml = p.photoUrl
+        ? `<div style="width:26px;height:26px;border-radius:50%;overflow:hidden;flex-shrink:0;position:relative">${_personAvatarInner(p, 26)}</div>`
+        : `<div style="width:26px;height:26px;border-radius:50%;background:var(--toggle-bg);display:flex;align-items:center;justify-content:center;flex-shrink:0">${_personIconSvg(14,'#b0a090')}</div>`;
+      return `<div onclick="_selectPersonSuggestion('${ctx}','${p.id}')" style="display:flex;align-items:center;gap:10px;padding:8px 12px;cursor:pointer;font-size:14px;color:var(--text-primary)">
+        ${photoHtml}
+        <span>${_personFullName(p)}</span>
+      </div>`;
+    }).join('');
+    sug.style.display = 'block';
+    return;
+  }
 
   const myPlaceTerms = ['my place', 'my', 'home', 'mine'];
   const showMyPlace = myPlaceTerms.some(t => t.startsWith(q) || q.startsWith(t.slice(0, 3))) || 'my place'.includes(q);
@@ -15874,18 +16017,27 @@ function _buildBirthdayCardHtml(r, ctx) {
 
 // Birthday card click — calendar context
 function _bdCardClickCal(personId, month0, dayNum, yr) {
-  // If this day is already selected → open Person Info
-  if (selectedCalDay === dayNum && currentCalMonth === month0 && currentCalYear === yr) {
-    openPersonInfo(personId);
+  const dayAlreadySelected = selectedCalDay === dayNum && currentCalMonth === month0 && currentCalYear === yr;
+  if (dayAlreadySelected) {
+    // Check if this birthday card is already selected (outlined in rose)
+    const bdEl = document.querySelector(`#cal-upcoming .upcoming-item[data-bd-person-id="${personId}"]`);
+    const isAlreadyActive = bdEl && (bdEl.style.borderColor === ROSE || bdEl.style.borderColor === 'rgb(192, 122, 138)');
+    if (isAlreadyActive) {
+      openPersonInfo(personId);
+      return;
+    }
+    // Day selected but this birthday card not yet active — select it in-place
+    window._calPendingBdPersonId = personId;
+    _calRenderWithoutSlides();
+    setTimeout(() => { _applyBirthdayDots(); _applyBirthdayDotsWeek(); _applyBdCardHighlight(); }, 0);
     return;
   }
-  // Otherwise select the day (navigate month if needed)
+  // Day not yet selected — select the day and highlight the birthday card
   currentCalMonth = month0;
   currentCalYear = yr;
   selectedCalDay = dayNum;
   _calInfoPanelIdx = 0;
   window._calActiveDateId = null;
-  // After render, highlight the birthday card in rose
   window._calPendingBdPersonId = personId;
   _calRenderWithoutSlides();
   setTimeout(() => { _applyBirthdayDots(); _applyBirthdayDotsWeek(); _applyBdCardHighlight(); }, 0);
@@ -15909,10 +16061,37 @@ function _bdCardClickHome(personId, month0, dayNum, yr) {
 function _applyBdCardHighlight() {
   const pid = window._calPendingBdPersonId;
   if (pid) {
-    document.querySelectorAll('#cal-upcoming .upcoming-item[data-bd-person-id]').forEach(el => {
-      el.style.borderColor = el.dataset.bdPersonId === pid ? ROSE : '';
+    // Birthday card gets rose; scheduled date cards on same day get brown
+    const BROWN_COL = '#9a8a7a';
+    document.querySelectorAll('#cal-upcoming .upcoming-item').forEach(el => {
+      if (el.dataset.bdPersonId) {
+        el.style.borderColor = el.dataset.bdPersonId === pid ? ROSE : '';
+      } else {
+        // It's a scheduled date card — check if it's on the same day as the birthday
+        const dId = el.dataset.dateId;
+        if (dId) {
+          const u = UPCOMING_DATES.find(d => String(d.id) === dId);
+          if (u && u.day === selectedCalDay && (MONTH_NUMS[u.month]||0) === currentCalMonth && (u.year||2026) === currentCalYear) {
+            el.style.borderColor = BROWN_COL;
+          }
+        }
+      }
     });
     window._calPendingBdPersonId = null;
+    window._calBirthdayIsActive = true; // mark birthday as active selection
+    // Also scroll details to the birthday panel
+    const bpIdx = window._calBirthdayPanelIdx;
+    if (bpIdx !== undefined && bpIdx >= 0) {
+      _calInfoPanelIdx = bpIdx;
+      _scrollCalInfoPanel();
+      const prevBtn = document.getElementById('cal-info-prev-btn');
+      const nextBtn = document.getElementById('cal-info-next-btn');
+      const scroll = document.getElementById('cal-info-scroll');
+      const panels = scroll ? scroll.querySelectorAll('.cal-info-panel') : [];
+      if (prevBtn) prevBtn.style.opacity = _calInfoPanelIdx > 0 ? '1' : '0.2';
+      if (nextBtn) nextBtn.style.opacity = _calInfoPanelIdx < panels.length - 1 ? '1' : '0.2';
+      window._calBirthdayPanelIdx = undefined;
+    }
     return;
   }
   // Auto-highlight: if the selected day has a birthday card and no scheduled date card
@@ -15923,13 +16102,18 @@ function _applyBdCardHighlight() {
     u.day === selectedCalDay && u.month === monthAbbr &&
     (u.year||2026) === currentCalYear && !_isDateHiddenPrivate(u)
   );
-  if (hasScheduledDate) return; // scheduled date card already gets rose border
-  // Find birthday cards on this day in the upcoming list
+  // Paint birthday cards: brown if a date is active on the same day, rose if only birthday is active
   document.querySelectorAll('#cal-upcoming .upcoming-item[data-bd-person-id]').forEach(el => {
     const bdMonth = parseInt(el.dataset.bdMonth);
     const bdDay = parseInt(el.dataset.bdDay);
-    if (bdDay === selectedCalDay && bdMonth === currentCalMonth) {
+    if (bdDay !== selectedCalDay || bdMonth !== currentCalMonth) { el.style.borderColor = ''; return; }
+    if (window._calActiveDateId) {
+      // A date is active — birthday card gets brown
+      el.style.borderColor = '#9a8a7a';
+    } else {
+      // No date active — birthday card gets rose (auto-highlight)
       el.style.borderColor = ROSE;
+      window._calBirthdayIsActive = true;
     }
   });
 }
