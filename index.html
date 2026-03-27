@@ -6196,8 +6196,7 @@ function renderHome() {
         .filter(u => { const dt=new Date((u.year||2026),MONTH_NUMS[u.month]||0,u.day); dt.setHours(0,0,0,0); return dt>=_now2; })
         .filter(u => !_isDateHiddenPrivate(u))
         .sort((a,b) => new Date((a.year||2026),MONTH_NUMS[a.month]||0,a.day) - new Date((b.year||2026),MONTH_NUMS[b.month]||0,b.day));
-      const limit = sec.show === 'all' ? all.length : parseInt(sec.show)||3;
-      // Merge with birthday cards
+      // Merge scheduled dates with birthday cards, then apply limit
       const _homeBdCards = _upcomingBirthdayCards();
       const _homeBdItems = _homeBdCards.map(r => ({ date: r.date, isBd: true, r }));
       const _homeDateItems = all.map(u => ({ date: new Date((u.year||2026),MONTH_NUMS[u.month]||0,u.day), isBd: false, u }));
@@ -6206,6 +6205,7 @@ function renderHome() {
         if (dateDiff !== 0) return dateDiff;
         return _timeToMinutes(a.isBd ? null : a.u.time) - _timeToMinutes(b.isBd ? null : b.u.time);
       });
+      const limit = sec.show === 'all' ? _homeMerged.length : parseInt(sec.show)||3;
       const upcoming = _homeMerged.slice(0, limit);
       if (!upcoming.length) return '';
       return '<div style="padding:22px 20px 16px">' +
@@ -7168,7 +7168,7 @@ function renderCalendar() {
         const _bdTitle = _bdIsSelf ? 'My birthday' : `${_bdName}'s birthday`;
         const _bdMonths = ['January','February','March','April','May','June','July','August','September','October','November','December'];
         const _bdDateStr = `${_bdMonths[currentCalMonth]} ${selectedCalDay}`;
-        const _bdCake = _birthdayCakeSvg(13, '#9a8a7a');
+        const _bdCake = _birthdayCakeSvg(13, accentColor('out'));
         const _bdPhotoHtml = _bdP.photoUrl
           ? `<div style="position:relative;width:18px;height:18px;border-radius:50%;overflow:hidden;flex-shrink:0">${_personAvatarInner(_bdP, 18)}</div>`
           : `<div style="width:18px;height:18px;border-radius:50%;background:var(--toggle-bg);display:flex;align-items:center;justify-content:center;flex-shrink:0">${_personIconSvg(10,'#b0a090')}</div>`;
@@ -7207,7 +7207,7 @@ function renderCalendar() {
           const _bdN0 = _bdP0.firstName || _personFullName(_bdP0);
           const _bdS0 = _bdP0.firstName === 'Me' || _personFullName(_bdP0) === 'Me';
           const _bdT0 = _bdS0 ? 'My birthday' : `${_bdN0}'s birthday`;
-          const _bdC0 = _birthdayCakeSvg(13, '#9a8a7a');
+          const _bdC0 = _birthdayCakeSvg(13, accentColor('out'));
           return `<div style="cursor:pointer;margin-bottom:6px" onclick="openPersonInfo('${_bdP0.id}')"><div style="display:flex;align-items:center;justify-content:center;gap:5px;padding:0 28px;overflow:hidden"><span style="display:flex;align-items:center;flex-shrink:0;position:relative;top:-1px">${_bdC0}</span><span style="font-size:13px;font-weight:600;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:-0.01em;line-height:1.2">${_bdT0}</span></div></div>`;
         }
       }
@@ -7235,7 +7235,7 @@ function renderCalendar() {
           const _bdName2 = _bdP2.firstName || _personFullName(_bdP2);
           const _bdIsSelf2 = _bdP2.firstName === 'Me' || _personFullName(_bdP2) === 'Me';
           const _bdTitle2 = _bdIsSelf2 ? 'My birthday' : `${_bdName2}'s birthday`;
-          const _bdCake2 = _birthdayCakeSvg(13, '#9a8a7a');
+          const _bdCake2 = _birthdayCakeSvg(13, accentColor('out'));
           _bdHeaders[i] = {
             html: `<div style="cursor:pointer;margin-bottom:6px" onclick="openPersonInfo('${_bdP2.id}')"><div style="display:flex;align-items:center;justify-content:center;gap:5px;padding:0 28px;overflow:hidden"><span style="display:flex;align-items:center;flex-shrink:0;position:relative;top:-1px">${_bdCake2}</span><span style="font-size:13px;font-weight:600;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:-0.01em;line-height:1.2">${_bdTitle2}</span></div></div>`,
             bdPersonId: _bdP2.id
@@ -7267,8 +7267,7 @@ function renderCalendar() {
     const _tomorrow = new Date(_now); _tomorrow.setDate(_now.getDate() + 1);
     // End of today's week (Sunday) — week ends on Sunday, next week starts Monday
     const _endOfWeek = new Date(_now); _endOfWeek.setDate(_now.getDate() + (7 - _now.getDay()) % 7 || 7);
-    const _DAY_NAMES = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
-    const _noDateLabel = _selObj.getTime() === _now.getTime() ? 'today'
+        const _noDateLabel = _selObj.getTime() === _now.getTime() ? 'today'
       : _selObj.getTime() === _tomorrow.getTime() ? 'tomorrow'
       : (_selObj > _tomorrow && _selObj <= _endOfWeek) ? _DAY_NAMES[_selObj.getDay()]
       : _calDayLabel(selectedCalDay, currentCalMonth, currentCalYear);
@@ -14152,6 +14151,11 @@ function handleImportFile(e) {
 }
 
 
+people = loadPeople(); // load before first render
+const _MONTH_ABBRS_BD = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const _MONTH_NAMES_FULL = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+const _DAY_NAMES = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+
 render();
 // Preload all people profile photos into the browser cache on startup
 // After all photos load, re-render the home slides so avatars appear correctly
@@ -14205,7 +14209,6 @@ function loadPeople() {
 function savePeople(arr) {
   try { localStorage.setItem('ll_people', JSON.stringify(arr)); } catch(e) {}
 }
-people = loadPeople(); // reassign - declared early above
 // (peopleSearch, _currentPersonId, _editPersonId declared early above)
 
 // ── SVG helpers ──────────────────────────────────────
@@ -15620,8 +15623,6 @@ function _resetLocationField(ctx) {
 }
 
 // ── Birthday helpers ──────────────────────────────────
-const _MONTH_NAMES_FULL = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-const _MONTH_ABBRS_BD = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
 function _birthdayCakeSvg(size, color) {
   const c = color || '#9a8a7a'; const s = size || 16;
@@ -15937,7 +15938,6 @@ function _clearLocationField(ctx) {
 }
 
 // ── Birthday upcoming cards ───────────────────────────
-const _DAY_NAMES = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
 
 function _upcomingBirthdayCards() {
   if (!_calShowUpcomingBirthdays()) return [];
