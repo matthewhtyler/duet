@@ -7017,9 +7017,10 @@ function renderCalendar() {
       const _circles = _peopleForDay.map((_p, _i) => {
         const _lft = _i * (_S - _OV);
         const _zi = _peopleForDay.length - _i;
-        return `<div style="position:absolute;left:${_lft}px;top:0;width:${_S}px;height:${_S}px;border-radius:50%;overflow:hidden;z-index:${_zi}">${_personAvatarInner(_p, _S)}</div>`;
+        const _outline = isSelected ? ';box-shadow:0 0 0 2px #fff' : '';
+        return `<div style="position:absolute;left:${_lft}px;top:0;width:${_S}px;height:${_S}px;border-radius:50%;overflow:hidden;z-index:${_zi}${_outline}">${_personAvatarInner(_p, _S)}</div>`;
       }).join('');
-      return `<div style="position:absolute;bottom:1px;left:50%;transform:translateX(-50%);width:${_tw}px;height:${_S}px">${_circles}</div>`;
+      return `<div style="position:absolute;bottom:5px;left:50%;transform:translateX(-50%);width:${_tw}px;height:${_S}px">${_circles}</div>`;
     })();
     const _dotHtml = (isMarked || isDimmed)
       ? (_calDatesDisplay === 'icons' && _iconForDay
@@ -7494,7 +7495,7 @@ function renderCalendar() {
         <button class="cal-nav-btn" onclick="calPrev()">
           <svg viewBox="0 0 24 24" width="18" height="18" stroke="#b0a090" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
         </button>
-        <span id="cal-month-label" onclick="_calGoToToday()" style="cursor:pointer">${_monthLabel}</span>
+        <span id="cal-month-label" onclick="_calMonthLabelClick()" style="cursor:pointer">${_monthLabel}</span>
         <button class="cal-nav-btn" onclick="calNext()">
           <svg viewBox="0 0 24 24" width="18" height="18" stroke="#b0a090" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
         </button>
@@ -7831,6 +7832,25 @@ function _syncSlidesToSelectedDay() {
       });
     }
   }
+}
+
+function _calMonthLabelClick() {
+  const now = new Date();
+  const isCurrentMonth = currentCalYear === now.getFullYear() && currentCalMonth === now.getMonth();
+  if (!isCurrentMonth) {
+    _calGoToToday();
+    return;
+  }
+  // Toggle display mode: dots → icons → people → dots
+  const calSec = calScreenConfig.find(s => s.id === 'calendar');
+  if (!calSec) return;
+  const cur = calSec.datesDisplay || 'dots';
+  const next = cur === 'dots' ? 'icons' : cur === 'icons' ? 'people' : 'dots';
+  calSec.datesDisplay = next;
+  appSettings.calScreenConfig = calScreenConfig;
+  saveSettings(appSettings);
+  try { localStorage.setItem('ll_cal_screen_config', JSON.stringify(calScreenConfig)); } catch(e) {}
+  render();
 }
 
 function _calGoToToday() {
