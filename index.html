@@ -2914,7 +2914,7 @@ function render() {
   }
   if (currentView === 'calendar') {
     setTimeout(() => {
-      _initCalSwipe(); _initCalDayCards(); _initCalInfoScroll(); _initCalInfoHeaderSwipe(); _updateCalCompactArrows(); _syncSlidesToSelectedDay();
+      _initCalSwipe(); _initCalDayCards(); _initCalInfoScroll(); _initCalInfoHeaderSwipe(); _updateCalCompactArrows(); _syncSlidesToSelectedDay(); _applyBdCardHighlight();
       if (window._calNavFromHome) {
         window._calNavFromHome = false;
         window.scrollTo(0, 0);
@@ -6213,7 +6213,7 @@ function renderHome() {
           '<span class="section-label">Upcoming</span>' +
           '<span style="font-size:11px;color:#9a8a7a;font-family:sans-serif;letter-spacing:0.05em;line-height:1">›</span>' +
         '</button>' +
-        upcoming.map(item => item.isBd ? _buildBirthdayCardHtml(item.r) : _buildUpcomingCardHtml(item.u, '', false, true)).join('') +
+        upcoming.map(item => item.isBd ? _buildBirthdayCardHtml(item.r, 'home') : _buildUpcomingCardHtml(item.u, '', false, true)).join('') +
         '</div>';
     }
 
@@ -7522,7 +7522,7 @@ function _buildCalUpcomingHtml() {
   const _shownItems = showLimit === Infinity ? _allItems : _allItems.slice(0, showLimit);
 
   const _mergedHtml = _shownItems.map(item => {
-    if (item.isBd) return _buildBirthdayCardHtml(item.r);
+    if (item.isBd) return _buildBirthdayCardHtml(item.r, 'cal');
     const u = item.u;
     const isSelected = u.month === monthAbbr && (u.year||2026) === currentCalYear && u.day === selectedCalDay;
     if (!isSelected) return _buildUpcomingCardHtml(u, '', false, false);
@@ -15839,18 +15839,23 @@ function _birthdaySubline(date) {
   return 'On a ' + dow;
 }
 
-function _buildBirthdayCardHtml(r) {
+function _buildBirthdayCardHtml(r, ctx) {
   const p = r.person;
   const d = r.date;
+  const month0 = d.getMonth();
   const monthAbbrs = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  const monthStr = monthAbbrs[d.getMonth()];
+  const monthStr = monthAbbrs[month0];
   const dayNum = d.getDate();
+  const yr = d.getFullYear();
   const subline = _birthdaySubline(d);
   const firstName = p.firstName || _personFullName(p);
   const BROWN = '#9a8a7a';
   const cakeIcon = _birthdayCakeSvg(14, ROSE);
+  const clickFn = ctx === 'home'
+    ? `_bdCardClickHome('${p.id}',${month0},${dayNum},${yr})`
+    : `_bdCardClickCal('${p.id}',${month0},${dayNum},${yr})`;
   return `
-    <div class="upcoming-item" onclick="openPersonInfo('${p.id}')" style="cursor:pointer">
+    <div class="upcoming-item" data-bd-person-id="${p.id}" data-bd-month="${month0}" data-bd-day="${dayNum}" onclick="${clickFn}" style="cursor:pointer">
       <div class="upcoming-date-badge">
         <span class="upcoming-month" style="color:${ROSE}">${monthStr}</span>
         <span class="upcoming-day-num" style="color:${ROSE}">${dayNum}</span>
@@ -15864,6 +15869,47 @@ function _buildBirthdayCardHtml(r) {
         <span class="upcoming-sub">${subline}</span>
       </div>
     </div>`;
+}
+
+// Birthday card click — calendar context
+function _bdCardClickCal(personId, month0, dayNum, yr) {
+  // If this day is already selected → open Person Info
+  if (selectedCalDay === dayNum && currentCalMonth === month0 && currentCalYear === yr) {
+    openPersonInfo(personId);
+    return;
+  }
+  // Otherwise select the day (navigate month if needed)
+  currentCalMonth = month0;
+  currentCalYear = yr;
+  selectedCalDay = dayNum;
+  _calInfoPanelIdx = 0;
+  window._calActiveDateId = null;
+  // After render, highlight the birthday card in rose
+  window._calPendingBdPersonId = personId;
+  _calRenderWithoutSlides();
+  setTimeout(() => { _applyBirthdayDots(); _applyBirthdayDotsWeek(); _applyBdCardHighlight(); }, 0);
+}
+
+// Birthday card click — home context: navigate to calendar and select the day
+function _bdCardClickHome(personId, month0, dayNum, yr) {
+  currentCalMonth = month0;
+  currentCalYear = yr;
+  selectedCalDay = dayNum;
+  _calInfoPanelIdx = 0;
+  window._calActiveDateId = null;
+  window._calPendingBdPersonId = personId;
+  navigate('calendar');
+}
+
+// After render, outline the pending birthday card in rose and clear the flag
+function _applyBdCardHighlight() {
+  const pid = window._calPendingBdPersonId;
+  if (!pid) return;
+  // Find the birthday card in #cal-upcoming
+  document.querySelectorAll('#cal-upcoming .upcoming-item[data-bd-person-id]').forEach(el => {
+    el.style.borderColor = el.dataset.bdPersonId === pid ? ROSE : '';
+  });
+  window._calPendingBdPersonId = null;
 }
 
 // ── Edit Person favorite toggle ───────────────────────
