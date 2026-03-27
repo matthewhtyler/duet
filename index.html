@@ -16417,17 +16417,34 @@ function _openPersonPhotoViewer() {
 
 function _planSomethingWithPerson() {
   const personId = _currentPersonId;
+  // Capture the current calendar date before closing Person Info
+  const _wasOnCal = currentView === 'calendar' && selectedCalDay;
+  const _planDay   = _wasOnCal ? selectedCalDay   : new Date().getDate();
+  const _planMonth = _wasOnCal ? currentCalMonth  : new Date().getMonth();
+  const _planYear  = _wasOnCal ? currentCalYear   : new Date().getFullYear();
   closePersonInfo();
-  // Navigate to calendar with today selected
-  const today = new Date();
-  selectedCalDay = today.getDate();
-  currentCalMonth = today.getMonth();
-  currentCalYear = today.getFullYear();
-  navigate('calendar');
+  if (!_wasOnCal) {
+    // Not on calendar — navigate there with today
+    selectedCalDay = _planDay;
+    currentCalMonth = _planMonth;
+    currentCalYear = _planYear;
+    navigate('calendar');
+  }
+  // Pre-fill date in the New Date popup
+  const mm = String(_planMonth + 1).padStart(2, '0');
+  const dd = String(_planDay).padStart(2, '0');
+  const dateStr = `${_planYear}-${mm}-${dd}`;
   setTimeout(() => {
     openSheet('date');
-    // Add person to the people field after sheet opens
     setTimeout(() => {
+      // Set the date field
+      const dateInput = document.getElementById('date-day');
+      if (dateInput) dateInput.value = dateStr;
+      const textEl = document.getElementById('date-day-text');
+      if (textEl) textEl.value = `${mm}/${dd}/${String(_planYear).slice(-2)}`;
+      _buildPickerStrip('date');
+      _initPickerStrip('date');
+      // Add person to the people field
       if (personId) {
         _datePeopleEntries['date'] = _datePeopleEntries['date'] || [];
         if (!_datePeopleEntries['date'].some(e => e.id === personId)) {
