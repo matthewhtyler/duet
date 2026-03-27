@@ -669,7 +669,11 @@
         <span></span><span></span><span></span>
       </button>
       <div id="nav-menu-dropdown">
-        <button onclick="exportAllData();closeMenu()" style="border-bottom:none">
+        <button onclick="navigate('ideas');ideasSearch='Random';_ideasRandomPool=null;setTimeout(()=>{const i=document.getElementById('ideas-search-input');if(i)i.value='Random';_renderIdeasBody();},0);closeMenu()" style="border-bottom:none">
+          <svg viewBox="0 0 24 24" width="16" height="16" stroke="#9a8a7a" stroke-width="2" fill="#9a8a7a" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.8" fill="#9a8a7a" stroke="none"/><circle cx="15.5" cy="8.5" r="1.8" fill="#9a8a7a" stroke="none"/><circle cx="8.5" cy="15.5" r="1.8" fill="#9a8a7a" stroke="none"/><circle cx="15.5" cy="15.5" r="1.8" fill="#9a8a7a" stroke="none"/></svg>
+          Random
+        </button>
+        <button onclick="exportAllData();closeMenu()" style="border-top:1px solid var(--border-light);border-bottom:none">
           <svg viewBox="0 0 24 24" width="16" height="16" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
           </svg>
@@ -1663,6 +1667,7 @@
         <select id="editideas-additional-tab" style="font-family:sans-serif;font-size:14px;padding:6px 10px;border:1.5px solid var(--border);border-radius:8px;background:var(--bg-input);color:var(--text-primary);cursor:pointer;width:100%">
           <option value="neighborhood">Neighborhoods</option>
           <option value="cuisine">Cuisines</option>
+          <option value="michelin">Michelin</option>
           <option value="favorites">Favorites</option>
         </select>
       </div>
@@ -2434,6 +2439,7 @@ let sheetOpen = false;
 let ideaType = 'out';
 let ideasFilter = 'all';
 let ideasSearch = '';
+let _ideasRandomPool = null; // persists while ideasSearch === 'random'
 let memoriesSearch = '';
 let calMemSearch = '';      // shared text search between Calendar and Memories
 let calMemPeople = [];      // shared people-pill search [{id, name}]
@@ -3072,7 +3078,7 @@ function navigate(view) {
 function setIdeasFilter(f) {
   // If tapping favs while already on favs, cycle additionalTab: neighborhood → cuisine → favorites
   if (f === 'favs' && ideasFilter === 'favs') {
-    const cycle = ['neighborhood', 'cuisine', 'favorites'];
+    const cycle = ['neighborhood', 'cuisine', 'michelin', 'favorites'];
     const next = cycle[(cycle.indexOf(additionalTab) + 1) % cycle.length];
     additionalTab = next;
     appSettings.additionalTab = additionalTab;
@@ -3985,7 +3991,8 @@ function renderIdeas() {
   const heartSvg = (active) => `<svg viewBox="0 0 24 24" width="13" height="13" stroke="${active?_toggleActiveColor:'#9a8a7a'}" stroke-width="2" fill="${active?_toggleActiveColor:'none'}" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>`;
   const pinSvg = (active) => `<svg viewBox="0 0 24 24" width="13" height="13" stroke="${active?_toggleActiveColor:'#9a8a7a'}" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" fill="${active?_toggleActiveColor:'none'}"/><circle cx="12" cy="10" r="3" fill="${active?_toggleActiveBg:'none'}" stroke="${active?_toggleActiveBg:'#9a8a7a'}"/></svg>`;
   const dinnerSvg = (active) => `<svg viewBox="0 0 24 24" width="13" height="13" stroke="${active?_toggleActiveColor:'#9a8a7a'}" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3zm0 0v7" fill="${active?_toggleActiveColor:'none'}"/></svg>`;
-  const favTabSvg = additionalTab === 'neighborhood' ? pinSvg(ideasFilter==='favs') : additionalTab === 'cuisine' ? dinnerSvg(ideasFilter==='favs') : heartSvg(ideasFilter==='favs');
+  const starSvg = (active) => `<svg viewBox="0 0 24 24" width="13" height="13" stroke="${active?_toggleActiveColor:'#9a8a7a'}" stroke-width="2" fill="${active?_toggleActiveColor:'none'}" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`;
+  const favTabSvg = additionalTab === 'neighborhood' ? pinSvg(ideasFilter==='favs') : additionalTab === 'cuisine' ? dinnerSvg(ideasFilter==='favs') : additionalTab === 'michelin' ? starSvg(ideasFilter==='favs') : heartSvg(ideasFilter==='favs');
   const af = f => `background:${ideasFilter===f?_toggleActiveBg:'transparent'};color:${ideasFilter===f?_toggleActiveColor:'#9a8a7a'};box-shadow:${ideasFilter===f?'0 1px 3px rgba(0,0,0,0.10)':'none'}`;
   const clearBtn = ''; // managed dynamically by _renderIdeasBody
   const controlBar = `<div id="ideas-controlbar" style="display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%">
@@ -3996,8 +4003,8 @@ function renderIdeas() {
       <button data-filter="favs" onclick="setIdeasFilter('favs')" style="padding:4px 10px;border:none;border-radius:18px;font-family:sans-serif;font-size:12px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:4px;${af('favs')}">${favTabSvg}</button>
     </div>
     <div style="display:flex;align-items:center;background:var(--toggle-bg);border-radius:20px;padding:5px 10px;gap:6px;width:160px;flex-shrink:0;margin-left:auto">
-      <svg viewBox="0 0 24 24" width="13" height="13" stroke="#9a8a7a" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-      <input id="ideas-search-input" type="text" value="${q.replace(/"/g,'&quot;')}" oninput="ideasSearch=this.value;_renderIdeasBody()" onkeydown="if(event.key==='Enter'){if(this.value.trim().toLowerCase()==='m'){ideasSearch='Michelin';this.value='Michelin';_renderIdeasBody();}this.blur();event.preventDefault();}" placeholder="" style="border:none;background:transparent;outline:none;font-size:16px;font-family:sans-serif;color:var(--text-primary);width:100%;line-height:1;padding:0;min-width:0">
+      <svg onclick="const _si=document.getElementById('ideas-search-input');if(_si&&!_si.value.trim()){ideasSearch='Random';_si.value='Random';_ideasRandomPool=null;_renderIdeasBody();}" viewBox="0 0 24 24" width="13" height="13" stroke="#9a8a7a" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;cursor:pointer"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input id="ideas-search-input" type="text" value="${q.replace(/"/g,'&quot;')}" oninput="ideasSearch=this.value;if(this.value.trim().toLowerCase()==='random'){ideasSearch='Random';this.value='Random';_ideasRandomPool=null;}_renderIdeasBody()" onkeydown="if(event.key==='Enter'){if(this.value.trim().toLowerCase()==='m'){ideasSearch='Michelin';this.value='Michelin';_renderIdeasBody();}if(this.value.trim().toLowerCase()==='r'||this.value.trim().toLowerCase()==='random'){ideasSearch='Random';this.value='Random';_ideasRandomPool=null;_renderIdeasBody();}this.blur();event.preventDefault();}" placeholder="" style="border:none;background:transparent;outline:none;font-size:16px;font-family:sans-serif;color:var(--text-primary);width:100%;line-height:1;padding:0;min-width:0">
       ${clearBtn}
     </div>
   </div>`;
@@ -4010,7 +4017,7 @@ function renderIdeas() {
     _renderIdeasBody(); // sync x button and active filter states
   }, 0);
     if (isFavFilter) {
-    return `<div id="ideas-body">${additionalTab === 'neighborhood' ? _buildNeighborhoodTabBody() : additionalTab === 'cuisine' ? _buildCuisineTabBody() : _buildCatTabBody()}</div>`;
+    return `<div id="ideas-body">${additionalTab === 'neighborhood' ? _buildNeighborhoodTabBody() : additionalTab === 'cuisine' ? _buildCuisineTabBody() : additionalTab === 'michelin' ? _buildMichelinTabBody() : _buildCatTabBody()}</div>`;
   }
   if (ideasFilter === 'out') {
     return `<div id="ideas-body">${_buildOutTabBody()}</div>`;
@@ -4103,7 +4110,7 @@ function _buildIdeasBody(pool, q, byName, isFavFilter) {
 
   // ── Categories tab (heart button)
   if (isFavFilter) {
-    return additionalTab === 'neighborhood' ? _buildNeighborhoodTabBody() : additionalTab === 'cuisine' ? _buildCuisineTabBody() : _buildCatTabBody();
+    return additionalTab === 'neighborhood' ? _buildNeighborhoodTabBody() : additionalTab === 'cuisine' ? _buildCuisineTabBody() : additionalTab === 'michelin' ? _buildMichelinTabBody() : _buildCatTabBody();
   }
 
   // ── All / Out / In view: Featured carousel + grouped by category
@@ -4173,22 +4180,28 @@ function _buildIdeasBody(pool, q, byName, isFavFilter) {
     <span style="font-size:14px;font-style:italic;color:${ROSE};cursor:pointer" onclick="incompleteMode=false;appSettings.incompleteMode=false;saveSettings(appSettings);_renderIdeasBody()">Turn incomplete mode off ›</span>
   </div>`;
 
-  let sectionsHtml = '';
-  if (outIdeas.length) {
+  const _allIdeasPool = [...outIdeas, ...inIdeas];
+  const _allIdeasFinal = _ideasRandomApply(_allIdeasPool);
+  const _finalOut = _allIdeasFinal.filter(i => i.type !== 'in');
+  const _finalIn  = _allIdeasFinal.filter(i => i.type === 'in');
+  const _allDiceHdr = _ideasIsRandom() ? _ideasRandomHeader() : '';
+
+  let sectionsHtml = _allDiceHdr;
+  if (_finalOut.length) {
     const outLabel = _isIncompleteMode ? 'Incomplete' : 'Going Out';
     const outCards = _isIncompleteMode
-      ? outIdeas.map(i => incompleteSmallCard(i)).join('')
-      : outIdeas.map(i => smallCard(i, accentColor('out'), 'out')).join('');
+      ? _finalOut.map(i => incompleteSmallCard(i)).join('')
+      : _finalOut.map(i => smallCard(i, accentColor('out'), 'out')).join('');
     sectionsHtml += `<div style="margin-bottom:20px">
       <div class="section-label" style="margin-bottom:8px;color:#9a8a7a">${outLabel}</div>
       <div style="display:flex;flex-direction:column;gap:8px">${outCards}</div>
       ${_isIncompleteMode ? turnOffLink : ''}
     </div>`;
   }
-  if (inIdeas.length) {
+  if (_finalIn.length) {
     sectionsHtml += `<div style="margin-bottom:20px">
       <div class="section-label" style="margin-bottom:8px;color:#9a8a7a">Staying In</div>
-      <div style="display:flex;flex-direction:column;gap:8px">${inIdeas.map(i => smallCard(i, accentColor('in'), 'in')).join('')}</div>
+      <div style="display:flex;flex-direction:column;gap:8px">${_finalIn.map(i => smallCard(i, accentColor('in'), 'in')).join('')}</div>
     </div>`;
   }
 
@@ -4198,12 +4211,13 @@ function _buildIdeasBody(pool, q, byName, isFavFilter) {
 // ── Categories Tab builder (used when ideasFilter === 'favs')
 function _buildCatTabBody() {
   const q = (ideasSearch || '').trim();
+  const _qB = q.toLowerCase() === 'random' ? '' : q;
   const isDark = document.body.classList.contains('dark-mode');
   const pillActiveColor = isDark ? '#c07a8a' : BURGUNDY;
   const pillInactiveColor = '#9a8a7a';
 
   // All favorites only
-  const allFavs = ideas.filter(i => !i.archived && !_isHiddenPrivate(i) && i.saved && ideaMatchesSearch(i, q)).sort(byName);
+  const allFavs = ideas.filter(i => !i.archived && !_isHiddenPrivate(i) && i.saved && ideaMatchesSearch(i, _qB)).sort(byName);
   const outFavs = allFavs.filter(i => i.type === 'out');
   const inFavs  = allFavs.filter(i => i.type === 'in');
 
@@ -4271,27 +4285,31 @@ function _buildCatTabBody() {
     </div>`;
   }
 
-  let contentHtml = '';
+  const _catDiceHdr = _ideasIsRandom() ? _ideasRandomHeader() : '';
+  let contentHtml = _catDiceHdr;
 
   if (!allFavs.length) {
-    contentHtml = `<div style="color:#b0a090;font-size:15px;font-style:italic;text-align:center;padding:40px 0">No favorites yet.</div>`;
+    contentHtml += `<div style="color:#b0a090;font-size:15px;font-style:italic;text-align:center;padding:40px 0">No favorites yet.</div>`;
   } else if (catTabFilter === 'all') {
-    // Out favs grouped by category in OUT_CATS order, then flat Staying In
+    const _catFinal = _ideasRandomApply(allFavs);
+    const _catOutF = _catFinal.filter(i => i.type !== 'in');
+    const _catInF = _catFinal.filter(i => i.type === 'in');
     const map = new Map();
-    outFavs.forEach(i => { const cid = i.category||'other'; if(!map.has(cid)) map.set(cid,[]); map.get(cid).push(i); });
+    _catOutF.forEach(i => { const cid = i.category||'other'; if(!map.has(cid)) map.set(cid,[]); map.get(cid).push(i); });
     OUT_CATS.forEach(c => { if (map.has(c.id)) { contentHtml += catSection(c.id, map.get(c.id), 'out'); map.delete(c.id); } });
     map.forEach((its, cid) => { contentHtml += catSection(cid, its, 'out'); });
-    if (inFavs.length) {
-      contentHtml += `<div style="margin-bottom:20px"><div class="section-label" style="margin-bottom:8px;color:#9a8a7a">Staying In</div><div style="display:flex;flex-direction:column;gap:8px">${inFavs.map(smallCard).join('')}</div></div>`;
+    if (_catInF.length) {
+      contentHtml += `<div style="margin-bottom:20px"><div class="section-label" style="margin-bottom:8px;color:#9a8a7a">Staying In</div><div style="display:flex;flex-direction:column;gap:8px">${_catInF.map(smallCard).join('')}</div></div>`;
     }
   } else if (catTabFilter === '_in') {
-    contentHtml = `<div style="margin-bottom:20px"><div class="section-label" style="margin-bottom:8px;color:#9a8a7a">Staying In</div><div style="display:flex;flex-direction:column;gap:8px">${inFavs.map(smallCard).join('')}</div></div>`;
+    const _inFavsFinal = _ideasRandomApply(inFavs);
+    contentHtml += `<div style="margin-bottom:20px"><div class="section-label" style="margin-bottom:8px;color:#9a8a7a">Staying In</div><div style="display:flex;flex-direction:column;gap:8px">${_inFavsFinal.map(smallCard).join('')}</div></div>`;
   } else {
-    // Single out category
-    const items = outFavs.filter(i => (i.category||'other') === catTabFilter).sort(byName);
+    const _rawCatItems = outFavs.filter(i => (i.category||'other') === catTabFilter);
+    const _catItemsFinal = _ideasRandomApply(_rawCatItems);
     const label = catLabelForId(catTabFilter, 'out');
-    contentHtml = items.length
-      ? `<div style="margin-bottom:20px"><div class="section-label" style="margin-bottom:8px">${label}</div><div style="display:flex;flex-direction:column;gap:8px">${items.map(smallCard).join('')}</div></div>`
+    contentHtml += _catItemsFinal.length
+      ? `<div style="margin-bottom:20px"><div class="section-label" style="margin-bottom:8px">${label}</div><div style="display:flex;flex-direction:column;gap:8px">${_catItemsFinal.map(smallCard).join('')}</div></div>`
       : `<div style="color:#b0a090;font-size:15px;font-style:italic;text-align:center;padding:40px 0">No favorites in this category.</div>`;
   }
 
@@ -4301,11 +4319,12 @@ function _buildCatTabBody() {
 // ── Neighborhood Tab builder — groups ALL ideas by neighborhood
 function _buildNeighborhoodTabBody() {
   const q = (ideasSearch || '').trim();
+  const _qB = q.toLowerCase() === 'random' ? '' : q;
   const isDark = document.body.classList.contains('dark-mode');
   const pillActiveColor = isDark ? '#c07a8a' : BURGUNDY;
   const pillInactiveColor = '#9a8a7a';
 
-  const allIdeas = ideas.filter(i => !i.archived && !_isHiddenPrivate(i) && i.type !== 'in' && ideaMatchesSearch(i, q));
+  const allIdeas = ideas.filter(i => !i.archived && !_isHiddenPrivate(i) && i.type !== 'in' && ideaMatchesSearch(i, _qB));
 
   // Build neighborhood map — key is neighborhood string or '_unknown'
   const neighMap = new Map();
@@ -4372,21 +4391,27 @@ function _buildNeighborhoodTabBody() {
     const label = key === '_unknown' ? 'Unknown' : key;
     return `<div style="margin-bottom:20px">
       <div class="section-label" style="margin-bottom:8px">${label}</div>
-      <div style="display:flex;flex-direction:column;gap:8px">${items.sort(byName).map(smallCard).join('')}</div>
+      <div style="display:flex;flex-direction:column;gap:8px">${_rSort(items).map(smallCard).join('')}</div>
     </div>`;
   }
 
+  const _neighDiceHdr = _ideasIsRandom() ? _ideasRandomHeader() : '';
   let contentHtml = '';
   if (!allIdeas.length) {
     contentHtml = `<div style="color:#b0a090;font-size:15px;font-style:italic;text-align:center;padding:40px 0">No ideas yet.</div>`;
   } else if (neighTabFilter === 'all') {
-    knownNeighs.forEach(n => { contentHtml += neighSection(n, neighMap.get(n)); });
-    if (hasUnknown) contentHtml += neighSection('_unknown', neighMap.get('_unknown'));
+    const _neighFinal = _ideasRandomApply(allIdeas);
+    contentHtml = _neighDiceHdr;
+    const _nfMap = new Map();
+    _neighFinal.forEach(i => { const k=(i.neighborhood||'').trim()||'_unknown'; if(!_nfMap.has(k))_nfMap.set(k,[]); _nfMap.get(k).push(i); });
+    knownNeighs.forEach(n => { if(_nfMap.has(n)) contentHtml += neighSection(n, _nfMap.get(n)); });
+    if (_nfMap.has('_unknown')) contentHtml += neighSection('_unknown', _nfMap.get('_unknown'));
   } else {
-    const items = neighMap.get(neighTabFilter) || [];
-    contentHtml = items.length
-      ? neighSection(neighTabFilter, items)
-      : `<div style="color:#b0a090;font-size:15px;font-style:italic;text-align:center;padding:40px 0">No ideas in this neighborhood.</div>`;
+    const _rawItems = neighMap.get(neighTabFilter) || [];
+    const _neighFinal2 = _ideasRandomApply(_rawItems);
+    contentHtml = _neighDiceHdr + (_neighFinal2.length
+      ? neighSection(neighTabFilter, _neighFinal2)
+      : `<div style="color:#b0a090;font-size:15px;font-style:italic;text-align:center;padding:40px 0">No ideas in this neighborhood.</div>`);
   }
 
   return `${stripHtml}<div style="padding:12px 20px 80px">${contentHtml}</div>`;
@@ -4409,6 +4434,7 @@ function setCuisineTabFilter(f) {
 
 function _buildCuisineTabBody() {
   const q = (ideasSearch || '').trim();
+  const _qB = q.toLowerCase() === 'random' ? '' : q;
   const isDark = document.body.classList.contains('dark-mode');
   const pillActiveColor = isDark ? '#c07a8a' : BURGUNDY;
   const pillInactiveColor = '#9a8a7a';
@@ -4416,7 +4442,7 @@ function _buildCuisineTabBody() {
   // Restaurants + cafes with a cuisine
   const allIdeas = ideas.filter(i => {
     if (i.archived || _isHiddenPrivate(i)) return false;
-    if (!ideaMatchesSearch(i, q)) return false;
+    if (!ideaMatchesSearch(i, _qB)) return false;
     const cat = (i.category || '').toLowerCase();
     const isRestaurant = cat === 'restaurant';
     const isCafeWithCuisine = cat === 'cafe' && (i.cuisine || '').trim();
@@ -4485,21 +4511,128 @@ function _buildCuisineTabBody() {
     const label = key === '_unknown' ? 'Unknown' : key;
     return `<div style="margin-bottom:20px">
       <div class="section-label" style="margin-bottom:8px">${label}</div>
-      <div style="display:flex;flex-direction:column;gap:8px">${items.sort(byName).map(smallCard).join('')}</div>
+      <div style="display:flex;flex-direction:column;gap:8px">${_rSort(items).map(smallCard).join('')}</div>
     </div>`;
   }
 
+  const _cuisDiceHdr = _ideasIsRandom() ? _ideasRandomHeader() : '';
   let contentHtml = '';
   if (!allIdeas.length) {
     contentHtml = `<div style="color:#b0a090;font-size:15px;font-style:italic;text-align:center;padding:40px 0">No restaurants or cafes yet.</div>`;
   } else if (cuisineTabFilter === 'all') {
-    knownCuisines.forEach(c => { contentHtml += cuisineSection(c, cuisineMap.get(c)); });
-    if (hasUnknown) contentHtml += cuisineSection('_unknown', cuisineMap.get('_unknown'));
+    const _cuisFinal = _ideasRandomApply(allIdeas);
+    contentHtml = _cuisDiceHdr;
+    const _cfMap = new Map();
+    _cuisFinal.forEach(i => { const k=(i.cuisine||'').trim()||'_unknown'; if(!_cfMap.has(k))_cfMap.set(k,[]); _cfMap.get(k).push(i); });
+    knownCuisines.forEach(c => { if(_cfMap.has(c)) contentHtml += cuisineSection(c, _cfMap.get(c)); });
+    if (_cfMap.has('_unknown')) contentHtml += cuisineSection('_unknown', _cfMap.get('_unknown'));
   } else {
-    const items = cuisineMap.get(cuisineTabFilter) || [];
-    contentHtml = items.length
-      ? cuisineSection(cuisineTabFilter, items)
-      : `<div style="color:#b0a090;font-size:15px;font-style:italic;text-align:center;padding:40px 0">No ideas with this cuisine.</div>`;
+    const _rawCuis = cuisineMap.get(cuisineTabFilter) || [];
+    const _cuisFinal2 = _ideasRandomApply(_rawCuis);
+    contentHtml = _cuisDiceHdr + (_cuisFinal2.length
+      ? cuisineSection(cuisineTabFilter, _cuisFinal2)
+      : `<div style="color:#b0a090;font-size:15px;font-style:italic;text-align:center;padding:40px 0">No ideas with this cuisine.</div>`);
+  }
+
+  return `${stripHtml}<div style="padding:12px 20px 80px">${contentHtml}</div>`;
+}
+
+function _buildMichelinTabBody() {
+  const q = (ideasSearch || '').trim();
+  const _qM = q.toLowerCase() === 'random' ? '' : q;
+  const isDark = document.body.classList.contains('dark-mode');
+  const pillActiveColor = isDark ? '#c07a8a' : BURGUNDY;
+  const pillInactiveColor = '#9a8a7a';
+
+  // Michelin ideas: any idea with 'michelin' in shortdesc, about, or note
+  const allIdeas = ideas.filter(i => {
+    if (i.archived || _isHiddenPrivate(i)) return false;
+    if (!ideaMatchesSearch(i, _qM)) return false;
+    return _isMichelinIdea(i);
+  });
+
+  // Group by cuisine (same as cuisine tab)
+  const cuisineMap = new Map();
+  allIdeas.forEach(i => {
+    const c = (i.cuisine || '').trim();
+    const key = c ? c : '_unknown';
+    if (!cuisineMap.has(key)) cuisineMap.set(key, []);
+    cuisineMap.get(key).push(i);
+  });
+
+  const knownCuisines = [...cuisineMap.keys()].filter(k => k !== '_unknown').sort((a, b) => a.localeCompare(b));
+  const hasUnknown = cuisineMap.has('_unknown');
+
+  const validIds = new Set(['all', ...knownCuisines, ...(hasUnknown ? ['_unknown'] : [])]);
+  if (!validIds.has(cuisineTabFilter)) cuisineTabFilter = 'all';
+
+  const pills = [
+    { id: 'all', label: 'All' },
+    ...knownCuisines.map(c => ({ id: c, label: c })),
+    ...(hasUnknown ? [{ id: '_unknown', label: 'Unknown' }] : []),
+  ];
+
+  function pillHtml(p) {
+    const active = cuisineTabFilter === p.id;
+    const color = active ? pillActiveColor : pillInactiveColor;
+    const fw = active ? '700' : '500';
+    return `<button class="${active ? 'cuisine-pill-active' : ''}" onclick="setCuisineTabFilter('${p.id.replace(/'/g, "\\'")}')" style="display:flex;align-items:center;gap:5px;white-space:nowrap;background:none;border:none;cursor:pointer;padding:6px 4px;font-family:sans-serif;font-size:13px;font-weight:${fw};color:${color};flex-shrink:0;line-height:1">${p.label}</button>`;
+  }
+
+  const stripHtml = pills.length > 1
+    ? `<div id="cuisine-tab-strip" style="display:flex;align-items:center;gap:10px;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none;-webkit-overflow-scrolling:touch;padding:0 20px 10px;border-bottom:1px solid var(--border)">${pills.map(pillHtml).join('<span style="color:var(--border);font-size:16px;flex-shrink:0">·</span>')}</div>`
+    : '';
+
+  function smallCard(item) {
+    const sub = itemSubLine(item);
+    const ac = accentColor(item.type);
+    const _subColor = subColor(item.type);
+    const urls = getImageUrls(item);
+    const imgPanel = urls.length
+      ? `<div style="width:120px;flex-shrink:0;margin:-12px -14px -12px 0;border-left:1px solid var(--img-sep);border-radius:0 14px 14px 0;overflow:hidden;align-self:stretch;background:#6b2340;position:relative"><img src="${urls[0]}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center;display:block" onerror="this.parentNode.style.background='#6b2340';this.style.display='none'"></div>`
+      : '';
+    const hasDate = !!_nextUpcomingDateForIdea(item);
+    const calIcon = hasDate ? `<svg viewBox="0 0 24 24" width="12" height="12" stroke="${ac}" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-left:4px"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>` : '';
+    const subLine = sub
+      ? `<div class="quick-row-sub" style="display:flex;align-items:center;color:${_subColor}">${_isMichelinIdea(item) ? _michelinStarSvg : ''}${sub}${calIcon}</div>`
+      : (hasDate ? `<div class="quick-row-sub" style="display:flex;align-items:center">${calIcon}</div>` : '');
+    return `<div class="quick-row" onclick="openDetail(${item.id},'out')" style="cursor:pointer;overflow:hidden">
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;align-items:center;gap:7px;margin-bottom:${subLine?'4px':'0'}">
+          ${ideaIcon(item, 14, ac)}
+          <div class="quick-row-name">${item.name}</div>
+        </div>
+        ${subLine}
+      </div>
+      ${imgPanel}
+    </div>`;
+  }
+
+  function cuisineSection(key, items) {
+    const label = key === '_unknown' ? 'Unknown' : key;
+    return `<div style="margin-bottom:20px">
+      <div class="section-label" style="margin-bottom:8px">${label}</div>
+      <div style="display:flex;flex-direction:column;gap:8px">${_rSort(items).map(smallCard).join('')}</div>
+    </div>`;
+  }
+
+  const _micDiceHdr = _ideasIsRandom() ? _ideasRandomHeader() : '';
+  let contentHtml = '';
+  if (!allIdeas.length) {
+    contentHtml = `<div style="color:#b0a090;font-size:15px;font-style:italic;text-align:center;padding:40px 0">No Michelin ideas yet.</div>`;
+  } else if (cuisineTabFilter === 'all') {
+    const _micFinal = _ideasRandomApply(allIdeas);
+    contentHtml = _micDiceHdr;
+    const _mfMap = new Map();
+    _micFinal.forEach(i => { const k=(i.cuisine||'').trim()||'_unknown'; if(!_mfMap.has(k))_mfMap.set(k,[]); _mfMap.get(k).push(i); });
+    knownCuisines.forEach(c => { if(_mfMap.has(c)) contentHtml += cuisineSection(c, _mfMap.get(c)); });
+    if (_mfMap.has('_unknown')) contentHtml += cuisineSection('_unknown', _mfMap.get('_unknown'));
+  } else {
+    const _rawMic = cuisineMap.get(cuisineTabFilter) || [];
+    const _micFinal2 = _ideasRandomApply(_rawMic);
+    contentHtml = _micDiceHdr + (_micFinal2.length
+      ? cuisineSection(cuisineTabFilter, _micFinal2)
+      : `<div style="color:#b0a090;font-size:15px;font-style:italic;text-align:center;padding:40px 0">No Michelin ideas with this cuisine.</div>`);
   }
 
   return `${stripHtml}<div style="padding:12px 20px 80px">${contentHtml}</div>`;
@@ -4507,6 +4640,7 @@ function _buildCuisineTabBody() {
 
 function _buildOutTabBody() {
   const q = (ideasSearch || '').trim();
+  const _qOut = q.toLowerCase() === 'random' ? '' : q;
   const isDark = document.body.classList.contains('dark-mode');
   const pillActiveColor = isDark ? '#c07a8a' : BURGUNDY;
   const pillInactiveColor = '#9a8a7a';
@@ -4536,7 +4670,7 @@ function _buildOutTabBody() {
 
   const stripHtml = `<div id="out-tab-strip" style="display:flex;align-items:center;gap:10px;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none;-webkit-overflow-scrolling:touch;padding:0 20px 10px;border-bottom:1px solid var(--border)">${pills.map(pillHtml).join('<span style="color:var(--border);font-size:16px;flex-shrink:0">·</span>')}</div>`;
 
-  const allOut = ideas.filter(i => !i.archived && !_isHiddenPrivate(i) && i.type === 'out' && ideaMatchesSearch(i, q)).sort(byName);
+  const allOut = ideas.filter(i => !i.archived && !_isHiddenPrivate(i) && i.type === 'out' && ideaMatchesSearch(i, _qOut)).sort(byName);
 
   function smallCard(item) {
     const sub = itemSubLine(item);
@@ -4579,17 +4713,20 @@ function _buildOutTabBody() {
     return html;
   }
 
+  const _outDiceHdr = _ideasIsRandom() ? _ideasRandomHeader() : '';
   let contentHtml = '';
   if (!allOut.length) {
     contentHtml = `<div style="color:#b0a090;font-size:15px;font-style:italic;text-align:center;padding:40px 0">No ideas yet.</div>`;
   } else if (outTabFilter === 'all') {
-    contentHtml = orderedSections(allOut);
+    const _outFinal = _ideasRandomApply(allOut);
+    contentHtml = _outDiceHdr + orderedSections(_outFinal);
   } else {
-    const items = allOut.filter(i => (i.category||'other') === outTabFilter);
+    const _catItems = allOut.filter(i => (i.category||'other') === outTabFilter);
+    const _outFinal = _ideasRandomApply(_catItems);
     const label = catLabelForId(outTabFilter, 'out');
-    contentHtml = items.length
-      ? `<div style="margin-bottom:20px"><div class="section-label" style="margin-bottom:8px">${label}</div><div style="display:flex;flex-direction:column;gap:8px">${items.map(smallCard).join('')}</div></div>`
-      : `<div style="color:#b0a090;font-size:15px;font-style:italic;text-align:center;padding:40px 0">No ideas in this category.</div>`;
+    contentHtml = _outDiceHdr + (_outFinal.length
+      ? `<div style="margin-bottom:20px"><div class="section-label" style="margin-bottom:8px">${label}</div><div style="display:flex;flex-direction:column;gap:8px">${_outFinal.map(smallCard).join('')}</div></div>`
+      : `<div style="color:#b0a090;font-size:15px;font-style:italic;text-align:center;padding:40px 0">No ideas in this category.</div>`);
   }
 
   return `${stripHtml}<div style="padding:12px 20px 80px">${contentHtml}</div>`;
@@ -4598,6 +4735,7 @@ function _buildOutTabBody() {
 // ── In Tab builder — pill strip of selected In categories + category-grouped content
 function _buildInTabBody() {
   const q = (ideasSearch || '').trim();
+  const _qIn = q.toLowerCase() === 'random' ? '' : q;
   const isDark = document.body.classList.contains('dark-mode');
   const pillActiveColor = isDark ? '#c07a8a' : BURGUNDY;
   const pillInactiveColor = '#9a8a7a';
@@ -4624,7 +4762,7 @@ function _buildInTabBody() {
 
   const stripHtml = `<div id="in-tab-strip" style="display:flex;align-items:center;gap:10px;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none;-webkit-overflow-scrolling:touch;padding:0 20px 10px;border-bottom:1px solid var(--border)">${pills.map(pillHtml).join('<span style="color:var(--border);font-size:16px;flex-shrink:0">·</span>')}</div>`;
 
-  const allIn = ideas.filter(i => !i.archived && !_isHiddenPrivate(i) && i.type === 'in' && ideaMatchesSearch(i, q)).sort(byName);
+  const allIn = ideas.filter(i => !i.archived && !_isHiddenPrivate(i) && i.type === 'in' && ideaMatchesSearch(i, _qIn)).sort(byName);
 
   function smallCard(item) {
     const sub = itemSubLine(item);
@@ -4667,27 +4805,57 @@ function _buildInTabBody() {
     return html;
   }
 
+  const _inDiceHdr = _ideasIsRandom() ? _ideasRandomHeader() : '';
   let contentHtml = '';
   if (!allIn.length) {
     contentHtml = `<div style="color:#b0a090;font-size:15px;font-style:italic;text-align:center;padding:40px 0">No ideas yet.</div>`;
   } else if (inTabFilter === 'all') {
-    contentHtml = orderedSections(allIn);
+    const _inFinal = _ideasRandomApply(allIn);
+    contentHtml = _inDiceHdr + orderedSections(_inFinal);
   } else {
-    const items = allIn.filter(i => (i.category||'otherin') === inTabFilter);
+    const _catItemsIn = allIn.filter(i => (i.category||'otherin') === inTabFilter);
+    const _inFinal = _ideasRandomApply(_catItemsIn);
     const label = catLabelForId(inTabFilter, 'in');
-    contentHtml = items.length
-      ? `<div style="margin-bottom:20px"><div class="section-label" style="margin-bottom:8px">${label}</div><div style="display:flex;flex-direction:column;gap:8px">${items.map(smallCard).join('')}</div></div>`
-      : `<div style="color:#b0a090;font-size:15px;font-style:italic;text-align:center;padding:40px 0">No ideas in this category.</div>`;
+    contentHtml = _inDiceHdr + (_inFinal.length
+      ? `<div style="margin-bottom:20px"><div class="section-label" style="margin-bottom:8px">${label}</div><div style="display:flex;flex-direction:column;gap:8px">${_inFinal.map(smallCard).join('')}</div></div>`
+      : `<div style="color:#b0a090;font-size:15px;font-style:italic;text-align:center;padding:40px 0">No ideas in this category.</div>`);
   }
 
   return `${stripHtml}<div style="padding:12px 20px 80px">${contentHtml}</div>`;
 }
 
+// Random mode helpers
+function _ideasIsRandom() {
+  return (ideasSearch || '').trim().toLowerCase() === 'random';
+}
+function _ideasRandomApply(items) {
+  if (!_ideasIsRandom()) return items;
+  if (!items.length) return items;
+  // Compute a key for this exact pool of items
+  const poolKey = items.map(i => i.id).sort().join(',');
+  if (!_ideasRandomPool || _ideasRandomPool._key !== poolKey) {
+    const shuffled = items.slice().sort(() => Math.random() - 0.5);
+    const picked = shuffled.slice(0, Math.min(5, shuffled.length));
+    _ideasRandomPool = { _key: poolKey, ids: picked.map(i => i.id) };
+  }
+  return _ideasRandomPool.ids.map(id => items.find(i => i.id === id)).filter(Boolean);
+}
+function _rSort(items) {
+  return _ideasIsRandom() ? items.slice().sort(() => Math.random() - 0.5) : items.slice().sort(byName);
+}
+
+function _ideasRandomHeader() {
+  return `<div style="display:flex;justify-content:center;padding:18px 0 16px;cursor:pointer" onclick="_ideasRandomPool=null;_renderIdeasBody()">${ICONS.game(20,'#9a8a7a')}</div>`;
+}
+
 // Called on keystrokes and filter changes — re-renders body + updates controlbar toggle styles
 function _renderIdeasBody() {
   const q = (ideasSearch || '').trim();
+  const isRandom = q.toLowerCase() === 'random';
+  const _q = isRandom ? '' : q; // don't filter by "random" text
+
   const isFavFilter = ideasFilter === 'favs';
-  let pool = ideas.filter(i => !_isHiddenPrivate(i) && !i.archived && ideaMatchesSearch(i, q));
+  let pool = ideas.filter(i => !_isHiddenPrivate(i) && !i.archived && ideaMatchesSearch(i, _q));
   if (ideasFilter === 'out')  pool = pool.filter(i => i.type === 'out');
   if (ideasFilter === 'in')   pool = pool.filter(i => i.type === 'in');
   if (ideasFilter === 'favs') pool = pool.filter(i => i.saved);
@@ -4730,7 +4898,7 @@ function _renderIdeasBody() {
   }
 
   const body = document.getElementById('ideas-body');
-  if (body) body.innerHTML = isFavFilter ? (additionalTab === 'neighborhood' ? _buildNeighborhoodTabBody() : additionalTab === 'cuisine' ? _buildCuisineTabBody() : _buildCatTabBody()) : ideasFilter === 'out' ? _buildOutTabBody() : ideasFilter === 'in' ? _buildInTabBody() : _buildIdeasBody(pool, q, byName, isFavFilter);
+  if (body) body.innerHTML = isFavFilter ? (additionalTab === 'neighborhood' ? _buildNeighborhoodTabBody() : additionalTab === 'cuisine' ? _buildCuisineTabBody() : additionalTab === 'michelin' ? _buildMichelinTabBody() : _buildCatTabBody()) : ideasFilter === 'out' ? _buildOutTabBody() : ideasFilter === 'in' ? _buildInTabBody() : _buildIdeasBody(pool, q, byName, isFavFilter);
 }
 
 // scrollFavs: scrolls the favorites list by showing next/prev card
@@ -4909,6 +5077,7 @@ function _initHomeCarousel() {
 
 function clearIdeasSearch() {
   ideasSearch = '';
+  _ideasRandomPool = null;
   const inp = document.getElementById('ideas-search-input');
   if (inp) inp.value = '';
   _renderIdeasBody();
@@ -12692,6 +12861,9 @@ document.addEventListener('click', function(e) {
   if (wrap && !wrap.contains(e.target)) closeMenu();
 });
 
+// Prevent Claude desktop app from intercepting clicks and opening the file as "Content"
+document.addEventListener('click', function(e) { e.preventDefault(); }, true);
+
 async function exportAllData() {
   const data = {
     exportedAt: new Date().toISOString(),
@@ -15996,8 +16168,8 @@ function _buildBirthdayCardHtml(r, ctx) {
   const BROWN = '#9a8a7a';
   const cakeIcon = _birthdayCakeSvg(14, ROSE);
   const clickFn = ctx === 'home'
-    ? `_bdCardClickHome('${p.id}',${month0},${dayNum},${yr})`
-    : `_bdCardClickCal('${p.id}',${month0},${dayNum},${yr})`;
+    ? `event.stopPropagation();_bdCardClickHome('${p.id}',${month0},${dayNum},${yr})`
+    : `event.stopPropagation();_bdCardClickCal('${p.id}',${month0},${dayNum},${yr})`;
   return `
     <div class="upcoming-item" data-bd-person-id="${p.id}" data-bd-month="${month0}" data-bd-day="${dayNum}" onclick="${clickFn}" style="cursor:pointer">
       <div class="upcoming-date-badge">
