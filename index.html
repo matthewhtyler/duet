@@ -6791,7 +6791,7 @@ function renderCalendar() {
     const _isPeopleMode = _calDatesDisplay === 'people';
     const _isIconsMode = _calDatesDisplay === 'icons';
     const _hasIconForCell = _isIconsMode && UPCOMING_DATES.some(u => { const _um = MONTH_NUMS[u.month] ?? 0; return u.day === d && (u.year||currentCalYear) === currentCalYear && _um === currentCalMonth && !_isDateHiddenPrivate(u); });
-    const cls = (isSelected ? 'cal-day selected' : isToday ? 'cal-day today' : (isPastDay && _calDimPastDays ? 'cal-day dim-past' : 'cal-day')) + (_isPeopleMode ? ' cal-day-people' : _hasIconForCell ? ' cal-day-icons' : '');
+    const cls = (isSelected ? 'cal-day selected' : isToday ? 'cal-day today' : (isPastDay && _calDimPastDays ? 'cal-day dim-past' : 'cal-day')) + (_isPeopleMode ? ' cal-day-people' : _isIconsMode ? ' cal-day-icons' : '');
     const _isSearchingCal2 = !!(calMemSearch || calMemPeople.length);
     const dotClass = isSelected ? 'cal-dot selected' : isDimmed ? 'cal-dot dim' : isPastDay ? (_isSearchingCal2 ? 'cal-dot past-match' : 'cal-dot past') : 'cal-dot';
     const _cellDatesForDay = (_calDatesDisplay !== 'dots' && (isMarked || (isDimmed && _calDatesDisplay === 'icons')) && (!isPastDay || _calDatesDisplay === 'icons'))
@@ -7379,7 +7379,7 @@ function _calRenderWithoutSlides() {
   // Run post-render calendar inits (no _syncSlidesToSelectedDay — preserve current slide position)
   setTimeout(() => {
     _initCalSwipe(); _initCalDayCards(); _initCalInfoScroll(); _initCalInfoHeaderSwipe(); _updateCalCompactArrows();
-    _applyBirthdayDots(); _applyBirthdayDotsWeek();
+    _applyBirthdayDots(); _applyBirthdayDotsWeek(); _applyBdCardHighlight();
     // Restore slide scroll positions after DOM is ready
     const _c = document.getElementById('home-dates-carousel');
     if (_c && _carouselScrollLeft > 0) {
@@ -15584,7 +15584,7 @@ function _applyBirthdayDots() {
       const _bdDisplay = (() => { const _cs = calScreenConfig.find(s => s.id === 'calendar'); return _cs ? (_cs.datesDisplay || 'dots') : 'dots'; })();
       dot.className = 'cal-bday-dot';
       if (_bdDisplay === 'icons') {
-        dot.style.cssText = 'position:absolute;bottom:2px;left:0;right:0;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:2';
+        dot.style.cssText = 'position:absolute;bottom:3px;left:50%;transform:translateX(-50%);width:12px;height:12px;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:2;overflow:hidden';
         dot.innerHTML = _birthdayCakeSvg(10, _bdayColor);
       } else {
         dot.style.cssText = 'position:absolute;bottom:3px;left:50%;transform:translateX(-50%);width:5px;height:5px;border-radius:50%;background:' + _bdayColor + ';cursor:pointer;z-index:2';
@@ -15902,15 +15902,36 @@ function _bdCardClickHome(personId, month0, dayNum, yr) {
   navigate('calendar');
 }
 
-// After render, outline the pending birthday card in rose and clear the flag
+// After render, outline the correct birthday card in rose.
+// If _calPendingBdPersonId is set (user tapped a birthday card), highlight that person.
+// Otherwise, if the selected day has a birthday card in the upcoming list and no scheduled
+// date is already highlighted, auto-highlight the birthday card.
 function _applyBdCardHighlight() {
   const pid = window._calPendingBdPersonId;
-  if (!pid) return;
-  // Find the birthday card in #cal-upcoming
+  if (pid) {
+    document.querySelectorAll('#cal-upcoming .upcoming-item[data-bd-person-id]').forEach(el => {
+      el.style.borderColor = el.dataset.bdPersonId === pid ? ROSE : '';
+    });
+    window._calPendingBdPersonId = null;
+    return;
+  }
+  // Auto-highlight: if the selected day has a birthday card and no scheduled date card
+  // is already outlined in rose, highlight the birthday card
+  if (!selectedCalDay) return;
+  const monthAbbr = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][currentCalMonth];
+  const hasScheduledDate = UPCOMING_DATES.some(u =>
+    u.day === selectedCalDay && u.month === monthAbbr &&
+    (u.year||2026) === currentCalYear && !_isDateHiddenPrivate(u)
+  );
+  if (hasScheduledDate) return; // scheduled date card already gets rose border
+  // Find birthday cards on this day in the upcoming list
   document.querySelectorAll('#cal-upcoming .upcoming-item[data-bd-person-id]').forEach(el => {
-    el.style.borderColor = el.dataset.bdPersonId === pid ? ROSE : '';
+    const bdMonth = parseInt(el.dataset.bdMonth);
+    const bdDay = parseInt(el.dataset.bdDay);
+    if (bdDay === selectedCalDay && bdMonth === currentCalMonth) {
+      el.style.borderColor = ROSE;
+    }
   });
-  window._calPendingBdPersonId = null;
 }
 
 // ── Edit Person favorite toggle ───────────────────────
