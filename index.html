@@ -4049,7 +4049,7 @@ function _buildIdeasBody(pool, q, byName, isFavFilter) {
     const subLine = sub
       ? `<div class="quick-row-sub" style="display:flex;align-items:center;color:${_subColor}">${_isMichelinIdea(item) ? _michelinStarSvg : ''}${sub}${calIcon}</div>`
       : (hasDate ? `<div class="quick-row-sub" style="display:flex;align-items:center">${calIcon}</div>` : '');
-    return `<div class="quick-row" onclick="openDetail(${item.id},'${navCtx}')" style="cursor:pointer;overflow:hidden">
+    return `<div class="quick-row" data-idea-id="${item.id}" onclick="openDetail(${item.id},'${navCtx}')" style="cursor:pointer;overflow:hidden">
       <div style="flex:1;min-width:0">
         <div style="display:flex;align-items:center;gap:7px;margin-bottom:${subLine?'4px':'0'}">
           ${ideaIcon(item, 14, accent)}
@@ -4265,7 +4265,7 @@ function _buildCatTabBody() {
     const subLine = sub
       ? `<div class="quick-row-sub" style="display:flex;align-items:center;color:${_subColor}">${_isMichelinIdea(item) ? _michelinStarSvg : ''}${sub}${calIcon}</div>`
       : (hasDate ? `<div class="quick-row-sub" style="display:flex;align-items:center">${calIcon}</div>` : '');
-    return `<div class="quick-row" onclick="openDetail(${item.id},'${navCtx}')" style="cursor:pointer;overflow:hidden">
+    return `<div class="quick-row" data-idea-id="${item.id}" onclick="openDetail(${item.id},'${navCtx}')" style="cursor:pointer;overflow:hidden">
       <div style="flex:1;min-width:0">
         <div style="display:flex;align-items:center;gap:7px;margin-bottom:${subLine?'4px':'0'}">
           ${ideaIcon(item, 14, ac)}
@@ -4375,7 +4375,7 @@ function _buildNeighborhoodTabBody() {
     const subLine = sub
       ? `<div class="quick-row-sub" style="display:flex;align-items:center;color:${_subColor}">${_isMichelinIdea(item) ? _michelinStarSvg : ''}${sub}${calIcon}</div>`
       : (hasDate ? `<div class="quick-row-sub" style="display:flex;align-items:center">${calIcon}</div>` : '');
-    return `<div class="quick-row" onclick="openDetail(${item.id},'${navCtx}')" style="cursor:pointer;overflow:hidden">
+    return `<div class="quick-row" data-idea-id="${item.id}" onclick="openDetail(${item.id},'${navCtx}')" style="cursor:pointer;overflow:hidden">
       <div style="flex:1;min-width:0">
         <div style="display:flex;align-items:center;gap:7px;margin-bottom:${subLine?'4px':'0'}">
           ${ideaIcon(item, 14, ac)}
@@ -4495,7 +4495,7 @@ function _buildCuisineTabBody() {
     const subLine = sub
       ? `<div class="quick-row-sub" style="display:flex;align-items:center;color:${_subColor}">${_isMichelinIdea(item) ? _michelinStarSvg : ''}${sub}${calIcon}</div>`
       : (hasDate ? `<div class="quick-row-sub" style="display:flex;align-items:center">${calIcon}</div>` : '');
-    return `<div class="quick-row" onclick="openDetail(${item.id},'out')" style="cursor:pointer;overflow:hidden">
+    return `<div class="quick-row" data-idea-id="${item.id}" onclick="openDetail(${item.id},'out')" style="cursor:pointer;overflow:hidden">
       <div style="flex:1;min-width:0">
         <div style="display:flex;align-items:center;gap:7px;margin-bottom:${subLine?'4px':'0'}">
           ${ideaIcon(item, 14, ac)}
@@ -4596,7 +4596,7 @@ function _buildMichelinTabBody() {
     const subLine = sub
       ? `<div class="quick-row-sub" style="display:flex;align-items:center;color:${_subColor}">${_isMichelinIdea(item) ? _michelinStarSvg : ''}${sub}${calIcon}</div>`
       : (hasDate ? `<div class="quick-row-sub" style="display:flex;align-items:center">${calIcon}</div>` : '');
-    return `<div class="quick-row" onclick="openDetail(${item.id},'out')" style="cursor:pointer;overflow:hidden">
+    return `<div class="quick-row" data-idea-id="${item.id}" onclick="openDetail(${item.id},'out')" style="cursor:pointer;overflow:hidden">
       <div style="flex:1;min-width:0">
         <div style="display:flex;align-items:center;gap:7px;margin-bottom:${subLine?'4px':'0'}">
           ${ideaIcon(item, 14, ac)}
@@ -4684,7 +4684,7 @@ function _buildOutTabBody() {
     const subLine = sub
       ? `<div class="quick-row-sub" style="display:flex;align-items:center;color:${_subColor}">${_isMichelinIdea(item) ? _michelinStarSvg : ''}${sub}${calIcon}</div>`
       : (hasDate ? `<div class="quick-row-sub" style="display:flex;align-items:center">${calIcon}</div>` : '');
-    return `<div class="quick-row" onclick="openDetail(${item.id},'out')" style="cursor:pointer;overflow:hidden">
+    return `<div class="quick-row" data-idea-id="${item.id}" onclick="openDetail(${item.id},'out')" style="cursor:pointer;overflow:hidden">
       <div style="flex:1;min-width:0">
         <div style="display:flex;align-items:center;gap:7px;margin-bottom:${subLine?'4px':'0'}">
           ${ideaIcon(item, 14, accent)}
@@ -4776,7 +4776,7 @@ function _buildInTabBody() {
     const subLine = sub
       ? `<div class="quick-row-sub" style="display:flex;align-items:center;color:${_subColor}">${_isMichelinIdea(item) ? _michelinStarSvg : ''}${sub}${calIcon}</div>`
       : (hasDate ? `<div class="quick-row-sub" style="display:flex;align-items:center">${calIcon}</div>` : '');
-    return `<div class="quick-row" onclick="openDetail(${item.id},'in')" style="cursor:pointer;overflow:hidden">
+    return `<div class="quick-row" data-idea-id="${item.id}" onclick="openDetail(${item.id},'in')" style="cursor:pointer;overflow:hidden">
       <div style="flex:1;min-width:0">
         <div style="display:flex;align-items:center;gap:7px;margin-bottom:${subLine?'4px':'0'}">
           ${ideaIcon(item, 14, accent)}
@@ -4833,38 +4833,15 @@ let _ideasRandomHighlightId = null; // ID of the currently highlighted random ca
 function _applyRandomHighlight() {
   if (!_ideasIsRandom() || !_ideasRandomPool || !_ideasRandomPool.ids) return;
   const poolIds = _ideasRandomPool.ids.map(String);
-  // Pick or re-pick highlight if not set or no longer in current pool
   if (!_ideasRandomHighlightId || !poolIds.includes(String(_ideasRandomHighlightId))) {
     _ideasRandomHighlightId = poolIds[Math.floor(Math.random() * poolIds.length)];
   }
   const highlightId = String(_ideasRandomHighlightId);
-  // Apply rose border — try requestAnimationFrame to ensure DOM is painted
-  const apply = () => {
-    const body = document.getElementById('ideas-body');
-    if (!body) return;
-    let found = false;
-    body.querySelectorAll('.quick-row').forEach(el => {
-      const oc = el.getAttribute('onclick') || '';
-      const m = oc.match(/openDetail\((\d+)/);
-      if (m && m[1] === highlightId) {
-        el.style.borderColor = ROSE;
-        found = true;
-      } else {
-        el.style.borderColor = '';
-      }
-    });
-    // If not found on first try, retry once after next frame
-    if (!found) requestAnimationFrame(() => {
-      const body2 = document.getElementById('ideas-body');
-      if (!body2) return;
-      body2.querySelectorAll('.quick-row').forEach(el => {
-        const oc = el.getAttribute('onclick') || '';
-        const m = oc.match(/openDetail\((\d+)/);
-        el.style.borderColor = (m && m[1] === highlightId) ? ROSE : '';
-      });
-    });
-  };
-  apply();
+  const body = document.getElementById('ideas-body');
+  if (!body) return;
+  body.querySelectorAll('.quick-row[data-idea-id]').forEach(el => {
+    el.style.borderColor = el.dataset.ideaId === highlightId ? ROSE : '';
+  });
 }
 function _ideasRandomApply(items) {
   if (!_ideasIsRandom()) return items;
