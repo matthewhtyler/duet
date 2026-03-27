@@ -15577,7 +15577,8 @@ function _applyBirthdayDots() {
       const _isDark = document.body.classList.contains('dark-mode');
       const _bdayDate = new Date(currentCalYear, currentCalMonth, dayNum); _bdayDate.setHours(0,0,0,0);
       const _bdayPast = _bdayDate < new Date().setHours(0,0,0,0);
-      const _bdayColor = _bdayPast ? (_isDark ? '#4a4540' : '#c8c0b8') : '#9a8a7a';
+      const _bdaySelected = btn.classList.contains('selected');
+      const _bdayColor = _bdaySelected ? '#fff' : _bdayPast ? (_isDark ? '#4a4540' : '#c8c0b8') : '#9a8a7a';
       btn.style.position = 'relative';
       const dot = document.createElement('div');
       const _bdDisplay = (() => { const _cs = calScreenConfig.find(s => s.id === 'calendar'); return _cs ? (_cs.datesDisplay || 'dots') : 'dots'; })();
