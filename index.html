@@ -2912,7 +2912,7 @@ function render() {
   }
   if (currentView === 'calendar') {
     setTimeout(() => {
-      _initCalSwipe(); _initCalDayCards(); _initCalInfoScroll(); _updateCalCompactArrows(); _syncSlidesToSelectedDay();
+      _initCalSwipe(); _initCalDayCards(); _initCalInfoScroll(); _initCalInfoHeaderSwipe(); _updateCalCompactArrows(); _syncSlidesToSelectedDay();
       if (window._calNavFromHome) {
         window._calNavFromHome = false;
         window.scrollTo(0, 0);
@@ -6764,7 +6764,8 @@ function renderCalendar() {
     const _calDatesDisplay = (() => { const _cs = calScreenConfig.find(s => s.id === 'calendar'); return _cs ? (_cs.datesDisplay || 'dots') : 'dots'; })();
     const _isPeopleMode = _calDatesDisplay === 'people';
     const _isIconsMode = _calDatesDisplay === 'icons';
-    const cls = (isSelected ? 'cal-day selected' : isToday ? 'cal-day today' : (isPastDay && _calDimPastDays ? 'cal-day dim-past' : 'cal-day')) + (_isPeopleMode ? ' cal-day-people' : _isIconsMode ? ' cal-day-icons' : '');
+    const _hasIconForCell = _isIconsMode && UPCOMING_DATES.some(u => { const _um = MONTH_NUMS[u.month] ?? 0; return u.day === d && (u.year||currentCalYear) === currentCalYear && _um === currentCalMonth && !_isDateHiddenPrivate(u); });
+    const cls = (isSelected ? 'cal-day selected' : isToday ? 'cal-day today' : (isPastDay && _calDimPastDays ? 'cal-day dim-past' : 'cal-day')) + (_isPeopleMode ? ' cal-day-people' : _hasIconForCell ? ' cal-day-icons' : '');
     const _isSearchingCal2 = !!(calMemSearch || calMemPeople.length);
     const dotClass = isSelected ? 'cal-dot selected' : isDimmed ? 'cal-dot dim' : isPastDay ? (_isSearchingCal2 ? 'cal-dot past-match' : 'cal-dot past') : 'cal-dot';
     const _cellDatesForDay = (_calDatesDisplay !== 'dots' && (isMarked || (isDimmed && _calDatesDisplay === 'icons')) && (!isPastDay || _calDatesDisplay === 'icons'))
@@ -7088,8 +7089,10 @@ function renderCalendar() {
         const _addrPanel = panels[panels.length - 1];
         if (_addrPanel && panels.length > 0) _allPanels.push({ html: _addrPanel, dateIdx: di });
       } else {
-        // Upcoming date: optionally prepend people summary panel
+        // Upcoming date: optionally add people summary panel
         const _detSecUp = calScreenConfig.find(s => s.id === 'details');
+        const _isToday = (() => { const _td = new Date(); _td.setHours(0,0,0,0); const _ed = new Date((dateEntry.year||currentCalYear), MONTH_NUMS[dateEntry.month]||0, dateEntry.day); _ed.setHours(0,0,0,0); return _ed.getTime() === _td.getTime(); })();
+        let _upPeoplePanel = null;
         if (_detSecUp && _detSecUp.detailsShowPeople === true) {
           // Skip if no people, or only "Me"
           const _upPeeps = (dateEntry.people || []).map(pe => pe.id ? people.find(x => x.id === pe.id) : null).filter(Boolean);
@@ -7098,11 +7101,12 @@ function renderCalendar() {
           const _peopleKey = _upPeeps.map(p => p.id).sort().join(',');
           const _samePeopleAsPrev = !_onlyMe && _peopleKey === _prevPeopleKey;
           if (!_onlyMe && !_samePeopleAsPrev) {
-            const _upPeoplePanel = _buildPastSummaryPanel(dateEntry, idea);
-            _allPanels.push({ html: _upPeoplePanel, dateIdx: di });
+            _upPeoplePanel = { html: _buildPastSummaryPanel(dateEntry, idea), dateIdx: di };
           }
           _prevPeopleKey = _onlyMe ? _prevPeopleKey : _peopleKey;
         }
+        // For today: add people panel AFTER other panels; for other dates: add BEFORE
+        if (!_isToday && _upPeoplePanel) _allPanels.push(_upPeoplePanel);
         if (panels.length > 0) {
           panels.forEach(p => _allPanels.push({ html: p, dateIdx: di }));
         } else {
@@ -7110,6 +7114,7 @@ function renderCalendar() {
           const inner = `<div style="width:100%;display:flex;justify-content:center"><span style="font-size:14px;font-style:italic;color:#b0a090;cursor:pointer" onclick="event.stopPropagation();openDateInfo(UPCOMING_DATES.find(d=>String(d.id)==='${String(dateEntry.id).replace(/'/g,"\\'")}'))">More info <span style="color:#b0a090">→</span></span></div>`;
           _allPanels.push({ html: inner, dateIdx: di });
         }
+        if (_isToday && _upPeoplePanel) _allPanels.push(_upPeoplePanel);
       }
     });
 
@@ -7347,7 +7352,7 @@ function _calRenderWithoutSlides() {
 
   // Run post-render calendar inits (no _syncSlidesToSelectedDay — preserve current slide position)
   setTimeout(() => {
-    _initCalSwipe(); _initCalDayCards(); _initCalInfoScroll(); _updateCalCompactArrows();
+    _initCalSwipe(); _initCalDayCards(); _initCalInfoScroll(); _initCalInfoHeaderSwipe(); _updateCalCompactArrows();
     _applyBirthdayDots(); _applyBirthdayDotsWeek();
     // Restore slide scroll positions after DOM is ready
     const _c = document.getElementById('home-dates-carousel');
@@ -7597,6 +7602,12 @@ function _navToCalendarDate(u) {
   _calInfoPanelIdx = 0;
   window._calActiveDateId = String(u.id);
   window._calPendingDateId = String(u.id);
+  // Pre-set slide index so slides section scrolls to this date after render
+  const _futureIdx = FUTURE_DATES.findIndex(fd => String((fd._ref||fd).id) === String(u.id));
+  if (_futureIdx >= 0) {
+    _homeCarouselIdx = _futureIdx;
+    _calCompactIdx = _futureIdx;
+  }
   navigate('calendar');
 }
 
@@ -8193,6 +8204,31 @@ function _initCalInfoScroll() {
     }
   };
 }
+function _initCalInfoHeaderSwipe() {
+  // Attach horizontal swipe to the cal-info-header so user can swipe title area too
+  const header = document.getElementById('cal-info-header');
+  if (!header) return;
+  let _hsx = 0, _hsy = 0, _hfired = false, _hcancelled = false;
+  const _hStart = e => { const t = e.touches ? e.touches[0] : e; _hsx = t.clientX; _hsy = t.clientY; _hfired = false; _hcancelled = false; };
+  const _hMove = e => {
+    if (_hfired || _hcancelled) return;
+    const t = e.touches ? e.touches[0] : e;
+    const dx = t.clientX - _hsx, dy = t.clientY - _hsy;
+    if (Math.abs(dy) > 10 && Math.abs(dy) >= Math.abs(dx)) { _hcancelled = true; return; }
+    if (Math.abs(dx) > 30 && Math.abs(dx) > Math.abs(dy) * 1.2) {
+      _hfired = true;
+      if (dx < 0) _calInfoNext(); else _calInfoPrev();
+    }
+  };
+  const _hEnd = () => {};
+  header.addEventListener('touchstart', _hStart, { passive: true });
+  header.addEventListener('touchmove', _hMove, { passive: true });
+  header.addEventListener('touchend', _hEnd, { passive: true });
+  header.addEventListener('mousedown', _hStart);
+  header.addEventListener('mousemove', e => { if (!_hfired && !_hcancelled) _hMove(e); });
+  header.addEventListener('mouseup', _hEnd);
+}
+
 function _refreshCalBanner() {
   const wrap = document.getElementById('cal-banner-card');
   if (!wrap) return;
@@ -8401,6 +8437,7 @@ function _initDateCardsScroll() {
       const newIdx = Math.round(scroll.scrollLeft / w);
       if (newIdx !== dateIdx && newIdx >= 0 && newIdx < FUTURE_DATES.length) {
         dateIdx = newIdx;
+        _calCompactIdx = newIdx;
         _updateDateCardsUI();
         // Re-render week strip only if the new date is within the 4-week window
         const ws = document.getElementById('week-strip');
@@ -8414,9 +8451,36 @@ function _initDateCardsScroll() {
             return dt >= sun && dt < end4;
           })();
           if (_inRange) {
-            _weekStripAnimate = true;
-            ws.outerHTML = renderWeekStrip();
-            setTimeout(_initWeekStrip, 0);
+            // Update week strip IN-PLACE — no re-render, no flicker
+            const inner = document.getElementById('week-strip-inner');
+            if (inner && _fd) {
+              const _isDark = document.body.classList.contains('dark-mode');
+              const today = new Date(); today.setHours(0,0,0,0);
+              const mNum2 = MONTH_NUMS[_fd._ref.month] ?? 0;
+              const selDate = new Date(_fd._ref.year || today.getFullYear(), mNum2, _fd._ref.day);
+              selDate.setHours(0,0,0,0);
+              const selectedTs = selDate.getTime();
+              inner.querySelectorAll('.week-day').forEach(cell => {
+                const numWrap = cell.querySelector('.week-day-num-wrap');
+                const numSpan = cell.querySelector('.week-day-num');
+                if (!numWrap || !numSpan) return;
+                const onclick = cell.getAttribute('onclick') || '';
+                const selectMatch = onclick.match(/selectWeekDate\((\d+)\)/);
+                const tooltipMatch = onclick.match(/showWeekTooltip\(event,(\d+),(\d+),(\d+)\)/);
+                let cellTs = null;
+                if (selectMatch) {
+                  const fd2 = FUTURE_DATES[parseInt(selectMatch[1])];
+                  if (fd2) { const mn = MONTH_NUMS[fd2._ref.month] ?? 0; const dd = new Date(fd2._ref.year || today.getFullYear(), mn, fd2._ref.day); dd.setHours(0,0,0,0); cellTs = dd.getTime(); }
+                } else if (tooltipMatch) {
+                  const dd = new Date(parseInt(tooltipMatch[3]), parseInt(tooltipMatch[2]), parseInt(tooltipMatch[1])); dd.setHours(0,0,0,0); cellTs = dd.getTime();
+                }
+                const isSel = cellTs !== null && cellTs === selectedTs;
+                const isTod = cellTs !== null && cellTs === today.getTime();
+                numWrap.style.background = isSel ? ROSE : isTod ? 'rgba(192,122,138,0.15)' : 'transparent';
+                numSpan.style.color = isSel ? '#fff' : isTod ? ROSE : (_isDark ? '#f0ede9' : '#2a1f1f');
+                numSpan.style.fontWeight = (isSel || isTod) ? '700' : '400';
+              });
+            }
           }
         }
       }
@@ -8579,7 +8643,57 @@ function selectWeekDate(idx) {
       return;
     }
   }
-  // Compact or carousel not found — full re-render
+  // Compact layout — scroll compact slides in-place without re-render
+  if (homeLayout === 'compact') {
+    const compactScroll = document.getElementById('date-cards-scroll');
+    if (compactScroll) {
+      const cardW = compactScroll.offsetWidth;
+      if (cardW) {
+        compactScroll.style.scrollSnapType = 'none';
+        compactScroll.scrollLeft = idx * cardW;
+        requestAnimationFrame(() => {
+          compactScroll.scrollLeft = idx * cardW;
+          compactScroll.style.scrollSnapType = 'x mandatory';
+        });
+      }
+      // Update week strip selection IN-PLACE (same as full layout above)
+      const inner = document.getElementById('week-strip-inner');
+      if (inner) {
+        const _isDark = document.body.classList.contains('dark-mode');
+        const today = new Date(); today.setHours(0,0,0,0);
+        let selectedTs = null;
+        if (FUTURE_DATES[idx]) {
+          const fd = FUTURE_DATES[idx];
+          const mNum = MONTH_NUMS[fd._ref.month] ?? 0;
+          const sel = new Date(fd._ref.year || today.getFullYear(), mNum, fd._ref.day);
+          sel.setHours(0,0,0,0); selectedTs = sel.getTime();
+        }
+        inner.querySelectorAll('.week-day').forEach(cell => {
+          const numWrap = cell.querySelector('.week-day-num-wrap');
+          const numSpan = cell.querySelector('.week-day-num');
+          if (!numWrap || !numSpan) return;
+          const onclick = cell.getAttribute('onclick') || '';
+          const selectMatch = onclick.match(/selectWeekDate\((\d+)\)/);
+          const tooltipMatch = onclick.match(/showWeekTooltip\(event,(\d+),(\d+),(\d+)\)/);
+          let cellTs = null;
+          if (selectMatch) {
+            const fd = FUTURE_DATES[parseInt(selectMatch[1])];
+            if (fd) { const mNum = MONTH_NUMS[fd._ref.month] ?? 0; const d = new Date(fd._ref.year || today.getFullYear(), mNum, fd._ref.day); d.setHours(0,0,0,0); cellTs = d.getTime(); }
+          } else if (tooltipMatch) {
+            const d = new Date(parseInt(tooltipMatch[3]), parseInt(tooltipMatch[2]), parseInt(tooltipMatch[1]));
+            d.setHours(0,0,0,0); cellTs = d.getTime();
+          }
+          const isSelected = cellTs !== null && cellTs === selectedTs;
+          const isToday = cellTs !== null && cellTs === today.getTime();
+          numWrap.style.background = isSelected ? ROSE : isToday ? 'rgba(192,122,138,0.15)' : 'transparent';
+          numSpan.style.color = isSelected ? '#fff' : isToday ? ROSE : (_isDark ? '#f0ede9' : '#2a1f1f');
+          numSpan.style.fontWeight = (isSelected || isToday) ? '700' : '400';
+        });
+      }
+      return;
+    }
+  }
+  // Fallback — full re-render
   const main = document.getElementById('main-content');
   if (main) {
     main.innerHTML = renderHome();
