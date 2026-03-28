@@ -456,6 +456,8 @@
   }
   .cal-day-people { align-items: flex-start !important; padding-top: 4px; font-size: 11px !important; }
   .cal-day-people.selected { align-items: flex-start !important; }
+  .cal-day-people .cal-dot { bottom: 6px !important; }
+  .cal-day-people .cal-bday-dot { bottom: 6px !important; }
   .cal-dot-photo {
     position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
     width: 20px; height: 20px; border-radius: 50%; overflow: hidden;
@@ -7032,13 +7034,15 @@ function renderCalendar() {
         const _outline = isSelected ? ';box-shadow:0 0 0 2px #fff' : '';
         return `<div style="position:absolute;left:${_lft}px;top:0;width:${_S}px;height:${_S}px;border-radius:50%;overflow:hidden;z-index:${_zi}${_outline}">${_personAvatarInner(_p, _S)}</div>`;
       }).join('');
-      return `<div style="position:absolute;bottom:5px;left:50%;transform:translateX(-50%);width:${_tw}px;height:${_S}px">${_circles}</div>`;
+      return `<div style="position:absolute;bottom:6px;left:50%;transform:translateX(-50%);width:${_tw}px;height:${_S}px">${_circles}</div>`;
     })();
     const _dotHtml = (isMarked || isDimmed)
       ? (_calDatesDisplay === 'icons' && _iconForDay
           ? `<div class="cal-dot-icon"><div style="width:12px;height:12px;display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0">${_iconForDay}</div></div>`
           : _calDatesDisplay === 'people' && _peopleForDay.length && !isPastDay
           ? _peopleHtml
+          : _calDatesDisplay === 'people'
+          ? `<div class="${dotClass}" style="position:absolute;bottom:6px;left:50%;transform:translateX(-50%)"></div>`
           : `<div class="${dotClass}"></div>`)
       : '';
     cells += `
@@ -12588,10 +12592,16 @@ function savePlace() {
   const fromEditDate = !!window._editIdeaFromEditDate;
   closePlaces();
   if (incompleteMode) {
-    // Navigate to Ideas screen, All tab — force directly to bypass _anyOpen guard
+    // Force to Ideas All tab — bypass all guards
     sheetOpen = false;
+    sheetMode = 'idea';
     ideasFilter = 'all';
+    _ideasRandomMode = false;
     currentView = 'ideas';
+    // Clear and rebuild the nav row so controlbar reflects 'all'
+    const _pfNavRow = document.getElementById('top-nav-ideas-row');
+    if (_pfNavRow) { _pfNavRow.innerHTML = ''; _pfNavRow.style.display = 'none'; }
+    document.getElementById('app').classList.remove('ideas-nav');
     render();
   } else {
     render();
@@ -15946,16 +15956,27 @@ function _applyBirthdayDots() {
       const dayNum = parseInt(btn.textContent);
       const bd = bdays.filter(b => b.day === dayNum);
       if (!bd.length || btn.querySelector('.cal-bday-dot') || btn.querySelector('.cal-dot-icon')) return;
+      const _bdDisplay = (() => { const _cs = calScreenConfig.find(s => s.id === 'calendar'); return _cs ? (_cs.datesDisplay || 'dots') : 'dots'; })();
       const _isDark = document.body.classList.contains('dark-mode');
       const _bdayDate = new Date(currentCalYear, currentCalMonth, dayNum); _bdayDate.setHours(0,0,0,0);
       const _bdayPast = _bdayDate < new Date().setHours(0,0,0,0);
+      // People mode: skip birthday if future day already has people photos
+      if (_bdDisplay === 'people') {
+        const _hasPeoplePhoto = btn.querySelector('[style*="border-radius:50%"][style*="overflow:hidden"]');
+        if (_hasPeoplePhoto && !_bdayPast) return; // future day with photo: photo wins
+        // Past day or no photo: remove any regular dot and show cake instead
+        btn.querySelectorAll('.cal-dot').forEach(d => d.remove());
+      }
       const _bdaySelected = btn.classList.contains('selected');
       const _bdayColor = _bdaySelected ? '#fff' : _bdayPast ? (_isDark ? '#4a4540' : '#c8c0b8') : '#9a8a7a';
       btn.style.position = 'relative';
       const dot = document.createElement('div');
-      const _bdDisplay = (() => { const _cs = calScreenConfig.find(s => s.id === 'calendar'); return _cs ? (_cs.datesDisplay || 'dots') : 'dots'; })();
       dot.className = 'cal-bday-dot';
-      if (_bdDisplay === 'icons') {
+      if (_bdDisplay === 'people') {
+        const _peopleAccent = accentColor('out');
+        dot.style.cssText = 'position:absolute;bottom:6px;left:50%;transform:translateX(-50%);width:12px;height:12px;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:2;overflow:hidden';
+        dot.innerHTML = _birthdayCakeSvg(10, _bdaySelected ? '#fff' : _peopleAccent);
+      } else if (_bdDisplay === 'icons') {
         dot.style.cssText = 'position:absolute;bottom:3px;left:50%;transform:translateX(-50%);width:12px;height:12px;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:2;overflow:hidden';
         dot.innerHTML = _birthdayCakeSvg(10, _bdayColor);
       } else {
