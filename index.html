@@ -5337,6 +5337,12 @@ function _todoRow(t, noDivider, groupCtx) {
   } else if (_ideaTitle && _ideaClick) {
     const _subLink = `<a onclick="event.stopPropagation();${_ideaClick}" style="color:${t.done?'#b0a090':textColor};font-weight:500;cursor:pointer;text-decoration:none">${_ideaTitle}</a>`;
     subHtml = `<div style="font-size:11px;margin-top:3px;font-family:sans-serif;font-weight:500;letter-spacing:0.03em">${_subLink}</div>`;
+  } else if (!_ideaTitle && _effectivePersonId) {
+    const _subPerson = people.find(p => p.id === _effectivePersonId);
+    if (_subPerson) {
+      const _subName = _personFullName(_subPerson);
+      subHtml = `<div style="font-size:11px;margin-top:3px;font-family:sans-serif;font-weight:500;letter-spacing:0.03em;color:${t.done?'#b0a090':textColor}">${_subName}</div>`;
+    } else { subHtml = ''; }
   } else {
     subHtml = '';
   }
@@ -5847,7 +5853,65 @@ function _updateActivityBtn(btnId, iconId, labelId, customWrapId, item) {
 // ── New To Do sheet ───────────────────────────────────
 let _todoEditId = null;
 
+let _lastTodoAttachment = null;  // {type:'person'|'date', id, expires}
+
+function _openTodoWithAttachment(type, id) {
+  // Close popups first
+  closeDateInfo();
+  closePersonInfo();
+  // Navigate to todo screen
+  sheetOpen = false;
+  currentView = 'todo';
+  render();
+  // Open the todo sheet with attachment — replicate openTodoAdd but with attachment preset
+  setTimeout(() => {
+    _todoEditId = null;
+    _todoSelectedActivity = null;
+    _todoSelectedDateKey = null;
+    _todoSelectedIdeaId = null;
+    _todoSelectedPersonId = null;
+    // Set fields
+    const tsTask = document.getElementById('ts-task');
+    const tsPrio = document.getElementById('ts-priority');
+    const tsNote = document.getElementById('ts-note');
+    if (tsTask) { tsTask.value = ''; _syncTodoTaskColor('ts'); }
+    if (tsPrio) tsPrio.value = 'normal';
+    if (tsNote) tsNote.value = '';
+    _updateTodoDateBtn('ts-date-btn','ts-date-icon','ts-date-label', null);
+    _updateTodoIdeaBtn('ts-idea-btn','ts-idea-icon','ts-idea-label', null);
+    _updateTodoPersonBtn('ts', null);
+    onTodoTaskChange();
+    // NOW set attachment BEFORE showing sheet
+    _tsAttachOn = true;
+    if (type === 'person') {
+      _todoSelectedPersonId = id;
+      _updateTodoPersonBtn('ts', id);
+    } else if (type === 'date') {
+      _todoSelectedDateKey = id;
+      const _u = _findDateByKey(id);
+      _updateTodoDateBtn('ts-date-btn','ts-date-icon','ts-date-label', _u);
+    }
+    _applyTodoAttach('ts', true);
+    // Show sheet
+    const ts = document.getElementById('todo-sheet');
+    if (!ts) return;
+    ts.style.display = 'block';
+    document.getElementById('btn-new-circle').style.background = '#a05268';
+    document.getElementById('btn-new-icon-plus').style.display = 'none';
+    document.getElementById('btn-new-icon-check').style.display = 'block';
+    setTimeout(() => { const o = document.getElementById('sheet-overlay'); if(o) o.style.display = 'block'; }, 0);
+    _syncAllClearable();
+    _lastTodoAttachment = { type, id, expires: Date.now() + 5000 };
+  }, 50);
+}
+
 function openTodoAdd() {
+  // Check 5-second repeat: if within 5s of last attachment-based todo, restore attachment
+  const _now = Date.now();
+  if (_lastTodoAttachment && _now < _lastTodoAttachment.expires) {
+    _openTodoWithAttachment(_lastTodoAttachment.type, _lastTodoAttachment.id);
+    return;
+  }
   _todoEditId = null;
   _todoSelectedActivity = null;
   _todoSelectedDateKey = null;
@@ -5926,6 +5990,14 @@ function saveTodoFromSheet() {
   _tsIsPrivate = null;
   _renderPrivacyBox('ts-lock-icon', 'ts-privacy-box', false, false);
   saveTodos();
+  // If attachment was on, refresh the 5-second window
+  if (_tsAttachOn && (_todoSelectedPersonId || _todoSelectedDateKey)) {
+    const _attachType = _todoSelectedDateKey ? 'date' : 'person';
+    const _attachId = _todoSelectedDateKey || _todoSelectedPersonId;
+    _lastTodoAttachment = { type: _attachType, id: _attachId, expires: Date.now() + 5000 };
+  } else {
+    _lastTodoAttachment = null;
+  }
   closeTodoSheet();
   navigate('todo');
 }
@@ -6183,8 +6255,39 @@ function renderHomeMonthCal() {
   const sel = _homeMonthCalSelectedDay;
   const selectedDay = (sel && sel.year===year && sel.month===month) ? sel.day : null;
 
+  // Hoist display mode outside loop
+  const _calDatesDisplay = (() => { const _cs = calScreenConfig.find(s => s.id === 'calendar'); return _cs ? (_cs.datesDisplay || 'dots') : 'dots'; })();
+  const _isPeopleMode = _calDatesDisplay === 'people';
+  const _isIconsMode = _calDatesDisplay === 'icons';
   let cells = '';
-  for (let i=0;i<firstDow;i++) cells += '<div></div>';
+  // Leading days from previous month
+  if (firstDow > 0) {
+    const _prevMonth = currentCalMonth === 0 ? 11 : currentCalMonth - 1;
+    const _prevYear = currentCalMonth === 0 ? currentCalYear - 1 : currentCalYear;
+    const _daysInPrevMonth = new Date(_prevYear, _prevMonth + 1, 0).getDate();
+    const _prevMonthAbbr = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][_prevMonth];
+    const _prevDatesThisMonth = UPCOMING_DATES.filter(u => u.month === _prevMonthAbbr && (u.year||2026) === _prevYear && !_isDateHiddenPrivate(u));
+    const _prevMarkedDays = _isSearchingCal
+      ? _prevDatesThisMonth.filter(u => _calMemMatchDate(u)).map(u => u.day)
+      : _prevDatesThisMonth.map(u => u.day);
+    const _prevDimmedDays = _isSearchingCal ? _prevDatesThisMonth.filter(u => !_calMemMatchDate(u)).map(u => u.day) : [];
+    for (let i = 0; i < firstDow; i++) {
+      const _pd = _daysInPrevMonth - firstDow + 1 + i;
+      const _pDate = new Date(_prevYear, _prevMonth, _pd); _pDate.setHours(0,0,0,0);
+      const _pIsPast = _pDate < _now;
+      const _pIsMarked = _prevMarkedDays.includes(_pd);
+      const _pIsDimmed = !_pIsMarked && _prevDimmedDays.includes(_pd);
+      const _pDotClass = _pIsPast ? 'cal-dot past' : (_pIsMarked ? 'cal-dot' : (_pIsDimmed ? 'cal-dot dim' : ''));
+      const _pDotHtml = (_pIsMarked || _pIsDimmed) ? `<div class="${_pDotClass}"></div>` : '';
+      const _pCls = 'cal-day' + (_isPeopleMode ? ' cal-day-people' : _isIconsMode ? ' cal-day-icons' : '');
+      const _pDotClassFull = _pIsMarked ? 'cal-dot' : (_pIsDimmed ? 'cal-dot dim' : '');
+      const _pDotHtmlFull = (_pIsMarked || _pIsDimmed) ? `<div class="${_pDotClassFull}"></div>` : '';
+      cells += `<button class="${_pCls}" onclick="currentCalMonth=${_prevMonth};currentCalYear=${_prevYear};selectedCalDay=${_pd};render()">
+        <span style="color:#b0a090">${_pd}</span>
+        ${_pDotHtmlFull}
+      </button>`;
+    }
+  }
   for (let d=1;d<=daysInMonth;d++) {
     const isSelected = d === selectedDay;
     const isMarked   = markedDays.includes(d);
@@ -6957,6 +7060,10 @@ function renderCalendar() {
   const _now = new Date(); _now.setHours(0,0,0,0);
   const todayDay   = (_now.getFullYear()===currentCalYear && _now.getMonth()===currentCalMonth) ? _now.getDate() : null;
   const monthAbbr  = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][currentCalMonth];
+  // For overflow day selection: use the overflow month/year for detail queries
+  const _selMonth = (window._calOverflowMonth != null) ? window._calOverflowMonth : currentCalMonth;
+  const _selYear  = (window._calOverflowYear  != null) ? window._calOverflowYear  : currentCalYear;
+  const _selMonthAbbr = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][_selMonth];
 
   // Days in current month that have upcoming dates
   // Upcoming dates
@@ -6976,19 +7083,38 @@ function renderCalendar() {
   const isPastMonth = (currentCalYear < _now.getFullYear()) || (currentCalYear === _now.getFullYear() && currentCalMonth < _now.getMonth());
   const isFutureMonth = (currentCalYear > _now.getFullYear()) || (currentCalYear === _now.getFullYear() && currentCalMonth > _now.getMonth());
 
+  const _calDatesDisplay = (() => { const _cs = calScreenConfig.find(s => s.id === 'calendar'); return _cs ? (_cs.datesDisplay || 'dots') : 'dots'; })();
+  const _isPeopleMode = _calDatesDisplay === 'people';
+  const _isIconsMode  = _calDatesDisplay === 'icons';
   let cells = '';
-  for (let i=0;i<firstDow;i++) cells += '<div></div>';
+  // Leading days from previous month
+  if (firstDow > 0) {
+    const _prevMonth = currentCalMonth === 0 ? 11 : currentCalMonth - 1;
+    const _prevYear  = currentCalMonth === 0 ? currentCalYear - 1 : currentCalYear;
+    const _daysInPrev = new Date(_prevYear, _prevMonth + 1, 0).getDate();
+    const _prevMonthAbbr = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][_prevMonth];
+    const _prevDates = UPCOMING_DATES.filter(u => u.month === _prevMonthAbbr && (u.year||2026) === _prevYear && !_isDateHiddenPrivate(u));
+    const _prevMarked = _isSearchingCal ? _prevDates.filter(u => _calMemMatchDate(u)).map(u => u.day) : _prevDates.map(u => u.day);
+    const _prevDimmed = _isSearchingCal ? _prevDates.filter(u => !_calMemMatchDate(u)).map(u => u.day) : [];
+    for (let i = 0; i < firstDow; i++) {
+      const _pd = _daysInPrev - firstDow + 1 + i;
+      const _pIsMarked = _prevMarked.includes(_pd);
+      const _pIsDimmed = !_pIsMarked && _prevDimmed.includes(_pd);
+      const _pDotClass = _pIsMarked ? 'cal-dot' : (_pIsDimmed ? 'cal-dot dim' : '');
+      const _pDotHtml = (_pIsMarked || _pIsDimmed) ? `<div class="${_pDotClass}"></div>` : '';
+            const _pIsSelected = window._calOverflowMonth === _prevMonth && window._calOverflowYear === _prevYear && selectedCalDay === _pd;
+      const _pFinalDot = _pDotHtml;
+      cells += `<button class="cal-day${_pIsSelected ? ' selected' : ''}${_isPeopleMode ? ' cal-day-people' : _isIconsMode ? ' cal-day-icons' : ''}" data-overflow-month="${_prevMonth}" data-overflow-year="${_prevYear}" data-overflow-day="${_pd}" onclick="_calSelectOverflowDay(${_prevMonth},${_prevYear},${_pd})"><span style="${_pIsSelected ? 'font-weight:700' : 'color:#b0a090'}">${_pd}</span>${_pFinalDot}</button>`;
+    }
+  }
   for (let d=1;d<=daysInMonth;d++) {
-    const isSelected = d === selectedCalDay;
+    const isSelected = d === selectedCalDay && !window._calOverflowMonth && !window._calOverflowYear;
     const isMarked   = markedDays.includes(d);
     const isDimmed   = !isMarked && dimmedDays.includes(d);
     const isToday    = d === todayDay;
     const dayDate    = new Date(currentCalYear, currentCalMonth, d); dayDate.setHours(0,0,0,0);
     const isPastDay  = dayDate < _now;
     // Cell marker: dots / icons / people
-    const _calDatesDisplay = (() => { const _cs = calScreenConfig.find(s => s.id === 'calendar'); return _cs ? (_cs.datesDisplay || 'dots') : 'dots'; })();
-    const _isPeopleMode = _calDatesDisplay === 'people';
-    const _isIconsMode = _calDatesDisplay === 'icons';
     const _hasIconForCell = _isIconsMode && UPCOMING_DATES.some(u => { const _um = MONTH_NUMS[u.month] ?? 0; return u.day === d && (u.year||currentCalYear) === currentCalYear && _um === currentCalMonth && !_isDateHiddenPrivate(u); });
     const cls = (isSelected ? 'cal-day selected' : isToday ? 'cal-day today' : (isPastDay && _calDimPastDays ? 'cal-day dim-past' : 'cal-day')) + (_isPeopleMode ? ' cal-day-people' : _isIconsMode ? ' cal-day-icons' : '');
     const _isSearchingCal2 = !!(calMemSearch || calMemPeople.length);
@@ -7051,13 +7177,44 @@ function renderCalendar() {
         ${_dotHtml}
       </button>`;
   }
+  // Trailing days from next month
+  const _totalCells = firstDow + daysInMonth;
+  const _trailingCount = _totalCells % 7 === 0 ? 0 : 7 - (_totalCells % 7);
+  if (_trailingCount > 0) {
+    const _nextMonth = currentCalMonth === 11 ? 0 : currentCalMonth + 1;
+    const _nextYear = currentCalMonth === 11 ? currentCalYear + 1 : currentCalYear;
+    const _nextMonthAbbr = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][_nextMonth];
+    const _nextDatesThisMonth = UPCOMING_DATES.filter(u => u.month === _nextMonthAbbr && (u.year||2026) === _nextYear && !_isDateHiddenPrivate(u));
+    const _nextMarkedDays = _isSearchingCal
+      ? _nextDatesThisMonth.filter(u => _calMemMatchDate(u)).map(u => u.day)
+      : _nextDatesThisMonth.map(u => u.day);
+    const _nextDimmedDays = _isSearchingCal ? _nextDatesThisMonth.filter(u => !_calMemMatchDate(u)).map(u => u.day) : [];
+    for (let i = 1; i <= _trailingCount; i++) {
+      const _nd = i;
+      const _nDate = new Date(_nextYear, _nextMonth, _nd); _nDate.setHours(0,0,0,0);
+      const _nIsPast = _nDate < _now;
+      const _nIsMarked = _nextMarkedDays.includes(_nd);
+      const _nIsDimmed = !_nIsMarked && _nextDimmedDays.includes(_nd);
+      const _nDotClass = _nIsPast ? 'cal-dot past' : (_nIsMarked ? 'cal-dot' : (_nIsDimmed ? 'cal-dot dim' : ''));
+      const _nDotHtml = (_nIsMarked || _nIsDimmed) ? `<div class="${_nDotClass}"></div>` : '';
+      const _nCls = 'cal-day' + (_isPeopleMode ? ' cal-day-people' : _isIconsMode ? ' cal-day-icons' : '');
+      const _nDotClassFull = _nIsMarked ? 'cal-dot' : (_nIsDimmed ? 'cal-dot dim' : '');
+      const _nDotHtmlFull = (_nIsMarked || _nIsDimmed) ? `<div class="${_nDotClassFull}"></div>` : '';
+            const _nIsSelected = window._calOverflowMonth === _nextMonth && window._calOverflowYear === _nextYear && selectedCalDay === _nd;
+      const _nFinalDot = _nDotHtmlFull;
+      cells += `<button class="${_nIsSelected ? 'cal-day selected' : 'cal-day'}${_isPeopleMode ? ' cal-day-people' : _isIconsMode ? ' cal-day-icons' : ''}" data-overflow-month="${_nextMonth}" data-overflow-year="${_nextYear}" data-overflow-day="${_nd}" onclick="_calSelectOverflowDay(${_nextMonth},${_nextYear},${_nd})">
+        <span style="${_nIsSelected ? 'font-weight:700' : 'color:#b0a090'}">${_nd}</span>
+        ${_nFinalDot}
+      </button>`;
+    }
+  }
 
   // Selected date detail cards — all dates on this day, carousel style
   // If navigating from home to a specific date, pre-resolve the panel index now (before upcoming list renders)
   if (window._calPendingDateId && selectedCalDay) {
     const _pendingId = window._calPendingDateId;
     const _pendingVisible = UPCOMING_DATES.filter(u =>
-      u.month === monthAbbr && (u.year||2026) === currentCalYear && u.day === selectedCalDay && !_isDateHiddenPrivate(u)
+      u.month === _selMonthAbbr && (u.year||2026) === _selYear && u.day === selectedCalDay && !_isDateHiddenPrivate(u)
     ).sort((a,b) => _timeToMinutes(a.time) - _timeToMinutes(b.time));
     const _pendingDateIdx = Math.max(0, _pendingVisible.findIndex(d => String(d.id) === _pendingId));
     // We don't know panel indices yet (panels not built), but we know dateIdx → set _calInfoPanelIdx
@@ -7065,7 +7222,7 @@ function renderCalendar() {
     // For now just store the dateIdx so _calActiveDateId gets set correctly below.
     window._calPendingDateIdx = _pendingDateIdx;
   }
-  const _selDayDates = selectedCalDay ? UPCOMING_DATES.filter(u => u.month === monthAbbr && (u.year||2026) === currentCalYear && u.day === selectedCalDay) : [];
+  const _selDayDates = selectedCalDay ? UPCOMING_DATES.filter(u => u.month === _selMonthAbbr && (u.year||2026) === _selYear && u.day === selectedCalDay) : [];
   const _selDayVisible = _selDayDates.filter(u => !_isDateHiddenPrivate(u)).sort((a,b) => _timeToMinutes(a.time) - _timeToMinutes(b.time));
   const _selDayAllPrivate = _selDayDates.length > 0 && _selDayVisible.length === 0;
   const _selDayObj = selectedCalDay ? new Date(currentCalYear, currentCalMonth, selectedCalDay) : null;
@@ -7077,7 +7234,7 @@ function renderCalendar() {
     const _calSecBd = calScreenConfig.find(s => s.id === 'calendar');
     const _upSecBd = calScreenConfig.find(s => s.id === 'upcoming');
     const _showBd = (!_calSecBd || _calSecBd.showBirthdays !== false) || (!_upSecBd || _upSecBd.showUpcomingBirthdays !== false);
-    return _showBd && _birthdaysInMonth(currentCalMonth).some(b => b.day === selectedCalDay);
+    return _showBd && _birthdaysInMonth(_selMonth).some(b => b.day === selectedCalDay);
   })();
 
   let selectedCardHTML = '';
@@ -7795,10 +7952,15 @@ function _buildCalUpcomingHtml() {
   const _mergedHtml = _shownItems.map(item => {
     if (item.isBd) return _buildBirthdayCardHtml(item.r, 'cal');
     const u = item.u;
-    const isSelected = u.month === monthAbbr && (u.year||2026) === currentCalYear && u.day === selectedCalDay;
+    const _cuSelMonthAbbrX = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][(window._calOverflowMonth != null ? window._calOverflowMonth : currentCalMonth)];
+    const _cuSelYearX = (window._calOverflowYear != null ? window._calOverflowYear : currentCalYear);
+    const isSelected = u.month === _cuSelMonthAbbrX && (u.year||2026) === _cuSelYearX && u.day === selectedCalDay;
     if (!isSelected) return _buildUpcomingCardHtml(u, '', false, false);
     // Determine the active date: use _calActiveDateId if set, otherwise fall back to the first (earliest) date on this day
-    const _dayDates = UPCOMING_DATES.filter(d => d.month === monthAbbr && (d.year||2026) === currentCalYear && d.day === selectedCalDay && !_isDateHiddenPrivate(d))
+    const _cuSelMonth = (window._calOverflowMonth != null) ? window._calOverflowMonth : currentCalMonth;
+    const _cuSelYear  = (window._calOverflowYear  != null) ? window._calOverflowYear  : currentCalYear;
+    const _cuSelMonthAbbr = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][_cuSelMonth];
+    const _dayDates = UPCOMING_DATES.filter(d => d.month === _cuSelMonthAbbr && (d.year||2026) === _cuSelYear && d.day === selectedCalDay && !_isDateHiddenPrivate(d))
       .sort((a,b) => _timeToMinutes(a.time) - _timeToMinutes(b.time));
     const _resolvedActiveId = window._calActiveDateId || (_dayDates[0] ? String(_dayDates[0].id) : null);
     const isActive = !_resolvedActiveId || String(u.id) === _resolvedActiveId;
@@ -7914,7 +8076,22 @@ function openNewDateFromCal(day, month, year) {
   }, 50);
 }
 
+function _calSelectOverflowDay(month, year, day) {
+  // Show info for an overflow day without navigating to that month
+  window._calOverflowMonth = month;
+  window._calOverflowYear = year;
+  selectedCalDay = day;
+  _calBannerIdx = 0;
+  _calInfoPanelIdx = 0;
+  window._calActiveDateId = null;
+  window._calBirthdayIsActive = false;
+  _hideBirthdayTooltip();
+  render();
+}
+
 function selectCalDay(day) {
+  window._calOverflowMonth = null;
+  window._calOverflowYear = null;
   _hideBirthdayTooltip();
   selectedCalDay = day;
   _calBannerIdx = 0;
@@ -8460,7 +8637,9 @@ function _calBannerPrev() {
 }
 function _calBannerNext() {
   const monthAbbr = new Date(currentCalYear, currentCalMonth, 1).toLocaleString('en-US', {month:'short'});
-  const _visible = UPCOMING_DATES.filter(u => u.month === monthAbbr && (u.year||2026) === currentCalYear && u.day === selectedCalDay && !_isDateHiddenPrivate(u));
+  const _selMonthAbbrR = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][(window._calOverflowMonth != null ? window._calOverflowMonth : currentCalMonth)];
+  const _selYearR = (window._calOverflowYear != null ? window._calOverflowYear : currentCalYear);
+  const _visible = UPCOMING_DATES.filter(u => u.month === _selMonthAbbrR && (u.year||2026) === _selYearR && u.day === selectedCalDay && !_isDateHiddenPrivate(u));
   if (_calBannerIdx >= _visible.length - 1) return;
   _calBannerIdx++;
   _calInfoPanelIdx = 0;
@@ -8610,7 +8789,9 @@ function _refreshCalBanner() {
   const wrap = document.getElementById('cal-banner-card');
   if (!wrap) return;
   const monthAbbr = new Date(currentCalYear, currentCalMonth, 1).toLocaleString('en-US', {month:'short'});
-  const _visible = UPCOMING_DATES.filter(u => u.month === monthAbbr && (u.year||2026) === currentCalYear && u.day === selectedCalDay && !_isDateHiddenPrivate(u));
+  const _selMonthAbbrR = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][(window._calOverflowMonth != null ? window._calOverflowMonth : currentCalMonth)];
+  const _selYearR = (window._calOverflowYear != null ? window._calOverflowYear : currentCalYear);
+  const _visible = UPCOMING_DATES.filter(u => u.month === _selMonthAbbrR && (u.year||2026) === _selYearR && u.day === selectedCalDay && !_isDateHiddenPrivate(u));
   if (!_visible.length) return;
   _calBannerIdx = Math.min(_calBannerIdx, _visible.length - 1);
   const u = _visible[_calBannerIdx];
@@ -11944,11 +12125,17 @@ function openDateInfo(u, memoryMode) {
     }
   }
 
+  // To Do button style: outline when leftBtnDi is a full button, filled when it's checkmark-only or absent
+  const _leftIsCheckmark = leftBtnDi && leftBtnDi.includes('width:26px;height:26px');
+  const _diTodoBtnOutline = `<button onclick="_openTodoWithAttachment('date','${_dateKey(u)}')" style="display:flex;align-items:center;gap:7px;height:34px;padding:0 14px;border:1.5px solid #c07a8a;border-radius:17px;font-family:sans-serif;font-size:13px;font-weight:600;color:#c07a8a;background:none;cursor:pointer;line-height:1"><svg viewBox="0 0 24 24" width="12" height="12" stroke="#c07a8a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><rect x="3" y="3" width="18" height="18" rx="3"/><polyline points="9 12 11 14 15 10"/></svg>To Do</button>`;
+  const _diTodoBtnSmall = `<button onclick="_openTodoWithAttachment('date','${_dateKey(u)}')" style="display:flex;align-items:center;justify-content:center;width:26px;height:26px;border:1.5px solid #c07a8a;border-radius:50%;background:none;cursor:pointer"><svg viewBox="0 0 24 24" width="11" height="11" stroke="#c07a8a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><polyline points="9 12 11 14 15 10"/></svg></button>`;
+  const _diTodoBtn = _leftIsCheckmark ? _diTodoBtnSmall : _diTodoBtnOutline;
   if (leftBtnDi) {
-    btnsWrap.innerHTML = leftBtnDi;
+    btnsWrap.innerHTML = _diTodoBtn + leftBtnDi;
     btnsWrap.style.display = 'flex';
   } else {
-    btnsWrap.style.display = 'none';
+    btnsWrap.innerHTML = _diTodoBtn;
+    btnsWrap.style.display = 'flex';
   }
   }
 
@@ -14836,7 +15023,7 @@ function _renderPersonInfoPopup(p) {
 
   // Update plan button label based on favorite status
   const planLabel = document.getElementById('pi-plan-btn-label');
-  if (planLabel) planLabel.textContent = p.favorite ? 'Plan a Date' : 'Plan Something';
+  if (planLabel) planLabel.textContent = 'Plan';
 
   const fields = document.getElementById('pi-fields');
   if (!fields) return;
@@ -15953,6 +16140,23 @@ function _applyBirthdayDots() {
     // Remove all existing birthday dots first so stale ones don't persist
     grid.querySelectorAll('.cal-bday-dot').forEach(d => d.remove());
     grid.querySelectorAll('button.cal-day').forEach(btn => {
+      // Handle overflow cells with their own month's birthdays
+      if (btn.dataset.overflowMonth !== undefined) {
+        const _ovMonth = parseInt(btn.dataset.overflowMonth);
+        const _ovDay = parseInt(btn.dataset.overflowDay || btn.textContent);
+        const _ovBdays = _birthdaysInMonth(_ovMonth).filter(b => b.day === _ovDay);
+        if (!_ovBdays.length) return;
+        const _ovSelected = btn.classList.contains('selected');
+        const _ovAccent = accentColor('out');
+        const _ovColor = _ovSelected ? '#fff' : _ovAccent;
+        const _ovDot = document.createElement('div');
+        _ovDot.className = 'cal-bday-dot';
+        _ovDot.style.cssText = 'position:absolute;bottom:3px;left:50%;transform:translateX(-50%);width:12px;height:12px;display:flex;align-items:center;justify-content:center;z-index:2;overflow:hidden';
+        _ovDot.innerHTML = _birthdayCakeSvg(10, _ovColor);
+        btn.style.position = 'relative';
+        btn.appendChild(_ovDot);
+        return;
+      }
       const dayNum = parseInt(btn.textContent);
       const bd = bdays.filter(b => b.day === dayNum);
       if (!bd.length || btn.querySelector('.cal-bday-dot') || btn.querySelector('.cal-dot-icon')) return;
@@ -16706,7 +16910,8 @@ function _resLabel(idea) {
       <div id="pi-fields" style="display:flex;flex-direction:column;gap:16px;padding:16px 18px 0"></div>
       <div style="display:flex;justify-content:center;gap:8px;padding:28px 18px 4px">
         <button onclick="_piSearchPerson()" style="display:none;align-items:center;justify-content:center;gap:6px;height:34px;padding:0 14px;border:1.5px solid #c07a8a;border-radius:17px;font-family:sans-serif;font-size:13px;font-weight:600;color:#c07a8a;background:none;cursor:pointer;flex-shrink:0"><svg viewBox="0 0 24 24" width="12" height="12" stroke="#c07a8a" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>Search</button>
-        <button onclick="_planSomethingWithPerson()" style="display:flex;align-items:center;gap:7px;height:34px;padding:0 16px;border:none;border-radius:17px;font-family:sans-serif;font-size:13px;font-weight:600;color:#fff;background:#c07a8a;cursor:pointer;line-height:1"><svg viewBox="0 0 24 24" width="12" height="12" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-left:4px"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><span id="pi-plan-btn-label">Plan Something</span></button>
+        <button onclick="_openTodoWithAttachment('person', window._currentPersonId)" style="display:flex;align-items:center;gap:7px;height:34px;padding:0 14px;border:1.5px solid #c07a8a;border-radius:17px;font-family:sans-serif;font-size:13px;font-weight:600;color:#c07a8a;background:none;cursor:pointer;line-height:1"><svg viewBox="0 0 24 24" width="12" height="12" stroke="#c07a8a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><rect x="3" y="3" width="18" height="18" rx="3"/><polyline points="9 12 11 14 15 10"/></svg>To Do</button>
+        <button onclick="_planSomethingWithPerson()" style="display:flex;align-items:center;gap:7px;height:34px;padding:0 16px;border:none;border-radius:17px;font-family:sans-serif;font-size:13px;font-weight:600;color:#fff;background:#c07a8a;cursor:pointer;line-height:1"><svg viewBox="0 0 24 24" width="12" height="12" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-left:4px"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><span id="pi-plan-btn-label">Plan</span></button>
       </div>
     </div>
   </div>
