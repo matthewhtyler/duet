@@ -457,7 +457,7 @@
   .cal-day-people { align-items: flex-start !important; padding-top: 4px; font-size: 11px !important; }
   .cal-day-people.selected { align-items: flex-start !important; }
   .cal-day-people .cal-dot { bottom: 6px !important; }
-  .cal-day-people .cal-bday-dot { bottom: 6px !important; }
+  .cal-day-people .cal-bday-dot { bottom: 4px !important; }
   .cal-dot-photo {
     position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
     width: 20px; height: 20px; border-radius: 50%; overflow: hidden;
@@ -15983,14 +15983,14 @@ function _applyBirthdayDots() {
       const dot = document.createElement('div');
       dot.className = 'cal-bday-dot';
       if (_bdDisplay === 'people') {
-        dot.style.cssText = 'position:absolute;bottom:6px;left:50%;transform:translateX(-50%);width:12px;height:12px;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:2;overflow:hidden';
+        dot.style.cssText = 'position:absolute;bottom:4px;left:50%;transform:translateX(-50%);width:12px;height:12px;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:2;overflow:hidden';
         dot.innerHTML = _birthdayCakeSvg(10, _bdayCakeColor);
       } else if (_bdDisplay === 'icons') {
         dot.style.cssText = 'position:absolute;bottom:3px;left:50%;transform:translateX(-50%);width:12px;height:12px;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:2;overflow:hidden';
         dot.innerHTML = _birthdayCakeSvg(10, _bdayCakeColor);
       } else {
         // Dots mode: use cake icon same as other modes
-        dot.style.cssText = 'position:absolute;bottom:3px;left:50%;transform:translateX(-50%);width:12px;height:12px;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:2;overflow:hidden';
+        dot.style.cssText = 'position:absolute;bottom:1px;left:50%;transform:translateX(-50%);width:12px;height:12px;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:2;overflow:hidden';
         dot.innerHTML = _birthdayCakeSvg(10, _bdayCakeColor);
       }
       dot.onclick = null; // no tooltip on calendar grid — tapping selects the day
