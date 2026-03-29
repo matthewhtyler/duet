@@ -6992,8 +6992,8 @@ function renderCalendar() {
     const _hasIconForCell = _isIconsMode && UPCOMING_DATES.some(u => { const _um = MONTH_NUMS[u.month] ?? 0; return u.day === d && (u.year||currentCalYear) === currentCalYear && _um === currentCalMonth && !_isDateHiddenPrivate(u); });
     const cls = (isSelected ? 'cal-day selected' : isToday ? 'cal-day today' : (isPastDay && _calDimPastDays ? 'cal-day dim-past' : 'cal-day')) + (_isPeopleMode ? ' cal-day-people' : _isIconsMode ? ' cal-day-icons' : '');
     const _isSearchingCal2 = !!(calMemSearch || calMemPeople.length);
-    const dotClass = isSelected ? 'cal-dot selected' : isDimmed ? 'cal-dot dim' : isPastDay ? (_isSearchingCal2 ? 'cal-dot past-match' : 'cal-dot past') : 'cal-dot';
-    const _cellDatesForDay = (_calDatesDisplay !== 'dots' && (isMarked || (isDimmed && _calDatesDisplay === 'icons')) && (!isPastDay || _calDatesDisplay === 'icons'))
+    const dotClass = isSelected ? 'cal-dot selected' : isDimmed ? 'cal-dot dim' : (isPastDay && _calDimPastIcons) ? (_isSearchingCal2 ? 'cal-dot past-match' : 'cal-dot past') : 'cal-dot';
+    const _cellDatesForDay = (_calDatesDisplay !== 'dots' && (isMarked || (isDimmed && _calDatesDisplay === 'icons')) && (!isPastDay || _calDatesDisplay === 'icons' || (_calDatesDisplay === 'people' && !_calDimPastIcons)))
       ? UPCOMING_DATES.filter(u => {
           const _um = MONTH_NUMS[u.month] ?? 0;
           return u.day === d && (u.year||currentCalYear) === currentCalYear && _um === currentCalMonth && !_isDateHiddenPrivate(u);
@@ -7039,7 +7039,7 @@ function renderCalendar() {
     const _dotHtml = (isMarked || isDimmed)
       ? (_calDatesDisplay === 'icons' && _iconForDay
           ? `<div class="cal-dot-icon"><div style="width:12px;height:12px;display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0">${_iconForDay}</div></div>`
-          : _calDatesDisplay === 'people' && _peopleForDay.length && !isPastDay
+          : _calDatesDisplay === 'people' && _peopleForDay.length && (!isPastDay || !_calDimPastIcons)
           ? _peopleHtml
           : _calDatesDisplay === 'people'
           ? `<div class="${dotClass}" style="position:absolute;bottom:6px;left:50%;transform:translateX(-50%)"></div>`
@@ -13206,8 +13206,8 @@ function _ecsOptionsHtml(sec) {
     const dimPastVal = sec.dimPast || (sec.dimPastDays === true ? 'days and icons' : 'none');
     const datesDisplay = sec.datesDisplay || 'dots';
     return `<div style="display:flex;flex-direction:column;gap:10px">
-      <div style="display:flex;align-items:center;gap:6px"><span style="font-family:sans-serif;font-size:12px;color:var(--text-secondary);white-space:nowrap">Dates</span>${_emsSel('datesDisplay', datesDisplay, [{v:'dots',l:'Dots'},{v:'icons',l:'Icons'},{v:'people',l:'People'}])}</div>
-      <div style="display:flex;align-items:center;gap:6px"><span class="ems-opt-label">Dim past</span>${_emsSel('dimPast', dimPastVal, [{v:'none',l:'none'},{v:'days',l:'days'},{v:'icons',l:'icons'},{v:'days and icons',l:'days and icons'}])}</div>
+      <div style="display:flex;align-items:center;gap:6px"><span style="font-family:sans-serif;font-size:12px;color:var(--text-secondary);white-space:nowrap">Markers</span>${_emsSel('datesDisplay', datesDisplay, [{v:'dots',l:'Dots'},{v:'icons',l:'Icons'},{v:'people',l:'People'}])}</div>
+      <div style="display:flex;align-items:center;gap:6px"><span class="ems-opt-label">Dim past</span>${_emsSel('dimPast', dimPastVal, [{v:'none',l:'none'},{v:'days',l:'days'},{v:'icons',l:'markers'},{v:'days and icons',l:'days and markers'}])}</div>
       <label style="display:flex;align-items:flex-start;gap:8px;cursor:pointer"><input type="checkbox" class="showtype-check" data-ems-key="showBirthdays" data-val-type="bool" ${showBd ? 'checked' : ''} style="width:13px;height:13px;margin-top:2px"><div><div style="font-size:14px;font-family:sans-serif;color:var(--text-primary)">Show birthdays</div><div style="font-size:12px;font-family:sans-serif;color:var(--text-secondary);margin-top:2px">Mark birthdays on the calendar.</div></div></label>
     </div>`;
   }
@@ -15960,27 +15960,38 @@ function _applyBirthdayDots() {
       const _isDark = document.body.classList.contains('dark-mode');
       const _bdayDate = new Date(currentCalYear, currentCalMonth, dayNum); _bdayDate.setHours(0,0,0,0);
       const _bdayPast = _bdayDate < new Date().setHours(0,0,0,0);
+      // Dots mode: upcoming days with a scheduled date show the dot, not the birthday cake
+      if (_bdDisplay !== 'people' && _bdDisplay !== 'icons' && !_bdayPast && btn.querySelector('.cal-dot')) return;
       // People mode: skip birthday if future day already has people photos
       if (_bdDisplay === 'people') {
         const _hasPeoplePhoto = btn.querySelector('[style*="border-radius:50%"][style*="overflow:hidden"]');
         if (_hasPeoplePhoto && !_bdayPast) return; // future day with photo: photo wins
         // Past day or no photo: remove any regular dot and show cake instead
         btn.querySelectorAll('.cal-dot').forEach(d => d.remove());
+      } else if (_bdayPast) {
+        // Dots/icons mode past day: remove regular dot so cake shows instead
+        btn.querySelectorAll('.cal-dot').forEach(d => d.remove());
       }
       const _bdaySelected = btn.classList.contains('selected');
-      const _bdayColor = _bdaySelected ? '#fff' : _bdayPast ? (_isDark ? '#4a4540' : '#c8c0b8') : '#9a8a7a';
+      const _calDimPastIconsBd = (() => { const _s = calScreenConfig.find(x => x.id === 'calendar'); if (!_s) return false; const _dp = _s.dimPast || (_s.dimPastDays === true ? 'days and icons' : 'none'); return _dp === 'icons' || _dp === 'days and icons'; })();
+      const _accent = accentColor('out');
+      // Only dim past birthday if dim markers is on
+      const _bdayDimColor = _isDark ? '#4a4540' : '#c8c0b8';
+      const _bdayCakeColor = _bdaySelected ? '#fff' : (_bdayPast && _calDimPastIconsBd) ? _bdayDimColor : _accent;
+      const _bdayDotColor = _bdaySelected ? '#fff' : (_bdayPast && _calDimPastIconsBd) ? _bdayDimColor : '#9a8a7a';
       btn.style.position = 'relative';
       const dot = document.createElement('div');
       dot.className = 'cal-bday-dot';
       if (_bdDisplay === 'people') {
-        const _peopleAccent = accentColor('out');
         dot.style.cssText = 'position:absolute;bottom:6px;left:50%;transform:translateX(-50%);width:12px;height:12px;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:2;overflow:hidden';
-        dot.innerHTML = _birthdayCakeSvg(10, _bdaySelected ? '#fff' : _peopleAccent);
+        dot.innerHTML = _birthdayCakeSvg(10, _bdayCakeColor);
       } else if (_bdDisplay === 'icons') {
         dot.style.cssText = 'position:absolute;bottom:3px;left:50%;transform:translateX(-50%);width:12px;height:12px;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:2;overflow:hidden';
-        dot.innerHTML = _birthdayCakeSvg(10, _bdayColor);
+        dot.innerHTML = _birthdayCakeSvg(10, _bdayCakeColor);
       } else {
-        dot.style.cssText = 'position:absolute;bottom:3px;left:50%;transform:translateX(-50%);width:5px;height:5px;border-radius:50%;background:' + _bdayColor + ';cursor:pointer;z-index:2';
+        // Dots mode: use cake icon same as other modes
+        dot.style.cssText = 'position:absolute;bottom:3px;left:50%;transform:translateX(-50%);width:12px;height:12px;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:2;overflow:hidden';
+        dot.innerHTML = _birthdayCakeSvg(10, _bdayCakeColor);
       }
       dot.onclick = null; // no tooltip on calendar grid — tapping selects the day
       btn.appendChild(dot);
