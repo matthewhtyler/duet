@@ -1986,9 +1986,9 @@
   </div>
 
   <!-- Attachment rows (hidden until paperclip toggled on) -->
-  <div id="ts-attach-wrap" style="display:none">
+  <div id="ts-attach-wrap">
     <!-- Person picker -->
-    <div class="idea-row">
+    <div id="ts-person-row" class="idea-row" style="display:none">
       <svg onclick="_todoAddFavoritePerson('ts')" viewBox="0 0 24 24" width="18" height="18" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;cursor:pointer"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
       <button id="ts-person-btn" onclick="openTodoPersonPicker('ts')"
         style="flex:1;padding:9px 14px;background:var(--bg-input);border:1.5px solid var(--border);border-radius:10px;font-family:sans-serif;color:var(--text-primary);text-align:left;cursor:pointer;display:flex;align-items:center;gap:10px;margin-bottom:0">
@@ -1998,7 +1998,7 @@
       </button>
     </div>
     <!-- Idea picker (wine glass icon) -->
-    <div class="idea-row">
+    <div id="ts-idea-row" class="idea-row" style="display:none">
       <svg viewBox="0 0 24 24" width="18" height="18" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M8 22h8"/><path d="M12 15.8v6.2"/><path d="M5 3h14l-1.5 9a5 5 0 0 1-5 4h-1a5 5 0 0 1-5-4L5 3z"/></svg>
       <button id="ts-idea-btn" onclick="openIdeasPickerForTodoIdea()"
         style="flex:1;padding:9px 14px;background:var(--bg-input);border:1.5px solid var(--border);border-radius:10px;font-family:sans-serif;color:var(--text-primary);text-align:left;cursor:pointer;display:flex;align-items:center;gap:10px;margin-bottom:0">
@@ -2008,7 +2008,7 @@
       </button>
     </div>
     <!-- Date picker (calendar icon) -->
-    <div class="idea-row">
+    <div id="ts-date-row" class="idea-row" style="display:none">
       <svg viewBox="0 0 24 24" width="18" height="18" stroke="#9a8a7a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
       <button id="ts-date-btn" onclick="openUpcomingDatesPicker('ts')"
         style="flex:1;padding:9px 14px;background:var(--bg-input);border:1.5px solid var(--border);border-radius:10px;font-family:sans-serif;color:var(--text-primary);text-align:left;cursor:pointer;display:flex;align-items:center;gap:10px;margin-bottom:0">
@@ -4956,7 +4956,8 @@ function _syncHomeMonthCalToDate(fdIdx) {
 // Scroll the week strip to the page containing fdIdx's date, and update highlights in-place.
 // Only scrolls if the date is within the 4-week window AND on a different page than current.
 function _scrollWeekStripToFdIdx(fdIdx) {
-  const _fd = FUTURE_DATES[fdIdx];
+  const _visibleDatesStrip = FUTURE_DATES.filter(fd => !_isDateHiddenPrivate(fd._ref || fd));
+  const _fd = _visibleDatesStrip[fdIdx] || FUTURE_DATES[fdIdx];
   if (!_fd) return;
   const ref = _fd._ref || _fd;
   const today = new Date(); today.setHours(0,0,0,0);
@@ -4996,7 +4997,8 @@ function _scrollWeekStripToFdIdx(fdIdx) {
     const tooltipMatch = onclick.match(/showWeekTooltip\(event,(\d+),(\d+),(\d+)\)/);
     let cellTs = null;
     if (selectMatch) {
-      const fd2 = FUTURE_DATES[parseInt(selectMatch[1])];
+      const _vd1 = FUTURE_DATES.filter(fd => !_isDateHiddenPrivate(fd._ref || fd));
+      const fd2 = _vd1[parseInt(selectMatch[1])];
       if (fd2) { const r2 = fd2._ref||fd2; const mn = MONTH_NUMS[r2.month]??0; const dd = new Date(r2.year||today.getFullYear(),mn,r2.day); dd.setHours(0,0,0,0); cellTs = dd.getTime(); }
     } else if (tooltipMatch) {
       const dd = new Date(parseInt(tooltipMatch[3]),parseInt(tooltipMatch[2]),parseInt(tooltipMatch[1])); dd.setHours(0,0,0,0); cellTs = dd.getTime();
@@ -5019,7 +5021,8 @@ function scrollHomeCarousel(dir) {
   // Sync dateIdx and week strip
   if (dateIdx !== _homeCarouselIdx) {
     dateIdx = _homeCarouselIdx;
-    const _fd = FUTURE_DATES[dateIdx];
+    const _vdScroll = FUTURE_DATES.filter(fd => !_isDateHiddenPrivate(fd._ref || fd));
+    const _fd = _vdScroll[dateIdx];
     const inner = document.getElementById('week-strip-inner');
     if (inner && _fd) {
       const _isDark = document.body.classList.contains('dark-mode');
@@ -5057,7 +5060,8 @@ function scrollHomeCarousel(dir) {
         const tooltipMatch = onclick.match(/showWeekTooltip\(event,(\d+),(\d+),(\d+)\)/);
         let cellTs = null;
         if (selectMatch) {
-          const fd2 = FUTURE_DATES[parseInt(selectMatch[1])];
+          const _vd2 = FUTURE_DATES.filter(fd => !_isDateHiddenPrivate(fd._ref || fd));
+          const fd2 = _vd2[parseInt(selectMatch[1])];
           if (fd2) { const r=fd2._ref||fd2; const d=new Date(r.year||today.getFullYear(),MONTH_NUMS[r.month]??0,r.day); d.setHours(0,0,0,0); cellTs=d.getTime(); }
         } else if (tooltipMatch) {
           const d=new Date(parseInt(tooltipMatch[3]),parseInt(tooltipMatch[2]),parseInt(tooltipMatch[1])); d.setHours(0,0,0,0); cellTs=d.getTime();
@@ -5086,7 +5090,8 @@ function _initHomeCarousel() {
         _homeCarouselIdx = newIdx;
         if (dateIdx !== _homeCarouselIdx) {
           dateIdx = _homeCarouselIdx;
-          const _fd = FUTURE_DATES[dateIdx];
+          const _visibleDatesC = FUTURE_DATES.filter(fd => !_isDateHiddenPrivate(fd._ref || fd));
+          const _fd = _visibleDatesC[dateIdx];
           const today = new Date(); today.setHours(0,0,0,0);
           const sun = new Date(today); sun.setDate(today.getDate() - today.getDay());
           const end4 = new Date(sun); end4.setDate(sun.getDate() + 28);
@@ -5505,27 +5510,56 @@ const _PAPERCLIP_ON  = `<svg viewBox="0 0 24 24" width="17" height="17" stroke="
 function toggleTodoAttach(ctx) {
   if (ctx === 'ts') {
     _tsAttachOn = !_tsAttachOn;
-    _applyTodoAttach('ts', _tsAttachOn);
+    // Update paperclip icon only — never clear values on toggle
+    const btn = document.getElementById('ts-attach-btn');
+    if (btn) btn.innerHTML = _tsAttachOn ? _PAPERCLIP_ON : _PAPERCLIP_OFF;
+    _refreshTsRows();
   } else {
     _etAttachOn = !_etAttachOn;
     _applyTodoAttach('et', _etAttachOn);
   }
 }
 
+function _refreshTsRows() {
+  // Update row visibility based on current state — no value clearing
+  const on = _tsAttachOn;
+  const _showPerson = on || !!_todoSelectedPersonId;
+  const _showIdea   = on || !!_todoSelectedIdeaId;
+  const _showDate   = on || !!_todoSelectedDateKey;
+  const pr = document.getElementById('ts-person-row');
+  const ir = document.getElementById('ts-idea-row');
+  const dr = document.getElementById('ts-date-row');
+  if (pr) pr.style.display = _showPerson ? '' : 'none';
+  if (ir) ir.style.display = _showIdea   ? '' : 'none';
+  if (dr) dr.style.display = _showDate   ? '' : 'none';
+  const wrap = document.getElementById('ts-attach-wrap');
+  if (wrap) wrap.style.display = (_showPerson || _showIdea || _showDate) ? '' : 'none';
+}
+
 function _applyTodoAttach(ctx, on) {
   const btn  = document.getElementById(ctx + '-attach-btn');
-  const wrap = document.getElementById(ctx + '-attach-wrap');
   if (btn)  btn.innerHTML = on ? _PAPERCLIP_ON : _PAPERCLIP_OFF;
-  if (wrap) wrap.style.display = on ? 'block' : 'none';
-  // If turning off, clear the attached values
-  if (!on) {
-    if (ctx === 'ts') {
+  if (ctx === 'ts') {
+    _tsAttachOn = on;
+    if (!on) {
+      // Paperclip explicitly turned off: clear all values
       _todoSelectedIdeaId = null;
       _todoSelectedDateKey = null;
       _todoSelectedPersonId = null;
       _updateTodoIdeaBtn('ts-idea-btn','ts-idea-icon','ts-idea-label',null);
       _updateTodoDateBtn('ts-date-btn','ts-date-icon','ts-date-label',null);
       _updateTodoPersonBtn('ts', null);
+    }
+    _refreshTsRows();
+    return;
+  } else {
+    const wrap = document.getElementById(ctx + '-attach-wrap');
+    if (wrap) wrap.style.display = on ? 'block' : 'none';
+  }
+  // If turning off, clear the attached values (ts only - et keeps its own logic)
+  if (!on) {
+    if (ctx === 'ts') {
+      // handled above
     } else {
       _editTodoSelectedIdeaId = null;
       _editTodoSelectedDateKey = null;
@@ -5546,7 +5580,7 @@ function _dateObjKey(u) {
 }
 function _findDateByKey(key) {
   if (!key) return null;
-  return UPCOMING_DATES.find(u => _dateObjKey(u) === key) || null;
+  return UPCOMING_DATES.find(u => _dateKey(u) === key || _dateObjKey(u) === key) || null;
 }
 
 function openUpcomingDatesPicker(context) {
@@ -5607,6 +5641,7 @@ function selectUpcomingDate(key) {
     _todoSelectedIdeaId = null;
     _updateTodoIdeaBtn('ts-idea-btn','ts-idea-icon','ts-idea-label',null);
     _updateTodoDateBtn('ts-date-btn', 'ts-date-icon', 'ts-date-label', u);
+    _refreshTsRows();
     _tsIsPrivate = null;
     _renderPrivacyBox('ts-lock-icon', 'ts-privacy-box', _effectivePrivate(_tsIsPrivate, _tsIdeaIsPrivate()), _tsIsPrivate === null && _tsIdeaIsPrivate());
   } else if (ctx === 'et') {
@@ -5707,6 +5742,8 @@ function clearTodoAttachment(ctx, type) {
     if (ctx === 'ts') { _todoSelectedDateKey = null; _updateTodoDateBtn('ts-date-btn','ts-date-icon','ts-date-label',null); }
     else              { _editTodoSelectedDateKey = null; _updateTodoDateBtn('et-date-btn','et-date-icon','et-date-label',null); }
   }
+  // Refresh row visibility for ts
+  if (ctx === 'ts') _refreshTsRows();
 }
 
 let _todoPersonPickerCtx = null;
@@ -5717,6 +5754,7 @@ function _todoAddFavoritePerson(ctx) {
   if (ctx === 'ts') _todoSelectedPersonId = fav.id;
   else _editTodoSelectedPersonId = fav.id;
   _updateTodoPersonBtn(ctx, fav.id);
+  if (ctx === 'ts') _refreshTsRows();
 }
 
 function openTodoPersonPicker(ctx) {
@@ -5756,6 +5794,7 @@ function _selectTodoPerson(personId) {
   if (ctx === 'ts') _todoSelectedPersonId = personId;
   else _editTodoSelectedPersonId = personId;
   _updateTodoPersonBtn(ctx, personId);
+  if (ctx === 'ts') _refreshTsRows();
   closeTodoPersonPicker();
 }
 
@@ -5856,21 +5895,24 @@ let _todoEditId = null;
 let _lastTodoAttachment = null;  // {type:'person'|'date', id, expires}
 
 function _openTodoWithAttachment(type, id) {
-  // Close popups first
+  // Capture id before closing popups (closePersonInfo nulls _currentPersonId)
+  const _attachId = id;
+  const _attachType = type;
   closeDateInfo();
   closePersonInfo();
+  // Set attachment state variables NOW, before render
+  _tsAttachOn = false;  // paperclip stays off — attached field shows via _applyTodoAttach logic
+  _todoEditId = null;
+  _todoSelectedActivity = null;
+  _todoSelectedDateKey = _attachType === 'date' ? _attachId : null;
+  _todoSelectedIdeaId = null;
+  _todoSelectedPersonId = _attachType === 'person' ? _attachId : null;
   // Navigate to todo screen
   sheetOpen = false;
   currentView = 'todo';
   render();
-  // Open the todo sheet with attachment — replicate openTodoAdd but with attachment preset
+  // Open todo sheet and apply attachment to DOM after render
   setTimeout(() => {
-    _todoEditId = null;
-    _todoSelectedActivity = null;
-    _todoSelectedDateKey = null;
-    _todoSelectedIdeaId = null;
-    _todoSelectedPersonId = null;
-    // Set fields
     const tsTask = document.getElementById('ts-task');
     const tsPrio = document.getElementById('ts-priority');
     const tsNote = document.getElementById('ts-note');
@@ -5881,17 +5923,14 @@ function _openTodoWithAttachment(type, id) {
     _updateTodoIdeaBtn('ts-idea-btn','ts-idea-icon','ts-idea-label', null);
     _updateTodoPersonBtn('ts', null);
     onTodoTaskChange();
-    // NOW set attachment BEFORE showing sheet
-    _tsAttachOn = true;
-    if (type === 'person') {
-      _todoSelectedPersonId = id;
-      _updateTodoPersonBtn('ts', id);
-    } else if (type === 'date') {
-      _todoSelectedDateKey = id;
-      const _u = _findDateByKey(id);
+    // Apply attachment to DOM
+    if (_attachType === 'person') {
+      _updateTodoPersonBtn('ts', _attachId);
+    } else if (_attachType === 'date') {
+      const _u = _findDateByKey(_attachId);
       _updateTodoDateBtn('ts-date-btn','ts-date-icon','ts-date-label', _u);
     }
-    _applyTodoAttach('ts', true);
+    _refreshTsRows();  // show only the attached row, paperclip stays off
     // Show sheet
     const ts = document.getElementById('todo-sheet');
     if (!ts) return;
@@ -5900,8 +5939,9 @@ function _openTodoWithAttachment(type, id) {
     document.getElementById('btn-new-icon-plus').style.display = 'none';
     document.getElementById('btn-new-icon-check').style.display = 'block';
     setTimeout(() => { const o = document.getElementById('sheet-overlay'); if(o) o.style.display = 'block'; }, 0);
+    setTimeout(() => { const n = document.getElementById('ts-note'); if(n) n.focus(); }, 100);
     _syncAllClearable();
-    _lastTodoAttachment = { type, id, expires: Date.now() + 5000 };
+    _lastTodoAttachment = { type: _attachType, id: _attachId, expires: Date.now() + 5000 };
   }, 50);
 }
 
@@ -6550,10 +6590,11 @@ function renderHome() {
 function renderWeekStrip() {
   const today = new Date(); today.setHours(0,0,0,0);
 
-  // Map all FUTURE_DATES to timestamps → index
+  // Map all visible (non-hidden) FUTURE_DATES to timestamps → carousel index
+  const _stripVisibleDates = FUTURE_DATES.filter(fd => !_isDateHiddenPrivate(fd._ref || fd));
   const futureDateMap = {};
   const _isSearchingStrip = calMemSearch || calMemPeople.length;
-  FUTURE_DATES.forEach((fd, idx) => {
+  _stripVisibleDates.forEach((fd, idx) => {
     const mNum = MONTH_NUMS[fd._ref.month] ?? 0;
     const dt = new Date(fd._ref.year || new Date().getFullYear(), mNum, fd._ref.day);
     dt.setHours(0,0,0,0);
@@ -6562,8 +6603,8 @@ function renderWeekStrip() {
 
   // Selected date timestamp
   let selectedTs = null;
-  if (FUTURE_DATES[dateIdx]) {
-    const fd = FUTURE_DATES[dateIdx];
+  if (_stripVisibleDates[dateIdx]) {
+    const fd = _stripVisibleDates[dateIdx];
     const mNum = MONTH_NUMS[fd._ref.month] ?? 0;
     const sel = new Date(fd._ref.year || new Date().getFullYear(), mNum, fd._ref.day);
     sel.setHours(0,0,0,0);
@@ -7101,7 +7142,16 @@ function renderCalendar() {
       const _pIsMarked = _prevMarked.includes(_pd);
       const _pIsDimmed = !_pIsMarked && _prevDimmed.includes(_pd);
       const _pDotClass = _pIsMarked ? 'cal-dot' : (_pIsDimmed ? 'cal-dot dim' : '');
-      const _pDotHtml = (_pIsMarked || _pIsDimmed) ? `<div class="${_pDotClass}"></div>` : '';
+      let _pDotHtml = (_pIsMarked || _pIsDimmed) ? `<div class="${_pDotClass}"></div>` : '';
+      // Icons mode: show date icon instead of dot
+      if (_isIconsMode && _pIsMarked) {
+        const _pIconDate = _prevDates.find(u => u.day === _pd);
+        const _pIconIdea = _pIconDate ? ideas.find(i => i.name && _pIconDate.venue && i.name.toLowerCase() === _pIconDate.venue.toLowerCase()) : null;
+        const _pIconKey = _pIconIdea ? (_pIconIdea.customIconKey || _ideaDefaultIconKey(_pIconIdea.category)) : null;
+        const _pIconColor = _pIsSelected ? '#fff' : '#c07a8a';
+        const _pIconSvg = _pIconKey && ICONS[_pIconKey] ? ICONS[_pIconKey](10, _pIconColor) : null;
+        if (_pIconSvg) _pDotHtml = `<div class="cal-dot-icon"><div style="width:12px;height:12px;display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0">${_pIconSvg}</div></div>`;
+      }
             const _pIsSelected = window._calOverflowMonth === _prevMonth && window._calOverflowYear === _prevYear && selectedCalDay === _pd;
       const _pFinalDot = _pDotHtml;
       cells += `<button class="cal-day${_pIsSelected ? ' selected' : ''}${_isPeopleMode ? ' cal-day-people' : _isIconsMode ? ' cal-day-icons' : ''}" data-overflow-month="${_prevMonth}" data-overflow-year="${_prevYear}" data-overflow-day="${_pd}" onclick="_calSelectOverflowDay(${_prevMonth},${_prevYear},${_pd})"><span style="${_pIsSelected ? 'font-weight:700' : 'color:#b0a090'}">${_pd}</span>${_pFinalDot}</button>`;
@@ -7201,7 +7251,16 @@ function renderCalendar() {
       const _nDotClassFull = _nIsMarked ? 'cal-dot' : (_nIsDimmed ? 'cal-dot dim' : '');
       const _nDotHtmlFull = (_nIsMarked || _nIsDimmed) ? `<div class="${_nDotClassFull}"></div>` : '';
             const _nIsSelected = window._calOverflowMonth === _nextMonth && window._calOverflowYear === _nextYear && selectedCalDay === _nd;
-      const _nFinalDot = _nDotHtmlFull;
+      // Icons mode: show date icon instead of dot
+      let _nFinalDot = _nDotHtmlFull;
+      if (_isIconsMode && _nIsMarked) {
+        const _nIconDate = _nextDatesThisMonth.find(u => u.day === _nd);
+        const _nIconIdea = _nIconDate ? ideas.find(i => i.name && _nIconDate.venue && i.name.toLowerCase() === _nIconDate.venue.toLowerCase()) : null;
+        const _nIconKey = _nIconIdea ? (_nIconIdea.customIconKey || _ideaDefaultIconKey(_nIconIdea.category)) : null;
+        const _nIconColor = _nIsSelected ? '#fff' : '#c07a8a';
+        const _nIconSvg = _nIconKey && ICONS[_nIconKey] ? ICONS[_nIconKey](10, _nIconColor) : null;
+        if (_nIconSvg) _nFinalDot = `<div class="cal-dot-icon"><div style="width:12px;height:12px;display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0">${_nIconSvg}</div></div>`;
+      }
       cells += `<button class="${_nIsSelected ? 'cal-day selected' : 'cal-day'}${_isPeopleMode ? ' cal-day-people' : _isIconsMode ? ' cal-day-icons' : ''}" data-overflow-month="${_nextMonth}" data-overflow-year="${_nextYear}" data-overflow-day="${_nd}" onclick="_calSelectOverflowDay(${_nextMonth},${_nextYear},${_nd})">
         <span style="${_nIsSelected ? 'font-weight:700' : 'color:#b0a090'}">${_nd}</span>
         ${_nFinalDot}
@@ -7225,7 +7284,7 @@ function renderCalendar() {
   const _selDayDates = selectedCalDay ? UPCOMING_DATES.filter(u => u.month === _selMonthAbbr && (u.year||2026) === _selYear && u.day === selectedCalDay) : [];
   const _selDayVisible = _selDayDates.filter(u => !_isDateHiddenPrivate(u)).sort((a,b) => _timeToMinutes(a.time) - _timeToMinutes(b.time));
   const _selDayAllPrivate = _selDayDates.length > 0 && _selDayVisible.length === 0;
-  const _selDayObj = selectedCalDay ? new Date(currentCalYear, currentCalMonth, selectedCalDay) : null;
+  const _selDayObj = selectedCalDay ? new Date(_selYear, _selMonth, selectedCalDay) : null;
   if (_selDayObj) _selDayObj.setHours(0,0,0,0);
   const _selIsPast = _selDayObj && _selDayObj < _now;
 
@@ -7440,7 +7499,7 @@ function renderCalendar() {
     // Build header HTML for a given date entry
     function _buildIpHeader(u, accent, idea, clickable) {
       const _ipIcon = idea ? ideaIcon(idea, 13, accent) : activityIcon(u.activity, 13, accent);
-      const _ipMonthAbbr = new Date(currentCalYear, currentCalMonth, selectedCalDay).toLocaleString('en-US',{month:'short'});
+      const _ipMonthAbbr = new Date(_selYear, _selMonth, selectedCalDay).toLocaleString('en-US',{month:'short'});
       const _ipTime = u.time ? _shortTime(u.time) : '';
       const _ipDateTimeParts = [`${_ipMonthAbbr} ${selectedCalDay}`, _ipTime].filter(Boolean);
       const _ipDateTimeStr = _ipDateTimeParts.join(' · ');
@@ -7518,7 +7577,7 @@ function renderCalendar() {
       return (!calSec || calSec.showBirthdays !== false) || (!upSec || upSec.showUpcomingBirthdays !== false);
     })();
     if (_showBdDetails && selectedCalDay) {
-      const _bdOnDay = _birthdaysInMonth(currentCalMonth).filter(b => b.day === selectedCalDay);
+      const _bdOnDay = _birthdaysInMonth(_selMonth).filter(b => b.day === selectedCalDay);
       _bdOnDay.forEach(b => {
         const _bdP = people.find(x => x.id === b.id);
         if (!_bdP) return;
@@ -7622,7 +7681,7 @@ function renderCalendar() {
         Locked date ${_privDateLabel}
       </div>`;
   } else if (selectedCalDay) {
-    const _selObj = new Date(currentCalYear, currentCalMonth, selectedCalDay); _selObj.setHours(0,0,0,0);
+    const _selObj = new Date(_selYear, _selMonth, selectedCalDay); _selObj.setHours(0,0,0,0);
     const _tomorrow = new Date(_now); _tomorrow.setDate(_now.getDate() + 1);
     // End of today's week (Sunday) — week ends on Sunday, next week starts Monday
     const _endOfWeek = new Date(_now); _endOfWeek.setDate(_now.getDate() + (7 - _now.getDay()) % 7 || 7);
@@ -7632,7 +7691,7 @@ function renderCalendar() {
       : _calDayLabel(selectedCalDay, currentCalMonth, currentCalYear);
     selectedCardHTML = `
       <div style="margin-top:8px;height:70px;box-sizing:border-box;padding:12px 16px;border-radius:14px;display:flex;align-items:center;justify-content:center;color:#b0a090;font-size:14px;font-style:italic">
-        No date ${_noDateLabel}${!_selIsPast ? ` · <span style="color:${ROSE};cursor:pointer" onclick="openNewDateFromCal(${selectedCalDay}, currentCalMonth, currentCalYear)">&nbsp;Plan one ›</span>` : ''}
+        No date ${_noDateLabel}${!_selIsPast ? ` · <span style="color:${ROSE};cursor:pointer" onclick="openNewDateFromCal(${selectedCalDay}, window._calOverflowMonth != null ? window._calOverflowMonth : currentCalMonth, window._calOverflowYear != null ? window._calOverflowYear : currentCalYear)">&nbsp;Plan one ›</span>` : ''}
       </div>`;
   }
 
@@ -7927,7 +7986,9 @@ function _buildCalUpcomingHtml() {
   const monthAbbr = new Date(currentCalYear, currentCalMonth, 1).toLocaleString('default',{month:'short'});
   const _selDayVisible = UPCOMING_DATES.filter(u => {
     const dt = new Date((u.year||2026), MONTH_NUMS[u.month]||0, u.day); dt.setHours(0,0,0,0);
-    return dt.getTime() === new Date(currentCalYear, currentCalMonth, selectedCalDay).setHours(0,0,0,0) && !_isDateHiddenPrivate(u);
+    const _cuOvMonth = window._calOverflowMonth != null ? window._calOverflowMonth : currentCalMonth;
+    const _cuOvYear  = window._calOverflowYear  != null ? window._calOverflowYear  : currentCalYear;
+    return dt.getTime() === new Date(_cuOvYear, _cuOvMonth, selectedCalDay).setHours(0,0,0,0) && !_isDateHiddenPrivate(u);
   });
   const _dateItems = UPCOMING_DATES
     .filter(u => { const dt=new Date((u.year||2026),MONTH_NUMS[u.month]||0,u.day); dt.setHours(0,0,0,0); return dt>=now && !_isDateHiddenPrivate(u) && (!_isSearching || _calMemMatchDate(u)); })
@@ -8125,6 +8186,16 @@ function _calCardClick(day, month, year, dateId) {
     ? (UPCOMING_DATES.find(d => String(d.id) === String(dateId)) || UPCOMING_DATES.find(d => d.month === month && (d.year||2026) === year && d.day === day))
     : UPCOMING_DATES.find(d => d.month === month && (d.year||2026) === year && d.day === day);
 
+  // If on calendar screen and card is from adjacent month, select as overflow day
+  const _isCurrentMonth = mNum === currentCalMonth && year === currentCalYear;
+  if (currentView === 'calendar' && !_isCurrentMonth) {
+    _calSelectOverflowDay(mNum, year, day);
+    if (u) {
+      window._calActiveDateId = String(u.id);
+      _calRenderWithoutSlides();
+    }
+    return;
+  }
   const alreadyOnDay = selectedCalDay === day && currentCalMonth === mNum && currentCalYear === year;
 
   // Sorted list of all visible dates on this day
@@ -9108,7 +9179,8 @@ function _initWeekStrip() {
 
 function selectWeekDate(idx) {
   closeWeekTooltip();
-  if (idx < 0 || idx >= FUTURE_DATES.length) return;
+  const _visibleDates = FUTURE_DATES.filter(fd => !_isDateHiddenPrivate(fd._ref || fd));
+  if (idx < 0 || idx >= _visibleDates.length) return;
   dateIdx = idx;
   _homeCarouselIdx = idx;
 
@@ -9129,8 +9201,8 @@ function selectWeekDate(idx) {
         const today = new Date(); today.setHours(0,0,0,0);
         // Find selected timestamp
         let selectedTs = null;
-        if (FUTURE_DATES[idx]) {
-          const fd = FUTURE_DATES[idx];
+        if (_visibleDates[idx]) {
+          const fd = _visibleDates[idx];
           const mNum = MONTH_NUMS[fd._ref.month] ?? 0;
           const sel = new Date(fd._ref.year || today.getFullYear(), mNum, fd._ref.day);
           sel.setHours(0,0,0,0);
@@ -9146,7 +9218,8 @@ function selectWeekDate(idx) {
           const tooltipMatch = onclick.match(/showWeekTooltip\(event,(\d+),(\d+),(\d+)\)/);
           let cellTs = null;
           if (selectMatch) {
-            const fd = FUTURE_DATES[parseInt(selectMatch[1])];
+            const _vd3 = FUTURE_DATES.filter(fd => !_isDateHiddenPrivate(fd._ref || fd));
+            const fd = _vd3[parseInt(selectMatch[1])];
             if (fd) {
               const mNum = MONTH_NUMS[fd._ref.month] ?? 0;
               const d = new Date(fd._ref.year || today.getFullYear(), mNum, fd._ref.day);
@@ -10016,8 +10089,8 @@ function renderDateSheetUI() {
   document.getElementById('date-note').value = '';
   populateDateImageFields([]);
   const _fillDay = selectedCalDay || new Date().getDate();
-  const _fillMonth = selectedCalDay ? currentCalMonth : new Date().getMonth();
-  const _fillYear  = selectedCalDay ? currentCalYear  : new Date().getFullYear();
+  const _fillMonth = selectedCalDay ? (window._calOverflowMonth != null ? window._calOverflowMonth : currentCalMonth) : new Date().getMonth();
+  const _fillYear  = selectedCalDay ? (window._calOverflowYear  != null ? window._calOverflowYear  : currentCalYear)  : new Date().getFullYear();
   const mm = String(_fillMonth + 1).padStart(2, '0');
   const dd = String(_fillDay).padStart(2, '0');
   const _hiddenVal = `${_fillYear}-${mm}-${dd}`;
@@ -10645,6 +10718,7 @@ function selectActivity(id) {
     _todoSelectedDateKey = null;
     _updateTodoDateBtn('ts-date-btn','ts-date-icon','ts-date-label',null);
     _updateTodoIdeaBtn('ts-idea-btn', 'ts-idea-icon', 'ts-idea-label', item.id);
+    _applyTodoAttach('ts', _tsAttachOn);
     _tsIsPrivate = null;
     _renderPrivacyBox('ts-lock-icon', 'ts-privacy-box', _effectivePrivate(_tsIsPrivate, _tsIdeaIsPrivate()), _tsIsPrivate === null && _tsIdeaIsPrivate());
     closeIdeasPicker(); ideasPickerContext = 'sheet'; return;
@@ -11122,6 +11196,8 @@ function saveNewDate() {
   { const _el = document.getElementById('date-custom-cat-wrap'); if (_el) _el.style.display = 'none'; }
   const _daib4 = document.getElementById('date-activity-info-btn'); if (_daib4) _daib4.style.display = 'none';
   populateDateImageFields([]);
+  window._calOverflowMonth = null;
+  window._calOverflowYear = null;
   closeSheet();
   render();
 }
@@ -16143,16 +16219,42 @@ function _applyBirthdayDots() {
       // Handle overflow cells with their own month's birthdays
       if (btn.dataset.overflowMonth !== undefined) {
         const _ovMonth = parseInt(btn.dataset.overflowMonth);
-        const _ovDay = parseInt(btn.dataset.overflowDay || btn.textContent);
+        const _ovYear  = parseInt(btn.dataset.overflowYear  || new Date().getFullYear());
+        const _ovDay   = parseInt(btn.dataset.overflowDay   || btn.textContent);
         const _ovBdays = _birthdaysInMonth(_ovMonth).filter(b => b.day === _ovDay);
         if (!_ovBdays.length) return;
+        // Icons mode: if a date icon already present, icon wins — skip birthday cake
+        if (btn.querySelector('.cal-dot-icon')) return;
+        const _bdDisplay2 = (() => { const _cs = calScreenConfig.find(s => s.id === 'calendar'); return _cs ? (_cs.datesDisplay || 'dots') : 'dots'; })();
+        const _isDark2 = document.body.classList.contains('dark-mode');
+        const _ovDate = new Date(_ovYear, _ovMonth, _ovDay); _ovDate.setHours(0,0,0,0);
+        const _ovPast = _ovDate < new Date().setHours(0,0,0,0);
+        // Dots mode: upcoming day with scheduled dot → dot wins, skip cake
+        if (_bdDisplay2 !== 'people' && _bdDisplay2 !== 'icons' && !_ovPast && btn.querySelector('.cal-dot')) return;
+        // People mode: upcoming day with photo → photo wins
+        if (_bdDisplay2 === 'people') {
+          const _hasPeoplePhoto = btn.querySelector('[style*="border-radius:50%"][style*="overflow:hidden"]');
+          if (_hasPeoplePhoto && !_ovPast) return;
+          btn.querySelectorAll('.cal-dot').forEach(d => d.remove());
+        } else if (_ovPast) {
+          btn.querySelectorAll('.cal-dot').forEach(d => d.remove());
+        }
         const _ovSelected = btn.classList.contains('selected');
+        const _calDimPastIconsBdOv = (() => { const _s = calScreenConfig.find(x => x.id === 'calendar'); if (!_s) return false; const _dp = _s.dimPast || (_s.dimPastDays === true ? 'days and icons' : 'none'); return _dp === 'icons' || _dp === 'days and icons'; })();
         const _ovAccent = accentColor('out');
-        const _ovColor = _ovSelected ? '#fff' : _ovAccent;
+        const _ovDimColor = _isDark2 ? '#4a4540' : '#c8c0b8';
+        const _ovCakeColor = _ovSelected ? '#fff' : (_ovPast && _calDimPastIconsBdOv) ? _ovDimColor : _ovAccent;
         const _ovDot = document.createElement('div');
         _ovDot.className = 'cal-bday-dot';
-        _ovDot.style.cssText = 'position:absolute;bottom:3px;left:50%;transform:translateX(-50%);width:12px;height:12px;display:flex;align-items:center;justify-content:center;z-index:2;overflow:hidden';
-        _ovDot.innerHTML = _birthdayCakeSvg(10, _ovColor);
+        if (_bdDisplay2 === 'people') {
+          _ovDot.style.cssText = 'position:absolute;bottom:4px;left:50%;transform:translateX(-50%);width:12px;height:12px;display:flex;align-items:center;justify-content:center;z-index:2;overflow:hidden';
+        } else if (_bdDisplay2 === 'icons') {
+          _ovDot.style.cssText = 'position:absolute;bottom:3px;left:50%;transform:translateX(-50%);width:12px;height:12px;display:flex;align-items:center;justify-content:center;z-index:2;overflow:hidden';
+        } else {
+          _ovDot.style.cssText = 'position:absolute;bottom:1px;left:50%;transform:translateX(-50%);width:12px;height:12px;display:flex;align-items:center;justify-content:center;z-index:2;overflow:hidden';
+        }
+        _ovDot.innerHTML = _birthdayCakeSvg(10, _ovCakeColor);
+        _ovDot.onclick = null;
         btn.style.position = 'relative';
         btn.appendChild(_ovDot);
         return;
@@ -16204,48 +16306,7 @@ function _applyBirthdayDots() {
 }
 
 function _applyBirthdayDotsWeek() {
-  if (!_calShowBirthdays()) return;
-  const inner = document.getElementById('week-strip-inner');
-  if (!inner) return;
-  const _isSearchingBdW = calMemSearch || calMemPeople.length;
-  inner.querySelectorAll('.week-day').forEach(cell => {
-    const onclick = cell.getAttribute('onclick') || '';
-    const tooltipMatch = onclick.match(/showWeekTooltip\(event,(\d+),(\d+),(\d+)\)/);
-    const selectMatch  = onclick.match(/selectWeekDate\((\d+)\)/);
-    let dayNum, month0;
-    if (tooltipMatch) {
-      dayNum = parseInt(tooltipMatch[1]); month0 = parseInt(tooltipMatch[2]);
-    } else if (selectMatch) {
-      const fd = FUTURE_DATES[parseInt(selectMatch[1])];
-      if (!fd) return;
-      const ref = fd._ref || fd;
-      dayNum = ref.day; month0 = MONTH_NUMS[ref.month] ?? 0;
-    } else return;
-    let bd = _birthdaysInMonth(month0).filter(b => b.day === dayNum);
-    // Filter by search
-    if (_isSearchingBdW && bd.length) {
-      bd = bd.filter(b => {
-        const p = people.find(x => x.id === b.id);
-        if (!p) return false;
-        if (calMemPeople.length) return calMemPeople.some(e => e.id === b.id);
-        if (calMemSearch) return _personFullName(p).toLowerCase().includes(calMemSearch.toLowerCase());
-        return true;
-      });
-    }
-    if (!bd.length) return;
-    // Style the dot
-    const existingDot = cell.querySelector('.week-day-dot');
-    if (existingDot) {
-      existingDot.style.background = '#9a8a7a';
-      existingDot.style.cursor = 'pointer';
-    }
-    // Override the whole cell click to show birthday tooltip
-    const _origOnclick = cell.getAttribute('onclick') || '';
-    cell.onclick = function(e) {
-      e.stopPropagation();
-      _showBirthdayTooltip(e, bd);
-    };
-  });
+  // Birthdays are not shown on the home week strip — no dots, no tooltips
 }
 
 let _bdTooltipEl = null;
@@ -16910,7 +16971,7 @@ function _resLabel(idea) {
       <div id="pi-fields" style="display:flex;flex-direction:column;gap:16px;padding:16px 18px 0"></div>
       <div style="display:flex;justify-content:center;gap:8px;padding:28px 18px 4px">
         <button onclick="_piSearchPerson()" style="display:none;align-items:center;justify-content:center;gap:6px;height:34px;padding:0 14px;border:1.5px solid #c07a8a;border-radius:17px;font-family:sans-serif;font-size:13px;font-weight:600;color:#c07a8a;background:none;cursor:pointer;flex-shrink:0"><svg viewBox="0 0 24 24" width="12" height="12" stroke="#c07a8a" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>Search</button>
-        <button onclick="_openTodoWithAttachment('person', window._currentPersonId)" style="display:flex;align-items:center;gap:7px;height:34px;padding:0 14px;border:1.5px solid #c07a8a;border-radius:17px;font-family:sans-serif;font-size:13px;font-weight:600;color:#c07a8a;background:none;cursor:pointer;line-height:1"><svg viewBox="0 0 24 24" width="12" height="12" stroke="#c07a8a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><rect x="3" y="3" width="18" height="18" rx="3"/><polyline points="9 12 11 14 15 10"/></svg>To Do</button>
+        <button onclick="_openTodoWithAttachment('person', _currentPersonId)" style="display:flex;align-items:center;gap:7px;height:34px;padding:0 14px;border:1.5px solid #c07a8a;border-radius:17px;font-family:sans-serif;font-size:13px;font-weight:600;color:#c07a8a;background:none;cursor:pointer;line-height:1"><svg viewBox="0 0 24 24" width="12" height="12" stroke="#c07a8a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><rect x="3" y="3" width="18" height="18" rx="3"/><polyline points="9 12 11 14 15 10"/></svg>To Do</button>
         <button onclick="_planSomethingWithPerson()" style="display:flex;align-items:center;gap:7px;height:34px;padding:0 16px;border:none;border-radius:17px;font-family:sans-serif;font-size:13px;font-weight:600;color:#fff;background:#c07a8a;cursor:pointer;line-height:1"><svg viewBox="0 0 24 24" width="12" height="12" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-left:4px"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><span id="pi-plan-btn-label">Plan</span></button>
       </div>
     </div>
