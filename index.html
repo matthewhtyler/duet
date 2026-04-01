@@ -6299,6 +6299,27 @@ function renderHomeMonthCal() {
   const _calDatesDisplay = (() => { const _cs = calScreenConfig.find(s => s.id === 'calendar'); return _cs ? (_cs.datesDisplay || 'dots') : 'dots'; })();
   const _isPeopleMode = _calDatesDisplay === 'people';
   const _isIconsMode = _calDatesDisplay === 'icons';
+
+function _overflowPeopleHtml(datesForDay, isSelected) {
+  const _seen = new Set(); const _result = [];
+  for (const _u of datesForDay) {
+    for (const _pe of (_u.people || [])) {
+      const _p = _pe.id ? people.find(x => x.id === _pe.id) : null;
+      if (_p && _p.photoUrl && !_seen.has(_p.id)) { _seen.add(_p.id); _result.push(_p); }
+    }
+  }
+  const _photos = _result.slice(0, 3);
+  if (!_photos.length) return '';
+  const _S = 18, _OV = 5;
+  const _tw = _S + (_photos.length - 1) * (_S - _OV);
+  const _circles = _photos.map((_p, _i) => {
+    const _lft = _i * (_S - _OV);
+    const _zi = _photos.length - _i;
+    const _outline = isSelected ? ';box-shadow:0 0 0 2px #fff' : '';
+    return `<div style="position:absolute;left:${_lft}px;top:0;width:${_S}px;height:${_S}px;border-radius:50%;overflow:hidden;z-index:${_zi}${_outline}">${_personAvatarInner(_p, _S)}</div>`;
+  }).join('');
+  return `<div style="position:absolute;bottom:6px;left:50%;transform:translateX(-50%);width:${_tw}px;height:${_S}px">${_circles}</div>`;
+}
   let cells = '';
   // Leading days from previous month
   if (firstDow > 0) {
@@ -7143,15 +7164,22 @@ function renderCalendar() {
       const _pIsMarked = _prevMarked.includes(_pd);
       const _pIsDimmed = !_pIsMarked && _prevDimmed.includes(_pd);
       const _pDotClass = _pIsSelected ? 'cal-dot selected' : (_pIsMarked ? 'cal-dot' : (_pIsDimmed ? 'cal-dot dim' : ''));
-      let _pDotHtml = (_pIsMarked || _pIsDimmed) ? `<div class="${_pDotClass}"></div>` : '';
-      // Icons mode: show date icon instead of dot
-      if (_isIconsMode && _pIsMarked) {
-        const _pIconDate = _prevDates.find(u => u.day === _pd);
-        const _pIconIdea = _pIconDate ? ideas.find(i => i.name && _pIconDate.venue && i.name.toLowerCase() === _pIconDate.venue.toLowerCase()) : null;
-        const _pIconKey = _pIconIdea ? (_pIconIdea.customIconKey || _ideaDefaultIconKey(_pIconIdea.category)) : null;
-        const _pIconColor = _pIsSelected ? '#fff' : '#c07a8a';
-        const _pIconSvg = _pIconKey && ICONS[_pIconKey] ? ICONS[_pIconKey](10, _pIconColor) : null;
-        if (_pIconSvg) _pDotHtml = `<div class="cal-dot-icon"><div style="width:12px;height:12px;display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0">${_pIconSvg}</div></div>`;
+      const _pDatesOnDay = _pIsMarked ? _prevDates.filter(u => u.day === _pd) : [];
+      let _pDotHtml = '';
+      if (_pIsMarked || _pIsDimmed) {
+        if (_isIconsMode && _pIsMarked) {
+          const _pIconDate = _pDatesOnDay[0];
+          const _pIconIdea = _pIconDate ? ideas.find(i => i.name && _pIconDate.venue && i.name.toLowerCase() === _pIconDate.venue.toLowerCase()) : null;
+          const _pIconKey = _pIconIdea ? (_pIconIdea.customIconKey || _ideaDefaultIconKey(_pIconIdea.category)) : null;
+          const _pIconColor = _pIsSelected ? '#fff' : '#c07a8a';
+          const _pIconSvg = _pIconKey && ICONS[_pIconKey] ? ICONS[_pIconKey](10, _pIconColor) : null;
+          _pDotHtml = _pIconSvg ? `<div class="cal-dot-icon"><div style="width:12px;height:12px;display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0">${_pIconSvg}</div></div>` : `<div class="${_pDotClass}"></div>`;
+        } else if (_isPeopleMode && _pIsMarked) {
+          const _pPeopleHtml = _overflowPeopleHtml(_pDatesOnDay, _pIsSelected);
+          _pDotHtml = _pPeopleHtml || `<div class="${_pDotClass}" style="position:absolute;bottom:6px;left:50%;transform:translateX(-50%)"></div>`;
+        } else {
+          _pDotHtml = `<div class="${_pDotClass}"></div>`;
+        }
       }
       const _pFinalDot = _pDotHtml;
       cells += `<button class="cal-day${_pIsSelected ? ' selected' : ''}${_isPeopleMode ? ' cal-day-people' : _isIconsMode ? ' cal-day-icons' : ''}" data-overflow-month="${_prevMonth}" data-overflow-year="${_prevYear}" data-overflow-day="${_pd}" onclick="_calSelectOverflowDay(${_prevMonth},${_prevYear},${_pd})"><span style="${_pIsSelected ? 'font-weight:700' : 'color:#b0a090'}">${_pd}</span>${_pFinalDot}</button>`;
@@ -7250,16 +7278,22 @@ function renderCalendar() {
       const _nDotHtml = (_nIsMarked || _nIsDimmed) ? `<div class="${_nDotClass}"></div>` : '';
       const _nCls = 'cal-day' + (_isPeopleMode ? ' cal-day-people' : _isIconsMode ? ' cal-day-icons' : '');
       const _nDotClassFull = _nIsSelected ? 'cal-dot selected' : (_nIsMarked ? 'cal-dot' : (_nIsDimmed ? 'cal-dot dim' : ''));
-      const _nDotHtmlFull = (_nIsMarked || _nIsDimmed) ? `<div class="${_nDotClassFull}"></div>` : '';
-      // Icons mode: show date icon instead of dot
-      let _nFinalDot = _nDotHtmlFull;
-      if (_isIconsMode && _nIsMarked) {
-        const _nIconDate = _nextDatesThisMonth.find(u => u.day === _nd);
-        const _nIconIdea = _nIconDate ? ideas.find(i => i.name && _nIconDate.venue && i.name.toLowerCase() === _nIconDate.venue.toLowerCase()) : null;
-        const _nIconKey = _nIconIdea ? (_nIconIdea.customIconKey || _ideaDefaultIconKey(_nIconIdea.category)) : null;
-        const _nIconColor = _nIsSelected ? '#fff' : '#c07a8a';
-        const _nIconSvg = _nIconKey && ICONS[_nIconKey] ? ICONS[_nIconKey](10, _nIconColor) : null;
-        if (_nIconSvg) _nFinalDot = `<div class="cal-dot-icon"><div style="width:12px;height:12px;display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0">${_nIconSvg}</div></div>`;
+      const _nDatesOnDay = _nIsMarked ? _nextDatesThisMonth.filter(u => u.day === _nd) : [];
+      let _nFinalDot = '';
+      if (_nIsMarked || _nIsDimmed) {
+        if (_isIconsMode && _nIsMarked) {
+          const _nIconDate = _nDatesOnDay[0];
+          const _nIconIdea = _nIconDate ? ideas.find(i => i.name && _nIconDate.venue && i.name.toLowerCase() === _nIconDate.venue.toLowerCase()) : null;
+          const _nIconKey = _nIconIdea ? (_nIconIdea.customIconKey || _ideaDefaultIconKey(_nIconIdea.category)) : null;
+          const _nIconColor = _nIsSelected ? '#fff' : '#c07a8a';
+          const _nIconSvg = _nIconKey && ICONS[_nIconKey] ? ICONS[_nIconKey](10, _nIconColor) : null;
+          _nFinalDot = _nIconSvg ? `<div class="cal-dot-icon"><div style="width:12px;height:12px;display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0">${_nIconSvg}</div></div>` : `<div class="${_nDotClassFull}"></div>`;
+        } else if (_isPeopleMode && _nIsMarked) {
+          const _nPeopleHtml = _overflowPeopleHtml(_nDatesOnDay, _nIsSelected);
+          _nFinalDot = _nPeopleHtml || `<div class="${_nDotClassFull}" style="position:absolute;bottom:6px;left:50%;transform:translateX(-50%)"></div>`;
+        } else {
+          _nFinalDot = `<div class="${_nDotClassFull}"></div>`;
+        }
       }
       cells += `<button class="${_nIsSelected ? 'cal-day selected' : 'cal-day'}${_isPeopleMode ? ' cal-day-people' : _isIconsMode ? ' cal-day-icons' : ''}" data-overflow-month="${_nextMonth}" data-overflow-year="${_nextYear}" data-overflow-day="${_nd}" onclick="_calSelectOverflowDay(${_nextMonth},${_nextYear},${_nd})">
         <span style="${_nIsSelected ? 'font-weight:700' : 'color:#b0a090'}">${_nd}</span>
