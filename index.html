@@ -6596,7 +6596,7 @@ function _overflowPeopleHtml(datesForDay, isSelected) {
       if (_p && _p.photoUrl && !_seen.has(_p.id)) { _seen.add(_p.id); _result.push(_p); }
     }
   }
-  const _photos = _result;
+  const _photos = _result.slice(0, 3);
   if (!_photos.length) return '';
   const _n = _photos.length;
   const _S = 18;
