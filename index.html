@@ -15399,11 +15399,13 @@ function openEditPersonPhoto() {
     } else {
       urlInput.value = _rawPhotoUrl;
     }
-    // If blank, default to first name + .png from the form behind
+    // If blank, default to first name + .png — read directly from the visible form field
     if (!urlInput.value) {
-      const _epFn = document.getElementById('ep-first-name') || document.getElementById('nps-first-name');
-      const _firstName = (_epFn && _epFn.value.trim()) ? _epFn.value.trim() : (p ? p.firstName : '');
-      if (_firstName) urlInput.value = _firstName.toLowerCase().replace(/\s+/g, '') + '.png';
+      const _epFn = document.getElementById('ep-first-name');
+      const _npsFn = document.getElementById('nps-first-name');
+      // Use whichever field is in an open/visible form
+      const _fnField = (_epFn && _epFn.value.trim()) ? _epFn : (_npsFn && _npsFn.value.trim()) ? _npsFn : null;
+      if (_fnField) urlInput.value = _fnField.value.trim().toLowerCase().replace(/\s+/g, '') + '.png';
     }
     const reloadBtn = document.getElementById('photo-reload-btn');
     const clearBtn = document.getElementById('photo-clear-btn');
@@ -16697,6 +16699,21 @@ function _toggleEpFamily() {
   _updateEpFamilyBox();
 }
 
+
+function _ensurePhotoUrlExtension() {
+  const inp = document.getElementById('photo-url-input');
+  if (!inp) return;
+  const val = inp.value.trim();
+  if (!val) return;
+  // Only add .png if it's a plain filename (no slash, no dot after last segment, not a full URL)
+  if (!val.startsWith('http://') && !val.startsWith('https://') && !val.startsWith('//') && !val.startsWith('data:')) {
+    const lastDot = val.lastIndexOf('.');
+    const lastSlash = val.lastIndexOf('/');
+    if (lastDot < 0 || lastDot < lastSlash) {
+      inp.value = val + '.png';
+    }
+  }
+}
 function _onPhotoUrlInputChange() {
   const inp = document.getElementById('photo-url-input');
   if (inp && inp.value !== inp.value.toLowerCase()) {
@@ -16713,8 +16730,12 @@ function _onPhotoUrlInputChange() {
 }
 
 function _reloadPhotoUrl() {
+  _ensurePhotoUrlExtension();
   const val = document.getElementById('photo-url-input').value;
-  if (val) _onPhotoUrlInput(val);
+  if (val) {
+    _onPhotoUrlInputChange();
+    _onPhotoUrlInput(val);
+  }
 }
 
 function _clearPhotoUrl() {
@@ -17136,7 +17157,7 @@ function _resLabel(idea) {
         <button type="button" id="photo-reload-btn" onmousedown="event.preventDefault();_reloadPhotoUrl()" style="position:absolute;left:8px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;padding:0;line-height:0;color:#b0a090;opacity:0.3;z-index:1;display:flex;align-items:center;justify-content:center">
           <svg viewBox="0 0 24 24" width="12" height="12" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round" style="position:relative;top:2px;left:2px"><path d="M2.5 8A9 9 0 1 1 3.5 15"/><polyline points="2 4 2.5 8 7 7.5"/></svg>
         </button>
-        <input class="field-input" id="photo-url-input" type="text" placeholder="Image URL or filename" style="width:100%;margin-bottom:0;box-sizing:border-box;padding-left:30px;padding-right:32px;text-transform:lowercase" oninput="_onPhotoUrlInputChange()">
+        <input class="field-input" id="photo-url-input" type="text" placeholder="Image URL or filename" style="width:100%;margin-bottom:0;box-sizing:border-box;padding-left:30px;padding-right:32px;text-transform:lowercase" oninput="_onPhotoUrlInputChange()" onkeydown="if(event.key==='Enter'){event.preventDefault();_ensurePhotoUrlExtension();_onPhotoUrlInputChange();_reloadPhotoUrl();}">
         <button type="button" id="photo-clear-btn" onmousedown="event.preventDefault();_clearPhotoUrl()" style="display:none;position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;padding:2px;line-height:0;color:#b0a090">
           <svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
         </button>
