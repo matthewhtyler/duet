@@ -6300,28 +6300,6 @@ function renderHomeMonthCal() {
   const _isPeopleMode = _calDatesDisplay === 'people';
   const _isIconsMode = _calDatesDisplay === 'icons';
 
-function _overflowPeopleHtml(datesForDay, isSelected) {
-  const _seen = new Set(); const _result = [];
-  for (const _u of datesForDay) {
-    for (const _pe of (_u.people || [])) {
-      const _p = _pe.id ? people.find(x => x.id === _pe.id) : null;
-      if (_p && _p.photoUrl && !_seen.has(_p.id)) { _seen.add(_p.id); _result.push(_p); }
-    }
-  }
-  const _photos = _result.slice(0, 3);
-  if (!_photos.length) return '';
-  const _n = _photos.length;
-  const _S = _n >= 3 ? 14 : 18;
-  const _OV = _n >= 3 ? 6 : 5;
-  const _tw = _S + (_n - 1) * (_S - _OV);
-  const _circles = _photos.map((_p, _i) => {
-    const _lft = _i * (_S - _OV);
-    const _zi = _n - _i;
-    const _outline = isSelected ? ';box-shadow:0 0 0 2px #fff' : '';
-    return `<div style="position:absolute;left:${_lft}px;top:0;width:${_S}px;height:${_S}px;border-radius:50%;overflow:hidden;z-index:${_zi}${_outline}">${_personAvatarInner(_p, _S)}</div>`;
-  }).join('');
-  return `<div style="position:absolute;bottom:6px;left:50%;transform:translateX(-50%);width:${_tw}px;height:${_S}px">${_circles}</div>`;
-}
   let cells = '';
   // Leading days from previous month
   if (firstDow > 0) {
@@ -6609,6 +6587,29 @@ function renderHome() {
   return sectionHtml;
 }
 
+
+function _overflowPeopleHtml(datesForDay, isSelected) {
+  const _seen = new Set(); const _result = [];
+  for (const _u of datesForDay) {
+    for (const _pe of (_u.people || [])) {
+      const _p = _pe.id ? people.find(x => x.id === _pe.id) : null;
+      if (_p && _p.photoUrl && !_seen.has(_p.id)) { _seen.add(_p.id); _result.push(_p); }
+    }
+  }
+  const _photos = _result;
+  if (!_photos.length) return '';
+  const _n = _photos.length;
+  const _S = 18;
+  const _OV = _n >= 3 ? 10 : 5;
+  const _tw = _S + (_n - 1) * (_S - _OV);
+  const _circles = _photos.map((_p, _i) => {
+    const _lft = _i * (_S - _OV);
+    const _zi = _n - _i;
+    const _outline = isSelected ? ';box-shadow:0 0 0 2px #fff' : '';
+    return `<div style="position:absolute;left:${_lft}px;top:0;width:${_S}px;height:${_S}px;border-radius:50%;overflow:hidden;z-index:${_zi}${_outline}">${_personAvatarInner(_p, _S)}</div>`;
+  }).join('');
+  return `<div style="position:absolute;bottom:6px;left:50%;transform:translateX(-50%);width:${_tw}px;height:${_S}px">${_circles}</div>`;
+}
 
 function renderWeekStrip() {
   const today = new Date(); today.setHours(0,0,0,0);
@@ -7233,8 +7234,8 @@ function renderCalendar() {
     const _peopleHtml = (() => {
       if (!_peopleForDay.length) return '';
       const _n = _peopleForDay.length;
-      const _S = _n >= 3 ? 14 : 18;
-      const _OV = _n >= 3 ? 6 : 5;
+      const _S = 18;
+      const _OV = _n >= 3 ? 10 : 5;
       const _tw = _S + (_n - 1) * (_S - _OV);
       const _circles = _peopleForDay.map((_p, _i) => {
         const _lft = _i * (_S - _OV);
