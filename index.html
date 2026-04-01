@@ -3933,7 +3933,7 @@ function _buildBannerCard(u, opts) {
   return `<div ${clickExpr ? `onclick="${clickExpr}"` : ''} class="quick-row" style="cursor:pointer;flex-direction:column;align-items:stretch;padding:0;overflow:hidden;width:100%">
     <div style="height:100px;background:#6b2340;border-radius:13px 13px 0 0;flex-shrink:0;overflow:hidden;position:relative">${urls.length ? `<img src="${urls[0]}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center;display:block" onerror="this.parentNode.style.background='#6b2340';this.style.display='none'">` : ''}${(() => {
       if (!opts.showPeople) return '';
-      const _peeps = (u.people || []).slice(0, 3);
+      const _peeps = (u.people || []);
       if (!_peeps.length) return '';
       const _S = 24, _OV = 6;
       const _tw = _S + (_peeps.length - 1) * (_S - _OV);
@@ -6310,11 +6310,13 @@ function _overflowPeopleHtml(datesForDay, isSelected) {
   }
   const _photos = _result.slice(0, 3);
   if (!_photos.length) return '';
-  const _S = 18, _OV = 5;
-  const _tw = _S + (_photos.length - 1) * (_S - _OV);
+  const _n = _photos.length;
+  const _S = _n >= 3 ? 14 : 18;
+  const _OV = _n >= 3 ? 6 : 5;
+  const _tw = _S + (_n - 1) * (_S - _OV);
   const _circles = _photos.map((_p, _i) => {
     const _lft = _i * (_S - _OV);
-    const _zi = _photos.length - _i;
+    const _zi = _n - _i;
     const _outline = isSelected ? ';box-shadow:0 0 0 2px #fff' : '';
     return `<div style="position:absolute;left:${_lft}px;top:0;width:${_S}px;height:${_S}px;border-radius:50%;overflow:hidden;z-index:${_zi}${_outline}">${_personAvatarInner(_p, _S)}</div>`;
   }).join('');
@@ -7230,11 +7232,13 @@ function renderCalendar() {
     })();
     const _peopleHtml = (() => {
       if (!_peopleForDay.length) return '';
-      const _S = 18, _OV = 5;
-      const _tw = _S + (_peopleForDay.length - 1) * (_S - _OV);
+      const _n = _peopleForDay.length;
+      const _S = _n >= 3 ? 14 : 18;
+      const _OV = _n >= 3 ? 6 : 5;
+      const _tw = _S + (_n - 1) * (_S - _OV);
       const _circles = _peopleForDay.map((_p, _i) => {
         const _lft = _i * (_S - _OV);
-        const _zi = _peopleForDay.length - _i;
+        const _zi = _n - _i;
         const _outline = isSelected ? ';box-shadow:0 0 0 2px #fff' : '';
         return `<div style="position:absolute;left:${_lft}px;top:0;width:${_S}px;height:${_S}px;border-radius:50%;overflow:hidden;z-index:${_zi}${_outline}">${_personAvatarInner(_p, _S)}</div>`;
       }).join('');
@@ -15834,6 +15838,28 @@ saveEditDate = function() {
     u = (edDateId != null ? UPCOMING_DATES.find(d => d.id === edDateId) : null) || UPCOMING_DATES[edDateIdx];
   }
   if (u) { u.people = _edPeople || undefined; saveDates(UPCOMING_DATES); }
+  // Full re-render preserving selected calendar day and slide position
+  if (currentView === 'calendar') {
+    FUTURE_DATES = buildFutureDates();
+    // Re-render calendar keeping selectedCalDay and overflow context
+    _calRenderWithoutSlides();
+    // Rebuild slides to reflect updated date data
+    setTimeout(() => {
+      const slidesEl = document.getElementById('cal-slides');
+      if (slidesEl) {
+        const _sec = calScreenConfig.find(s => s.id === 'slides');
+        if (_sec && _sec.on !== false) {
+          const _selMonthAbbrR = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][(window._calOverflowMonth != null ? window._calOverflowMonth : currentCalMonth)];
+          const _selYearR = window._calOverflowYear != null ? window._calOverflowYear : currentCalYear;
+          const visible = UPCOMING_DATES.filter(d => d.month === _selMonthAbbrR && (d.year||2026) === _selYearR && d.day === selectedCalDay && !_isDateHiddenPrivate(d));
+          if (u) window._calActiveDateId = String(u.id);
+          _calRenderWithoutSlides();
+        }
+      }
+      _applyBirthdayDots();
+      _applyBirthdayDotsWeek();
+    }, 0);
+  }
 };
 
 // ── Populate people in Edit Date ──────────────────────
@@ -15854,7 +15880,7 @@ _resetDateForm = function() {
 
 // ── Banner circle photos in Date Info popup ───────────
 function _diPeoplePhotosHtml(u) {
-  const peeps = (u.people || []).slice(0, 3);
+  const peeps = (u.people || []);
   if (!peeps.length) return '';
   const SIZE = 28;
   const OVERLAP = 8;
@@ -15881,7 +15907,7 @@ openDateInfo = function(u, memoryMode) {
   window._diCurrentDatePeople = u.people || [];
   const banner = document.getElementById('di-banner');
   if (!banner || banner.style.display === 'none') return;
-  const peeps = (u.people || []).slice(0, 3);
+  const peeps = (u.people || []);
   const SIZE = 28;
   const OVERLAP = 8;
   const totalW = SIZE + (peeps.length - 1) * (SIZE - OVERLAP);
@@ -16870,7 +16896,7 @@ function _planSomethingWithPerson() {
 }
 
 function _buildUpcomingPeopleHtml(u) {
-  const peeps = (u.people || []).slice(0, 3);
+  const peeps = (u.people || []);
   if (!peeps.length) return '';
   const SIZE = 28;
   const OVERLAP = 8;
