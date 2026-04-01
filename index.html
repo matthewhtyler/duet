@@ -7141,7 +7141,7 @@ function renderCalendar() {
       const _pd = _daysInPrev - firstDow + 1 + i;
       const _pIsMarked = _prevMarked.includes(_pd);
       const _pIsDimmed = !_pIsMarked && _prevDimmed.includes(_pd);
-      const _pDotClass = _pIsMarked ? 'cal-dot' : (_pIsDimmed ? 'cal-dot dim' : '');
+      const _pDotClass = _pIsSelected ? 'cal-dot selected' : (_pIsMarked ? 'cal-dot' : (_pIsDimmed ? 'cal-dot dim' : ''));
       let _pDotHtml = (_pIsMarked || _pIsDimmed) ? `<div class="${_pDotClass}"></div>` : '';
       // Icons mode: show date icon instead of dot
       if (_isIconsMode && _pIsMarked) {
@@ -7248,7 +7248,7 @@ function renderCalendar() {
       const _nDotClass = _nIsPast ? 'cal-dot past' : (_nIsMarked ? 'cal-dot' : (_nIsDimmed ? 'cal-dot dim' : ''));
       const _nDotHtml = (_nIsMarked || _nIsDimmed) ? `<div class="${_nDotClass}"></div>` : '';
       const _nCls = 'cal-day' + (_isPeopleMode ? ' cal-day-people' : _isIconsMode ? ' cal-day-icons' : '');
-      const _nDotClassFull = _nIsMarked ? 'cal-dot' : (_nIsDimmed ? 'cal-dot dim' : '');
+      const _nDotClassFull = _nIsSelected ? 'cal-dot selected' : (_nIsMarked ? 'cal-dot' : (_nIsDimmed ? 'cal-dot dim' : ''));
       const _nDotHtmlFull = (_nIsMarked || _nIsDimmed) ? `<div class="${_nDotClassFull}"></div>` : '';
             const _nIsSelected = window._calOverflowMonth === _nextMonth && window._calOverflowYear === _nextYear && selectedCalDay === _nd;
       // Icons mode: show date icon instead of dot
@@ -15385,13 +15385,26 @@ let _photoCropOffsetX = 0;
 let _photoCropOffsetY = 0;
 
 function openEditPersonPhoto() {
-  const personId = _currentPersonId || _editPersonId;
+  const personId = window._photoCropPersonId || _currentPersonId || _editPersonId;
   window._photoCropPersonId = personId; // capture at open time
   const p = personId ? people.find(x => x.id === personId) : null;
   const urlInput = document.getElementById('photo-url-input');
   const zoomSlider = document.getElementById('photo-crop-zoom');
   if (urlInput) {
-    urlInput.value = (p && p.photoUrl) ? p.photoUrl : '';
+    // Show just the filename if the stored URL starts with the user's image host
+    const _rawPhotoUrl = (p && p.photoUrl) ? p.photoUrl : '';
+    if (_rawPhotoUrl && imagesHost) {
+      const _base = imagesHost.endsWith('/') ? imagesHost : imagesHost + '/';
+      urlInput.value = _rawPhotoUrl.startsWith(_base) ? _rawPhotoUrl.slice(_base.length) : _rawPhotoUrl;
+    } else {
+      urlInput.value = _rawPhotoUrl;
+    }
+    // If blank, default to first name + .png from the form behind
+    if (!urlInput.value) {
+      const _epFn = document.getElementById('ep-first-name') || document.getElementById('nps-first-name');
+      const _firstName = (_epFn && _epFn.value.trim()) ? _epFn.value.trim() : (p ? p.firstName : '');
+      if (_firstName) urlInput.value = _firstName.toLowerCase().replace(/\s+/g, '') + '.png';
+    }
     const reloadBtn = document.getElementById('photo-reload-btn');
     const clearBtn = document.getElementById('photo-clear-btn');
     if (reloadBtn) reloadBtn.style.opacity = urlInput.value ? '1' : '0.3';
@@ -15530,9 +15543,11 @@ function savePersonPhoto() {
     p.photoX    = _photoCropOffsetX;
     p.photoY    = _photoCropOffsetY;
     savePeople(people);
-    // Refresh ep-photo-circle with correct crop
+    // Refresh photo circles in both new-person and edit-person sheets
     const circle = document.getElementById('ep-photo-circle');
     if (circle) circle.innerHTML = _personAvatarInner(p, 72);
+    const npsCircle = document.getElementById('nps-photo-circle');
+    if (npsCircle) npsCircle.innerHTML = _personAvatarInner(p, 72);
     // Refresh Person Info popup if open
     const piOverlay = document.getElementById('person-info-overlay');
     if (piOverlay && piOverlay.style.display !== 'none') _renderPersonInfoPopup(p);
