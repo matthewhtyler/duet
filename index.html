@@ -7139,6 +7139,7 @@ function renderCalendar() {
     const _prevDimmed = _isSearchingCal ? _prevDates.filter(u => !_calMemMatchDate(u)).map(u => u.day) : [];
     for (let i = 0; i < firstDow; i++) {
       const _pd = _daysInPrev - firstDow + 1 + i;
+      const _pIsSelected = window._calOverflowMonth === _prevMonth && window._calOverflowYear === _prevYear && selectedCalDay === _pd;
       const _pIsMarked = _prevMarked.includes(_pd);
       const _pIsDimmed = !_pIsMarked && _prevDimmed.includes(_pd);
       const _pDotClass = _pIsSelected ? 'cal-dot selected' : (_pIsMarked ? 'cal-dot' : (_pIsDimmed ? 'cal-dot dim' : ''));
@@ -7152,7 +7153,6 @@ function renderCalendar() {
         const _pIconSvg = _pIconKey && ICONS[_pIconKey] ? ICONS[_pIconKey](10, _pIconColor) : null;
         if (_pIconSvg) _pDotHtml = `<div class="cal-dot-icon"><div style="width:12px;height:12px;display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0">${_pIconSvg}</div></div>`;
       }
-            const _pIsSelected = window._calOverflowMonth === _prevMonth && window._calOverflowYear === _prevYear && selectedCalDay === _pd;
       const _pFinalDot = _pDotHtml;
       cells += `<button class="cal-day${_pIsSelected ? ' selected' : ''}${_isPeopleMode ? ' cal-day-people' : _isIconsMode ? ' cal-day-icons' : ''}" data-overflow-month="${_prevMonth}" data-overflow-year="${_prevYear}" data-overflow-day="${_pd}" onclick="_calSelectOverflowDay(${_prevMonth},${_prevYear},${_pd})"><span style="${_pIsSelected ? 'font-weight:700' : 'color:#b0a090'}">${_pd}</span>${_pFinalDot}</button>`;
     }
@@ -7241,6 +7241,7 @@ function renderCalendar() {
     const _nextDimmedDays = _isSearchingCal ? _nextDatesThisMonth.filter(u => !_calMemMatchDate(u)).map(u => u.day) : [];
     for (let i = 1; i <= _trailingCount; i++) {
       const _nd = i;
+      const _nIsSelected = window._calOverflowMonth === _nextMonth && window._calOverflowYear === _nextYear && selectedCalDay === _nd;
       const _nDate = new Date(_nextYear, _nextMonth, _nd); _nDate.setHours(0,0,0,0);
       const _nIsPast = _nDate < _now;
       const _nIsMarked = _nextMarkedDays.includes(_nd);
@@ -7250,7 +7251,6 @@ function renderCalendar() {
       const _nCls = 'cal-day' + (_isPeopleMode ? ' cal-day-people' : _isIconsMode ? ' cal-day-icons' : '');
       const _nDotClassFull = _nIsSelected ? 'cal-dot selected' : (_nIsMarked ? 'cal-dot' : (_nIsDimmed ? 'cal-dot dim' : ''));
       const _nDotHtmlFull = (_nIsMarked || _nIsDimmed) ? `<div class="${_nDotClassFull}"></div>` : '';
-            const _nIsSelected = window._calOverflowMonth === _nextMonth && window._calOverflowYear === _nextYear && selectedCalDay === _nd;
       // Icons mode: show date icon instead of dot
       let _nFinalDot = _nDotHtmlFull;
       if (_isIconsMode && _nIsMarked) {
@@ -15403,7 +15403,6 @@ function openEditPersonPhoto() {
     if (!urlInput.value) {
       const _epFn = document.getElementById('ep-first-name');
       const _npsFn = document.getElementById('nps-first-name');
-      // Use whichever field is in an open/visible form
       const _fnField = (_epFn && _epFn.value.trim()) ? _epFn : (_npsFn && _npsFn.value.trim()) ? _npsFn : null;
       if (_fnField) urlInput.value = _fnField.value.trim().toLowerCase().replace(/\s+/g, '') + '.png';
     }
@@ -15420,6 +15419,8 @@ function openEditPersonPhoto() {
   _photoCropImg = null;
   if (p && p.photoUrl) {
     _loadPhotoCropImage(_resolveImageUrl(p.photoUrl));
+  } else if (urlInput && urlInput.value) {
+    _onPhotoUrlInput(urlInput.value);
   } else {
     _photoCropShowPlaceholder();
   }
